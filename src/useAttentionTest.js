@@ -3,6 +3,9 @@ import { COLORS, GIF_FILES, INDEPENDENT_SOUNDS, SHAPES } from "./constants.js";
 import { getGifPosition } from "./shapeUtils.jsx";
 import { pickSeeded, pickTargetRandom, resetSeed, seededRandom } from "./random.js";
 
+/** Takip edilecek hedef şekil (tüm test boyunca sabit). */
+const FIXED_TARGET_SHAPE = "triangle";
+
 export function useAttentionTest(profile, { onFinished } = {}) {
   const [target, setTarget] = useState(null);
   const [scene, setScene] = useState(null);
@@ -30,9 +33,9 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     let next;
     let g = 0;
     do {
-      next = { shape: pickTargetRandom(SHAPES), color: pickTargetRandom(COLORS) };
+      next = { shape: FIXED_TARGET_SHAPE, color: pickTargetRandom(COLORS) };
       g++;
-    } while (prev && next.shape === prev.shape && next.color === prev.color && g < 40);
+    } while (prev && next.color === prev.color && g < 40);
     targetRef.current = next;
     setTarget(next);
   }, []);
