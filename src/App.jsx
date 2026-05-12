@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ageFromBirthDate, getProfile, profileKeyFromAge } from "./profiles.js";
 import { ShapeView } from "./shapeUtils.jsx";
 import { useAttentionTest } from "./useAttentionTest.js";
@@ -32,6 +32,7 @@ export default function App() {
   const [age, setAge] = useState("");
   const [pkey, setPkey] = useState("adult");
   const [logs, setLogs] = useState([]);
+  const [spaceVerified, setSpaceVerified] = useState(false);
 
   const chartRef = useRef(null);
   const profile = getProfile(pkey);
@@ -70,14 +71,31 @@ export default function App() {
     }
     setAge(String(a));
     setPkey(k);
+    setSpaceVerified(false);
     setStep("brief");
   }
 
   function beginTest() {
+    if (!spaceVerified) return;
     setLogs([]);
     start();
     setStep("run");
   }
+
+  useEffect(() => {
+    if (step !== "brief") return undefined;
+    const kd = (e) => {
+      if (e.code !== "Space") return;
+      const el = document.activeElement;
+      const typing =
+        el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
+      if (typing) return;
+      e.preventDefault();
+      setSpaceVerified(true);
+    };
+    window.addEventListener("keydown", kd);
+    return () => window.removeEventListener("keydown", kd);
+  }, [step]);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px 48px", background: "#f1f5f9" }}>
@@ -149,6 +167,26 @@ export default function App() {
           </p>
           <div
             style={{
+              margin: "20px auto 16px",
+              padding: "14px 18px",
+              borderRadius: 14,
+              background: spaceVerified ? "#ecfdf5" : "#fff7ed",
+              border: `1px solid ${spaceVerified ? "#6ee7b7" : "#fdba74"}`,
+              color: "#334155",
+              maxWidth: 440
+            }}
+          >
+            <strong>SPACE kontrolü:</strong> Teste başlamadan önce klavyede{" "}
+            <strong style={{ color: "#0f172a" }}>SPACE</strong> tuşuna bir kez basın. Algılandığında burada onay
+            görürsünüz.
+            {spaceVerified ? (
+              <p style={{ margin: "10px 0 0", color: "#047857", fontWeight: 700 }}>Tuş algılandı — hazırsınız.</p>
+            ) : (
+              <p style={{ margin: "10px 0 0", color: "#9a3412" }}>Henüz SPACE basısı alınmadı.</p>
+            )}
+          </div>
+          <div
+            style={{
               margin: "24px auto",
               width: 160,
               height: 160,
@@ -164,16 +202,33 @@ export default function App() {
           </div>
           <button
             type="button"
+            onClick={() => setSpaceVerified(true)}
+            style={{
+              marginBottom: 12,
+              padding: "10px 18px",
+              borderRadius: 12,
+              border: "1px solid #cbd5e1",
+              background: "#f8fafc",
+              color: "#475569",
+              fontSize: 14,
+              cursor: "pointer"
+            }}
+          >
+            Klavye yok / SPACE deneme — dokunarak onayla
+          </button>
+          <button
+            type="button"
             onClick={beginTest}
+            disabled={!spaceVerified}
             style={{
               padding: "14px 28px",
               border: "none",
               borderRadius: 14,
-              background: "#142440",
+              background: spaceVerified ? "#142440" : "#94a3b8",
               color: "#fff",
               fontWeight: 700,
               fontSize: 16,
-              cursor: "pointer"
+              cursor: spaceVerified ? "pointer" : "not-allowed"
             }}
           >
             Teste başla
@@ -245,6 +300,7 @@ export default function App() {
                   onClick={() => {
                     resetAfterReport();
                     setLogs([]);
+                    setSpaceVerified(false);
                     setStep("brief");
                   }}
                   style={{ padding: "12px 22px", borderRadius: 12, border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer" }}
