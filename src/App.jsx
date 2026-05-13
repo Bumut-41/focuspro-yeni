@@ -33,7 +33,9 @@ export default function App() {
   const [pkey, setPkey] = useState("adult");
   const [logs, setLogs] = useState([]);
   const [spaceVerified, setSpaceVerified] = useState(false);
+  const [spaceCelebrating, setSpaceCelebrating] = useState(false);
 
+  const spaceDoneLock = useRef(false);
   const chartRef = useRef(null);
   const profile = getProfile(pkey);
 
@@ -47,6 +49,18 @@ export default function App() {
   });
 
   const participant = { name, age, birthDate: birth, gender };
+
+  const completeSpaceCheck = useCallback(() => {
+    if (spaceCelebrating || spaceDoneLock.current) return;
+    spaceDoneLock.current = true;
+    setSpaceCelebrating(true);
+    window.setTimeout(() => {
+      setSpaceVerified(true);
+      setStep("brief");
+      setSpaceCelebrating(false);
+      spaceDoneLock.current = false;
+    }, 950);
+  }, [spaceCelebrating]);
 
   function submitForm(e) {
     e.preventDefault();
@@ -72,7 +86,9 @@ export default function App() {
     setAge(String(a));
     setPkey(k);
     setSpaceVerified(false);
-    setStep("brief");
+    spaceDoneLock.current = false;
+    setSpaceCelebrating(false);
+    setStep("spaceCheck");
   }
 
   function beginTest() {
@@ -83,7 +99,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (step !== "brief") return undefined;
+    if (step !== "spaceCheck" || spaceCelebrating) return undefined;
     const kd = (e) => {
       if (e.code !== "Space") return;
       const el = document.activeElement;
@@ -91,20 +107,29 @@ export default function App() {
         el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
       if (typing) return;
       e.preventDefault();
-      setSpaceVerified(true);
+      completeSpaceCheck();
     };
     window.addEventListener("keydown", kd);
     return () => window.removeEventListener("keydown", kd);
+  }, [step, spaceCelebrating, completeSpaceCheck]);
+
+  useEffect(() => {
+    if (step === "spaceCheck") {
+      spaceDoneLock.current = false;
+      setSpaceCelebrating(false);
+    }
   }, [step]);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px 48px", background: "#f1f5f9" }}>
-      <header style={{ textAlign: "center", marginBottom: 20 }}>
-        <h1 style={{ margin: 0, color: "#0f172a" }}>FocusProLab</h1>
-        <p style={{ margin: "8px 0 0", color: "#475569", maxWidth: 520 }}>
-          Hedef şekil ve renk birlikte gelince SPACE veya ekrana dokun. Yaşa göre süre ve fazlar değişir.
-        </p>
-      </header>
+      {step !== "spaceCheck" && (
+        <header style={{ textAlign: "center", marginBottom: 20 }}>
+          <h1 style={{ margin: 0, color: "#0f172a" }}>FocusProLab</h1>
+          <p style={{ margin: "8px 0 0", color: "#475569", maxWidth: 520 }}>
+            Hedef şekil ve renk birlikte gelince SPACE veya ekrana dokun. Yaşa göre süre ve fazlar değişir.
+          </p>
+        </header>
+      )}
 
       {step === "form" && (
         <form onSubmit={submitForm} style={card}>
@@ -156,35 +181,60 @@ export default function App() {
         </form>
       )}
 
+      {step === "spaceCheck" && (
+        <div className="space-screen">
+          <div className="space-screen-bg" aria-hidden />
+          <div className="space-screen-bg space-screen-bg--2" aria-hidden />
+          <div className="space-screen-inner">
+            <p className="space-screen-kicker">Adım 1 / 2 · Tuş kontrolü</p>
+            {!spaceCelebrating ? (
+              <>
+                <h2 className="space-screen-head">Önce SPACE tuşunu deneyelim</h2>
+                <p className="space-screen-sub">
+                  Testte yanıt vereceğiniz tuş bu. Klavyede <strong>en uzun çubuk</strong> — boşluk (SPACE) tuşuna{" "}
+                  <strong>şimdi bir kez</strong> basın.
+                </p>
+                <div className="space-screen-visual" aria-hidden="true">
+                  <div className="space-screen-ring space-screen-ring--r1" />
+                  <div className="space-screen-ring space-screen-ring--r2" />
+                  <div className="space-screen-ring space-screen-ring--r3" />
+                  <div className="space-screen-key-wrap">
+                    <div className="space-screen-key space-screen-key--pulse">
+                      <span className="space-screen-key-label">SPACE</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="space-screen-nudge">Basın ↓</p>
+                <button
+                  type="button"
+                  className="space-screen-touch"
+                  onClick={() => completeSpaceCheck()}
+                >
+                  Klavye yok — dokunarak geç
+                </button>
+              </>
+            ) : (
+              <div className="space-screen-win" role="status" aria-live="polite">
+                <div className="space-screen-win-burst" />
+                <span className="space-screen-win-check">✓</span>
+                <p className="space-screen-win-title">Süper!</p>
+                <p className="space-screen-win-sub">Tuş algılandı — hazırlanıyorsunuz…</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {step === "brief" && target && (
         <div style={{ ...card, maxWidth: 720, textAlign: "center" }}>
+          <p style={{ margin: "0 0 8px", fontSize: 13, color: "#64748b", fontWeight: 600 }}>Adım 2 / 2</p>
           <h2>Test hazır</h2>
           <p style={{ color: "#475569" }}>
             Profil: <strong>{getProfile(pkey).label}</strong> — süre yaklaşık <strong>{Math.round(getProfile(pkey).durationMs / 60000)}</strong> dk.
           </p>
-          <p>
-            Aşağıdaki <strong>hedef</strong> göründüğünde yanıt ver.
+          <p style={{ color: "#475569", marginTop: 8 }}>
+            Test sırasında aşağıdaki <strong>hedef</strong> birlikte göründüğünde yanıt verin.
           </p>
-          <div
-            style={{
-              margin: "20px auto 16px",
-              padding: "14px 18px",
-              borderRadius: 14,
-              background: spaceVerified ? "#ecfdf5" : "#fff7ed",
-              border: `1px solid ${spaceVerified ? "#6ee7b7" : "#fdba74"}`,
-              color: "#334155",
-              maxWidth: 440
-            }}
-          >
-            <strong>SPACE kontrolü:</strong> Teste başlamadan önce klavyede{" "}
-            <strong style={{ color: "#0f172a" }}>SPACE</strong> tuşuna bir kez basın. Algılandığında burada onay
-            görürsünüz.
-            {spaceVerified ? (
-              <p style={{ margin: "10px 0 0", color: "#047857", fontWeight: 700 }}>Tuş algılandı — hazırsınız.</p>
-            ) : (
-              <p style={{ margin: "10px 0 0", color: "#9a3412" }}>Henüz SPACE basısı alınmadı.</p>
-            )}
-          </div>
           <div
             style={{
               margin: "24px auto",
@@ -202,33 +252,16 @@ export default function App() {
           </div>
           <button
             type="button"
-            onClick={() => setSpaceVerified(true)}
-            style={{
-              marginBottom: 12,
-              padding: "10px 18px",
-              borderRadius: 12,
-              border: "1px solid #cbd5e1",
-              background: "#f8fafc",
-              color: "#475569",
-              fontSize: 14,
-              cursor: "pointer"
-            }}
-          >
-            Klavye yok / SPACE deneme — dokunarak onayla
-          </button>
-          <button
-            type="button"
             onClick={beginTest}
-            disabled={!spaceVerified}
             style={{
               padding: "14px 28px",
               border: "none",
               borderRadius: 14,
-              background: spaceVerified ? "#142440" : "#94a3b8",
+              background: "#142440",
               color: "#fff",
               fontWeight: 700,
               fontSize: 16,
-              cursor: spaceVerified ? "pointer" : "not-allowed"
+              cursor: "pointer"
             }}
           >
             Teste başla
@@ -301,7 +334,9 @@ export default function App() {
                     resetAfterReport();
                     setLogs([]);
                     setSpaceVerified(false);
-                    setStep("brief");
+                    spaceDoneLock.current = false;
+                    setSpaceCelebrating(false);
+                    setStep("spaceCheck");
                   }}
                   style={{ padding: "12px 22px", borderRadius: 12, border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer" }}
                 >
