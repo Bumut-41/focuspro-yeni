@@ -186,7 +186,7 @@ export default function App() {
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">Adım 1 / 2 · Tuş kontrolü</p>
+            <p className="space-screen-kicker">Adım 1 / 2 · Tuş kontrolü · v2.2</p>
             {!spaceCelebrating ? (
               <>
                 <h2 className="space-screen-head">Önce SPACE tuşunu deneyelim</h2>
