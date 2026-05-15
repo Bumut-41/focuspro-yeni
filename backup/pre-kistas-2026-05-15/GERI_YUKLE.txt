@@ -1,0 +1,9 @@
+Yedek tarihi: 2026-05-15 (kistas guncellemesi oncesi)
+
+Geri almak icin bu klasordeki dosyalari src/ altina kopyalayin:
+  profiles.js
+  useAttentionTest.js
+  constants.js
+
+Git ile geri almak:
+  git checkout backup/pre-kistas-2026-05-15 -- src/profiles.js src/useAttentionTest.js src/constants.js
