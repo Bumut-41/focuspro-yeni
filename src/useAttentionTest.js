@@ -291,6 +291,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     setRunning(true);
     scheduleDistractors();
     clockRef.current = setTimeout(endTest, profile.durationMs);
+    nextTrialRef.current();
   }, [endTest, profile.durationMs, scheduleDistractors, stopAll]);
 
   const resetAfterReport = useCallback(() => {
@@ -314,12 +315,6 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       stopAll();
     };
   }, [profile.key, mkTarget, stopAll]);
-
-  useEffect(() => {
-    if (!running || !targetRef.current) return undefined;
-    nextTrialRef.current();
-    return () => clearTimeout(timerRef.current);
-  }, [running]);
 
   useEffect(() => {
     const kd = (e) => {
