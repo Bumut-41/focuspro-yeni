@@ -24,6 +24,9 @@ export const COLORS = [
   "#0F172A"
 ];
 
+/** Tüm çalıştırmalarda aynı hedef rengi (deterministik test). */
+export const FIXED_TARGET_COLOR = COLORS[0];
+
 /** Dosyalar: public/distractors/ — yoksa img onError ile gizlenir */
 export const GIF_FILES = {
   kedi: { name: "Kedi", gif: "/distractors/kedi.gif", sound: "/distractors/kedi.mp3", size: 220 },

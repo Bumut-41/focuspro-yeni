@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { COLORS, GIF_FILES, INDEPENDENT_SOUNDS, SHAPES } from "./constants.js";
+import { COLORS, FIXED_TARGET_COLOR, GIF_FILES, INDEPENDENT_SOUNDS, SHAPES } from "./constants.js";
 import { getGifPosition } from "./shapeUtils.jsx";
-import { pickSeeded, pickTargetRandom, resetSeed, seededRandom } from "./random.js";
+import { pickSeeded, resetSeed, seededRandom } from "./random.js";
 
 /** Takip edilecek hedef şekil (tüm test boyunca sabit). */
 const FIXED_TARGET_SHAPE = "triangle";
 
+/**
+ * Test deterministik: aynı profilde her koşu — aynı hedef renk, aynı uyaran sırası (LCG),
+ * çeldiriciler profildeki sabit `at` zamanlarında. Zamanlama setTimeout ile planlanır.
+ */
 export function useAttentionTest(profile, { onFinished } = {}) {
   const [target, setTarget] = useState(null);
   const [scene, setScene] = useState(null);
@@ -21,31 +25,21 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const lastKey = useRef(0);
   const audioMap = useRef({});
   const playing = useRef(false);
-  const t0 = useRef(0);
   const gifIds = useRef([]);
   const soundGifIds = useRef([]);
   const soloSoundId = useRef(null);
 
+  /** Deneme zaman çizelgesi (performans kayması yerine planlanan ms). */
+  const scheduleMsRef = useRef(0);
+  const eventIdSeqRef = useRef(0);
+
   const nextTrialRef = useRef(null);
 
   const mkTarget = useCallback(() => {
-    const prev = targetRef.current;
-    let next;
-    let g = 0;
-    do {
-      next = { shape: FIXED_TARGET_SHAPE, color: pickTargetRandom(COLORS) };
-      g++;
-    } while (prev && next.color === prev.color && g < 40);
+    const next = { shape: FIXED_TARGET_SHAPE, color: FIXED_TARGET_COLOR };
     targetRef.current = next;
     setTarget(next);
   }, []);
-
-  const elapsed = useCallback(() => (t0.current ? performance.now() - t0.current : 0), []);
-
-  const phaseNow = useCallback(
-    (ms = elapsed()) => profile.phases.find((p) => ms < p.end) ?? profile.phases.at(-1),
-    [profile.phases, elapsed]
-  );
 
   const clearEvents = useCallback(() => {
     eventTimers.current.forEach(clearTimeout);
@@ -73,19 +67,16 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     setGifs([]);
   }, [clearEvents, stopAudio]);
 
-  const removeGif = useCallback(
-    (id) => {
-      const a = audioMap.current[id];
-      if (a) {
-        a.pause();
-        delete audioMap.current[id];
-      }
-      gifIds.current = gifIds.current.filter((x) => x !== id);
-      soundGifIds.current = soundGifIds.current.filter((x) => x !== id);
-      setGifs((p) => p.filter((g) => g.id !== id));
-    },
-    []
-  );
+  const removeGif = useCallback((id) => {
+    const a = audioMap.current[id];
+    if (a) {
+      a.pause();
+      delete audioMap.current[id];
+    }
+    gifIds.current = gifIds.current.filter((x) => x !== id);
+    soundGifIds.current = soundGifIds.current.filter((x) => x !== id);
+    setGifs((p) => p.filter((g) => g.id !== id));
+  }, []);
 
   const canAdd = useCallback((items) => {
     const nS = items.filter((i) => !i.silent).length;
@@ -100,13 +91,14 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     (idx) => {
       const ev = profile.gifEvents[idx];
       if (!ev || !playing.current || !canAdd(ev.items)) return;
+      const seq = eventIdSeqRef.current++;
       const items = ev.items
         .map((raw, i) => {
           const f = GIF_FILES[raw.key];
           if (!f) return null;
           const pos = getGifPosition(raw.area, raw.zone);
           return {
-            id: `g-${idx}-${i}-${Date.now()}`,
+            id: `g-${idx}-${i}-${seq}`,
             gif: f.gif,
             sound: raw.silent ? null : f.sound,
             left: pos.left,
@@ -139,7 +131,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       if (!ev || !playing.current || soloSoundId.current) return;
       const path = INDEPENDENT_SOUNDS[ev.key];
       if (!path) return;
-      const id = `s-${idx}-${Date.now()}`;
+      const id = `s-${idx}-${eventIdSeqRef.current++}`;
       const a = new Audio(path);
       a.volume = 0.65;
       audioMap.current[id] = a;
@@ -208,12 +200,12 @@ export function useAttentionTest(profile, { onFinished } = {}) {
 
   const nextTrial = useCallback(() => {
     if (!playing.current) return;
-    const ms = elapsed();
+    const ms = scheduleMsRef.current;
     if (ms >= profile.durationMs) {
       endTest();
       return;
     }
-    const ph = phaseNow(ms);
+    const ph = profile.phases.find((p) => ms < p.end) ?? profile.phases.at(-1);
     const n = logRef.current.length + 1;
     const isT = seededRandom() < profile.targetProbability;
     const cur = targetRef.current;
@@ -232,6 +224,8 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       startTime: performance.now()
     };
     setScene({ shape: shown.shape, color: shown.color });
+    const stim = ph.stimulus;
+    const gap = ph.gap;
     timerRef.current = setTimeout(() => {
       setScene(null);
       const t = trialRef.current;
@@ -250,9 +244,17 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         });
       }
       trialRef.current = null;
-      timerRef.current = setTimeout(nextTrialRef.current, phaseNow().gap);
-    }, ph.stimulus);
-  }, [elapsed, endTest, nonTarget, phaseNow, profile.durationMs, profile.targetProbability]);
+      scheduleMsRef.current += stim;
+      if (scheduleMsRef.current >= profile.durationMs) {
+        endTest();
+        return;
+      }
+      timerRef.current = setTimeout(() => {
+        scheduleMsRef.current += gap;
+        nextTrialRef.current();
+      }, gap);
+    }, stim);
+  }, [endTest, nonTarget, profile.durationMs, profile.phases, profile.targetProbability]);
 
   nextTrialRef.current = nextTrial;
 
@@ -276,6 +278,8 @@ export function useAttentionTest(profile, { onFinished } = {}) {
 
   const start = useCallback(() => {
     resetSeed();
+    scheduleMsRef.current = 0;
+    eventIdSeqRef.current = 0;
     logRef.current = [];
     trialRef.current = null;
     lastKey.current = 0;
@@ -283,7 +287,6 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     clearTimeout(clockRef.current);
     stopAll();
     setScene(null);
-    t0.current = performance.now();
     playing.current = true;
     setRunning(true);
     scheduleDistractors();
@@ -297,7 +300,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     stopAll();
     logRef.current = [];
     trialRef.current = null;
-    t0.current = 0;
+    scheduleMsRef.current = 0;
     setScene(null);
     resetSeed();
     mkTarget();

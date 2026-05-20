@@ -1,7 +1,10 @@
-let seed = 1_234_567_89;
+/** Her test koşusunda uyaran dizisi birebir aynı olsun diye sabit tohum. */
+export const FIXED_TEST_SEED = 1_234_567_89;
+
+let seed = FIXED_TEST_SEED;
 
 export function resetSeed() {
-  seed = 1_234_567_89;
+  seed = FIXED_TEST_SEED;
 }
 
 export function seededRandom() {
@@ -11,14 +14,4 @@ export function seededRandom() {
 
 export function pickSeeded(arr) {
   return arr[Math.floor(seededRandom() * arr.length)];
-}
-
-export function pickTargetRandom(arr) {
-  const c = globalThis.crypto;
-  if (c?.getRandomValues) {
-    const u = new Uint32Array(1);
-    c.getRandomValues(u);
-    return arr[u[0] % arr.length];
-  }
-  return arr[Math.floor(Math.random() * arr.length)];
 }
