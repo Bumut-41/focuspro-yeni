@@ -230,7 +230,8 @@ export default function App() {
           <p style={{ margin: "0 0 8px", fontSize: 13, color: "#64748b", fontWeight: 600 }}>Adım 2 / 2</p>
           <h2>Test hazır</h2>
           <p style={{ color: "#475569" }}>
-            Profil: <strong>{getProfile(pkey).label}</strong> — süre yaklaşık <strong>{Math.round(getProfile(pkey).durationMs / 60000)}</strong> dk.
+            Profil: <strong>{getProfile(pkey).label}</strong> — Süre:{" "}
+            <strong>{Math.round(getProfile(pkey).durationMs / 60000)} dk</strong>
           </p>
           <p style={{ color: "#475569", marginTop: 8 }}>
             Test sırasında aşağıdaki <strong>hedef</strong> birlikte göründüğünde yanıt verin.
