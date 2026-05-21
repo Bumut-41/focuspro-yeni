@@ -1,10 +1,16 @@
 /** Çeldirici pencereleri: max 10 sn, aralar max 2 sn, sessiz gif max 2 ekranda */
 
+import {
+  DISTRACTOR_GIF_KEYS,
+  DISTRACTOR_SOUND_GIF_KEYS,
+  DISTRACTOR_SOUND_KEYS
+} from "./constants.js";
+
 const GIF_MS = 10_000;
 const MAX_GAP_MS = 2_000;
 const GIF_STEP_MS = GIF_MS - MAX_GAP_MS;
 
-const GIF_KEYS = ["kedi", "top", "araba", "agac"];
+const GIF_KEYS = DISTRACTOR_GIF_KEYS;
 const GIF_ZONES = [
   { area: "left", zone: "upper" },
   { area: "right", zone: "lower" },
@@ -12,8 +18,8 @@ const GIF_ZONES = [
   { area: "left", zone: "middle" }
 ];
 
-const SOUND_KEYS = ["kussesi", "alarm", "tren", "insan"];
-const SOUND_GIF_KEYS = ["top", "araba"];
+const SOUND_KEYS = DISTRACTOR_SOUND_KEYS;
+const SOUND_GIF_KEYS = DISTRACTOR_SOUND_GIF_KEYS;
 
 function buildSilentGifWindow(startMs, endMs) {
   const events = [];

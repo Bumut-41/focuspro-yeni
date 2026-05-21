@@ -1,0 +1,28 @@
+FocusPro-yeni — Tüm çeldirici dosyaları (32 dosya)
+====================================================
+
+Klasör:
+  C:\Users\ERNKIT03\OneDrive - Eren Holding\Masaüstü\FocusPro-yeni\public\distractors
+
+GIF + eşleşen ses (22 dosya):
+  [ ] top.gif      [ ] top.mp3
+  [ ] kosan.gif    [ ] kosan.mp3
+  [ ] kedi.gif     [ ] kedi.mp3
+  [ ] araba.gif    [ ] araba.mp3
+  [ ] agac.gif     [ ] agac.mp3
+  [ ] arabakorna.gif  [ ] arabakorna.mp3
+  [ ] asansor.gif  [ ] asansor.mp3
+  [ ] camtemizlik.gif [ ] camtemizlik.mp3
+  [ ] kapi.gif     [ ] kapi.mp3
+  [ ] motorsiklet.gif [ ] motorsiklet.mp3
+  [ ] televizyon.gif  [ ] televizyon.mp3
+
+Sadece ses — bağımsız (10 dosya):
+  [ ] alarm.mp3  [ ] cekic.mp3  [ ] gemi.mp3  [ ] sudamlasi.mp3
+  [ ] kussesi.mp3  [ ] hilti.mp3  [ ] tren.mp3  [ ] matkap.mp3
+  [ ] insan.mp3  [ ] testere.mp3
+
+Kontrol:
+  npm run check-distractors
+
+Program bu dosyaları sırayla ve sabit zamanlarda kullanır (src/constants.js).
