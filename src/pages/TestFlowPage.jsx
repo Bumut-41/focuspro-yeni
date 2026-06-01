@@ -155,6 +155,13 @@ export default function TestFlowPage() {
       className={isImmersiveStep ? "test-flow test-flow--immersive" : "test-flow"}
       style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
     >
+      {isImmersiveStep && (
+        <TestDevTimer
+          elapsedMs={step === "run" && running ? testElapsedMs : 0}
+          durationMs={profile.durationMs}
+        />
+      )}
+
       {!isImmersiveStep && (
         <p style={{ marginBottom: 12, color: "#64748b", width: "100%", maxWidth: 640 }}>
           <Link to="/">← Panele dön</Link>
@@ -245,7 +252,6 @@ export default function TestFlowPage() {
           onClick={register}
           onTouchStart={register}
         >
-          <TestDevTimer elapsedMs={testElapsedMs} durationMs={testDurationMs} />
           {gifs.map((g) => (
             <DistractorGif
               key={g.id}
