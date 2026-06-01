@@ -22,23 +22,24 @@ function phase(endMin, name, stimulus) {
   };
 }
 
-/** Çocuk — 13 dk */
+/** Çocuk — 13 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–8 ses, 8–11 gif, 11–13 kapanış) */
 const childPhases = [
-  phase(2, "Çocuk — 0–2 dk", 1800),
-  phase(5, "Çocuk — 2–5 dk", 1700),
-  phase(7, "Çocuk — 5–7 dk", 1600),
-  phase(10, "Çocuk — 7–10 dk (sessiz gif)", 1600),
-  phase(11, "Çocuk — 10–11 dk (sadece ses)", 1600),
-  phase(12, "Çocuk — 11–12 dk (sesli gif)", 1600),
-  phase(13, "Çocuk — 12–13 dk", 1850)
+  phase(1, "Çocuk — 0–1 dk", 1800),
+  phase(2, "Çocuk — 1–2 dk", 1700),
+  phase(3, "Çocuk — 2–3 dk", 1600),
+  phase(6, "Çocuk — 3–6 dk (sessiz gif)", 1600),
+  phase(8, "Çocuk — 6–8 dk (sadece ses)", 1600),
+  phase(11, "Çocuk — 8–11 dk (sessiz + sesli gif)", 1600),
+  phase(12, "Çocuk — 11–12 dk", 1850),
+  phase(13, "Çocuk — 12–13 dk", 1650)
 ];
 
 const childGif = mergeGifEvents([
-  buildSilentGifWindow(7 * MIN, 10 * MIN),
-  buildSoundGifWindow(11 * MIN, 12 * MIN)
+  buildSilentGifWindow(3 * MIN, 6 * MIN),
+  buildSoundGifWindow(8 * MIN, 11 * MIN)
 ]);
 
-const childSound = mergeSoundEvents([buildSoloSoundWindow(10 * MIN, 11 * MIN)]);
+const childSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 8 * MIN)]);
 
 /** Yetişkin — 15 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–9 ses, 9–12 gif, 12–15 kapanış) */
 const adultPhases = [
