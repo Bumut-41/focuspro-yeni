@@ -475,11 +475,43 @@ body {
   }
 }
 
+.distractor-gif-move-down-left {
+  left: 14%;
+  top: -14%;
+  transform: translateX(-50%);
+  animation-name: distractor-cross-down;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  will-change: top;
+}
+
+.distractor-gif-move-down-right {
+  left: 86%;
+  top: -14%;
+  transform: translateX(-50%);
+  animation-name: distractor-cross-down;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  will-change: top;
+}
+
+@keyframes distractor-cross-down {
+  from {
+    top: -14%;
+  }
+  to {
+    top: 114%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .distractor-gif-move-ltr,
-  .distractor-gif-move-rtl {
+  .distractor-gif-move-rtl,
+  .distractor-gif-move-down-left,
+  .distractor-gif-move-down-right {
     animation: none !important;
     left: 50% !important;
+    top: 50% !important;
     transform: translate(-50%, -50%) !important;
   }
 

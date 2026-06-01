@@ -101,5 +101,3 @@ export const DISTRACTOR_SOUND_KEYS = [
 /** Sesli gif penceresinde dönen gifler */
 export const DISTRACTOR_SOUND_GIF_KEYS = DISTRACTOR_GIF_KEYS;
 
-/** Ekranda sabit durmaz; çıktığı yönden karşı tarafa kayar */
-export const MOVING_GIF_KEYS = new Set(["araba", "kedi", "kosan", "motorsiklet", "arabakorna"]);

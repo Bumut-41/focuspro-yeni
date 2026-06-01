@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS, FIXED_TARGET_COLOR, GIF_FILES, INDEPENDENT_SOUNDS, SHAPES } from "./constants.js";
-import { getGifPosition } from "./shapeUtils.jsx";
 import { pickSeeded, resetSeed, seededRandom } from "./random.js";
 
 /** Takip edilecek hedef şekil (tüm test boyunca sabit). */
@@ -29,6 +28,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const gifIds = useRef([]);
   const soundGifIds = useRef([]);
   const soloSoundId = useRef(null);
+  const gifLanesOnScreen = useRef(new Set());
 
   /** Deneme zaman çizelgesi (performans kayması yerine planlanan ms). */
   const scheduleMsRef = useRef(0);
@@ -91,6 +91,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     stopAudio();
     gifIds.current = [];
     soundGifIds.current = [];
+    gifLanesOnScreen.current.clear();
     setGifs([]);
   }, [clearEvents, stopAudio]);
 
@@ -102,7 +103,11 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     }
     gifIds.current = gifIds.current.filter((x) => x !== id);
     soundGifIds.current = soundGifIds.current.filter((x) => x !== id);
-    setGifs((p) => p.filter((g) => g.id !== id));
+    setGifs((p) => {
+      const gone = p.find((g) => g.id === id);
+      if (gone?.laneId) gifLanesOnScreen.current.delete(gone.laneId);
+      return p.filter((g) => g.id !== id);
+    });
   }, []);
 
   const canAdd = useCallback((items) => {
@@ -111,6 +116,9 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     if (gifIds.current.length + items.length > 2) return false;
     if (soundGifIds.current.length + nS > 1) return false;
     if (nS > 1) return false;
+    for (const it of items) {
+      if (it.laneId && gifLanesOnScreen.current.has(it.laneId)) return false;
+    }
     return true;
   }, []);
 
@@ -123,21 +131,27 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         .map((raw, i) => {
           const f = GIF_FILES[raw.key];
           if (!f) return null;
-          const pos = getGifPosition(raw.area, raw.zone);
           return {
             id: `g-${idx}-${i}-${seq}`,
             gifKey: raw.key,
             gif: f.gif,
             sound: raw.silent ? null : f.sound,
             area: raw.area,
-            left: pos.left,
-            top: pos.top,
+            zone: raw.zone,
+            laneId: raw.laneId,
+            left: raw.left,
+            top: raw.top,
+            movement: raw.movement ?? "static",
             size: f.size,
-            duration: ev.duration
+            duration: ev.duration,
+            silent: raw.silent !== false
           };
         })
         .filter(Boolean);
       if (!items.length) return;
+      items.forEach((it) => {
+        if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
+      });
       gifIds.current = [...gifIds.current, ...items.map((x) => x.id)];
       soundGifIds.current = [...soundGifIds.current, ...items.filter((x) => x.sound).map((x) => x.id)];
       setGifs((p) => [...p, ...items]);

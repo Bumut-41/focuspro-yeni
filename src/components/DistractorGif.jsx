@@ -1,46 +1,60 @@
-import { MOVING_GIF_KEYS } from "../constants.js";
-
 /**
- * araba, kedi, koşan, motorsiklet, araba korna: sol taraftan başlarsa sağa, sağdan başlarsa sola kayar.
- * Diğer gifler eskisi gibi sabit köşede durur.
+ * GIF hareketleri: yatay (sol→sağ), dikey (yukarı→aşağı), veya sabit yan şerit.
  */
 export function DistractorGif({ item, onError }) {
   const base = {
     position: "absolute",
     width: item.size,
-    maxWidth: "32%",
+    maxWidth: "28%",
     pointerEvents: "none"
   };
 
-  if (!MOVING_GIF_KEYS.has(item.gifKey)) {
+  const movement = item.movement ?? "static";
+
+  if (movement === "horizontal") {
+    const toRight = item.area === "left";
     return (
       <img
         src={item.gif}
         alt=""
         onError={onError}
+        className={toRight ? "distractor-gif-move-ltr" : "distractor-gif-move-rtl"}
         style={{
           ...base,
-          left: `${item.left}%`,
           top: `${item.top}%`,
-          transform: "translate(-50%, -50%)"
+          transform: "translateY(-50%)",
+          animationDuration: `${item.duration}ms`
         }}
       />
     );
   }
 
-  const toRight = item.area === "left";
+  if (movement === "vertical") {
+    const onLeft = item.area === "left";
+    return (
+      <img
+        src={item.gif}
+        alt=""
+        onError={onError}
+        className={onLeft ? "distractor-gif-move-down-left" : "distractor-gif-move-down-right"}
+        style={{
+          ...base,
+          animationDuration: `${item.duration}ms`
+        }}
+      />
+    );
+  }
 
   return (
     <img
       src={item.gif}
       alt=""
       onError={onError}
-      className={toRight ? "distractor-gif-move-ltr" : "distractor-gif-move-rtl"}
       style={{
         ...base,
+        left: `${item.left}%`,
         top: `${item.top}%`,
-        transform: "translateY(-50%)",
-        animationDuration: `${item.duration}ms`
+        transform: "translate(-50%, -50%)"
       }}
     />
   );

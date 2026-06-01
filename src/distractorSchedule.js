@@ -1,23 +1,17 @@
-/** Çeldirici pencereleri: max 10 sn, aralar max 2 sn, sessiz gif max 2 ekranda */
+/** Çeldirici pencereleri: max 2 sessiz gif, max 1 sesli gif; ana simgeye binmez */
 
 import {
   DISTRACTOR_GIF_KEYS,
   DISTRACTOR_SOUND_GIF_KEYS,
   DISTRACTOR_SOUND_KEYS
 } from "./constants.js";
+import { buildGifItem } from "./gifPlacement.js";
 
 const GIF_MS = 10_000;
 const MAX_GAP_MS = 2_000;
 const GIF_STEP_MS = GIF_MS - MAX_GAP_MS;
 
 const GIF_KEYS = DISTRACTOR_GIF_KEYS;
-const GIF_ZONES = [
-  { area: "left", zone: "upper" },
-  { area: "right", zone: "lower" },
-  { area: "right", zone: "upper" },
-  { area: "left", zone: "middle" }
-];
-
 const SOUND_KEYS = DISTRACTOR_SOUND_KEYS;
 const SOUND_GIF_KEYS = DISTRACTOR_SOUND_GIF_KEYS;
 
@@ -28,11 +22,11 @@ function buildSilentGifWindow(startMs, endMs) {
   while (t < endMs) {
     const duration = Math.min(GIF_MS, endMs - t);
     if (duration < 800) break;
-    const z = GIF_ZONES[i % GIF_ZONES.length];
+    const key = GIF_KEYS[i % GIF_KEYS.length];
     events.push({
       at: t,
       duration,
-      items: [{ key: GIF_KEYS[i % GIF_KEYS.length], area: z.area, zone: z.zone, silent: true }]
+      items: [buildGifItem(key, i, true)]
     });
     t += GIF_STEP_MS;
     i += 1;
@@ -54,7 +48,7 @@ function buildSoloSoundWindow(startMs, endMs) {
   return events;
 }
 
-/** Sesli gif + aynı pencerede sessiz gifler */
+/** Sesli gif (aynı anda 1) + yan şeritlerde sessiz gifler */
 function buildSoundGifWindow(startMs, endMs) {
   const silent = buildSilentGifWindow(startMs, endMs);
   const soundGifs = [];
@@ -63,17 +57,11 @@ function buildSoundGifWindow(startMs, endMs) {
   while (t < endMs) {
     const duration = Math.min(GIF_MS, endMs - t);
     if (duration < 800) break;
+    const key = SOUND_GIF_KEYS[i % SOUND_GIF_KEYS.length];
     soundGifs.push({
       at: t,
       duration,
-      items: [
-        {
-          key: SOUND_GIF_KEYS[i % SOUND_GIF_KEYS.length],
-          area: i % 2 ? "right" : "left",
-          zone: "lower",
-          silent: false
-        }
-      ]
+      items: [buildGifItem(key, i + 1000, false)]
     });
     t += GIF_MS + MAX_GAP_MS;
     i += 1;
