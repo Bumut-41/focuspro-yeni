@@ -9,6 +9,7 @@ import { DistractorGif } from "../components/DistractorGif.jsx";
 import { ReportPanel } from "../components/ReportPanel.jsx";
 import { saveTestSession, uploadReportPdf } from "../services/sessions.js";
 import { btnGhost, btnPrimary, card, input } from "../components/ui.js";
+import { useTestChrome } from "../test/TestChromeContext.jsx";
 
 export default function TestFlowPage() {
   const { refreshProfile, user } = useAuth();
@@ -29,6 +30,14 @@ export default function TestFlowPage() {
   const spaceDoneLock = useRef(false);
   const chartRef = useRef(null);
   const profile = getProfile(pkey);
+  const { setImmersive } = useTestChrome();
+
+  const isImmersiveStep = step === "spaceCheck" || step === "brief" || step === "run";
+
+  useEffect(() => {
+    setImmersive(isImmersiveStep);
+    return () => setImmersive(false);
+  }, [isImmersiveStep, setImmersive]);
 
   const onDone = useCallback(
     async (snapshot, targetSnap, pressTimeline) => {
@@ -140,10 +149,15 @@ export default function TestFlowPage() {
   if (!user) return <Navigate to="/giris" replace />;
 
   return (
-    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <p style={{ marginBottom: 12, color: "#64748b" }}>
-        <Link to="/">← Panele dön</Link>
-      </p>
+    <div
+      className={isImmersiveStep ? "test-flow test-flow--immersive" : "test-flow"}
+      style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
+      {!isImmersiveStep && (
+        <p style={{ marginBottom: 12, color: "#64748b", width: "100%", maxWidth: 640 }}>
+          <Link to="/">← Panele dön</Link>
+        </p>
+      )}
 
       {step === "form" && (
         <form onSubmit={submitForm} style={card}>
@@ -208,13 +222,15 @@ export default function TestFlowPage() {
       )}
 
       {step === "brief" && target && (
-        <div style={{ ...card, maxWidth: 720, textAlign: "center" }}>
-          <h2>Test hazır</h2>
-          <p>
+        <div className="test-brief-card">
+          <h2 className="test-brief-title">Test hazır</h2>
+          <p className="test-brief-meta">
             {getProfile(pkey).label} — Süre: {Math.round(getProfile(pkey).durationMs / 60000)} dk
           </p>
-          <ShapeView shape={target.shape} color={target.color} size={90} />
-          <button type="button" onClick={beginTest} style={{ ...btnPrimary, marginTop: 20 }}>
+          <div className="test-brief-shape">
+            <ShapeView shape={target.shape} color={target.color} size={90} />
+          </div>
+          <button type="button" onClick={beginTest} className="test-brief-start">
             Teste başla
           </button>
         </div>
@@ -222,21 +238,10 @@ export default function TestFlowPage() {
 
       {step === "run" && running && (
         <div
+          className="test-run-stage"
           role="presentation"
           onClick={register}
           onTouchStart={register}
-          style={{
-            width: "min(96vw, 900px)",
-            height: "min(72vh, 620px)",
-            background: "#fff",
-            borderRadius: 20,
-            position: "relative",
-            overflow: "hidden",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer"
-          }}
         >
           {gifs.map((g) => (
             <DistractorGif

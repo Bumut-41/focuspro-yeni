@@ -309,6 +309,105 @@ body {
   color: #a7f3d0;
 }
 
+/* Test akışı — tam ekran (üst menü gizli) */
+.app-shell-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-shell-main--immersive {
+  flex: 1;
+  min-height: 100dvh;
+  align-items: stretch;
+}
+
+.test-flow--immersive {
+  flex: 1;
+  min-height: 100dvh;
+  justify-content: center;
+}
+
+.test-flow--immersive .space-screen {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  border-radius: 0;
+}
+
+.test-brief-card {
+  width: min(96vw, 420px);
+  margin: auto;
+  padding: clamp(24px, 5vw, 36px);
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+
+.test-brief-title {
+  margin: 0 0 8px;
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+}
+
+.test-brief-meta {
+  margin: 0 0 20px;
+  color: #64748b;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+}
+
+.test-brief-shape {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  margin-bottom: 24px;
+}
+
+.test-brief-start {
+  width: 100%;
+  max-width: 280px;
+  margin: 0;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 14px;
+  background: #142440;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.test-run-stage {
+  width: 100%;
+  height: 100dvh;
+  max-height: 100vh;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 1;
+}
+
+@media (min-width: 900px) {
+  .test-run-stage {
+    width: min(96vw, 900px);
+    height: min(88dvh, 720px);
+    margin: auto;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  }
+}
+
 /* Araba, kedi, koşan, motorsiklet, araba korna — yatay geçiş */
 .distractor-gif-move-ltr,
 .distractor-gif-move-rtl {
