@@ -6,6 +6,7 @@ import { computeMetrics } from "../metrics.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
+import { TestDevTimer } from "../components/TestDevTimer.jsx";
 import { ReportPanel } from "../components/ReportPanel.jsx";
 import { saveTestSession, uploadReportPdf } from "../services/sessions.js";
 import { btnGhost, btnPrimary, card, input } from "../components/ui.js";
@@ -69,7 +70,8 @@ export default function TestFlowPage() {
     [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile]
   );
 
-  const { target, scene, gifs, running, start, register, resetAfterReport } = useAttentionTest(profile, {
+  const { target, scene, gifs, running, testElapsedMs, testDurationMs, start, register, resetAfterReport } =
+    useAttentionTest(profile, {
     onFinished: onDone
   });
 
@@ -243,6 +245,7 @@ export default function TestFlowPage() {
           onClick={register}
           onTouchStart={register}
         >
+          <TestDevTimer elapsedMs={testElapsedMs} durationMs={testDurationMs} />
           {gifs.map((g) => (
             <DistractorGif
               key={g.id}

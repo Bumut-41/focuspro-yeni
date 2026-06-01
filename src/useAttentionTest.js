@@ -15,6 +15,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const [scene, setScene] = useState(null);
   const [gifs, setGifs] = useState([]);
   const [running, setRunning] = useState(false);
+  const [testElapsedMs, setTestElapsedMs] = useState(0);
 
   const targetRef = useRef(null);
   const logRef = useRef([]);
@@ -376,6 +377,21 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   }, [scene]);
 
   useEffect(() => {
+    if (!running) {
+      setTestElapsedMs(0);
+      return undefined;
+    }
+    const tick = () => {
+      if (testStartPerfRef.current != null) {
+        setTestElapsedMs(Math.round(performance.now() - testStartPerfRef.current));
+      }
+    };
+    tick();
+    const id = setInterval(tick, 100);
+    return () => clearInterval(id);
+  }, [running]);
+
+  useEffect(() => {
     mkTarget();
     return () => {
       clearTimeout(timerRef.current);
@@ -398,5 +414,15 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     return () => window.removeEventListener("keydown", kd);
   }, [register]);
 
-  return { target, scene, gifs, running, start, register, resetAfterReport };
+  return {
+    target,
+    scene,
+    gifs,
+    running,
+    testElapsedMs,
+    testDurationMs: profile.durationMs,
+    start,
+    register,
+    resetAfterReport
+  };
 }
