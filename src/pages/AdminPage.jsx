@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { AdminPressTimeline } from "../components/AdminPressTimeline.jsx";
 import { adminAddCredits, fetchAllProfiles } from "../services/credits.js";
-import { fetchAllSessions } from "../services/sessions.js";
+import { fetchAdminPressTimeline, fetchAllSessions, fetchSessionDetail } from "../services/sessions.js";
 import { btnGhost, card, input } from "../components/ui.js";
 
 export default function AdminPage() {
@@ -12,6 +13,10 @@ export default function AdminPage() {
   const [grantUser, setGrantUser] = useState("");
   const [grantAmount, setGrantAmount] = useState(10);
   const [msg, setMsg] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [timeline, setTimeline] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(async () => {
     const [p, s] = await Promise.all([fetchAllProfiles(), fetchAllSessions(200)]);
@@ -24,6 +29,33 @@ export default function AdminPage() {
   }, [isAdmin, load]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
+
+  async function openSession(id) {
+    if (selectedId === id) {
+      setSelectedId(null);
+      setDetail(null);
+      setTimeline(null);
+      return;
+    }
+    setSelectedId(id);
+    setDetail(null);
+    setTimeline(null);
+    setDetailLoading(true);
+    setMsg("");
+    try {
+      const [sess, tl] = await Promise.all([fetchSessionDetail(id), fetchAdminPressTimeline(id)]);
+      setDetail(sess);
+      setTimeline(tl);
+      if (!tl?.length) {
+        setMsg("Bu test için basış çizelgesi yok (eski kayıt veya SQL güncellemesi öncesi).");
+      }
+    } catch (e) {
+      setMsg(e.message);
+      setSelectedId(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  }
 
   async function grant() {
     if (!grantUser) return;
@@ -101,20 +133,37 @@ export default function AdminPage() {
               <th style={{ padding: 6 }}>Uygulayan</th>
               <th style={{ padding: 6 }}>Katılımcı</th>
               <th style={{ padding: 6 }}>Skor</th>
+              <th style={{ padding: 6 }} />
             </tr>
           </thead>
           <tbody>
             {sessions.map((s) => (
-              <tr key={s.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+              <tr
+                key={s.id}
+                style={{
+                  borderBottom: "1px solid #f1f5f9",
+                  background: selectedId === s.id ? "#eff6ff" : undefined
+                }}
+              >
                 <td style={{ padding: 6 }}>{new Date(s.created_at).toLocaleString("tr-TR")}</td>
                 <td style={{ padding: 6 }}>{s.profiles?.full_name ?? s.owner_id?.slice(0, 8)}</td>
                 <td style={{ padding: 6 }}>{s.participant_name}</td>
                 <td style={{ padding: 6 }}>{s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—"}</td>
+                <td style={{ padding: 6 }}>
+                  <button type="button" onClick={() => openSession(s.id)} style={{ ...btnGhost, padding: "6px 12px", fontSize: 12 }}>
+                    {selectedId === s.id ? "Kapat" : "Basış raporu"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {detailLoading && <p style={{ marginTop: 16, color: "#64748b" }}>Yükleniyor…</p>}
+      {detail && !detailLoading && (
+        <AdminPressTimeline session={detail} timeline={timeline ?? []} target={detail.target} />
+      )}
     </div>
   );
 }

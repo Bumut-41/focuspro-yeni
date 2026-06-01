@@ -38,6 +38,13 @@ create table if not exists public.test_sessions (
 
 create index if not exists test_sessions_owner_idx on public.test_sessions (owner_id, created_at desc);
 
+-- Admin basış çizelgesi (ayrı tablo — kullanıcılar SELECT yapamaz; bkz. press-timeline.sql)
+create table if not exists public.test_press_timelines (
+  session_id uuid primary key references public.test_sessions (id) on delete cascade,
+  timeline jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 -- Yardımcı: admin mi?
 create or replace function public.is_admin()
 returns boolean

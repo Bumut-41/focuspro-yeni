@@ -32,8 +32,34 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   /** Deneme zaman çizelgesi (performans kayması yerine planlanan ms). */
   const scheduleMsRef = useRef(0);
   const eventIdSeqRef = useRef(0);
+  const testStartPerfRef = useRef(null);
+  const pressTimelineRef = useRef([]);
+  const sceneRef = useRef(null);
 
   const nextTrialRef = useRef(null);
+
+  const elapsedMs = useCallback(() => {
+    if (testStartPerfRef.current == null) return 0;
+    return Math.round(performance.now() - testStartPerfRef.current);
+  }, []);
+
+  const trialToLog = useCallback((t) => {
+    return {
+      trialNumber: t.trialNumber,
+      section: t.section,
+      isTarget: t.isTarget,
+      shownShape: t.shownShape,
+      shownColor: t.shownColor,
+      targetShape: t.targetShape,
+      targetColor: t.targetColor,
+      responded: t.responded,
+      reactionTime: t.reactionTime || 0,
+      responseCount: t.responses.length,
+      onsetMs: t.onsetMs,
+      offsetMs: t.offsetMs ?? null,
+      trialPresses: t.trialPresses ?? []
+    };
+  }, []);
 
   const mkTarget = useCallback(() => {
     const next = { shape: FIXED_TARGET_SHAPE, color: FIXED_TARGET_COLOR };
@@ -159,22 +185,9 @@ export function useAttentionTest(profile, { onFinished } = {}) {
 
   const flushTrial = useCallback(() => {
     const t = trialRef.current;
-    if (t) {
-      logRef.current.push({
-        trialNumber: t.trialNumber,
-        section: t.section,
-        isTarget: t.isTarget,
-        shownShape: t.shownShape,
-        shownColor: t.shownColor,
-        targetShape: t.targetShape,
-        targetColor: t.targetColor,
-        responded: t.responded,
-        reactionTime: t.reactionTime || 0,
-        responseCount: t.responses.length
-      });
-    }
+    if (t) logRef.current.push(trialToLog(t));
     trialRef.current = null;
-  }, []);
+  }, [trialToLog]);
 
   const endTest = useCallback(() => {
     clearTimeout(timerRef.current);
@@ -186,7 +199,8 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     stopAll();
     const snapshot = logRef.current.slice();
     const targetSnap = targetRef.current ? { shape: targetRef.current.shape, color: targetRef.current.color } : null;
-    onFinished?.(snapshot, targetSnap);
+    const pressSnap = pressTimelineRef.current.slice();
+    onFinished?.(snapshot, targetSnap, pressSnap);
   }, [flushTrial, onFinished, stopAll]);
 
   const nonTarget = useCallback(() => {
@@ -210,6 +224,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     const isT = seededRandom() < profile.targetProbability;
     const cur = targetRef.current;
     const shown = isT ? { ...cur } : nonTarget();
+    const onsetMs = elapsedMs();
     trialRef.current = {
       trialNumber: n,
       section: ph.name,
@@ -221,27 +236,23 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       responded: false,
       reactionTime: 0,
       responses: [],
+      onsetMs,
+      offsetMs: null,
+      trialPresses: [],
       startTime: performance.now()
     };
-    setScene({ shape: shown.shape, color: shown.color });
+    const sceneShape = { shape: shown.shape, color: shown.color };
+    sceneRef.current = sceneShape;
+    setScene(sceneShape);
     const stim = ph.stimulus;
     const gap = ph.gap;
     timerRef.current = setTimeout(() => {
+      sceneRef.current = null;
       setScene(null);
       const t = trialRef.current;
       if (t) {
-        logRef.current.push({
-          trialNumber: t.trialNumber,
-          section: t.section,
-          isTarget: t.isTarget,
-          shownShape: t.shownShape,
-          shownColor: t.shownColor,
-          targetShape: t.targetShape,
-          targetColor: t.targetColor,
-          responded: t.responded,
-          reactionTime: t.reactionTime || 0,
-          responseCount: t.responses.length
-        });
+        t.offsetMs = elapsedMs();
+        logRef.current.push(trialToLog(t));
       }
       trialRef.current = null;
       scheduleMsRef.current += stim;
@@ -254,9 +265,52 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         nextTrialRef.current();
       }, gap);
     }, stim);
-  }, [endTest, nonTarget, profile.durationMs, profile.phases, profile.targetProbability]);
+  }, [elapsedMs, endTest, nonTarget, profile.durationMs, profile.phases, profile.targetProbability, trialToLog]);
 
   nextTrialRef.current = nextTrial;
+
+  const recordPress = useCallback(() => {
+    if (!playing.current || testStartPerfRef.current == null) return;
+    const atMs = elapsedMs();
+    const t = trialRef.current;
+    const onScreen = sceneRef.current;
+    const tgt = targetRef.current;
+    const lateMs = profile.lateResponseMs;
+
+    let errorType = "none";
+    let isCorrectHit = false;
+    let reactionMs = null;
+
+    if (!onScreen || !t) {
+      errorType = "idle";
+    } else if (t.isTarget) {
+      reactionMs = atMs - t.onsetMs;
+      const isFirst = t.responses.length === 0;
+      if (isFirst) {
+        isCorrectHit = true;
+        errorType = reactionMs > lateMs ? "late" : "none";
+      } else {
+        errorType = "multi";
+      }
+      t.trialPresses.push({ atMs, reactionMs });
+    } else {
+      errorType = "false_alarm";
+      reactionMs = atMs - t.onsetMs;
+      t.trialPresses.push({ atMs, reactionMs });
+    }
+
+    pressTimelineRef.current.push({
+      atMs,
+      trialNumber: t?.trialNumber ?? null,
+      onScreen: onScreen ? { shape: onScreen.shape, color: onScreen.color } : null,
+      targetShape: tgt?.shape ?? null,
+      targetColor: tgt?.color ?? null,
+      isTargetOnScreen: Boolean(t?.isTarget && onScreen),
+      errorType,
+      isCorrectHit,
+      reactionMs
+    });
+  }, [elapsedMs, profile.lateResponseMs]);
 
   const respond = useCallback(() => {
     const t = trialRef.current;
@@ -273,19 +327,23 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     const now = performance.now();
     if (now - lastKey.current < 120) return;
     lastKey.current = now;
+    recordPress();
     respond();
-  }, [respond]);
+  }, [recordPress, respond]);
 
   const start = useCallback(() => {
     resetSeed();
     scheduleMsRef.current = 0;
     eventIdSeqRef.current = 0;
     logRef.current = [];
+    pressTimelineRef.current = [];
+    testStartPerfRef.current = performance.now();
     trialRef.current = null;
     lastKey.current = 0;
     clearTimeout(timerRef.current);
     clearTimeout(clockRef.current);
     stopAll();
+    sceneRef.current = null;
     setScene(null);
     playing.current = true;
     setRunning(true);
@@ -300,12 +358,19 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     playing.current = false;
     stopAll();
     logRef.current = [];
+    pressTimelineRef.current = [];
+    testStartPerfRef.current = null;
     trialRef.current = null;
     scheduleMsRef.current = 0;
+    sceneRef.current = null;
     setScene(null);
     resetSeed();
     mkTarget();
   }, [mkTarget, stopAll]);
+
+  useEffect(() => {
+    sceneRef.current = scene;
+  }, [scene]);
 
   useEffect(() => {
     mkTarget();

@@ -30,18 +30,22 @@ export default function TestFlowPage() {
   const profile = getProfile(pkey);
 
   const onDone = useCallback(
-    async (snapshot, targetSnap) => {
+    async (snapshot, targetSnap, pressTimeline) => {
       setLogs(snapshot);
       setStep("report");
       setSavedHint("");
       try {
-        const metrics = computeMetrics(snapshot, profile.lateResponseMs);
+        const metrics = {
+          ...computeMetrics(snapshot, profile.lateResponseMs),
+          lateResponseMs: profile.lateResponseMs
+        };
         const id = await saveTestSession({
           participant: { name, age, birthDate: birth, gender },
           profileKey: pkey,
           logs: snapshot,
           metrics,
-          target: targetSnap
+          target: targetSnap,
+          pressTimeline: pressTimeline ?? []
         });
         setSessionId(id);
         setSavedHint("Test kaydedildi ve hesabınıza yazıldı.");

@@ -5,7 +5,8 @@ export async function saveTestSession({
   profileKey,
   logs,
   metrics,
-  target
+  target,
+  pressTimeline = []
 }) {
   const { data, error } = await supabase.rpc("complete_test_session", {
     p_participant_name: participant.name,
@@ -15,7 +16,8 @@ export async function saveTestSession({
     p_profile_key: profileKey,
     p_logs: logs,
     p_metrics: metrics,
-    p_target: target
+    p_target: target,
+    p_press_timeline: pressTimeline
   });
   if (error) throw error;
   return data;
@@ -45,6 +47,17 @@ export async function fetchSessionDetail(id) {
   const { data, error } = await supabase.from("test_sessions").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data;
+}
+
+/** Yalnızca admin — basış zaman çizelgesi */
+export async function fetchAdminPressTimeline(sessionId) {
+  const { data, error } = await supabase
+    .from("test_press_timelines")
+    .select("timeline")
+    .eq("session_id", sessionId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.timeline ?? [];
 }
 
 export async function uploadReportPdf(userId, sessionId, blob) {
