@@ -48,7 +48,7 @@ export default function CompleteProfilePage() {
     <form onSubmit={submit} style={{ ...card, maxWidth: 480 }}>
       <h2 style={{ marginTop: 0 }}>Profilinizi tamamlayın</h2>
       <p style={{ color: "#64748b", fontSize: 14 }}>
-        Google, Microsoft veya Apple ile giriş yaptınız. Devam etmek için bir kez bu bilgileri girin.
+        Google ile giriş yaptınız. Devam etmek için bir kez bu bilgileri girin.
       </p>
       <label style={{ fontWeight: 600 }}>Ad soyad</label>
       <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={input} required />
