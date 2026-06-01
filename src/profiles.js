@@ -1,5 +1,5 @@
 /**
- * Test kıstasları (Çocuk 13 dk, Olgun/Yetişkin 15 dk, Ergen 16 dk).
+ * Test kıstasları (Çocuk 13 dk, Yetişkin 15 dk, Ergen 15 dk).
  * Ana simge hızı = stimulus (ms). gap ≈ stimulus'un %45'i.
  */
 
@@ -60,25 +60,25 @@ const adultGif = mergeGifEvents([
 
 const adultSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 9 * MIN)]);
 
-/** Ergen — 16 dk */
+/** Ergen — 15 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–9 ses, 9–12 gif, 12–15 kapanış) */
 const teenPhases = [
-  phase(3, "Ergen — 0–3 dk", 1300),
-  phase(6, "Ergen — 3–6 dk", 1100),
-  phase(7, "Ergen — 6–7 dk", 1000),
-  phase(8, "Ergen — 7–8 dk", 900),
-  phase(9, "Ergen — 8–9 dk", 800),
-  phase(11, "Ergen — 9–11 dk (sessiz gif)", 1100),
-  phase(12, "Ergen — 11–12 dk (sadece ses)", 900),
-  phase(14, "Ergen — 12–14 dk (sesli gif)", 1200),
-  phase(16, "Ergen — 14–16 dk", 1100)
+  phase(1, "Ergen — 0–1 dk", 1400),
+  phase(2, "Ergen — 1–2 dk", 1200),
+  phase(3, "Ergen — 2–3 dk", 1000),
+  phase(6, "Ergen — 3–6 dk (sessiz gif)", 1100),
+  phase(9, "Ergen — 6–9 dk (sadece ses)", 1000),
+  phase(12, "Ergen — 9–12 dk (sessiz + sesli gif)", 900),
+  phase(13, "Ergen — 12–13 dk", 1300),
+  phase(14, "Ergen — 13–14 dk", 1100),
+  phase(15, "Ergen — 14–15 dk", 900)
 ];
 
 const teenGif = mergeGifEvents([
-  buildSilentGifWindow(9 * MIN, 11 * MIN),
-  buildSoundGifWindow(12 * MIN, 14 * MIN)
+  buildSilentGifWindow(3 * MIN, 6 * MIN),
+  buildSoundGifWindow(9 * MIN, 12 * MIN)
 ]);
 
-const teenSound = mergeSoundEvents([buildSoloSoundWindow(11 * MIN, 12 * MIN)]);
+const teenSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 9 * MIN)]);
 
 export const PROFILES = {
   child: {
@@ -94,7 +94,7 @@ export const PROFILES = {
   teen: {
     key: "teen",
     label: "Ergen (13–17)",
-    durationMs: 16 * MIN,
+    durationMs: 15 * MIN,
     lateResponseMs: 900,
     targetProbability: 0.42,
     phases: teenPhases,

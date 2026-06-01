@@ -21,13 +21,13 @@ Zamanlar **test başlangıcından** itibaren `dakika:saniye` formatındadır.
 
 ## Karşılaştırma tablosu
 
-| | **Çocuk (13 dk)** | **Yetişkin (15 dk)** | **Ergen (16 dk)** |
+| | **Çocuk (13 dk)** | **Yetişkin (15 dk)** | **Ergen (15 dk)** |
 |--|-------------------|----------------------|-------------------|
 | Geç yanıt eşiği | 1000 ms | 800 ms | 900 ms |
 | Hedef çıkma olasılığı | ~%45 | ~%40 | ~%42 |
-| Sessiz GIF penceresi | 7:00 – 10:00 | 3:00 – 6:00 | 9:00 – 11:00 |
-| Sadece ses penceresi | 10:00 – 11:00 | 6:00 – 9:00 | 11:00 – 12:00 |
-| Sessiz + sesli GIF | 11:00 – 12:00 | 9:00 – 12:00 | 12:00 – 14:00 |
+| Sessiz GIF penceresi | 7:00 – 10:00 | 3:00 – 6:00 | 3:00 – 6:00 |
+| Sadece ses penceresi | 10:00 – 11:00 | 6:00 – 9:00 | 6:00 – 9:00 |
+| Sessiz + sesli GIF | 11:00 – 12:00 | 9:00 – 12:00 | 9:00 – 12:00 |
 
 ---
 
@@ -110,33 +110,33 @@ Sessiz ve sesli gif birlikte; en fazla 1 sesli gif; 12. dakikada biter.
 
 ---
 
-## ERGEN — 16 dakika
+## ERGEN — 15 dakika
 
 ### Ana simge fazları
 
 | Zaman | Faz | Simge | Boşluk | Tur |
 |-------|-----|-------|--------|-----|
-| 0:00 – 3:00 | 0–3 dk | 1300 ms | 585 ms | 1,89 sn |
-| 3:00 – 6:00 | 3–6 dk | 1100 ms | 495 ms | 1,60 sn |
-| 6:00 – 7:00 | 6–7 dk | 1000 ms | 450 ms | 1,45 sn |
-| 7:00 – 8:00 | 7–8 dk | 900 ms | 405 ms | 1,31 sn |
-| 8:00 – 9:00 | 8–9 dk | **800 ms** | 360 ms | **1,16 sn** |
-| 9:00 – 11:00 | 9–11 dk (+ sessiz GIF) | 1100 ms | 495 ms | 1,60 sn |
-| 11:00 – 12:00 | 11–12 dk (+ sadece ses) | 900 ms | 405 ms | 1,31 sn |
-| 12:00 – 14:00 | 12–14 dk (+ sesli GIF) | 1200 ms | 540 ms | 1,74 sn |
-| 14:00 – 16:00 | 14–16 dk | 1100 ms | 495 ms | 1,60 sn |
+| 0:00 – 1:00 | 0–1 dk | 1400 ms | 630 ms | 2,03 sn |
+| 1:00 – 2:00 | 1–2 dk | 1200 ms | 540 ms | 1,74 sn |
+| 2:00 – 3:00 | 2–3 dk | 1000 ms | 450 ms | 1,45 sn |
+| 3:00 – 6:00 | 3–6 dk (+ sessiz GIF) | 1100 ms | 495 ms | 1,60 sn |
+| 6:00 – 9:00 | 6–9 dk (+ sadece ses) | 1000 ms | 450 ms | 1,45 sn |
+| 9:00 – 12:00 | 9–12 dk (+ sessiz + sesli GIF) | 900 ms | 405 ms | 1,31 sn |
+| 12:00 – 13:00 | 12–13 dk | 1300 ms | 585 ms | 1,89 sn |
+| 13:00 – 14:00 | 13–14 dk | 1100 ms | 495 ms | 1,60 sn |
+| 14:00 – 15:00 | 14–15 dk | 900 ms | 405 ms | 1,31 sn |
 
-### Sessiz GIF (9:00 – 11:00)
+### Sessiz GIF (3:00 – 6:00)
 
-9:00’den itibaren 8 sn adımla Top … Araba 10:52’ye kadar; 12:00–14:00 sesli pencerede tekrar sessiz GIF dizisi.
+Sürekli sessiz gif; en fazla 2 ekranda; 6. dakikada biter.
 
-### Sadece ses (11:00 – 12:00)
+### Sadece ses (6:00 – 9:00)
 
-alarm, cekic, gemi, sudamlasi, kussesi (11:00’dan başlayarak, çocuk/yetişkinle aynı sıra).
+Sadece ses; en fazla 1 ses; 9. dakikada biter.
 
-### Sesli GIF (12:00 – 14:00)
+### Sessiz + sesli GIF (9:00 – 12:00)
 
-12:00 Top … 13:48 Motorsiklet; ~12 sn arayla, alt köşelerde dönüşümlü.
+Sessiz ve sesli gif birlikte; en fazla 1 sesli gif; 12. dakikada biter.
 
 ---
 
