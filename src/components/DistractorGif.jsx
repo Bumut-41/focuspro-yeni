@@ -1,7 +1,7 @@
 import { MOVING_GIF_KEYS } from "../constants.js";
 
 /**
- * araba, kedi, koşan: sol taraftan başlarsa sağa, sağdan başlarsa sola kayar.
+ * araba, kedi, koşan, motorsiklet, araba korna: sol taraftan başlarsa sağa, sağdan başlarsa sola kayar.
  * Diğer gifler eskisi gibi sabit köşede durur.
  */
 export function DistractorGif({ item, onError }) {

@@ -309,7 +309,7 @@ body {
   color: #a7f3d0;
 }
 
-/* Araba, kedi, koşan — yatay geçiş */
+/* Araba, kedi, koşan, motorsiklet, araba korna — yatay geçiş */
 .distractor-gif-move-ltr,
 .distractor-gif-move-rtl {
   animation-timing-function: linear;
