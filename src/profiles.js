@@ -40,23 +40,25 @@ const childGif = mergeGifEvents([
 
 const childSound = mergeSoundEvents([buildSoloSoundWindow(10 * MIN, 11 * MIN)]);
 
-/** Olgun / Yetişkin — 15 dk */
+/** Yetişkin — 15 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–9 ses, 9–12 gif, 12–15 kapanış) */
 const adultPhases = [
-  phase(2, "Yetişkin — 0–2 dk", 1400),
-  phase(5, "Yetişkin — 2–5 dk", 1200),
-  phase(7, "Yetişkin — 5–7 dk", 1100),
-  phase(9, "Yetişkin — 7–9 dk (sessiz gif)", 1100),
-  phase(10, "Yetişkin — 9–10 dk (sadece ses)", 1100),
-  phase(11, "Yetişkin — 10–11 dk (sesli gif)", 900),
-  phase(15, "Yetişkin — 11–15 dk", 1100)
+  phase(1, "Yetişkin — 0–1 dk", 1300),
+  phase(2, "Yetişkin — 1–2 dk", 1100),
+  phase(3, "Yetişkin — 2–3 dk", 1000),
+  phase(6, "Yetişkin — 3–6 dk (sessiz gif)", 1100),
+  phase(9, "Yetişkin — 6–9 dk (sadece ses)", 900),
+  phase(12, "Yetişkin — 9–12 dk (sessiz + sesli gif)", 1200),
+  phase(13, "Yetişkin — 12–13 dk", 1100),
+  phase(14, "Yetişkin — 13–14 dk", 900),
+  phase(15, "Yetişkin — 14–15 dk", 700)
 ];
 
 const adultGif = mergeGifEvents([
-  buildSilentGifWindow(7 * MIN, 9 * MIN),
-  buildSoundGifWindow(10 * MIN, 11 * MIN)
+  buildSilentGifWindow(3 * MIN, 6 * MIN),
+  buildSoundGifWindow(9 * MIN, 12 * MIN)
 ]);
 
-const adultSound = mergeSoundEvents([buildSoloSoundWindow(9 * MIN, 10 * MIN)]);
+const adultSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 9 * MIN)]);
 
 /** Ergen — 16 dk */
 const teenPhases = [
