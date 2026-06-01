@@ -309,7 +309,50 @@ body {
   color: #a7f3d0;
 }
 
+/* Araba, kedi, koşan — yatay geçiş */
+.distractor-gif-move-ltr,
+.distractor-gif-move-rtl {
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  will-change: left;
+}
+
+.distractor-gif-move-ltr {
+  left: -14%;
+  animation-name: distractor-cross-ltr;
+}
+
+.distractor-gif-move-rtl {
+  left: 114%;
+  animation-name: distractor-cross-rtl;
+}
+
+@keyframes distractor-cross-ltr {
+  from {
+    left: -14%;
+  }
+  to {
+    left: 114%;
+  }
+}
+
+@keyframes distractor-cross-rtl {
+  from {
+    left: 114%;
+  }
+  to {
+    left: -14%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .distractor-gif-move-ltr,
+  .distractor-gif-move-rtl {
+    animation: none !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
   .space-screen-bg,
   .space-screen-head,
   .space-screen-ring,

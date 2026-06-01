@@ -125,11 +125,14 @@ export function useAttentionTest(profile, { onFinished } = {}) {
           const pos = getGifPosition(raw.area, raw.zone);
           return {
             id: `g-${idx}-${i}-${seq}`,
+            gifKey: raw.key,
             gif: f.gif,
             sound: raw.silent ? null : f.sound,
+            area: raw.area,
             left: pos.left,
             top: pos.top,
-            size: f.size
+            size: f.size,
+            duration: ev.duration
           };
         })
         .filter(Boolean);

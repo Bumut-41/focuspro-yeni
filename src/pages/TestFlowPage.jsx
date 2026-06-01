@@ -5,6 +5,7 @@ import { ageFromBirthDate, getProfile, profileKeyFromAge } from "../profiles.js"
 import { computeMetrics } from "../metrics.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
+import { DistractorGif } from "../components/DistractorGif.jsx";
 import { ReportPanel } from "../components/ReportPanel.jsx";
 import { saveTestSession, uploadReportPdf } from "../services/sessions.js";
 import { btnGhost, btnPrimary, card, input } from "../components/ui.js";
@@ -238,21 +239,11 @@ export default function TestFlowPage() {
           }}
         >
           {gifs.map((g) => (
-            <img
+            <DistractorGif
               key={g.id}
-              src={g.gif}
-              alt=""
+              item={g}
               onError={(e) => {
                 e.target.style.display = "none";
-              }}
-              style={{
-                position: "absolute",
-                left: `${g.left}%`,
-                top: `${g.top}%`,
-                width: g.size,
-                maxWidth: "32%",
-                transform: "translate(-50%, -50%)",
-                pointerEvents: "none"
               }}
             />
           ))}
