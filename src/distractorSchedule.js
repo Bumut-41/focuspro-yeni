@@ -30,17 +30,43 @@ function buildSilentGifWindow(startMs, endMs) {
   const events = [];
   let t = startMs;
   let i = 0;
+  let silentKeyIndex = 0;
+
+  function tryAddSecondSilent(items, active, baseIndex) {
+    if (items.length >= 2) return;
+    const usedLaneIds = new Set(items.map((x) => x.laneId).filter(Boolean));
+    let attempts = 0;
+    while (attempts < GIF_KEYS.length && items.length < 2) {
+      const zKey = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
+      const it = buildGifItem(zKey, baseIndex + 100 + attempts, true, [...active, ...items]);
+      if (!usedLaneIds.has(it.laneId)) {
+        items.push(it);
+        usedLaneIds.add(it.laneId);
+        silentKeyIndex += attempts + 1;
+        return;
+      }
+      attempts += 1;
+    }
+    silentKeyIndex += attempts;
+  }
 
   while (t < endMs) {
     const duration = gifDuration(endMs, t);
     if (duration < 400) break;
 
     const active = activeItemsAt(events, t);
-    const key = GIF_KEYS[i % GIF_KEYS.length];
+    const key = GIF_KEYS[silentKeyIndex % GIF_KEYS.length];
+    silentKeyIndex += 1;
+    const first = buildGifItem(key, i, true, active);
+    const items = [first];
+
+    // Yoğunluğu artır: sessiz pencerede mümkünse aynı anda 2 sessiz GIF göster.
+    // Lane ve bloklama kuralları `buildGifItem` içinde.
+    tryAddSecondSilent(items, active, i);
     events.push({
       at: t,
       duration,
-      items: [buildGifItem(key, i, true, active)]
+      items
     });
 
     t += GIF_START_INTERVAL_MS;
@@ -77,6 +103,24 @@ function buildSoundGifWindow(startMs, endMs) {
   let silentKeyIndex = 0;
   let nextSoundAllowedAt = startMs;
 
+  function tryAddSilent(items, active, baseIndex) {
+    const usedLaneIds = new Set(items.map((x) => x.laneId).filter(Boolean));
+    let attempts = 0;
+    while (attempts < GIF_KEYS.length) {
+      const zKey = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
+      const it = buildGifItem(zKey, baseIndex + 100 + attempts, true, [...active, ...items]);
+      if (!usedLaneIds.has(it.laneId)) {
+        items.push(it);
+        usedLaneIds.add(it.laneId);
+        silentKeyIndex += attempts + 1;
+        return true;
+      }
+      attempts += 1;
+    }
+    silentKeyIndex += attempts;
+    return false;
+  }
+
   while (t < endMs) {
     const duration = gifDuration(endMs, t);
     if (duration < 400) break;
@@ -96,38 +140,24 @@ function buildSoundGifWindow(startMs, endMs) {
       nextSoundAllowedAt = t + duration;
 
       if (!hasSilent) {
-        // Sesli hareket eden gif varken ikinci (sessiz) gifin de gelmesini artırmak için
-        // aynı lane'a düşen anahtarı atlayıp farklı lane bulana kadar deniyoruz.
-        let addedSilent = false;
-        let attempts = 0;
-
-        while (attempts < GIF_KEYS.length && !addedSilent) {
-          const zKey = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
-          const silentItem = buildGifItem(zKey, i + 100 + attempts, true, [...active, soundItem]);
-
-          if (silentItem.laneId !== soundItem.laneId) {
-            items.push(silentItem);
-            silentKeyIndex += attempts + 1;
-            addedSilent = true;
-          } else {
-            attempts += 1;
-          }
-        }
-
-        if (!addedSilent) {
-          silentKeyIndex += GIF_KEYS.length;
-        }
+        // Kombine kural: en fazla 1 sesli + 1 sessiz
+        tryAddSilent(items, active, i);
       }
     } else if (wantSound && hasSound) {
       /* Sesli çıkış sırası ama ekranda ses var — yalnızca ses bitince yeni sesli */
     } else if (!hasSound) {
-      const zKey = GIF_KEYS[silentKeyIndex % GIF_KEYS.length];
-      silentKeyIndex += 1;
-      items.push(buildGifItem(zKey, i, true, active));
+      // Kombine pencerede "sessiz slot" ise yoğunluğu artır: mümkünse 2 sessiz GIF
+      tryAddSilent(items, active, i);
+      if (!active.some((it) => it.key === "top" || it.key === "kedi" || it.key === "kosan")) {
+        // Eğer hareketli bir şey yoksa da ikinciyi dene (en fazla 2).
+        if (items.length < 2) tryAddSilent(items, active, i);
+      } else {
+        // Hareketli varken bile 2'yi dene (lane blokları zıt şerit/zone'a iter).
+        if (items.length < 2) tryAddSilent(items, active, i);
+      }
     } else if (hasSound && !hasSilent) {
-      const zKey = GIF_KEYS[silentKeyIndex % GIF_KEYS.length];
-      silentKeyIndex += 1;
-      items.push(buildGifItem(zKey, i, true, active));
+      // Ekranda sesli var ama sessiz yoksa 1 sessiz ekleyebiliriz (max 1 sessiz)
+      tryAddSilent(items, active, i);
     }
 
     if (items.length) {
