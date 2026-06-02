@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { fetchMySessions } from "../services/sessions.js";
+import { fetchMySessions, getReportPdfSignedUrl } from "../services/sessions.js";
 import { btnGhost, btnPrimary, card } from "../components/ui.js";
 
 const roleLabel = {
@@ -14,6 +14,21 @@ export default function DashboardPage() {
   const { profile, isAdmin } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [msg, setMsg] = useState("");
+  const [pdfBusy, setPdfBusy] = useState(null);
+
+  async function openPdf(session) {
+    if (!session.pdf_path) return;
+    setPdfBusy(session.id);
+    setMsg("");
+    try {
+      const url = await getReportPdfSignedUrl(session.pdf_path);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setMsg(e.message || "PDF açılamadı.");
+    } finally {
+      setPdfBusy(null);
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -61,6 +76,7 @@ export default function DashboardPage() {
                 <th style={{ padding: 8 }}>Katılımcı</th>
                 <th style={{ padding: 8 }}>Profil</th>
                 <th style={{ padding: 8 }}>Genel skor</th>
+                <th style={{ padding: 8 }}>PDF</th>
               </tr>
             </thead>
             <tbody>
@@ -70,6 +86,20 @@ export default function DashboardPage() {
                   <td style={{ padding: 8 }}>{s.participant_name}</td>
                   <td style={{ padding: 8 }}>{s.profile_key}</td>
                   <td style={{ padding: 8 }}>{s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—"}</td>
+                  <td style={{ padding: 8 }}>
+                    {s.pdf_path ? (
+                      <button
+                        type="button"
+                        onClick={() => openPdf(s)}
+                        disabled={pdfBusy === s.id}
+                        style={{ ...btnGhost, padding: "4px 10px", fontSize: 13 }}
+                      >
+                        {pdfBusy === s.id ? "…" : "Aç"}
+                      </button>
+                    ) : (
+                      <span style={{ color: "#94a3b8" }}>—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

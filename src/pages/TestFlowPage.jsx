@@ -8,7 +8,8 @@ import { useAttentionTest } from "../useAttentionTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
 import { TestDevTimer } from "../components/TestDevTimer.jsx";
 import { ReportPanel } from "../components/ReportPanel.jsx";
-import { saveTestSession, uploadReportPdf } from "../services/sessions.js";
+import { createPdfBlob } from "../pdfReport.js";
+import { persistSessionReportPdf, saveTestSession } from "../services/sessions.js";
 import { btnGhost, btnPrimary, card, input } from "../components/ui.js";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 
@@ -30,6 +31,7 @@ export default function TestFlowPage() {
 
   const spaceDoneLock = useRef(false);
   const chartRef = useRef(null);
+  const pdfSavedRef = useRef(false);
   const profile = getProfile(pkey);
   const { setImmersive } = useTestChrome();
 
@@ -59,7 +61,8 @@ export default function TestFlowPage() {
           pressTimeline: pressTimeline ?? []
         });
         setSessionId(id);
-        setSavedHint("Test kaydedildi ve hesabınıza yazıldı.");
+        pdfSavedRef.current = false;
+        setSavedHint("Test kaydedildi. PDF raporu hazırlanıyor…");
         await refreshProfile();
       } catch (e) {
         const m = e?.message || "";
@@ -122,9 +125,50 @@ export default function TestFlowPage() {
     if (!spaceVerified) return;
     setLogs([]);
     setSessionId(null);
+    pdfSavedRef.current = false;
     start();
     setStep("run");
   }
+
+  // Test bitince rapor ekranında PDF'i otomatik üret ve sisteme kaydet.
+  useEffect(() => {
+    if (step !== "report" || !sessionId || !user?.id || !logs.length || !target || pdfSavedRef.current) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        const chartImage = chartRef?.current?.canvas?.toDataURL("image/png", 0.92);
+        const blob = await createPdfBlob({
+          participant,
+          profile,
+          logs,
+          target,
+          chartImage
+        });
+        await persistSessionReportPdf(user.id, sessionId, blob);
+        if (!cancelled) {
+          pdfSavedRef.current = true;
+          setSavedHint("Test ve PDF raporu hesabınıza kaydedildi.");
+        }
+      } catch (e) {
+        console.warn(e);
+        if (!cancelled) {
+          setSavedHint((prev) =>
+            prev.includes("PDF")
+              ? prev
+              : `${prev} PDF kaydı başarısız; «PDF indir» ile tekrar deneyebilirsiniz.`
+          );
+        }
+      }
+    }, 900);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [step, sessionId, user?.id, logs, target, profile, participant]);
 
   useEffect(() => {
     if (step !== "spaceCheck" || spaceCelebrating) return undefined;
@@ -296,7 +340,10 @@ export default function TestFlowPage() {
             savedHint={savedHint}
             persistPdf={
               sessionId && user?.id
-                ? async (blob) => uploadReportPdf(user.id, sessionId, blob)
+                ? async (blob) => {
+                    await persistSessionReportPdf(user.id, sessionId, blob);
+                    pdfSavedRef.current = true;
+                  }
                 : undefined
             }
             extraActions={

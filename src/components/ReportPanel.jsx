@@ -85,6 +85,7 @@ export function ReportPanel({
               await persistPdf?.(blob);
             } catch (e) {
               console.warn(e);
+              window.alert("PDF indirildi ancak sisteme kaydedilemedi. Lütfen tekrar deneyin.");
             }
           }}
           style={{

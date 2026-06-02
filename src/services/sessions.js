@@ -26,7 +26,7 @@ export async function saveTestSession({
 export async function fetchMySessions(limit = 50) {
   const { data, error } = await supabase
     .from("test_sessions")
-    .select("id, participant_name, participant_age, profile_key, metrics, created_at")
+    .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -36,7 +36,9 @@ export async function fetchMySessions(limit = 50) {
 export async function fetchAllSessions(limit = 100) {
   const { data, error } = await supabase
     .from("test_sessions")
-    .select("id, owner_id, participant_name, participant_age, profile_key, metrics, created_at, profiles(full_name, role)")
+    .select(
+      "id, owner_id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, profiles(full_name, role)"
+    )
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -68,4 +70,23 @@ export async function uploadReportPdf(userId, sessionId, blob) {
   });
   if (error) throw error;
   return path;
+}
+
+/** Storage'a yükler ve test_sessions.pdf_path günceller. */
+export async function persistSessionReportPdf(userId, sessionId, blob) {
+  const path = await uploadReportPdf(userId, sessionId, blob);
+  const { error } = await supabase
+    .from("test_sessions")
+    .update({ pdf_path: path })
+    .eq("id", sessionId)
+    .eq("owner_id", userId);
+  if (error) throw error;
+  return path;
+}
+
+/** Kayıtlı PDF için geçici indirme bağlantısı (1 saat). */
+export async function getReportPdfSignedUrl(pdfPath) {
+  const { data, error } = await supabase.storage.from("reports").createSignedUrl(pdfPath, 3600);
+  if (error) throw error;
+  return data.signedUrl;
 }

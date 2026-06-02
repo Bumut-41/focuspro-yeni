@@ -3,7 +3,12 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { AdminPressTimeline } from "../components/AdminPressTimeline.jsx";
 import { adminAddCredits, fetchAllProfiles } from "../services/credits.js";
-import { fetchAdminPressTimeline, fetchAllSessions, fetchSessionDetail } from "../services/sessions.js";
+import {
+  fetchAdminPressTimeline,
+  fetchAllSessions,
+  fetchSessionDetail,
+  getReportPdfSignedUrl
+} from "../services/sessions.js";
 import { btnGhost, card, input } from "../components/ui.js";
 
 export default function AdminPage() {
@@ -17,6 +22,20 @@ export default function AdminPage() {
   const [detail, setDetail] = useState(null);
   const [timeline, setTimeline] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(null);
+
+  async function openPdf(pdfPath, id) {
+    if (!pdfPath) return;
+    setPdfBusy(id);
+    try {
+      const url = await getReportPdfSignedUrl(pdfPath);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setMsg(e.message || "PDF açılamadı.");
+    } finally {
+      setPdfBusy(null);
+    }
+  }
 
   const load = useCallback(async () => {
     const [p, s] = await Promise.all([fetchAllProfiles(), fetchAllSessions(200)]);
@@ -153,6 +172,16 @@ export default function AdminPage() {
                   <button type="button" onClick={() => openSession(s.id)} style={{ ...btnGhost, padding: "6px 12px", fontSize: 12 }}>
                     {selectedId === s.id ? "Kapat" : "Basış raporu"}
                   </button>
+                  {s.pdf_path && (
+                    <button
+                      type="button"
+                      onClick={() => openPdf(s.pdf_path, s.id)}
+                      disabled={pdfBusy === s.id}
+                      style={{ ...btnGhost, padding: "6px 12px", fontSize: 12, marginLeft: 6 }}
+                    >
+                      {pdfBusy === s.id ? "…" : "PDF"}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
