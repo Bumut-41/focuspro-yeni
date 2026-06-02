@@ -30,7 +30,9 @@ function buildSilentGifWindow(startMs, endMs) {
   const events = [];
   let silentKeyIndex = 0;
 
-  const OFFSET_MS = Math.min(3200, Math.floor(GIF_START_INTERVAL_MS / 2));
+  // 2. akışı daha erken başlat: aynı anda 2 GIF görülme oranı artsın,
+  // ama yine de "aynı anda başlama" hissi olmasın.
+  const OFFSET_MS = Math.min(2400, Math.floor(GIF_START_INTERVAL_MS / 3));
 
   function pickSingleSilentItem(at, eventIndex) {
     const active = activeItemsAt(events, at);
@@ -100,7 +102,7 @@ function buildSoundGifWindow(startMs, endMs) {
   let soundKeyIndex = 0;
   let silentKeyIndex = 0;
   let nextSoundAllowedAt = startMs;
-  const OFFSET_MS = Math.min(3200, Math.floor(GIF_START_INTERVAL_MS / 2));
+  const OFFSET_MS = Math.min(2400, Math.floor(GIF_START_INTERVAL_MS / 3));
 
   function pickSilentItem(at, eventIndex) {
     const active = activeItemsAt(events, at);
