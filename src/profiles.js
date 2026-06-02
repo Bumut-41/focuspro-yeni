@@ -10,6 +10,7 @@ import {
   mergeGifEvents,
   mergeSoundEvents
 } from "./distractorSchedule.js";
+import { DISTRACTOR_ONLY_QA, applyDistractorOnlyQa } from "./testQaMode.js";
 
 const MIN = 60_000;
 
@@ -134,5 +135,8 @@ export function profileKeyFromAge(age) {
 }
 
 export function getProfile(key) {
-  return PROFILES[key] ?? PROFILES.adult;
+  const base = PROFILES[key] ?? PROFILES.adult;
+  return DISTRACTOR_ONLY_QA ? applyDistractorOnlyQa(base) : base;
 }
+
+export { DISTRACTOR_ONLY_QA } from "./testQaMode.js";

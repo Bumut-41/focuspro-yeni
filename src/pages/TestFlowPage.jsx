@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { ageFromBirthDate, getProfile, profileKeyFromAge } from "../profiles.js";
+import { ageFromBirthDate, getProfile, profileKeyFromAge, DISTRACTOR_ONLY_QA } from "../profiles.js";
 import { computeMetrics } from "../metrics.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
@@ -236,6 +236,11 @@ export default function TestFlowPage() {
           <p className="test-brief-meta">
             {getProfile(pkey).label} — Süre: {Math.round(getProfile(pkey).durationMs / 60000)} dk
           </p>
+          {DISTRACTOR_ONLY_QA && (
+            <p className="test-brief-qa-hint" role="status">
+              Geçici mod: yalnızca çeldirici alanları (sessiz gif, ses, kombine).
+            </p>
+          )}
           <div className="test-brief-shape">
             <ShapeView shape={target.shape} color={target.color} size={90} />
           </div>
