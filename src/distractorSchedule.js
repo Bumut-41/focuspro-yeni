@@ -28,48 +28,46 @@ function gifDuration(endMs, at) {
 
 function buildSilentGifWindow(startMs, endMs) {
   const events = [];
-  let t = startMs;
-  let i = 0;
   let silentKeyIndex = 0;
 
-  function tryAddSecondSilent(items, active, baseIndex) {
-    if (items.length >= 2) return;
-    const usedLaneIds = new Set(items.map((x) => x.laneId).filter(Boolean));
+  const OFFSET_MS = Math.min(3200, Math.floor(GIF_START_INTERVAL_MS / 2));
+
+  function pickSingleSilentItem(at, eventIndex) {
+    const active = activeItemsAt(events, at);
+    const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
     let attempts = 0;
-    while (attempts < GIF_KEYS.length && items.length < 2) {
-      const zKey = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
-      const it = buildGifItem(zKey, baseIndex + 100 + attempts, true, [...active, ...items]);
+    while (attempts < GIF_KEYS.length) {
+      const key = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
+      const it = buildGifItem(key, eventIndex + attempts, true, active);
       if (!usedLaneIds.has(it.laneId)) {
-        items.push(it);
-        usedLaneIds.add(it.laneId);
         silentKeyIndex += attempts + 1;
-        return;
+        return it;
       }
       attempts += 1;
     }
     silentKeyIndex += attempts;
+    return null;
   }
 
-  while (t < endMs) {
-    const duration = gifDuration(endMs, t);
+  // 2 bağımsız akış: aynı anda başlatmak yerine kaydırmalı (staggered) başlat.
+  // Böylece 2 GIF "aynı anda" değil, farklı anlarda ekrana girer.
+  let t1 = startMs;
+  let t2 = startMs + OFFSET_MS;
+  let i = 0;
+
+  while (t1 < endMs || t2 < endMs) {
+    const nextAt = t2 < endMs && t2 <= t1 ? t2 : t1;
+    if (nextAt >= endMs) break;
+    const duration = gifDuration(endMs, nextAt);
     if (duration < 400) break;
 
-    const active = activeItemsAt(events, t);
-    const key = GIF_KEYS[silentKeyIndex % GIF_KEYS.length];
-    silentKeyIndex += 1;
-    const first = buildGifItem(key, i, true, active);
-    const items = [first];
+    const it = pickSingleSilentItem(nextAt, i * 10);
+    if (it) {
+      events.push({ at: nextAt, duration, items: [it] });
+    }
 
-    // Yoğunluğu artır: sessiz pencerede mümkünse aynı anda 2 sessiz GIF göster.
-    // Lane ve bloklama kuralları `buildGifItem` içinde.
-    tryAddSecondSilent(items, active, i);
-    events.push({
-      at: t,
-      duration,
-      items
-    });
-
-    t += GIF_START_INTERVAL_MS;
+    if (nextAt === t1) t1 += GIF_START_INTERVAL_MS;
+    else t2 += GIF_START_INTERVAL_MS;
     i += 1;
   }
 
@@ -102,23 +100,23 @@ function buildSoundGifWindow(startMs, endMs) {
   let soundKeyIndex = 0;
   let silentKeyIndex = 0;
   let nextSoundAllowedAt = startMs;
+  const OFFSET_MS = Math.min(3200, Math.floor(GIF_START_INTERVAL_MS / 2));
 
-  function tryAddSilent(items, active, baseIndex) {
-    const usedLaneIds = new Set(items.map((x) => x.laneId).filter(Boolean));
+  function pickSilentItem(at, eventIndex) {
+    const active = activeItemsAt(events, at);
+    const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
     let attempts = 0;
     while (attempts < GIF_KEYS.length) {
       const zKey = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
-      const it = buildGifItem(zKey, baseIndex + 100 + attempts, true, [...active, ...items]);
+      const it = buildGifItem(zKey, eventIndex + attempts, true, active);
       if (!usedLaneIds.has(it.laneId)) {
-        items.push(it);
-        usedLaneIds.add(it.laneId);
         silentKeyIndex += attempts + 1;
-        return true;
+        return it;
       }
       attempts += 1;
     }
     silentKeyIndex += attempts;
-    return false;
+    return null;
   }
 
   while (t < endMs) {
@@ -130,45 +128,45 @@ function buildSoundGifWindow(startMs, endMs) {
     const hasSilent = active.some((it) => it.silent);
     const wantSound = isSoundGifSlot(i);
     const canPlaceSound = wantSound && t >= nextSoundAllowedAt && !hasSound;
-    const items = [];
 
     if (canPlaceSound) {
       const sKey = SOUND_GIF_KEYS[soundKeyIndex % SOUND_GIF_KEYS.length];
       soundKeyIndex += 1;
       const soundItem = buildGifItem(sKey, i, false, active);
-      items.push(soundItem);
       nextSoundAllowedAt = t + duration;
 
+      const items = [soundItem];
       if (!hasSilent) {
-        // Kombine kural: en fazla 1 sesli + 1 sessiz
-        tryAddSilent(items, active, i);
+        const silent = pickSilentItem(t, i + 1000);
+        if (silent && silent.laneId !== soundItem.laneId) items.push(silent);
       }
+
+      events.push({ at: t, duration, items });
     } else if (wantSound && hasSound) {
       /* Sesli çıkış sırası ama ekranda ses var — yalnızca ses bitince yeni sesli */
     } else if (!hasSound) {
-      // Kombine pencerede "sessiz slot" ise yoğunluğu artır: mümkünse 2 sessiz GIF
-      tryAddSilent(items, active, i);
-      if (!active.some((it) => it.key === "top" || it.key === "kedi" || it.key === "kosan")) {
-        // Eğer hareketli bir şey yoksa da ikinciyi dene (en fazla 2).
-        if (items.length < 2) tryAddSilent(items, active, i);
-      } else {
-        // Hareketli varken bile 2'yi dene (lane blokları zıt şerit/zone'a iter).
-        if (items.length < 2) tryAddSilent(items, active, i);
+      // Sessiz slot: 2 bağımsız başlangıç (kaydırmalı). Aynı anda 2 item değil.
+      const silent1 = pickSilentItem(t, i * 10);
+      if (silent1) events.push({ at: t, duration, items: [silent1] });
+
+      const t2 = t + OFFSET_MS;
+      if (t2 < endMs) {
+        const d2 = gifDuration(endMs, t2);
+        if (d2 >= 400) {
+          const silent2 = pickSilentItem(t2, i * 10 + 5);
+          if (silent2) events.push({ at: t2, duration: d2, items: [silent2] });
+        }
       }
     } else if (hasSound && !hasSilent) {
-      // Ekranda sesli var ama sessiz yoksa 1 sessiz ekleyebiliriz (max 1 sessiz)
-      tryAddSilent(items, active, i);
-    }
-
-    if (items.length) {
-      events.push({ at: t, duration, items });
+      const silent = pickSilentItem(t, i + 2000);
+      if (silent) events.push({ at: t, duration, items: [silent] });
     }
 
     t += GIF_START_INTERVAL_MS;
     i += 1;
   }
 
-  return events;
+  return events.sort((a, b) => a.at - b.at);
 }
 
 export function mergeGifEvents(windows) {
