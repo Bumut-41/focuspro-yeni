@@ -28,7 +28,6 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const gifIds = useRef([]);
   const soundGifIds = useRef([]);
   const soloSoundId = useRef(null);
-  const soloPendingRef = useRef(null);
   const gifLanesOnScreen = useRef(new Set());
 
   /** Deneme zaman çizelgesi (performans kayması yerine planlanan ms). */
@@ -84,7 +83,6 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     });
     audioMap.current = {};
     soloSoundId.current = null;
-    soloPendingRef.current = null;
     soundGifIds.current = [];
   }, []);
 
@@ -180,11 +178,8 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       if (!ev || !playing.current) return;
       const path = INDEPENDENT_SOUNDS[ev.key];
       if (!path) return;
-      // Bir ses çalıyorken yeni event geldiyse sıraya al; ses biter bitmez (<=1.2 sn) devam eder.
-      if (soloSoundId.current) {
-        soloPendingRef.current = { key: ev.key, duration: ev.duration };
-        return;
-      }
+      // Aynı anda 1 ses çalsın. (Schedule artık overlap üretmediği için drop olmaz.)
+      if (soloSoundId.current) return;
       const id = `s-${idx}-${eventIdSeqRef.current++}`;
       const a = new Audio(path);
       a.volume = 0.65;
@@ -194,34 +189,6 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         a.pause();
         delete audioMap.current[id];
         if (soloSoundId.current === id) soloSoundId.current = null;
-        const pending = soloPendingRef.current;
-        soloPendingRef.current = null;
-        if (pending && playing.current) {
-          // en fazla 1.2 sn boşluk
-          eventTimers.current.push(
-            setTimeout(() => {
-              // pending’i yeni bir “idx” gibi başlatmak için sahte event objesi kullanmıyoruz;
-              // aynı fonksiyonu tekrar çağırmak yerine doğrudan başlatıyoruz.
-              const fakeIdx = eventIdSeqRef.current++;
-              const fakeEv = { key: pending.key, duration: pending.duration };
-              const fakePath = INDEPENDENT_SOUNDS[fakeEv.key];
-              if (!fakePath || soloSoundId.current) return;
-              const nid = `s-${fakeIdx}-${eventIdSeqRef.current++}`;
-              const na = new Audio(fakePath);
-              na.volume = 0.65;
-              audioMap.current[nid] = na;
-              soloSoundId.current = nid;
-              const nfinish = () => {
-                na.pause();
-                delete audioMap.current[nid];
-                if (soloSoundId.current === nid) soloSoundId.current = null;
-              };
-              na.onended = nfinish;
-              na.play().catch(nfinish);
-              eventTimers.current.push(setTimeout(nfinish, fakeEv.duration));
-            }, 200)
-          );
-        }
       };
       a.onended = finish;
       a.play().catch(() => {
