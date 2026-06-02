@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import { TestChromeProvider, useTestChrome } from "./test/TestChromeContext.jsx";
@@ -7,7 +8,8 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CompleteProfilePage from "./pages/CompleteProfilePage.jsx";
-import TestFlowPage from "./pages/TestFlowPage.jsx";
+
+const TestFlowPage = lazy(() => import("./pages/TestFlowPage.jsx"));
 
 function Shell({ children }) {
   const { user, profile, signOut, isSupabaseReady } = useAuth();
@@ -84,7 +86,9 @@ function AppRoutes() {
         path="/test"
         element={
           <ProtectedRoute>
-            <TestFlowPage />
+            <Suspense fallback={<p style={{ color: "#64748b" }}>Test yükleniyor…</p>}>
+              <TestFlowPage />
+            </Suspense>
           </ProtectedRoute>
         }
       />

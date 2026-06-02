@@ -84,7 +84,8 @@ function buildSoundGifWindow(startMs, endMs) {
     const active = activeItemsAt(events, t);
     const hasSound = active.some((it) => !it.silent);
     const hasSilent = active.some((it) => it.silent);
-    const canPlaceSound = isSoundGifSlot(i) && t >= nextSoundAllowedAt && !hasSound;
+    const wantSound = isSoundGifSlot(i);
+    const canPlaceSound = wantSound && t >= nextSoundAllowedAt && !hasSound;
     const items = [];
 
     if (canPlaceSound) {

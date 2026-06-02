@@ -1,9 +1,24 @@
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
 import { computeMetrics, riskLabel, summaryText } from "./metrics.js";
 import { getShapeSvg } from "./shapeUtils.jsx";
 
-pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
+let pdfMakePromise;
+
+async function getPdfMake() {
+  if (!pdfMakePromise) {
+    pdfMakePromise = (async () => {
+      const pdfMakeMod = await import("pdfmake/build/pdfmake");
+      const pdfFontsMod = await import("pdfmake/build/vfs_fonts");
+      const pdfMake = pdfMakeMod.default ?? pdfMakeMod;
+      const pdfFonts = pdfFontsMod.default ?? pdfFontsMod;
+      pdfMake.vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs;
+      if (!pdfMake.vfs) {
+        throw new Error("PDF yazı tipleri yüklenemedi (pdfmake vfs).");
+      }
+      return pdfMake;
+    })();
+  }
+  return pdfMakePromise;
+}
 
 function color(score) {
   if (score >= 85) return "#16A34A";
@@ -91,7 +106,8 @@ export function buildDocDefinition({ participant, profile, logs, target, chartIm
   };
 }
 
-export function createPdfBlob(args) {
+export async function createPdfBlob(args) {
+  const pdfMake = await getPdfMake();
   const doc = buildDocDefinition(args);
   return new Promise((resolve, reject) => {
     try {
@@ -102,7 +118,8 @@ export function createPdfBlob(args) {
   });
 }
 
-export function downloadPdf(args) {
+export async function downloadPdf(args) {
+  const pdfMake = await getPdfMake();
   const doc = buildDocDefinition(args);
   const name = `FocusProLab_${args.participant.name.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
   pdfMake.createPdf(doc).download(name);
