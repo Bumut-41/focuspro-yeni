@@ -1,21 +1,21 @@
 /**
  * GIF yerleşim ve hareket kuralları.
- * Ana simge ortada; gifler üst/alt yan şeritlerde (orta bant yok).
+ * Ana simge ortada; hareketsiz gifler sol/sağ kenar şeritlerinde (merkeze yakın değil).
  * Hareket edenler: kedi, koşan (sol→sağ), top (üstten aşağı, sol/sağ).
  */
 
 export const GIF_LANES = [
-  // Klasik üst/alt şeritler (ekranın kenarı)
-  { id: "left-upper", area: "left", zone: "upper", left: 14, top: 16 },
-  { id: "right-upper", area: "right", zone: "upper", left: 86, top: 16 },
-  { id: "left-lower", area: "left", zone: "lower", left: 14, top: 84 },
-  { id: "right-lower", area: "right", zone: "lower", left: 86, top: 84 },
+  // Kenar şeritleri — ana simgeden uzak (sol/sağ)
+  { id: "left-upper", area: "left", zone: "upper", left: 8, top: 16 },
+  { id: "right-upper", area: "right", zone: "upper", left: 92, top: 16 },
+  { id: "left-lower", area: "left", zone: "lower", left: 8, top: 84 },
+  { id: "right-lower", area: "right", zone: "lower", left: 92, top: 84 },
 
-  // Orta bantlar: ana simgeye yaklaşır ama üstüne gelmez (x uzak, y orta)
-  { id: "left-mid-upper", area: "left", zone: "mid-upper", left: 28, top: 34 },
-  { id: "right-mid-upper", area: "right", zone: "mid-upper", left: 72, top: 34 },
-  { id: "left-mid-lower", area: "left", zone: "mid-lower", left: 28, top: 66 },
-  { id: "right-mid-lower", area: "right", zone: "mid-lower", left: 72, top: 66 }
+  // Yan orta yükseklik; yine kenara yakın (merkeze değil)
+  { id: "left-mid-upper", area: "left", zone: "mid-upper", left: 10, top: 34 },
+  { id: "right-mid-upper", area: "right", zone: "mid-upper", left: 90, top: 34 },
+  { id: "left-mid-lower", area: "left", zone: "mid-lower", left: 10, top: 66 },
+  { id: "right-mid-lower", area: "right", zone: "mid-lower", left: 90, top: 66 }
 ];
 
 export const MOVING_HORIZONTAL_KEYS = new Set(["kedi", "kosan"]);
@@ -35,16 +35,21 @@ export const GIF_BEHAVIOR = {
   televizyon: { movement: "static", sides: ["left", "right"] }
 };
 
+// Önce kenar lane'leri (ana şekle en uzak)
 const LANE_ROTATION = [
   "left-upper",
-  "right-lower",
-  "left-lower",
   "right-upper",
+  "left-lower",
+  "right-lower",
   "left-mid-upper",
-  "right-mid-lower",
+  "right-mid-upper",
   "left-mid-lower",
-  "right-mid-upper"
+  "right-mid-lower"
 ];
+
+function isEdgeLane(lane) {
+  return lane.left <= 12 || lane.left >= 88;
+}
 
 function isMovingKey(key) {
   return MOVING_HORIZONTAL_KEYS.has(key) || MOVING_VERTICAL_KEYS.has(key);
@@ -59,8 +64,8 @@ function laneIdsWhere(fn) {
 }
 
 function isInTargetSafeExclusionBox(lane) {
-  // Ana simge merkezi ~ (50,50). Bu kutu içine lane koymuyoruz.
-  return lane.left >= 36 && lane.left <= 64 && lane.top >= 36 && lane.top <= 64;
+  // Ana simge merkezi ~ (50,50). Merkez bandına lane koymuyoruz.
+  return lane.left >= 30 && lane.left <= 70 && lane.top >= 32 && lane.top <= 68;
 }
 
 function isTooCloseToActive(lane, activeItems) {
@@ -101,15 +106,19 @@ function blockedLaneIds(activeItems) {
 function lanesForKey(key, blocked) {
   const sides = GIF_BEHAVIOR[key]?.sides ?? ["left", "right"];
   const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
-  return GIF_LANES.filter((l) => {
+  const list = GIF_LANES.filter((l) => {
     if (!sides.includes(l.area)) return false;
     if (blocked.has(l.id)) return false;
-    // Ana simge üstüne gelmesin.
     if (isInTargetSafeExclusionBox(l)) return false;
-    // Hareketli gifleri orta bantlara sokmayalım (yol temiz kalsın).
     if (movement !== "static" && l.id.includes("mid-")) return false;
     return true;
   });
+  // Hareketsiz gifler yalnızca ekranın sol/sağ kenarına yakın lane'lerde.
+  if (movement === "static") {
+    const edgeOnly = list.filter(isEdgeLane);
+    if (edgeOnly.length) return edgeOnly;
+  }
+  return list;
 }
 
 export function pickLaneForEvent(key, eventIndex, activeItems = []) {
@@ -124,8 +133,11 @@ export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   const rot = LANE_ROTATION.map((id) => GIF_LANES.find((l) => l.id === id)).filter((l) =>
     allowed.some((a) => a.id === l.id)
   );
-  if (!rot.length) return allowed[0] ?? GIF_LANES[eventIndex % GIF_LANES.length];
-  return rot[eventIndex % rot.length];
+  if (rot.length) return rot[eventIndex % rot.length];
+
+  // Yedek: merkeze en uzak lane'i seç
+  const byEdge = [...allowed].sort((a, b) => Math.abs(50 - b.left) - Math.abs(50 - a.left));
+  return byEdge[0] ?? GIF_LANES[eventIndex % GIF_LANES.length];
 }
 
 export function buildGifItem(key, eventIndex, silent, activeItems = []) {
