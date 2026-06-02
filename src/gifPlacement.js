@@ -63,6 +63,20 @@ function isInTargetSafeExclusionBox(lane) {
   return lane.left >= 36 && lane.left <= 64 && lane.top >= 36 && lane.top <= 64;
 }
 
+function isTooCloseToActive(lane, activeItems) {
+  // Yüzde koordinatlarında basit mesafe kuralı.
+  // Amaç: 2 GIF ekrandayken birbirine "yapışık" görünmesin.
+  const MIN_DX = 18;
+  const MIN_DY = 18;
+  for (const it of activeItems) {
+    if (!Number.isFinite(it.left) || !Number.isFinite(it.top)) continue;
+    const dx = Math.abs(lane.left - it.left);
+    const dy = Math.abs(lane.top - it.top);
+    if (dx < MIN_DX && dy < MIN_DY) return true;
+  }
+  return false;
+}
+
 /** Hareketli gifler varken hangi lane'ler bloklanır? */
 function blockedLaneIds(activeItems) {
   const blocked = new Set();
@@ -101,6 +115,10 @@ export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   const blocked = blockedLaneIds(activeItems.filter((x) => isMovingKey(x.key)));
   let allowed = lanesForKey(key, blocked);
   if (!allowed.length) allowed = lanesForKey(key, new Set());
+
+  // Mesafe filtresi: aktif giflere çok yakın lane'leri ele.
+  const spaced = allowed.filter((l) => !isTooCloseToActive(l, activeItems));
+  if (spaced.length) allowed = spaced;
 
   const rot = LANE_ROTATION.map((id) => GIF_LANES.find((l) => l.id === id)).filter((l) =>
     allowed.some((a) => a.id === l.id)
