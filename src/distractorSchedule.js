@@ -102,6 +102,8 @@ function buildSoundGifWindow(startMs, endMs) {
           items.push(silentItem);
         }
       }
+    } else if (wantSound && hasSound) {
+      /* Sesli çıkış sırası ama ekranda ses var — yalnızca ses bitince yeni sesli */
     } else if (!hasSound) {
       const zKey = GIF_KEYS[silentKeyIndex % GIF_KEYS.length];
       silentKeyIndex += 1;
