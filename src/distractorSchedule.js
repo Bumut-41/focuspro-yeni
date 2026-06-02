@@ -80,14 +80,17 @@ function buildSoloSoundWindow(startMs, endMs) {
   const events = [];
   let t = startMs;
   let i = 0;
+  const GAP_MAX_MS = 1_200;
 
   while (t < endMs) {
+    // Buradaki duration "güvenlik süre sınırı" gibi kullanılıyor (useAttentionTest sesleri bu sürede kapatıyor).
+    // Seslerin arasındaki boşluğu azaltmak için event'leri sık tetikliyoruz (<= 1.2 sn).
     const duration = Math.min(GIF_ON_SCREEN_MS, endMs - t);
     if (duration < 400) break;
 
     events.push({ at: t, duration, key: SOUND_KEYS[i % SOUND_KEYS.length] });
 
-    t += duration;
+    t += GAP_MAX_MS;
     if (t >= endMs) break;
     i += 1;
   }
@@ -96,76 +99,54 @@ function buildSoloSoundWindow(startMs, endMs) {
 }
 
 function buildSoundGifWindow(startMs, endMs) {
+  // Yeni kombine mantık:
+  // - Sessiz akış: sessiz penceredeki gibi "tek item" ama kesintisiz
+  // - Sesli akış: daha sık, aynı anda en fazla 1 sesli (overlap yok)
+  // - Hedef: sesli+sessiz birlikte daha stabil; "slot" mantığı yok.
   const events = [];
-  let t = startMs;
-  let i = 0;
-  let soundKeyIndex = 0;
   let silentKeyIndex = 0;
-  let nextSoundAllowedAt = startMs;
-  const OFFSET_MS = Math.min(2400, Math.floor(GIF_START_INTERVAL_MS / 3));
+  let soundKeyIndex = 0;
 
-  function pickSilentItem(at, eventIndex) {
+  // 8 sn max kuralına uyar; overlap olmasın diye duration=interval kullanıyoruz.
+  const DUR = Math.min(GIF_ON_SCREEN_MS, GIF_START_INTERVAL_MS);
+  const SOUND_OFFSET_MS = Math.min(1600, Math.floor(GIF_START_INTERVAL_MS / 4));
+
+  function pickItem(keys, keyIndex, at, eventIndex, silent) {
     const active = activeItemsAt(events, at);
     const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
     let attempts = 0;
-    while (attempts < GIF_KEYS.length) {
-      const zKey = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
-      const it = buildGifItem(zKey, eventIndex + attempts, true, active);
+    while (attempts < keys.length) {
+      const k = keys[(keyIndex + attempts) % keys.length];
+      const it = buildGifItem(k, eventIndex + attempts, silent, active);
       if (!usedLaneIds.has(it.laneId)) {
-        silentKeyIndex += attempts + 1;
-        return it;
+        return { item: it, advance: attempts + 1 };
       }
       attempts += 1;
     }
-    silentKeyIndex += attempts;
-    return null;
+    return { item: null, advance: attempts };
   }
 
+  // Zaman ekseni boyunca sessiz + sesli eventleri sırayla kur.
+  let t = startMs;
   while (t < endMs) {
-    const duration = gifDuration(endMs, t);
-    if (duration < 400) break;
+    // Sessiz her zaman dene
+    const d1 = Math.min(DUR, endMs - t);
+    if (d1 >= 400) {
+      const { item, advance } = pickItem(GIF_KEYS, silentKeyIndex, t, Math.floor(t / 10), true);
+      silentKeyIndex += advance;
+      if (item) events.push({ at: t, duration: d1, items: [item] });
+    }
 
-    const active = activeItemsAt(events, t);
-    const hasSound = active.some((it) => !it.silent);
-    const hasSilent = active.some((it) => it.silent);
-    const wantSound = isSoundGifSlot(i);
-    const canPlaceSound = wantSound && t >= nextSoundAllowedAt && !hasSound;
-
-    if (canPlaceSound) {
-      const sKey = SOUND_GIF_KEYS[soundKeyIndex % SOUND_GIF_KEYS.length];
-      soundKeyIndex += 1;
-      const soundItem = buildGifItem(sKey, i, false, active);
-      nextSoundAllowedAt = t + duration;
-
-      const items = [soundItem];
-      if (!hasSilent) {
-        const silent = pickSilentItem(t, i + 1000);
-        if (silent && silent.laneId !== soundItem.laneId) items.push(silent);
-      }
-
-      events.push({ at: t, duration, items });
-    } else if (wantSound && hasSound) {
-      /* Sesli çıkış sırası ama ekranda ses var — yalnızca ses bitince yeni sesli */
-    } else if (!hasSound) {
-      // Sessiz slot: 2 bağımsız başlangıç (kaydırmalı). Aynı anda 2 item değil.
-      const silent1 = pickSilentItem(t, i * 10);
-      if (silent1) events.push({ at: t, duration, items: [silent1] });
-
-      const t2 = t + OFFSET_MS;
-      if (t2 < endMs) {
-        const d2 = gifDuration(endMs, t2);
-        if (d2 >= 400) {
-          const silent2 = pickSilentItem(t2, i * 10 + 5);
-          if (silent2) events.push({ at: t2, duration: d2, items: [silent2] });
-        }
-      }
-    } else if (hasSound && !hasSilent) {
-      const silent = pickSilentItem(t, i + 2000);
-      if (silent) events.push({ at: t, duration, items: [silent] });
+    // Sesli daha sık görünsün: offset ile aynı anda başlamasın.
+    const ts = t + SOUND_OFFSET_MS;
+    const d2 = ts < endMs ? Math.min(DUR, endMs - ts) : 0;
+    if (d2 >= 400) {
+      const { item, advance } = pickItem(SOUND_GIF_KEYS, soundKeyIndex, ts, Math.floor(ts / 10) + 5000, false);
+      soundKeyIndex += advance;
+      if (item) events.push({ at: ts, duration: d2, items: [item] });
     }
 
     t += GIF_START_INTERVAL_MS;
-    i += 1;
   }
 
   return events.sort((a, b) => a.at - b.at);
