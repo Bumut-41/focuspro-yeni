@@ -66,13 +66,14 @@ function isInTargetSafeExclusionBox(lane) {
 function isTooCloseToActive(lane, activeItems) {
   // Yüzde koordinatlarında basit mesafe kuralı.
   // Amaç: 2 GIF ekrandayken birbirine "yapışık" görünmesin.
-  const MIN_DX = 18;
-  const MIN_DY = 18;
+  // Not: Orta bant (mid-*) lane'leri kenar lane'lerine yakın olduğu için eşiği biraz büyük tuttuk.
+  const MIN_DX = 24;
+  const MIN_DY = 24;
   for (const it of activeItems) {
     if (!Number.isFinite(it.left) || !Number.isFinite(it.top)) continue;
     const dx = Math.abs(lane.left - it.left);
     const dy = Math.abs(lane.top - it.top);
-    if (dx < MIN_DX && dy < MIN_DY) return true;
+    if (dx <= MIN_DX && dy <= MIN_DY) return true;
   }
   return false;
 }
