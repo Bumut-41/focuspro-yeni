@@ -96,11 +96,26 @@ function buildSoundGifWindow(startMs, endMs) {
       nextSoundAllowedAt = t + duration;
 
       if (!hasSilent) {
-        const zKey = GIF_KEYS[silentKeyIndex % GIF_KEYS.length];
-        silentKeyIndex += 1;
-        const silentItem = buildGifItem(zKey, i + 100, true, [...active, soundItem]);
-        if (silentItem.laneId !== soundItem.laneId) {
-          items.push(silentItem);
+        // Sesli hareket eden gif varken ikinci (sessiz) gifin de gelmesini artırmak için
+        // aynı lane'a düşen anahtarı atlayıp farklı lane bulana kadar deniyoruz.
+        let addedSilent = false;
+        let attempts = 0;
+
+        while (attempts < GIF_KEYS.length && !addedSilent) {
+          const zKey = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
+          const silentItem = buildGifItem(zKey, i + 100 + attempts, true, [...active, soundItem]);
+
+          if (silentItem.laneId !== soundItem.laneId) {
+            items.push(silentItem);
+            silentKeyIndex += attempts + 1;
+            addedSilent = true;
+          } else {
+            attempts += 1;
+          }
+        }
+
+        if (!addedSilent) {
+          silentKeyIndex += GIF_KEYS.length;
         }
       }
     } else if (wantSound && hasSound) {
