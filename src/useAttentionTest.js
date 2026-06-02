@@ -112,10 +112,13 @@ export function useAttentionTest(profile, { onFinished } = {}) {
 
   const canAdd = useCallback((items) => {
     const nS = items.filter((i) => !i.silent).length;
+    const nZ = items.filter((i) => i.silent).length;
     if (!items.length) return false;
     if (gifIds.current.length + items.length > 2) return false;
     if (soundGifIds.current.length + nS > 1) return false;
     if (nS > 1) return false;
+    if (nS > 0 && nZ > 1) return false;
+    if (nS > 0 && soundGifIds.current.length > 0) return false;
     for (const it of items) {
       if (it.laneId && gifLanesOnScreen.current.has(it.laneId)) return false;
     }

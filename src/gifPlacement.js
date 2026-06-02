@@ -1,6 +1,7 @@
 /**
  * GIF yerleşim ve hareket kuralları.
- * Ana simge ortada (~%50); gifler yalnızca üst/alt yan şeritlerde (orta band yok).
+ * Ana simge ortada; gifler üst/alt yan şeritlerde (orta bant yok).
+ * Hareket edenler: kedi, koşan (sol→sağ), top (üstten aşağı, sol/sağ).
  */
 
 export const GIF_LANES = [
@@ -10,40 +11,67 @@ export const GIF_LANES = [
   { id: "right-lower", area: "right", zone: "lower", left: 86, top: 84 }
 ];
 
-/** movement: horizontal | vertical | static */
+export const MOVING_HORIZONTAL_KEYS = new Set(["kedi", "kosan"]);
+export const MOVING_VERTICAL_KEYS = new Set(["top"]);
+
 export const GIF_BEHAVIOR = {
   top: { movement: "vertical", sides: ["left", "right"] },
   kosan: { movement: "horizontal", sides: ["left"] },
   kedi: { movement: "horizontal", sides: ["left"] },
   araba: { movement: "static", sides: ["left", "right"] },
   agac: { movement: "static", sides: ["left", "right"] },
-  arabakorna: { movement: "horizontal", sides: ["left"] },
-  asansor: { movement: "vertical", sides: ["left", "right"] },
+  arabakorna: { movement: "static", sides: ["left", "right"] },
+  asansor: { movement: "static", sides: ["left", "right"] },
   camtemizlik: { movement: "static", sides: ["left", "right"] },
   kapi: { movement: "static", sides: ["left", "right"] },
-  motorsiklet: { movement: "horizontal", sides: ["left"] },
+  motorsiklet: { movement: "static", sides: ["left", "right"] },
   televizyon: { movement: "static", sides: ["left", "right"] }
 };
 
 const LANE_ROTATION = ["left-upper", "right-lower", "left-lower", "right-upper"];
 
-export function lanesForKey(key) {
-  const sides = GIF_BEHAVIOR[key]?.sides ?? ["left", "right"];
-  return GIF_LANES.filter((l) => sides.includes(l.area));
+function isMovingKey(key) {
+  return MOVING_HORIZONTAL_KEYS.has(key) || MOVING_VERTICAL_KEYS.has(key);
 }
 
-/** Deterministik şerit: aynı anda iki gif farklı şeritlerde */
-export function pickLaneForEvent(key, eventIndex) {
-  const allowed = lanesForKey(key);
+/** Hareketli gif sol taraftayken statikler sağ şeride */
+function blockedLaneIds(activeItems) {
+  const blocked = new Set();
+  for (const it of activeItems) {
+    if (MOVING_HORIZONTAL_KEYS.has(it.key)) {
+      blocked.add("left-upper");
+      blocked.add("left-lower");
+    }
+    if (it.key === "top") {
+      if (it.area === "left") {
+        blocked.add("left-upper");
+      } else {
+        blocked.add("right-upper");
+      }
+    }
+  }
+  return blocked;
+}
+
+function lanesForKey(key, blocked) {
+  const sides = GIF_BEHAVIOR[key]?.sides ?? ["left", "right"];
+  return GIF_LANES.filter((l) => sides.includes(l.area) && !blocked.has(l.id));
+}
+
+export function pickLaneForEvent(key, eventIndex, activeItems = []) {
+  const blocked = blockedLaneIds(activeItems.filter((x) => isMovingKey(x.key)));
+  let allowed = lanesForKey(key, blocked);
+  if (!allowed.length) allowed = lanesForKey(key, new Set());
+
   const rot = LANE_ROTATION.map((id) => GIF_LANES.find((l) => l.id === id)).filter((l) =>
     allowed.some((a) => a.id === l.id)
   );
-  if (!rot.length) return allowed[0] ?? GIF_LANES[0];
+  if (!rot.length) return allowed[0] ?? GIF_LANES[eventIndex % GIF_LANES.length];
   return rot[eventIndex % rot.length];
 }
 
-export function buildGifItem(key, eventIndex, silent) {
-  const lane = pickLaneForEvent(key, eventIndex);
+export function buildGifItem(key, eventIndex, silent, activeItems = []) {
+  const lane = pickLaneForEvent(key, eventIndex, activeItems);
   const behavior = GIF_BEHAVIOR[key] ?? { movement: "static", sides: ["left", "right"] };
   return {
     key,
@@ -53,6 +81,17 @@ export function buildGifItem(key, eventIndex, silent) {
     left: lane.left,
     top: lane.top,
     movement: behavior.movement,
-    silent
+    silent: silent !== false
   };
+}
+
+/** Zaman aralığında aktif item listesi (çakışma için) */
+export function activeItemsAt(events, timeMs) {
+  const items = [];
+  for (const ev of events) {
+    if (timeMs >= ev.at && timeMs < ev.at + ev.duration) {
+      items.push(...ev.items);
+    }
+  }
+  return items;
 }
