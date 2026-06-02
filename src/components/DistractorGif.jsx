@@ -45,6 +45,24 @@ export function DistractorGif({ item, onError }) {
     );
   }
 
+  // Kenara hizala: merkez yerine sol/sağ kenardan içeri (ekran dışına taşmasın).
+  if (item.area === "right") {
+    return (
+      <img
+        src={item.gif}
+        alt=""
+        onError={onError}
+        style={{
+          ...base,
+          right: "2%",
+          left: "auto",
+          top: `${item.top}%`,
+          transform: "translateY(-50%)"
+        }}
+      />
+    );
+  }
+
   return (
     <img
       src={item.gif}
@@ -52,9 +70,9 @@ export function DistractorGif({ item, onError }) {
       onError={onError}
       style={{
         ...base,
-        left: `${item.left}%`,
+        left: "2%",
         top: `${item.top}%`,
-        transform: "translate(-50%, -50%)"
+        transform: "translateY(-50%)"
       }}
     />
   );

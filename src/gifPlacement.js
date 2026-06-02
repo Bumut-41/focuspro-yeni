@@ -5,17 +5,16 @@
  */
 
 export const GIF_LANES = [
-  // Kenar şeritleri — ana simgeden uzak (sol/sağ)
-  { id: "left-upper", area: "left", zone: "upper", left: 8, top: 16 },
-  { id: "right-upper", area: "right", zone: "upper", left: 92, top: 16 },
-  { id: "left-lower", area: "left", zone: "lower", left: 8, top: 84 },
-  { id: "right-lower", area: "right", zone: "lower", left: 92, top: 84 },
+  // Kenar şeritleri — ana simgeden uzak; tam ekran dışına taşmaması için %14 / %86
+  { id: "left-upper", area: "left", zone: "upper", left: 14, top: 16 },
+  { id: "right-upper", area: "right", zone: "upper", left: 86, top: 16 },
+  { id: "left-lower", area: "left", zone: "lower", left: 14, top: 84 },
+  { id: "right-lower", area: "right", zone: "lower", left: 86, top: 84 },
 
-  // Yan orta yükseklik; yine kenara yakın (merkeze değil)
-  { id: "left-mid-upper", area: "left", zone: "mid-upper", left: 10, top: 34 },
-  { id: "right-mid-upper", area: "right", zone: "mid-upper", left: 90, top: 34 },
-  { id: "left-mid-lower", area: "left", zone: "mid-lower", left: 10, top: 66 },
-  { id: "right-mid-lower", area: "right", zone: "mid-lower", left: 90, top: 66 }
+  { id: "left-mid-upper", area: "left", zone: "mid-upper", left: 16, top: 34 },
+  { id: "right-mid-upper", area: "right", zone: "mid-upper", left: 84, top: 34 },
+  { id: "left-mid-lower", area: "left", zone: "mid-lower", left: 16, top: 66 },
+  { id: "right-mid-lower", area: "right", zone: "mid-lower", left: 84, top: 66 }
 ];
 
 export const MOVING_HORIZONTAL_KEYS = new Set(["kedi", "kosan"]);
@@ -48,15 +47,11 @@ const LANE_ROTATION = [
 ];
 
 function isEdgeLane(lane) {
-  return lane.left <= 12 || lane.left >= 88;
+  return lane.left <= 20 || lane.left >= 80;
 }
 
 function isMovingKey(key) {
   return MOVING_HORIZONTAL_KEYS.has(key) || MOVING_VERTICAL_KEYS.has(key);
-}
-
-function isUpperHalfLane(lane) {
-  return lane.top < 50;
 }
 
 function laneIdsWhere(fn) {
@@ -88,16 +83,12 @@ function blockedLaneIds(activeItems) {
   const blocked = new Set();
   for (const it of activeItems) {
     if (MOVING_HORIZONTAL_KEYS.has(it.key)) {
-      // Kedi/koşan üstteyken diğer GIF’ler alt şeride (lower zone) gelsin.
-      // Altta ise upper zone engellensin.
-      const wantUpperHalf = it.zone === "upper" || it.zone === "mid-upper";
-      const toBlock = laneIdsWhere((l) => isUpperHalfLane(l) === wantUpperHalf);
-      toBlock.forEach((id) => blocked.add(id));
+      // Sol→sağ: hareketin başladığı sol tarafa statik gif koyma (üst üste binmesin).
+      laneIdsWhere((l) => l.area === "left").forEach((id) => blocked.add(id));
     }
     if (it.key === "top") {
-      // Top gif soldaysa diğer GIF’ler sağda; sağdaysa solda gelsin.
-      const toBlock = laneIdsWhere((l) => l.area === it.area);
-      toBlock.forEach((id) => blocked.add(id));
+      // Yukarı→aşağı: iniş yaptığı tarafta statik gif koyma; karşı tarafa koy.
+      laneIdsWhere((l) => l.area === it.area).forEach((id) => blocked.add(id));
     }
   }
   return blocked;

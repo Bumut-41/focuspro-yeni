@@ -486,7 +486,7 @@ body {
 }
 
 .distractor-gif-move-down-left {
-  left: 8%;
+  left: 10%;
   top: -14%;
   transform: translateX(-50%);
   animation-name: distractor-cross-down;
@@ -496,7 +496,7 @@ body {
 }
 
 .distractor-gif-move-down-right {
-  left: 92%;
+  left: 90%;
   top: -14%;
   transform: translateX(-50%);
   animation-name: distractor-cross-down;
