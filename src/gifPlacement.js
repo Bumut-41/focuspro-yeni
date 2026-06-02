@@ -39,17 +39,18 @@ function blockedLaneIds(activeItems) {
   const blocked = new Set();
   for (const it of activeItems) {
     if (MOVING_HORIZONTAL_KEYS.has(it.key)) {
-      blocked.add("left-upper");
-      blocked.add("left-lower");
-
-      // Hedefimiz: hareketli yatay gif (kedi/koşan) üstteyse diğer gif alt şeritte gelsin.
-      // Bu nedenle, aynı zonu (upper/lower) sağ şeritten de bloklayıp sadece ters zondaki lane'leri
-      // kullanılabilir bırakıyoruz.
-      if (it.zone === "upper") blocked.add("right-upper");
-      if (it.zone === "lower") blocked.add("right-lower");
+      // Kedi/koşan üstteyken diğer GIF’ler alt şeride (lower zone) gelsin.
+      // Altta ise upper zone engellensin.
+      if (it.zone === "upper") {
+        blocked.add("left-upper");
+        blocked.add("right-upper");
+      } else {
+        blocked.add("left-lower");
+        blocked.add("right-lower");
+      }
     }
     if (it.key === "top") {
-      // Top dikey gif ekranda soldaysa diğer gifler sağ şeritte gelsin.
+      // Top gif soldaysa diğer GIF’ler sağda; sağdaysa solda gelsin.
       if (it.area === "left") {
         blocked.add("left-upper");
         blocked.add("left-lower");
