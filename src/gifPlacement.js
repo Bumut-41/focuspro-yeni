@@ -67,8 +67,8 @@ function isTooCloseToActive(lane, activeItems) {
   // Yüzde koordinatlarında basit mesafe kuralı.
   // Amaç: 2 GIF ekrandayken birbirine "yapışık" görünmesin.
   // Not: Orta bant (mid-*) lane'leri kenar lane'lerine yakın olduğu için eşiği biraz büyük tuttuk.
-  const MIN_DX = 24;
-  const MIN_DY = 24;
+  const MIN_DX = 30;
+  const MIN_DY = 28;
   for (const it of activeItems) {
     if (!Number.isFinite(it.left) || !Number.isFinite(it.top)) continue;
     const dx = Math.abs(lane.left - it.left);
@@ -83,11 +83,14 @@ function blockedLaneIds(activeItems) {
   const blocked = new Set();
   for (const it of activeItems) {
     if (MOVING_HORIZONTAL_KEYS.has(it.key)) {
-      // Sol→sağ: hareketin başladığı sol tarafa statik gif koyma (üst üste binmesin).
+      // Sol→sağ: sol şerit + gifi takip eden yükseklik bandı (hareket hattı).
       laneIdsWhere((l) => l.area === "left").forEach((id) => blocked.add(id));
+      if (Number.isFinite(it.top)) {
+        laneIdsWhere((l) => Math.abs(l.top - it.top) < 28).forEach((id) => blocked.add(id));
+      }
     }
     if (it.key === "top") {
-      // Yukarı→aşağı: iniş yaptığı tarafta statik gif koyma; karşı tarafa koy.
+      // Yukarı→aşağı: iniş kolonunda başka gif olmasın; karşı taraf serbest.
       laneIdsWhere((l) => l.area === it.area).forEach((id) => blocked.add(id));
     }
   }

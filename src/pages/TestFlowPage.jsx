@@ -297,7 +297,7 @@ export default function TestFlowPage() {
           </p>
           {DISTRACTOR_ONLY_QA && (
             <p className="test-brief-qa-hint" role="status">
-              Geçici mod: yalnızca «sadece ses» ve «sessiz + sesli gif» bölümleri.
+              Geçici mod: yalnızca «sessiz + sesli gif» (kombine) bölümü test ediliyor.
             </p>
           )}
           <div className="test-brief-shape">

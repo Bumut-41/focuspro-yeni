@@ -26,6 +26,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const audioMap = useRef({});
   const playing = useRef(false);
   const gifIds = useRef([]);
+  const silentGifIds = useRef([]);
   const soundGifIds = useRef([]);
   const soloSoundId = useRef(null);
   const gifLanesOnScreen = useRef(new Set());
@@ -84,12 +85,14 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     audioMap.current = {};
     soloSoundId.current = null;
     soundGifIds.current = [];
+    silentGifIds.current = [];
   }, []);
 
   const stopAll = useCallback(() => {
     clearEvents();
     stopAudio();
     gifIds.current = [];
+    silentGifIds.current = [];
     soundGifIds.current = [];
     gifLanesOnScreen.current.clear();
     setGifs([]);
@@ -102,6 +105,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       delete audioMap.current[id];
     }
     gifIds.current = gifIds.current.filter((x) => x !== id);
+    silentGifIds.current = silentGifIds.current.filter((x) => x !== id);
     soundGifIds.current = soundGifIds.current.filter((x) => x !== id);
     setGifs((p) => {
       const gone = p.find((g) => g.id === id);
@@ -116,9 +120,10 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     if (!items.length) return false;
     if (gifIds.current.length + items.length > 2) return false;
     if (soundGifIds.current.length + nS > 1) return false;
-    if (nS > 1) return false;
-    if (nS > 0 && nZ > 1) return false;
+    if (silentGifIds.current.length + nZ > 1) return false;
+    if (nS > 1 || nZ > 1) return false;
     if (nS > 0 && soundGifIds.current.length > 0) return false;
+    if (nZ > 0 && silentGifIds.current.length > 0) return false;
     for (const it of items) {
       if (it.laneId && gifLanesOnScreen.current.has(it.laneId)) return false;
     }
@@ -153,49 +158,25 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         .filter(Boolean);
       if (!items.length) return;
 
-      const canShowVisuals = canAdd(items);
-      const soundOnly = items.filter((it) => it.sound);
+      if (!canAdd(items)) return;
 
-      if (canShowVisuals) {
-        items.forEach((it) => {
-          if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
-        });
-        gifIds.current = [...gifIds.current, ...items.map((x) => x.id)];
-        soundGifIds.current = [...soundGifIds.current, ...items.filter((x) => x.sound).map((x) => x.id)];
-        setGifs((p) => [...p, ...items]);
-      } else {
-        soundOnly.forEach((it) => {
-          const audioId = `a-${it.id}`;
+      items.forEach((it) => {
+        if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
+      });
+      gifIds.current = [...gifIds.current, ...items.map((x) => x.id)];
+      silentGifIds.current = [...silentGifIds.current, ...items.filter((x) => x.silent).map((x) => x.id)];
+      soundGifIds.current = [...soundGifIds.current, ...items.filter((x) => x.sound).map((x) => x.id)];
+      setGifs((p) => [...p, ...items]);
+      items.forEach((it) => {
+        if (it.sound) {
           const a = new Audio(it.sound);
           a.loop = true;
           a.volume = 0.65;
-          audioMap.current[audioId] = a;
-          a.play().catch(() => {
-            delete audioMap.current[audioId];
-          });
-          eventTimers.current.push(
-            setTimeout(() => {
-              a.pause();
-              delete audioMap.current[audioId];
-            }, ev.duration)
-          );
-        });
-      }
-
-      if (canShowVisuals) {
-        items.forEach((it) => {
-          if (it.sound) {
-            const a = new Audio(it.sound);
-            a.loop = true;
-            a.volume = 0.65;
-            audioMap.current[it.id] = a;
-            a.play().catch(() => removeGif(it.id));
-          }
-          if (it.gif) {
-            eventTimers.current.push(setTimeout(() => removeGif(it.id), ev.duration));
-          }
-        });
-      }
+          audioMap.current[it.id] = a;
+          a.play().catch(() => removeGif(it.id));
+        }
+        eventTimers.current.push(setTimeout(() => removeGif(it.id), ev.duration));
+      });
     },
     [canAdd, profile.gifEvents, removeGif]
   );
