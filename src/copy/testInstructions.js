@@ -1,6 +1,9 @@
 /** Katılımcının test öncesi gördüğü yönerge metni */
 export const TEST_INSTRUCTION_TITLE = "FocusProlab Dikkat Testi Yönergesi";
 
+/** Alıştırma ses kontrolünde çalınan örnek ses */
+export const AUDIO_CHECK_SOUND = "/distractors/alarm.mp3";
+
 export const TEST_INSTRUCTION_PARAGRAPHS = [
   "Bu testte ekranda farklı şekiller göreceksin.",
   "Senin görevin yalnızca mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmaktır.",

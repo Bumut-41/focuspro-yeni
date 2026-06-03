@@ -12,7 +12,11 @@ import { createPdfBlob } from "../pdfReport.js";
 import { persistSessionReportPdf, saveTestSession } from "../services/sessions.js";
 import { btnGhost, btnPrimary, card, input } from "../components/ui.js";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
-import { TEST_INSTRUCTION_PARAGRAPHS, TEST_INSTRUCTION_TITLE } from "../copy/testInstructions.js";
+import {
+  AUDIO_CHECK_SOUND,
+  TEST_INSTRUCTION_PARAGRAPHS,
+  TEST_INSTRUCTION_TITLE
+} from "../copy/testInstructions.js";
 
 export default function TestFlowPage() {
   const { refreshProfile, user } = useAuth();
@@ -27,16 +31,22 @@ export default function TestFlowPage() {
   const [logs, setLogs] = useState([]);
   const [spaceVerified, setSpaceVerified] = useState(false);
   const [spaceCelebrating, setSpaceCelebrating] = useState(false);
+  const [audioVerified, setAudioVerified] = useState(false);
+  const [audioCelebrating, setAudioCelebrating] = useState(false);
+  const [audioPlayError, setAudioPlayError] = useState("");
   const [savedHint, setSavedHint] = useState("");
   const [sessionId, setSessionId] = useState(null);
 
   const spaceDoneLock = useRef(false);
+  const audioDoneLock = useRef(false);
+  const audioRef = useRef(null);
   const chartRef = useRef(null);
   const pdfSavedRef = useRef(false);
   const profile = getProfile(pkey);
   const { setImmersive } = useTestChrome();
 
-  const isImmersiveStep = step === "guide" || step === "spaceCheck" || step === "brief" || step === "run";
+  const isImmersiveStep =
+    step === "guide" || step === "spaceCheck" || step === "audioCheck" || step === "brief" || step === "run";
 
   useEffect(() => {
     setImmersive(isImmersiveStep);
@@ -87,11 +97,38 @@ export default function TestFlowPage() {
     setSpaceCelebrating(true);
     window.setTimeout(() => {
       setSpaceVerified(true);
-      setStep("brief");
+      setStep("audioCheck");
       setSpaceCelebrating(false);
       spaceDoneLock.current = false;
     }, 950);
   }, [spaceCelebrating]);
+
+  const playAudioSample = useCallback(() => {
+    setAudioPlayError("");
+    if (!audioRef.current) {
+      audioRef.current = new Audio(AUDIO_CHECK_SOUND);
+      audioRef.current.volume = 0.65;
+    }
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch(() => {
+      setAudioPlayError("Ses çalınamadı. Ses seviyesini açın veya farklı bir cihaz deneyin.");
+    });
+  }, []);
+
+  const completeAudioCheck = useCallback(() => {
+    if (audioCelebrating || audioDoneLock.current) return;
+    audioDoneLock.current = true;
+    setAudioCelebrating(true);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    window.setTimeout(() => {
+      setAudioVerified(true);
+      setStep("brief");
+      setAudioCelebrating(false);
+      audioDoneLock.current = false;
+    }, 950);
+  }, [audioCelebrating]);
 
   function submitForm(e) {
     e.preventDefault();
@@ -117,8 +154,16 @@ export default function TestFlowPage() {
     setAge(String(a));
     setPkey(k);
     setSpaceVerified(false);
+    setAudioVerified(false);
     spaceDoneLock.current = false;
+    audioDoneLock.current = false;
     setSpaceCelebrating(false);
+    setAudioCelebrating(false);
+    setAudioPlayError("");
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     setStep("guide");
   }
 
@@ -127,7 +172,7 @@ export default function TestFlowPage() {
   }
 
   function beginTest() {
-    if (!spaceVerified) return;
+    if (!spaceVerified || !audioVerified) return;
     setLogs([]);
     setSessionId(null);
     pdfSavedRef.current = false;
@@ -210,6 +255,14 @@ export default function TestFlowPage() {
       spaceDoneLock.current = false;
       setSpaceCelebrating(false);
     }
+    if (step === "audioCheck") {
+      audioDoneLock.current = false;
+      setAudioCelebrating(false);
+      setAudioPlayError("");
+    }
+    if (step !== "audioCheck" && audioRef.current) {
+      audioRef.current.pause();
+    }
   }, [step]);
 
   if (!user) return <Navigate to="/giris" replace />;
@@ -289,7 +342,7 @@ export default function TestFlowPage() {
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">Adım 2 / 3 · Tuş kontrolü</p>
+            <p className="space-screen-kicker">Adım 2 / 4 · Tuş kontrolü</p>
             {!spaceCelebrating ? (
               <>
                 <h2 className="space-screen-head">Önce SPACE tuşunu deneyelim</h2>
@@ -310,9 +363,45 @@ export default function TestFlowPage() {
         </div>
       )}
 
+      {step === "audioCheck" && (
+        <div className="space-screen">
+          <div className="space-screen-bg" aria-hidden />
+          <div className="space-screen-bg space-screen-bg--2" aria-hidden />
+          <div className="space-screen-inner">
+            <p className="space-screen-kicker">Adım 3 / 4 · Ses kontrolü</p>
+            {!audioCelebrating ? (
+              <>
+                <h2 className="space-screen-head">Şimdi sesi kontrol edelim</h2>
+                <p className="space-screen-sub">
+                  <strong>Sesi çal</strong> ile kısa bir test sesi dinleyin. Sesi net duyduysanız onaylayın.
+                </p>
+                <div className="space-screen-actions">
+                  <button type="button" className="space-screen-touch" onClick={playAudioSample}>
+                    Sesi çal
+                  </button>
+                  <button type="button" className="space-screen-confirm" onClick={() => completeAudioCheck()}>
+                    Sesi duydum — devam
+                  </button>
+                </div>
+                {audioPlayError && (
+                  <p className="space-screen-error" role="alert">
+                    {audioPlayError}
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="space-screen-win">
+                <span className="space-screen-win-check">✓</span>
+                <p className="space-screen-win-title">Tamam</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {step === "brief" && target && (
         <div className="test-brief-card">
-          <p className="test-brief-kicker">Adım 3 / 3</p>
+          <p className="test-brief-kicker">Adım 4 / 4</p>
           <h2 className="test-brief-title">Test hazır</h2>
           <p className="test-brief-meta">
             {getProfile(pkey).label} — Süre: {Math.round(getProfile(pkey).durationMs / 60000)} dk

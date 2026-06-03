@@ -227,6 +227,43 @@ body {
   }
 }
 
+.space-screen-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+  margin-top: 8px;
+}
+
+.space-screen-confirm {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #059669, #047857);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.space-screen-confirm:hover {
+  filter: brightness(1.06);
+}
+
+.space-screen-error {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  max-width: 320px;
+}
+
 .space-screen-touch {
   padding: 12px 20px;
   border-radius: 12px;
