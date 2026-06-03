@@ -1,15 +1,12 @@
 /**
- * Tüm gif pencerelerini tarar.
+ * Tam test + tüm gif pencereleri çakışma ve kural taraması.
  * node scripts/validate-scenario.mjs
  */
 
-import { PROFILES, getProfile } from "../src/profiles.js";
-import {
-  buildSilentGifWindow,
-  buildSoundGifWindow
-} from "../src/distractorSchedule.js";
+import { getProfile, PROFILES } from "../src/profiles.js";
+import { buildSilentGifWindow, buildSoundGifWindow } from "../src/distractorSchedule.js";
 import { activeItemsAt, pairViolatesPlacement } from "../src/gifPlacement.js";
-import { GIF_ON_SCREEN_MS } from "../src/distractorTiming.js";
+import { COMBINED_MAX_EMPTY_MS } from "../src/distractorTiming.js";
 
 const MIN = 60_000;
 
@@ -20,12 +17,38 @@ function fmt(ms) {
   return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-function scanEvents(label, events, durationMs, stepMs = 250) {
+function scanPlacement(events, startMs, endMs, stepMs = 250) {
+  const issues = [];
+  for (let t = startMs; t < endMs; t += stepMs) {
+    const active = activeItemsAt(events, t);
+    for (let i = 0; i < active.length; i++) {
+      for (let j = i + 1; j < active.length; j++) {
+        const v = pairViolatesPlacement(active[i], active[j]);
+        if (v) {
+          issues.push({
+            at: t,
+            label: fmt(t),
+            type: v,
+            a: `${active[i].key}(${active[i].laneId})`,
+            b: `${active[j].key}(${active[j].laneId})`
+          });
+        }
+      }
+    }
+  }
+  const uniq = new Map();
+  for (const i of issues) {
+    uniq.set(`${i.type}|${i.a}|${i.b}`, i);
+  }
+  return [...uniq.values()];
+}
+
+function scanCombinedRules(events, startMs, endMs, stepMs = 250) {
   const issues = [];
   let maxEmpty = 0;
   let emptyStart = null;
 
-  for (let t = 0; t < durationMs; t += stepMs) {
+  for (let t = startMs; t < endMs; t += stepMs) {
     const active = activeItemsAt(events, t);
     if (active.length === 0) {
       if (emptyStart == null) emptyStart = t;
@@ -34,70 +57,89 @@ function scanEvents(label, events, durationMs, stepMs = 250) {
         maxEmpty = Math.max(maxEmpty, t - emptyStart);
         emptyStart = null;
       }
-      for (let i = 0; i < active.length; i++) {
-        for (let j = i + 1; j < active.length; j++) {
-          const v = pairViolatesPlacement(active[i], active[j]);
-          if (v) {
-            issues.push({
-              at: t,
-              label: fmt(t),
-              type: v,
-              a: `${active[i].key}(${active[i].laneId})`,
-              b: `${active[j].key}(${active[j].laneId})`
-            });
-          }
-        }
+      const sil = active.filter((x) => x.silent);
+      const snd = active.filter((x) => !x.silent);
+      const keys = new Set(active.map((x) => x.key));
+      if (sil.length > 1) issues.push({ type: "kural", msg: `>${1} sessiz gif`, label: fmt(t) });
+      if (snd.length > 1) issues.push({ type: "kural", msg: `>${1} sesli gif`, label: fmt(t) });
+      if (active.length > 2) issues.push({ type: "kural", msg: `>${2} gif ekranda`, label: fmt(t) });
+      if (keys.size !== active.length) {
+        issues.push({ type: "kural", msg: "aynı gif anahtarı", label: fmt(t) });
       }
     }
   }
-  if (emptyStart != null) maxEmpty = Math.max(maxEmpty, durationMs - emptyStart);
-
-  const missing = events.filter((e) => !e.items?.[0]);
-  return { label, issues, maxEmpty, missing: missing.length, eventCount: events.length };
+  if (emptyStart != null) maxEmpty = Math.max(maxEmpty, endMs - emptyStart);
+  if (maxEmpty > COMBINED_MAX_EMPTY_MS) {
+    issues.push({
+      type: "kural",
+      msg: `boş ekran ${(maxEmpty / 1000).toFixed(2)}s > ${COMBINED_MAX_EMPTY_MS / 1000}s`,
+      label: "—"
+    });
+  }
+  return issues;
 }
 
-const segments = [
-  { name: "Sessiz gif 3–6 dk", build: (k) => buildSilentGifWindow(3 * MIN, 6 * MIN), dur: 3 * MIN },
-  {
-    name: "Kombine 8–11/9–12 dk",
-    build: (k) =>
-      buildSoundGifWindow(k === "child" ? 8 * MIN : 9 * MIN, k === "child" ? 11 * MIN : 12 * MIN),
-    dur: 3 * MIN,
-    shift: (k) => (k === "child" ? 8 * MIN : 9 * MIN)
-  },
-  {
-    name: "Tam test (getProfile — tüm fazlar)",
-    build: (k) => getProfile(k).gifEvents,
-    dur: (k) => getProfile(k).durationMs
-  }
-];
+function combinedWindow(key) {
+  if (key === "child") return { start: 8 * MIN, end: 11 * MIN };
+  return { start: 9 * MIN, end: 12 * MIN };
+}
+
+function silentWindow() {
+  return { start: 3 * MIN, end: 6 * MIN };
+}
 
 let total = 0;
 
-for (const seg of segments) {
-  console.log(`\n=== ${seg.name} ===`);
-  for (const key of ["child", "teen", "adult"]) {
-    let events = seg.build(key);
-    const dur = typeof seg.dur === "function" ? seg.dur(key) : seg.dur;
-    if (seg.shift) {
-      const off = seg.shift(key);
-      events = events.map((e) => ({ ...e, at: e.at - off }));
-    }
-    const r = scanEvents(key, events, dur);
-    console.log(
-      `  ${key}: ${r.eventCount} olay, ${r.issues.length} çakışma kaydı, max boş ${(r.maxEmpty / 1000).toFixed(2)}s, eksik ${r.missing}`
-    );
-    const uniq = new Map();
-    for (const i of r.issues) {
-      const k = `${i.type}|${i.a}|${i.b}`;
-      if (!uniq.has(k)) uniq.set(k, i);
-    }
-    for (const i of uniq.values()) {
-      console.log(`    ⚠ ${i.type} — örn. ${i.label}: ${i.a} + ${i.b}`);
-      total++;
-    }
+console.log("=== Pencere bazlı yerleşim (izole) ===\n");
+for (const key of ["child", "teen", "adult"]) {
+  const cw = combinedWindow(key);
+  const sw = silentWindow();
+  const comb = buildSoundGifWindow(cw.start, cw.end);
+  const sil = buildSilentGifWindow(sw.start, sw.end);
+  const combIssues = scanPlacement(
+    comb.map((e) => ({ ...e, at: e.at - cw.start })),
+    0,
+    cw.end - cw.start
+  );
+  const silIssues = scanPlacement(
+    sil.map((e) => ({ ...e, at: e.at - sw.start })),
+    0,
+    sw.end - sw.start
+  );
+  console.log(
+    `  ${key}: kombine ${combIssues.length} çakışma, sessiz ${silIssues.length} çakışma`
+  );
+  for (const i of [...combIssues, ...silIssues]) {
+    console.log(`    ⚠ ${i.type} ${i.label}: ${i.a} + ${i.b}`);
+    total++;
   }
 }
 
-console.log(`\nToplam benzersiz uyarı: ${total}`);
+console.log("\n=== Tam test — getProfile (tüm gif olayları) ===\n");
+for (const key of ["child", "teen", "adult"]) {
+  const p = getProfile(key);
+  const place = scanPlacement(p.gifEvents, 0, p.durationMs);
+  const cw = combinedWindow(key);
+  const combPlace = scanPlacement(p.gifEvents, cw.start, cw.end);
+  const combRules = scanCombinedRules(p.gifEvents, cw.start, cw.end);
+  const sw = silentWindow();
+  const silPlace = scanPlacement(p.gifEvents, sw.start, sw.end);
+
+  console.log(`  ${key} (${p.durationMs / MIN} dk, ${p.gifEvents.length} gif olayı):`);
+  console.log(`    Yerleşim (tüm test): ${place.length} uyarı`);
+  console.log(`    Yerleşim (sessiz 3–6 dk): ${silPlace.length} uyarı`);
+  console.log(`    Yerleşim (kombine): ${combPlace.length} uyarı`);
+  console.log(`    Kombine kurallar: ${combRules.length} uyarı`);
+
+  for (const i of [...place, ...silPlace, ...combPlace]) {
+    console.log(`    ⚠ çakışma ${i.label}: ${i.a} + ${i.b} (${i.type})`);
+    total++;
+  }
+  for (const i of combRules) {
+    console.log(`    ⚠ ${i.msg} (${i.label})`);
+    total++;
+  }
+}
+
+console.log(`\nToplam uyarı: ${total}`);
 process.exit(total > 0 ? 1 : 0);
