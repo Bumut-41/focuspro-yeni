@@ -87,8 +87,7 @@ export function ReportPanel({
           type="button"
           variant="primary"
           onClick={async () => {
-            const url = chartRef?.current?.canvas?.toDataURL("image/png", 0.92);
-            const blob = await createPdfBlob({ participant, profile, logs, target, chartImage: url });
+            const blob = await createPdfBlob({ participant, profile, logs, target });
             const href = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = href;

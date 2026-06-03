@@ -1,4 +1,5 @@
 import { computeMetrics, riskLabel } from "./metrics.js";
+import { normLevelFromZ, normZScore } from "./reportNorms.js";
 
 function inverseNormalCDF(p) {
   if (p <= 0 || p >= 1) return 0;
@@ -59,11 +60,22 @@ export function computeDetailedMetrics(logs, lateMs) {
   const fa = nonT.filter((t) => t.responded);
   const correctRej = nonT.filter((t) => !t.responded);
   const multi = logs.filter((t) => t.responseCount > 1);
+  const hitRateRaw = targets.length ? hits.length / targets.length : 0;
+  const faRateRaw = nonT.length ? fa.length / nonT.length : 0;
   const targetRespRate = targets.length ? allTargetResp.length / targets.length : 0;
-  const faRate = nonT.length ? fa.length / nonT.length : 0;
-  const dPrime =
-    inverseNormalCDF(correctedRate(targetRespRate, targets.length)) -
-    inverseNormalCDF(correctedRate(faRate, nonT.length));
+  const zHit = inverseNormalCDF(correctedRate(hitRateRaw, targets.length));
+  const zFa = inverseNormalCDF(correctedRate(faRateRaw, nonT.length));
+  const dPrime = Number((zHit - zFa).toFixed(2));
+  const criterionC = Number((-0.5 * (zHit + zFa)).toFixed(2));
+  const beta = Math.abs(criterionC) > 0.05 ? Number((dPrime / criterionC).toFixed(2)) : null;
+
+  let perseverationCount = 0;
+  for (let i = 1; i < logs.length; i++) {
+    const prev = logs[i - 1];
+    const cur = logs[i];
+    if (!cur.isTarget && cur.responded && !prev.isTarget && prev.responded) perseverationCount++;
+  }
+  const perseverationRate = logs.length ? (perseverationCount / logs.length) * 100 : 0;
 
   return {
     ...base,
@@ -75,9 +87,98 @@ export function computeDetailedMetrics(logs, lateMs) {
     lateResponses: late.length,
     impulsiveErrors: fa.length,
     multiPress: multi.length,
-    hitRate: targets.length ? (hits.length / targets.length) * 100 : 0,
-    dPrime
+    hitRate: targets.length ? hitRateRaw * 100 : 0,
+    commissionRate: faRateRaw * 100,
+    perseverationCount,
+    perseverationRate,
+    dPrime,
+    criterionC,
+    beta
   };
+}
+
+export function shortPhaseLabel(name) {
+  const s = (name || "").replace(/^[^—]+—\s*/, "").trim();
+  return s.length > 28 ? `${s.slice(0, 26)}…` : s;
+}
+
+/** Faz adından norm tablosu anahtarı */
+export function mapSectionToNormPhase(sectionName) {
+  const s = (sectionName || "").toLowerCase();
+  if (s.includes("sessiz + sesli") || s.includes("sesli gif")) return "kombine2";
+  if (s.includes("sessiz gif")) return /3–6|3-6|6–9|6-9/.test(s) ? "gorsel1" : "gorsel2";
+  if (s.includes("sadece ses")) return /6–8|6-8|6–9|6-9/.test(s) ? "isitsel1" : "isitsel2";
+  if (/11–12|12–13|13–14|14–15|11-12|12-13/.test(s)) return "temel2";
+  if (/8–11|8-11|9–12|9-12/.test(s)) return "kombine1";
+  if (/0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses")) return "temel1";
+  const k = reportPhaseKey(sectionName);
+  return k === "other" ? "temel1" : k;
+}
+
+/** Tüm profil fazları — indeks grafikleri (8–9 nokta). */
+export function getAllPhaseChartScores(logs, profile) {
+  return profile.phases
+    .map((phase) => {
+      const list = logs.filter((t) => t.section === phase.name);
+      if (!list.length) return null;
+      const sc = getScores(computeDetailedMetrics(list, profile.lateResponseMs));
+      return {
+        label: shortPhaseLabel(phase.name),
+        phaseKey: mapSectionToNormPhase(phase.name),
+        attention: sc.attention,
+        timing: sc.timing,
+        impulsivity: sc.impulsivity,
+        hyperactivity: sc.hyperactivity
+      };
+    })
+    .filter(Boolean);
+}
+
+export function computeValidityFlags(logs, metrics, profile) {
+  const flags = [];
+  const missing = profile.phases.filter((p) => !logs.some((t) => t.section === p.name));
+  if (missing.length) flags.push(`Eksik faz: ${missing.length} bölümde veri yok`);
+
+  const targetHits = logs.filter((t) => t.isTarget && t.responded && t.reactionTime > 0);
+  const tooFast = targetHits.filter((t) => t.reactionTime < 150).length;
+  if (targetHits.length && tooFast / targetHits.length > 0.05) {
+    flags.push("Aşırı hızlı tepkiler (olası rastgele basış)");
+  }
+
+  const expectedTrials = Math.round(profile.durationMs / 1500);
+  if (metrics.totalTrials < expectedTrials * 0.65) {
+    flags.push("Beklenenden az deneme (test erken bitmiş olabilir)");
+  }
+
+  if (metrics.omissionRate >= 40 && metrics.falseAlarmRate >= 25) {
+    flags.push("Dağınık yanıt paterni (yüksek kaçırma + yanlış basış)");
+  }
+
+  return flags;
+}
+
+export function computeVigilanceIndex(logs, profile) {
+  const late = profile.lateResponseMs;
+  const baseline = phaseLogs(
+    logs,
+    (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses")
+  );
+  const closing = phaseLogs(logs, (s) => /11–12|12–13|13–14|14–15|11-12|12-13|14-15/.test(s));
+  if (!baseline.length || !closing.length) {
+    return { deltaAttention: null, deltaTiming: null, deltaRt: null, label: "Yetersiz veri" };
+  }
+  const mb = computeDetailedMetrics(baseline, late);
+  const mc = computeDetailedMetrics(closing, late);
+  const sb = getScores(mb);
+  const sc = getScores(mc);
+  const deltaA = sc.attention - sb.attention;
+  const deltaT = sc.timing - sb.timing;
+  const deltaRt = mc.medianReaction - mb.medianReaction;
+  let label = "Stabil (başlangıç–kapanış)";
+  if (deltaA < -8 || deltaRt > 90) label = "Vigilance düşüşü — yorgunluk etkisi olası";
+  else if (deltaA > 8 && deltaRt < -40) label = "Kapanışta performans artışı";
+  else if (deltaA < -5) label = "Hafif vigilance düşüşü";
+  return { deltaAttention: deltaA, deltaTiming: deltaT, deltaRt, label };
 }
 
 export function formatDurationSeconds(ms) {
@@ -121,8 +222,18 @@ export function getScoreColor(score) {
   return "#dc2626";
 }
 
+/** @deprecated Norm tablosu için reportNorms.normZScore kullanın */
 export function pseudoZScore(score) {
   return Number(((score - 75) / 12).toFixed(2));
+}
+
+export function getGlobalIndexZScores(scores, profileKey) {
+  return {
+    attention: normZScore(scores.attention, profileKey, "global", "attention"),
+    timing: normZScore(scores.timing, profileKey, "global", "timing"),
+    impulsivity: normZScore(scores.impulsivity, profileKey, "global", "impulsivity"),
+    hyperactivity: normZScore(scores.hyperactivity, profileKey, "global", "hyperactivity")
+  };
 }
 
 export function severityLevel(score) {
@@ -211,6 +322,7 @@ export function getChartPhaseScores(logs, profile) {
     const sc = getScores(m);
     return {
       label,
+      phaseKey: key,
       attention: sc.attention,
       timing: sc.timing,
       impulsivity: sc.impulsivity,
@@ -296,13 +408,15 @@ export function getDistractorSummaryMatrix(logs, profile) {
   return rows;
 }
 
-export function buildProfessionalSummary(scores, metrics, profile) {
+export function buildProfessionalSummary(scores, metrics, profile, vigilance) {
   const risk = riskLabel(metrics);
+  const betaText = metrics.beta != null ? `β ${metrics.beta.toFixed(2)}, ölçüt c ${metrics.criterionC.toFixed(2)}.` : `ölçüt c ${metrics.criterionC.toFixed(2)}.`;
   return [
     `Test ${metrics.totalTrials} deneme ile tamamlandı. Profil: ${profile.label}. Toplam süre yaklaşık ${formatDurationSeconds(profile.durationMs)} saniyedir.`,
     `Genel performans ${scores.overall}/100; A-Dikkat ${scores.attention}, T-Zamanlama ${scores.timing}, I-Dürtüsellik ${scores.impulsivity}, H-Hiper-reaktivite ${scores.hyperactivity}. Ön değerlendirme risk düzeyi: ${risk}.`,
-    `Doğruluk %${metrics.accuracy}, hit oranı ${formatRate(metrics.hitRate)}, omission ${formatRate(metrics.omissionRate)}, false alarm ${formatRate(metrics.falseAlarmRate)}.`,
-    `d-prime ${metrics.dPrime.toFixed(2)} — hedef / hedef dışı ayırt etme göstergesi.`,
+    `Doğruluk %${metrics.accuracy}, hit ${formatRate(metrics.hitRate)}, commission (hedef dışı basış) ${formatRate(metrics.commissionRate)}, omission ${formatRate(metrics.omissionRate)}, perseveration ${formatRate(metrics.perseverationRate)}.`,
+    `Sinyal tespit: d′ ${metrics.dPrime.toFixed(2)}, ${betaText}`,
+    `Sürdürülebilir dikkat (vigilance): ${vigilance.label}.`,
     metrics.flags.length
       ? `Öne çıkan bulgular: ${metrics.flags.join("; ")}.`
       : "Belirgin klinik risk bayrağı oluşturan bir patern izlenmemiştir."
@@ -326,6 +440,14 @@ export const INDEX_DEFINITIONS = [
   ["H — Hiper-reaktivite", "Motor tepkilerin düzenlenmesinde zorluk"]
 ];
 
+export const SDT_DEFINITIONS = [
+  ["d′ (d-prime)", "Hedef ile hedef dışını ayırt etme gücü"],
+  ["Ölçüt c", "Yanıt yanlılığı (evet deme eğilimi)"],
+  ["β (beta)", "Karar eşiği (d′/c; yorum için uzman gerekir)"],
+  ["Commission", "Hedef dışı uyaranlara basma (false alarm)"],
+  ["Perseveration", "Ardışık hedef dışı hatalar + çoklu basma eğilimi"]
+];
+
 export const NORM_LEVELS = [
   { level: 1, label: "İyi Performans", color: "#0d9488" },
   { level: 2, label: "Standart Performans", color: "#86efac" },
@@ -342,4 +464,8 @@ export const SEVERITY_LEVELS = [
 
 export function normPlacement(score) {
   return getLevel(score);
+}
+
+export function normPlacementFromZ(z) {
+  return normLevelFromZ(z);
 }

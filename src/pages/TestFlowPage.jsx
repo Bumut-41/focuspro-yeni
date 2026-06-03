@@ -256,13 +256,11 @@ export default function TestFlowPage() {
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       try {
-        const chartImage = chartRef?.current?.canvas?.toDataURL("image/png", 0.92);
         const blob = await createPdfBlob({
           participant,
           profile,
           logs,
-          target,
-          chartImage
+          target
         });
         await persistSessionReportPdf(user.id, sessionId, blob);
         if (pressTimeline.length) {

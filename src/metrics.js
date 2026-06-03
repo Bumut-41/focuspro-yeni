@@ -51,6 +51,7 @@ export function computeMetrics(logs, lateMs) {
   if (faR >= 0.2) flags.push("Dürtüsel yanıtlar");
   if (lateR >= 0.2) flags.push("Geç tepkiler");
   if (multiR >= 0.1) flags.push("Çoklu basma");
+  if (rtStd >= 220) flags.push("Tepki süresinde yüksek dalgalanma");
 
   return {
     totalTrials: logs.length,

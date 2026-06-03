@@ -2,25 +2,29 @@ import { riskLabel } from "./metrics.js";
 import { getShapeSvg } from "./shapeUtils.jsx";
 import {
   INDEX_DEFINITIONS,
+  SDT_DEFINITIONS,
   NORM_LEVELS,
   SEVERITY_LEVELS,
   FULL_PHASE_LEGEND,
   buildProfessionalSummary,
   buildSmartComment,
   computeDetailedMetrics,
+  computeValidityFlags,
+  computeVigilanceIndex,
   formatDurationSeconds,
   formatRate,
-  getChartPhaseScores,
   getDistractorSummaryMatrix,
+  getGlobalIndexZScores,
   getLevel,
   getLevelText,
   getScoreColor,
   getScores,
   getSectionSummaries,
-  normPlacement,
-  pseudoZScore,
+  normPlacementFromZ,
   severityLevel
 } from "./reportHelpers.js";
+import { normLevelTextFromZ } from "./reportNorms.js";
+import { buildReportChartImages } from "./reportCharts.js";
 
 let pdfMakePromise;
 
@@ -40,8 +44,73 @@ async function getPdfMake() {
 }
 
 const HEADER = "#4c1d95";
+const HEADER_LIGHT = "#ede9fe";
 const SUB = "#475569";
 const TABLE_HEAD = "#142440";
+
+function sectionTitle(text, pageBreak = false) {
+  return {
+    margin: [0, pageBreak ? 4 : 14, 0, 10],
+    pageBreak: pageBreak ? "before" : undefined,
+    columns: [
+      { width: 5, canvas: [{ type: "rect", x: 0, y: 0, w: 5, h: 22, color: HEADER }] },
+      {
+        width: "*",
+        stack: [{ text, fontSize: 15, bold: true, color: HEADER, margin: [10, 2, 0, 0] }]
+      }
+    ],
+    columnGap: 0
+  };
+}
+
+function coverHeader() {
+  return {
+    margin: [-36, -36, 16, 20],
+    table: {
+      widths: ["*"],
+      body: [
+        [
+          {
+            stack: [
+              { text: "FocusProLab", fontSize: 26, bold: true, color: "#fff", margin: [20, 18, 20, 4] },
+              {
+                text: "Sürekli Performans ve Dikkat Değerlendirme Raporu",
+                fontSize: 13,
+                color: "#e9d5ff",
+                margin: [20, 0, 20, 16]
+              }
+            ],
+            fillColor: HEADER,
+            border: [false, false, false, false]
+          }
+        ]
+      ]
+    },
+    layout: "noBorders"
+  };
+}
+
+function infoBox(title, lines, fill = "#f8fafc") {
+  return {
+    table: {
+      widths: ["*"],
+      body: [
+        [
+          {
+            stack: [
+              { text: title, bold: true, fontSize: 11, color: HEADER, margin: [0, 0, 0, 8] },
+              ...lines.map((t) => ({ text: t, fontSize: 9, color: SUB, margin: [0, 0, 0, 4] }))
+            ],
+            fillColor: fill,
+            margin: [12, 10, 12, 10]
+          }
+        ]
+      ]
+    },
+    layout: "noBorders",
+    margin: [0, 0, 0, 12]
+  };
+}
 
 function tableLayout(headColor = TABLE_HEAD) {
   return {
@@ -74,18 +143,19 @@ function scoreBox(title, value) {
   };
 }
 
-function buildNormComparison(scores) {
+function buildNormComparison(scores, profileKey) {
+  const z = getGlobalIndexZScores(scores, profileKey);
   const indices = [
-    { key: "A", score: scores.attention, label: "Dikkat (A)" },
-    { key: "T", score: scores.timing, label: "Zamanlama (T)" },
-    { key: "I", score: scores.impulsivity, label: "Dürtüsellik (I)" },
-    { key: "H", score: scores.hyperactivity, label: "Hiper-reaktivite (H)" }
+    { key: "A", score: scores.attention, z: z.attention },
+    { key: "T", score: scores.timing, z: z.timing },
+    { key: "I", score: scores.impulsivity, z: z.impulsivity },
+    { key: "H", score: scores.hyperactivity, z: z.hyperactivity }
   ];
 
   const perfBody = NORM_LEVELS.map((row) => {
     const cells = indices.map((ix) => {
-      if (normPlacement(ix.score) !== row.level) return "";
-      return { text: pseudoZScore(ix.score).toFixed(2), alignment: "center", bold: true };
+      if (normPlacementFromZ(ix.z) !== row.level) return "";
+      return { text: ix.z.toFixed(2), alignment: "center", bold: true };
     });
     return [
       { text: `${row.level} ${row.label}`, fillColor: row.color, color: row.level <= 2 ? "#0f172a" : "#fff", fontSize: 9 },
@@ -93,11 +163,11 @@ function buildNormComparison(scores) {
     ];
   });
 
-  const difficulty = indices.filter((ix) => getLevel(ix.score) === 4);
+  const difficulty = indices.filter((ix) => normPlacementFromZ(ix.z) === 4);
   const sevRows = SEVERITY_LEVELS.map((row) => {
     const cells = ["A", "T", "I", "H"].map((key) => {
       const ix = indices.find((i) => i.key === key);
-      if (!ix || getLevel(ix.score) !== 4) return "";
+      if (!ix || normPlacementFromZ(ix.z) !== 4) return "";
       if (severityLevel(ix.score) !== row.level) return "";
       return { text: String(row.level), alignment: "center", bold: true, color: "#fff" };
     });
@@ -108,9 +178,9 @@ function buildNormComparison(scores) {
   });
 
   const blocks = [
-    { text: "Norm Karşılaştırma", fontSize: 16, bold: true, color: HEADER, margin: [0, 0, 0, 4] },
+    sectionTitle("Norm Karşılaştırma", true),
     {
-      text: "Normatif referans gruplarına göre standartlaştırılmış performans karşılaştırması (yaklaşık z-puanı).",
+      text: "Normatif referans gruplarına göre standartlaştırılmış performans karşılaştırması (yaş grubu norm tablosu, z-puanı).",
       fontSize: 9,
       color: SUB,
       margin: [0, 0, 0, 10]
@@ -171,19 +241,64 @@ function buildNormComparison(scores) {
   return blocks;
 }
 
-export function buildDocDefinition({ participant, profile, logs, target, chartImage }) {
+export function buildDocDefinition({ participant, profile, logs, target, reportCharts = {} }) {
+  const profileKey = profile.key ?? "adult";
   const metrics = computeDetailedMetrics(logs, profile.lateResponseMs);
   const scores = getScores(metrics);
   const risk = riskLabel(metrics);
+  const validityFlags = computeValidityFlags(logs, metrics, profile);
+  const vigilance = computeVigilanceIndex(logs, profile);
   const sections = getSectionSummaries(logs, profile);
-  const chartPhases = getChartPhaseScores(logs, profile);
   const matrix = getDistractorSummaryMatrix(logs, profile);
-  const professional = buildProfessionalSummary(scores, metrics, profile);
+  const professional = buildProfessionalSummary(scores, metrics, profile, vigilance);
   const smart = buildSmartComment(scores, metrics, profile);
+  const zGlobal = getGlobalIndexZScores(scores, profileKey);
+  const betaStr = metrics.beta != null ? metrics.beta.toFixed(2) : "—";
+  const allFlags = [...metrics.flags];
+  const testValid = validityFlags.length === 0;
 
-  const phaseChartNote = chartPhases.length
-    ? chartPhases.map((p) => `${p.label}: A${p.attention} T${p.timing} I${p.impulsivity} H${p.hyperactivity}`).join(" · ")
-    : "Faz verisi yetersiz.";
+  const indexChartNotes = {
+    attention:
+      "Dikkat endeksi; hedef uyaranlara doğru yanıt ve kaçırma oranlarını yansıtır. Gri bant norm aralığı (±1 SS), kesikli çizgi normatif referanstır.",
+    timing: "Zamanlama endeksi; tepki süresi tutarlılığı ve geç yanıtları ölçer.",
+    impulsivity: "Dürtüsellik endeksi; hedef dışı uyaranlara yanlış basışları yansıtır.",
+    hyperactivity: "Hiper-reaktivite endeksi; çoklu basma ve aşırı tepkiselliği ölçer."
+  };
+  const chartBlocks = [];
+  const indexCharts = [
+    ["attention", "Dikkat (A)"],
+    ["timing", "Zamanlama (T)"],
+    ["impulsivity", "Dürtüsellik (I)"],
+    ["hyperactivity", "Hiper-reaktivite (H)"]
+  ];
+  let chartFirst = true;
+  for (const [key, title] of indexCharts) {
+    if (reportCharts[key]) {
+      chartBlocks.push(
+        sectionTitle(title, chartFirst),
+        {
+          text: `${indexChartNotes[key]} Tüm test fazları gösterilmektedir.`,
+          fontSize: 9,
+          color: SUB,
+          margin: [0, 0, 0, 10]
+        },
+        { image: reportCharts[key], width: 515, margin: [0, 0, 0, 12] }
+      );
+      chartFirst = false;
+    }
+  }
+  if (reportCharts.combined) {
+    chartBlocks.push(
+      sectionTitle("Dört İndeks Genelinde Performans", true),
+      {
+        text: "Dört endeksi kullanarak test aşamaları genelinde performansı gösterir ve farklı dikkat dağıtıcıların sonuçlar üzerindeki etkisini açıklar.",
+        fontSize: 9,
+        color: SUB,
+        margin: [0, 0, 0, 10]
+      },
+      { image: reportCharts.combined, width: 515, margin: [0, 0, 0, 14] }
+    );
+  }
 
   return {
     pageSize: "A4",
@@ -205,19 +320,19 @@ export function buildDocDefinition({ participant, profile, logs, target, chartIm
       ]
     }),
     content: [
-      { text: "FocusProLab", fontSize: 22, bold: true, color: HEADER },
+      coverHeader(),
       {
-        text: "Sürekli Performans ve Dikkat Değerlendirme Raporu",
-        fontSize: 14,
-        color: SUB,
-        margin: [0, 4, 0, 2]
-      },
-      {
-        text: "Bilgisayarlı Go/No-Go görevi — dört endeks (A, T, I, H)",
-        fontSize: 10,
+        text: "Bilgisayarlı Go/No-Go — dört endeks (A, T, I, H) · norm karşılaştırmalı profesyonel rapor",
+        fontSize: 9,
         color: "#64748b",
-        margin: [0, 0, 0, 16]
+        margin: [0, 0, 0, 14]
       },
+      infoBox("Test geçerliliği", [
+        testValid
+          ? "✓ Test verisi raporlama için yeterli görülmektedir."
+          : "⚠ Dikkat: aşağıdaki geçerlilik uyarıları sonuçların yorumunu etkileyebilir.",
+        ...validityFlags
+      ], testValid ? "#ecfdf5" : "#fff7ed"),
       {
         columns: [
           {
@@ -245,6 +360,7 @@ export function buildDocDefinition({ participant, profile, logs, target, chartIm
         ],
         margin: [0, 0, 0, 14]
       },
+      sectionTitle("Performans özeti"),
       {
         table: {
           widths: ["*"],
@@ -278,74 +394,131 @@ export function buildDocDefinition({ participant, profile, logs, target, chartIm
       {
         table: {
           headerRows: 1,
-          widths: ["*", "auto", "auto", "*"],
+          widths: ["*", "auto", "auto", "auto", "auto", "*"],
           body: [
             [
               { text: "İndeks", bold: true, color: "#fff" },
               { text: "Skor", bold: true, color: "#fff" },
-              { text: "Seviye", bold: true, color: "#fff" },
+              { text: "z", bold: true, color: "#fff" },
+              { text: "Norm seviye", bold: true, color: "#fff" },
               { text: "Yorum", bold: true, color: "#fff" }
             ],
-            ["A — Dikkat", scores.attention, getLevelText(scores.attention), getLevelText(scores.attention)],
-            ["T — Zamanlama", scores.timing, getLevelText(scores.timing), getLevelText(scores.timing)],
-            ["I — Dürtüsellik", scores.impulsivity, getLevelText(scores.impulsivity), getLevelText(scores.impulsivity)],
+            [
+              "A — Dikkat",
+              scores.attention,
+              zGlobal.attention.toFixed(2),
+              normLevelTextFromZ(zGlobal.attention),
+              getLevelText(scores.attention)
+            ],
+            [
+              "T — Zamanlama",
+              scores.timing,
+              zGlobal.timing.toFixed(2),
+              normLevelTextFromZ(zGlobal.timing),
+              getLevelText(scores.timing)
+            ],
+            [
+              "I — Dürtüsellik",
+              scores.impulsivity,
+              zGlobal.impulsivity.toFixed(2),
+              normLevelTextFromZ(zGlobal.impulsivity),
+              getLevelText(scores.impulsivity)
+            ],
             [
               "H — Hiper-reaktivite",
               scores.hyperactivity,
-              getLevelText(scores.hyperactivity),
+              zGlobal.hyperactivity.toFixed(2),
+              normLevelTextFromZ(zGlobal.hyperactivity),
               getLevelText(scores.hyperactivity)
             ]
           ]
         },
         layout: tableLayout(),
-        margin: [0, 0, 0, 16]
+        margin: [0, 0, 0, 12]
+      },
+      infoBox(
+        "Sürdürülebilir dikkat (Vigilance)",
+        [
+          vigilance.label,
+          vigilance.deltaAttention != null
+            ? `Dikkat (A) farkı (kapanış − başlangıç): ${vigilance.deltaAttention > 0 ? "+" : ""}${vigilance.deltaAttention} puan`
+            : "",
+          vigilance.deltaRt != null
+            ? `Median RT farkı: ${vigilance.deltaRt > 0 ? "+" : ""}${vigilance.deltaRt} ms`
+            : ""
+        ].filter(Boolean),
+        HEADER_LIGHT
+      ),
+      sectionTitle("Davranışsal ve sinyal tespit metrikleri"),
+      {
+        columns: [
+          {
+            width: "*",
+            table: {
+              headerRows: 1,
+              widths: ["*", "*"],
+              body: [
+                [
+                  { text: "Ölçüm", bold: true, color: "#fff", fontSize: 9 },
+                  { text: "Değer", bold: true, color: "#fff", fontSize: 9 }
+                ],
+                ["Genel doğruluk", `%${metrics.accuracy}`],
+                ["Hit rate (zamanında isabet)", formatRate(metrics.hitRate)],
+                ["Commission (hedef dışı basış)", formatRate(metrics.commissionRate)],
+                ["Omission rate", formatRate(metrics.omissionRate)],
+                ["False alarm rate", formatRate(metrics.falseAlarmRate)],
+                ["Perseveration oranı", formatRate(metrics.perseverationRate)],
+                ["Late response rate", formatRate(metrics.lateRate)],
+                ["Multi press rate", formatRate(metrics.multiPressRate)],
+                ["Perseveration (adet)", String(metrics.perseverationCount)]
+              ]
+            },
+            layout: tableLayout("#374151")
+          },
+          {
+            width: "*",
+            table: {
+              headerRows: 1,
+              widths: ["*", "*"],
+              body: [
+                [
+                  { text: "Ölçüm", bold: true, color: "#fff", fontSize: 9 },
+                  { text: "Değer", bold: true, color: "#fff", fontSize: 9 }
+                ],
+                ["Ortalama tepki", `${metrics.avgReaction} ms`],
+                ["Median tepki", `${metrics.medianReaction} ms`],
+                ["RT standart sapma", `${metrics.rtStd} ms`],
+                ["d′ (d-prime)", metrics.dPrime.toFixed(2)],
+                ["Ölçüt c", metrics.criterionC.toFixed(2)],
+                ["β (beta)", betaStr],
+                ["Hedef sayısı", String(metrics.targets)],
+                ["Hedef dışı", String(metrics.nonTargets)],
+                ["Doğru hedef yanıtı", String(metrics.correctHits)],
+                ["Kaçırılan hedef", String(metrics.omissions)],
+                ["Geç yanıt", String(metrics.lateResponses)],
+                ["Çoklu basma", String(metrics.multiPress)]
+              ]
+            },
+            layout: tableLayout("#1e3a5f")
+          }
+        ],
+        columnGap: 10,
+        margin: [0, 0, 0, 8]
       },
       {
-        table: {
-          headerRows: 1,
-          widths: ["*", "*"],
-          body: [
-            [
-              { text: "Ölçüm", bold: true, color: "#fff" },
-              { text: "Değer", bold: true, color: "#fff" }
-            ],
-            ["Genel doğruluk", `%${metrics.accuracy}`],
-            ["Hit rate", formatRate(metrics.hitRate)],
-            ["Omission rate", formatRate(metrics.omissionRate)],
-            ["False alarm rate", formatRate(metrics.falseAlarmRate)],
-            ["Late response rate", formatRate(metrics.lateRate)],
-            ["Multi press rate", formatRate(metrics.multiPressRate)],
-            ["Ortalama tepki", `${metrics.avgReaction} ms`],
-            ["Median tepki", `${metrics.medianReaction} ms`],
-            ["RT standart sapma", `${metrics.rtStd} ms`],
-            ["d-prime", metrics.dPrime.toFixed(2)],
-            ["Hedef sayısı", String(metrics.targets)],
-            ["Hedef dışı", String(metrics.nonTargets)],
-            ["Doğru hedef yanıtı", String(metrics.correctHits)],
-            ["Kaçırılan hedef", String(metrics.omissions)],
-            ["Geç yanıt", String(metrics.lateResponses)],
-            ["Dürtüsel hata", String(metrics.impulsiveErrors)],
-            ["Çoklu basma", String(metrics.multiPress)]
-          ]
-        },
-        layout: tableLayout("#374151"),
-        margin: [0, 0, 0, 16]
+        ul: SDT_DEFINITIONS.map(([t, d]) => ({ text: [{ text: `${t}: `, bold: true, fontSize: 8 }, d], fontSize: 8 })),
+        margin: [0, 0, 0, 14]
       },
-      { text: "Dört İndeks Genelinde Performans", fontSize: 15, bold: true, color: HEADER, pageBreak: "before" },
-      {
-        text: "Dört endeksi kullanarak test aşamaları genelinde performansı gösterir ve farklı dikkat dağıtıcıların sonuçlar üzerindeki etkisini açıklar.",
-        fontSize: 9,
-        color: SUB,
-        margin: [0, 4, 0, 10]
-      },
-      { text: phaseChartNote, fontSize: 8, color: "#64748b", margin: [0, 0, 0, 10] },
+      ...buildNormComparison(scores, profileKey),
+      ...chartBlocks,
+      sectionTitle("Çeldirici ve faz özeti"),
       {
         ul: FULL_PHASE_LEGEND.map(([a, b]) => `${a} — ${b}`),
         fontSize: 8,
         color: SUB,
-        margin: [0, 0, 0, 12]
+        margin: [0, 0, 0, 10]
       },
-      { text: "Dört Endeks Genelinde Performans Özeti", fontSize: 13, bold: true, margin: [0, 0, 0, 8] },
+      { text: "Dört endeks × çeldirici etkisi", fontSize: 12, bold: true, color: HEADER, margin: [0, 0, 0, 8] },
       {
         table: {
           headerRows: 1,
@@ -376,12 +549,7 @@ export function buildDocDefinition({ participant, profile, logs, target, chartIm
         color: "#94a3b8",
         margin: [0, 0, 0, 14]
       },
-      ...buildNormComparison(scores),
-      chartImage
-        ? { text: "Performans grafiği (deneme bazlı)", fontSize: 14, bold: true, pageBreak: "before", margin: [0, 0, 0, 8] }
-        : null,
-      chartImage ? { image: chartImage, width: 515, margin: [0, 0, 0, 16] } : null,
-      { text: "Faz bazlı performans", fontSize: 14, bold: true, margin: [0, 8, 0, 8] },
+      sectionTitle("Faz bazlı performans", true),
       {
         table: {
           headerRows: 1,
@@ -410,14 +578,22 @@ export function buildDocDefinition({ participant, profile, logs, target, chartIm
         layout: tableLayout(),
         margin: [0, 0, 0, 16]
       },
-      { text: "Profesyonel ön değerlendirme özeti", fontSize: 14, bold: true, margin: [0, 0, 0, 6] },
+      sectionTitle("Profesyonel ön değerlendirme"),
       { text: professional, lineHeight: 1.35, alignment: "justify", margin: [0, 0, 0, 12] },
-      { text: "Klinik risk bayrakları", fontSize: 14, bold: true, margin: [0, 0, 0, 6] },
+      sectionTitle("Klinik risk ve geçerlilik"),
       {
-        ul: metrics.flags.length ? metrics.flags : ["Belirgin risk bayrağı izlenmedi."],
-        margin: [0, 0, 0, 12]
+        ul: allFlags.length ? allFlags : ["Belirgin performans risk bayrağı izlenmedi."],
+        margin: [0, 0, 0, 6]
       },
-      { text: "Otomatik yorum", fontSize: 14, bold: true, margin: [0, 0, 0, 6] },
+      validityFlags.length
+        ? {
+            text: "Geçerlilik uyarıları: " + validityFlags.join("; "),
+            fontSize: 9,
+            color: "#b45309",
+            margin: [0, 0, 0, 12]
+          }
+        : { text: "", margin: [0, 0, 0, 8] },
+      sectionTitle("Otomatik yorum"),
       { text: smart, lineHeight: 1.35, alignment: "justify", margin: [0, 0, 0, 20] },
       {
         table: {
@@ -442,7 +618,9 @@ export function buildDocDefinition({ participant, profile, logs, target, chartIm
 
 export async function createPdfBlob(args) {
   const pdfMake = await getPdfMake();
-  const doc = buildDocDefinition(args);
+  const reportCharts =
+    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile));
+  const doc = buildDocDefinition({ ...args, reportCharts });
   return new Promise((resolve, reject) => {
     try {
       pdfMake.createPdf(doc).getBlob((b) => resolve(b));
@@ -454,7 +632,9 @@ export async function createPdfBlob(args) {
 
 export async function downloadPdf(args) {
   const pdfMake = await getPdfMake();
-  const doc = buildDocDefinition(args);
+  const reportCharts =
+    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile));
+  const doc = buildDocDefinition({ ...args, reportCharts });
   const name = `FocusProLab_${args.participant.name.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
   pdfMake.createPdf(doc).download(name);
 }
