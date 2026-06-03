@@ -51,7 +51,7 @@ function pickItem(keys, keyIndexRef, at, duration, eventIndex, silent, events, e
       attempts += 1;
       continue;
     }
-    if (extraActive.some((peer) => pairViolatesPlacement(it, peer))) {
+    if (active.some((peer) => pairViolatesPlacement(it, peer))) {
       attempts += 1;
       continue;
     }
@@ -104,18 +104,8 @@ function pickWavePair(events, tSilent, tSound, dur, durS, n, silentKeyRef, sound
 }
 
 function buildSilentGifWindow(startMs, endMs) {
-  const events = [];
-  let silentKeyIndex = 0;
-  const keyIndexRef = { current: silentKeyIndex };
+  const slots = [];
   const OFFSET_MS = Math.min(2400, Math.floor(GIF_START_INTERVAL_MS / 3));
-
-  function pickSingleSilentItem(at, dur, eventIndex) {
-    keyIndexRef.current = silentKeyIndex;
-    const it = pickItem(GIF_KEYS, keyIndexRef, at, dur, eventIndex, true, events);
-    silentKeyIndex = keyIndexRef.current;
-    return it;
-  }
-
   let t1 = startMs;
   let t2 = startMs + OFFSET_MS;
   let i = 0;
@@ -125,16 +115,31 @@ function buildSilentGifWindow(startMs, endMs) {
     if (nextAt >= endMs) break;
     const duration = gifDuration(endMs, nextAt);
     if (duration < 400) break;
-
-    const it = pickSingleSilentItem(nextAt, duration, i * 10);
-    if (it) events.push({ at: nextAt, duration, items: [it] });
-
+    slots.push({ at: nextAt, duration, eventIndex: i * 10 });
     if (nextAt === t1) t1 += GIF_START_INTERVAL_MS;
     else t2 += GIF_START_INTERVAL_MS;
     i += 1;
   }
 
-  return events;
+  // Geç başlayan önce planlansın; örtüşen sürede çakışma olmasın.
+  slots.sort((a, b) => b.at - a.at);
+
+  const events = [];
+  const keyIndexRef = { current: 0 };
+  for (const slot of slots) {
+    const it = pickItem(
+      GIF_KEYS,
+      keyIndexRef,
+      slot.at,
+      slot.duration,
+      slot.eventIndex,
+      true,
+      events
+    );
+    if (it) events.push({ at: slot.at, duration: slot.duration, items: [it] });
+  }
+
+  return events.sort((a, b) => a.at - b.at);
 }
 
 function buildSoloSoundWindow(startMs, endMs) {

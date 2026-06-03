@@ -65,7 +65,11 @@ const segments = [
     dur: 3 * MIN,
     shift: (k) => (k === "child" ? 8 * MIN : 9 * MIN)
   },
-  { name: "QA kombine (getProfile)", build: (k) => getProfile(k).gifEvents, dur: (k) => getProfile(k).durationMs }
+  {
+    name: "Tam test (getProfile — tüm fazlar)",
+    build: (k) => getProfile(k).gifEvents,
+    dur: (k) => getProfile(k).durationMs
+  }
 ];
 
 let total = 0;

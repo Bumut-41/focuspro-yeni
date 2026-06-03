@@ -134,6 +134,17 @@ function lanesForKey(key, blocked, activeItems = []) {
     if (movement !== "static" && l.id.includes("mid-")) return false;
     // Kedi / koşan yalnızca üst veya alt kenardan geçsin (orta bantta sabit gif ile çakışmasın).
     if (movement === "horizontal" && l.top > 22 && l.top < 78) return false;
+    // Top: sabit gif hangi kolondaysa iniş karşı kolondan.
+    if (key === "top") {
+      const staticLeft = activeItems.some(
+        (x) => (GIF_BEHAVIOR[x.key]?.movement ?? "static") === "static" && x.area === "left"
+      );
+      const staticRight = activeItems.some(
+        (x) => (GIF_BEHAVIOR[x.key]?.movement ?? "static") === "static" && x.area === "right"
+      );
+      if (staticLeft && l.area === "left") return false;
+      if (staticRight && l.area === "right") return false;
+    }
     return true;
   });
   if (movement === "static") {

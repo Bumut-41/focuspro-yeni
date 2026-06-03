@@ -2,7 +2,7 @@
  * Geçici QA: yalnızca «sessiz + sesli gif» (kombine) penceresi.
  * Normal teste dönmek için DISTRACTOR_ONLY_QA = false yapın.
  */
-export const DISTRACTOR_ONLY_QA = true;
+export const DISTRACTOR_ONLY_QA = false;
 
 const MIN = 60_000;
 
