@@ -407,6 +407,14 @@ a:hover {
   border-radius: var(--fp-radius);
 }
 
+.fp-metric-pill {
+  padding: 8px 10px;
+  background: var(--fp-bg);
+  border: 1px solid var(--fp-border);
+  border-radius: var(--fp-radius-sm);
+  color: var(--fp-text-muted);
+}
+
 .fp-table {
   width: 100%;
   border-collapse: collapse;

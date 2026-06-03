@@ -1,5 +1,12 @@
 import { formatTestMs } from "./lib/testTime.js";
-import { shapeLabel } from "./lib/symbolLabels.js";
+import { symbolCaption } from "./lib/symbolLabels.js";
+import {
+  enrichPressList,
+  pressesForTrial,
+  pressStatusLabel,
+  pressToTableRow,
+  summarizePresses
+} from "./lib/pressTimelineReport.js";
 import { getProfile } from "./profiles.js";
 
 let pdfMakePromise;
@@ -19,14 +26,6 @@ async function getPdfMake() {
   return pdfMakePromise;
 }
 
-const ERROR_LABELS = {
-  none: "Doğru basış",
-  late: "Geç basış (hedef)",
-  false_alarm: "Hatalı — hedef değilken",
-  multi: "Çoklu basış",
-  idle: "Hatalı — simge yokken"
-};
-
 function tableLayout() {
   return {
     fillColor: (i) => (i === 0 ? "#1e293b" : i % 2 === 0 ? "#f8fafc" : null),
@@ -35,126 +34,161 @@ function tableLayout() {
   };
 }
 
+function sectionHead(text, pageBreak = false) {
+  return {
+    text,
+    fontSize: 11,
+    bold: true,
+    color: "#4c1d95",
+    margin: [0, pageBreak ? 12 : 8, 0, 6],
+    pageBreak: pageBreak ? "before" : undefined
+  };
+}
+
 export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
   const logs = session?.logs ?? [];
-  const presses = timeline ?? [];
+  const presses = enrichPressList(timeline);
   const profile = session?.profile_key ? getProfile(session.profile_key) : null;
   const lateMs = profile?.lateResponseMs ?? 800;
   const targetTrials = logs.filter((t) => t.isTarget);
-  const errors = presses.filter((p) => ["false_alarm", "multi", "idle"].includes(p.errorType));
+  const stats = summarizePresses(presses);
+  const wrongPresses = presses.filter((p) => p.isWrongSymbol || p.errorType === "false_alarm");
 
-  const targetRows = targetTrials.slice(0, 120).map((t) => {
-    const first = (t.trialPresses ?? [])[0];
-    const status = !t.responded ? "Kaçırıldı" : t.reactionTime > lateMs ? "Geç" : "İsabet";
-    return [
-      String(t.trialNumber),
-      formatTestMs(t.onsetMs),
-      shapeLabel(t.shownShape),
-      first ? formatTestMs(first.atMs) : "—",
-      first?.reactionMs != null ? String(Math.round(first.reactionMs)) : "—",
-      status
-    ];
-  });
+  const allPressRows = presses.slice(0, 350).map((p) => pressToTableRow(p));
 
-  const pressRows = presses.slice(0, 200).map((p) => [
+  const wrongRows = wrongPresses.slice(0, 120).map((p) => [
+    String(p.pressIndex),
     formatTestMs(p.atMs),
     p.trialNumber != null ? String(p.trialNumber) : "—",
-    p.onScreen ? shapeLabel(p.onScreen.shape) : "—",
-    ERROR_LABELS[p.errorType] ?? p.errorType,
-    p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—"
+    symbolCaption(p.shownShape ?? p.onScreen?.shape, p.shownColor ?? p.onScreen?.color),
+    p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—",
+    pressStatusLabel(p, lateMs)
   ]);
 
-  const errorRows = errors.slice(0, 80).map((p) => [
-    formatTestMs(p.atMs),
-    ERROR_LABELS[p.errorType] ?? p.errorType,
-    p.trialNumber != null ? String(p.trialNumber) : "—"
-  ]);
+  const targetDetailRows = [];
+  for (const t of targetTrials.slice(0, 150)) {
+    const trialPresses = pressesForTrial(presses, t.trialNumber);
+    if (!trialPresses.length) {
+      targetDetailRows.push([
+        String(t.trialNumber),
+        formatTestMs(t.onsetMs),
+        symbolCaption(t.shownShape, t.shownColor),
+        "—",
+        "—",
+        "—",
+        "Kaçırıldı"
+      ]);
+      continue;
+    }
+    trialPresses.forEach((p, idx) => {
+      targetDetailRows.push([
+        idx === 0 ? String(t.trialNumber) : "",
+        idx === 0 ? formatTestMs(t.onsetMs) : "",
+        idx === 0 ? symbolCaption(t.shownShape, t.shownColor) : "",
+        formatTestMs(p.atMs),
+        String(p.pressInTrial ?? "—"),
+        p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—",
+        pressStatusLabel(p, lateMs)
+      ]);
+    });
+  }
 
   return {
     pageSize: "A4",
-    pageMargins: [32, 32, 32, 40],
-    defaultStyle: { font: "Roboto", fontSize: 8 },
+    pageMargins: [28, 28, 28, 36],
+    defaultStyle: { font: "Roboto", fontSize: 7 },
     footer: (cp, pc) => ({
       text: `FocusProLab — Yönetici basış raporu • ${cp}/${pc}`,
       alignment: "center",
       fontSize: 7,
       color: "#94a3b8",
-      margin: [32, 0, 32, 16]
+      margin: [28, 0, 28, 12]
     }),
     content: [
       { text: "Basış Zaman Çizelgesi", fontSize: 16, bold: true, color: "#0f172a" },
-      { text: "Yalnızca yönetici — katılımcıya sunulmaz", fontSize: 9, color: "#dc2626", margin: [0, 2, 0, 10] },
+      { text: "Yalnızca yönetici — her Space basışı kayıtlıdır", fontSize: 9, color: "#dc2626", margin: [0, 2, 0, 8] },
       {
         text: [
           `Katılımcı: ${session.participant_name} • Yaş: ${session.participant_age ?? "—"} • Profil: ${session.profile_key}\n`,
           `Oturum: ${session.id} • ${new Date(session.created_at).toLocaleString("tr-TR")}\n`,
-          target
-            ? `Hedef: ${shapeLabel(target.shape)} (${target.color})`
-            : "Hedef kaydı yok"
+          target ? `Hedef: ${symbolCaption(target.shape, target.color)}` : "Hedef kaydı yok",
+          `\nÖzet: ${stats.total} basış · ${stats.correct} isabet · ${stats.late} geç · ${stats.falseAlarm} yanlış simge · ${stats.multi} çoklu · ${stats.idle} boş ekran`
         ],
-        margin: [0, 0, 0, 12]
+        margin: [0, 0, 0, 10]
       },
-      { text: "Hedef simge denemeleri (ilk 120)", bold: true, fontSize: 10, margin: [0, 0, 0, 6] },
+      sectionHead("Tüm Space basışları (kronolojik)", true),
       {
         table: {
           headerRows: 1,
-          widths: [28, 52, "*", 52, 40, 50],
+          widths: [22, 44, 28, "*", 32, 38, 28, 32, "*"],
           body: [
             [
               { text: "#", bold: true, color: "#fff" },
-              { text: "Onset", bold: true, color: "#fff" },
-              { text: "Simge", bold: true, color: "#fff" },
               { text: "Basış", bold: true, color: "#fff" },
-              { text: "RT ms", bold: true, color: "#fff" },
+              { text: "Den.", bold: true, color: "#fff" },
+              { text: "Ekrandaki simge", bold: true, color: "#fff" },
+              { text: "Hedef?", bold: true, color: "#fff" },
+              { text: "Yanlış?", bold: true, color: "#fff" },
+              { text: "Sıra", bold: true, color: "#fff" },
+              { text: "RT", bold: true, color: "#fff" },
               { text: "Durum", bold: true, color: "#fff" }
             ],
-            ...(targetRows.length ? targetRows : [["—", "—", "Kayıt yok", "—", "—", "—"]])
+            ...(allPressRows.length ? allPressRows : [["—", "—", "—", "—", "—", "—", "—", "—", "—"]])
           ]
         },
         layout: tableLayout(),
-        margin: [0, 0, 0, 14]
+        margin: [0, 0, 0, 10]
       },
-      { text: "Tüm basışlar (ilk 200)", bold: true, fontSize: 10, pageBreak: presses.length > 100 ? "before" : undefined, margin: [0, 0, 0, 6] },
-      {
-        table: {
-          headerRows: 1,
-          widths: [52, 32, "*", "*", 40],
-          body: [
-            [
-              { text: "Zaman", bold: true, color: "#fff" },
-              { text: "#", bold: true, color: "#fff" },
-              { text: "Ekranda", bold: true, color: "#fff" },
-              { text: "Durum", bold: true, color: "#fff" },
-              { text: "RT", bold: true, color: "#fff" }
-            ],
-            ...(pressRows.length ? pressRows : [["—", "—", "—", "—", "—"]])
-          ]
-        },
-        layout: tableLayout(),
-        margin: [0, 0, 0, 14]
-      },
-      { text: "Hatalı basışlar", bold: true, fontSize: 10, margin: [0, 0, 0, 6] },
-      {
-        table: {
-          headerRows: 1,
-          widths: [52, "*", 32],
-          body: [
-            [
-              { text: "Zaman", bold: true, color: "#fff" },
-              { text: "Tür", bold: true, color: "#fff" },
-              { text: "#", bold: true, color: "#fff" }
-            ],
-            ...(errorRows.length ? errorRows : [["—", "Hata yok", "—"]])
-          ]
-        },
-        layout: tableLayout()
-      },
-      presses.length > 200
+      wrongRows.length
+        ? sectionHead(`Yanlış simgede basışlar (${wrongPresses.length})`)
+        : null,
+      wrongRows.length
         ? {
-            text: `Not: Tablolar kısaltıldı (toplam ${presses.length} basış). Tam veri veritabanındadır.`,
+            table: {
+              headerRows: 1,
+              widths: [22, 44, 28, "*", 32, "*"],
+              body: [
+                [
+                  { text: "#", bold: true, color: "#fff" },
+                  { text: "Basış", bold: true, color: "#fff" },
+                  { text: "Den.", bold: true, color: "#fff" },
+                  { text: "Gösterilen simge", bold: true, color: "#fff" },
+                  { text: "RT", bold: true, color: "#fff" },
+                  { text: "Durum", bold: true, color: "#fff" }
+                ],
+                ...wrongRows
+              ]
+            },
+            layout: tableLayout("#7c2d12"),
+            margin: [0, 0, 0, 10]
+          }
+        : null,
+      sectionHead("Hedef denemeleri — tüm basışlar", wrongRows.length > 0 || allPressRows.length > 80),
+      {
+        table: {
+          headerRows: 1,
+          widths: [28, 44, "*", 44, 24, 32, "*"],
+          body: [
+            [
+              { text: "Den.", bold: true, color: "#fff" },
+              { text: "Onset", bold: true, color: "#fff" },
+              { text: "Hedef simge", bold: true, color: "#fff" },
+              { text: "Basış", bold: true, color: "#fff" },
+              { text: "Sıra", bold: true, color: "#fff" },
+              { text: "RT", bold: true, color: "#fff" },
+              { text: "Durum", bold: true, color: "#fff" }
+            ],
+            ...(targetDetailRows.length ? targetDetailRows : [["—", "—", "—", "—", "—", "—", "—"]])
+          ]
+        },
+        layout: tableLayout(),
+        margin: [0, 0, 0, 8]
+      },
+      presses.length > 350
+        ? {
+            text: `Not: Kronoloji tablosu ilk 350 basış (${presses.length} toplam). Tam liste veritabanındadır.`,
             fontSize: 7,
-            color: "#64748b",
-            margin: [0, 12, 0, 0]
+            color: "#64748b"
           }
         : null
     ].filter(Boolean)

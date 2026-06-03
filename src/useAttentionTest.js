@@ -405,13 +405,20 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       t.trialPresses.push({ atMs, reactionMs });
     }
 
+    const pressInTrial = t ? (t.trialPresses?.length ?? 0) + 1 : null;
     pressTimelineRef.current.push({
+      pressIndex: pressTimelineRef.current.length + 1,
+      pressInTrial,
       atMs,
       trialNumber: t?.trialNumber ?? null,
+      section: t?.section ?? null,
       onScreen: onScreen ? { shape: onScreen.shape, color: onScreen.color } : null,
+      shownShape: t?.shownShape ?? onScreen?.shape ?? null,
+      shownColor: t?.shownColor ?? onScreen?.color ?? null,
       targetShape: tgt?.shape ?? null,
       targetColor: tgt?.color ?? null,
       isTargetOnScreen: Boolean(t?.isTarget && onScreen),
+      isWrongSymbol: Boolean(onScreen && t && !t.isTarget),
       errorType,
       isCorrectHit,
       reactionMs
@@ -430,10 +437,10 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   }, []);
 
   const register = useCallback(() => {
+    recordPress();
     const now = performance.now();
     if (now - lastKey.current < 120) return;
     lastKey.current = now;
-    recordPress();
     respond();
   }, [recordPress, respond]);
 
