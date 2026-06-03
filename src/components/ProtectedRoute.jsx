@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { card } from "./ui.js";
+import { Card, Page } from "./ui.jsx";
 
 export function ProtectedRoute({ children }) {
   const { user, loading, isSupabaseReady, needsProfileCompletion } = useAuth();
@@ -8,15 +8,17 @@ export function ProtectedRoute({ children }) {
 
   if (!isSupabaseReady) {
     return (
-      <div style={card}>
-        <h2>Kurulum</h2>
-        <p>Supabase bağlantısı için `.env` dosyasını doldurun. Bkz. docs/SAAS_SENARYO.md</p>
-      </div>
+      <Page narrow>
+        <Card>
+          <h2 className="fp-card-title">Kurulum</h2>
+          <p className="fp-card-desc">Supabase bağlantısı için `.env` dosyasını doldurun. Bkz. docs/SAAS_SENARYO.md</p>
+        </Card>
+      </Page>
     );
   }
 
   if (loading) {
-    return <p style={{ color: "#64748b" }}>Yükleniyor…</p>;
+    return <p className="fp-loading">Yükleniyor…</p>;
   }
 
   if (!user) return <Navigate to="/giris" replace />;

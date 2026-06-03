@@ -1,0 +1,57 @@
+:root {
+  --fp-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fp-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --fp-bg: #f8fafc;
+  --fp-surface: #ffffff;
+  --fp-surface-raised: #ffffff;
+  --fp-border: #e2e8f0;
+  --fp-border-strong: #cbd5e1;
+
+  --fp-text: #0f172a;
+  --fp-text-secondary: #475569;
+  --fp-text-muted: #64748b;
+  --fp-text-inverse: #f8fafc;
+
+  --fp-primary: #4f46e5;
+  --fp-primary-hover: #4338ca;
+  --fp-primary-soft: #eef2ff;
+  --fp-accent: #0d9488;
+
+  --fp-success: #059669;
+  --fp-success-bg: #ecfdf5;
+  --fp-success-border: #a7f3d0;
+  --fp-warning: #d97706;
+  --fp-warning-bg: #fffbeb;
+  --fp-warning-border: #fde68a;
+  --fp-danger: #dc2626;
+  --fp-danger-bg: #fef2f2;
+  --fp-danger-border: #fecaca;
+  --fp-info-bg: #eff6ff;
+  --fp-info-border: #bfdbfe;
+
+  --fp-radius-sm: 6px;
+  --fp-radius: 10px;
+  --fp-radius-lg: 14px;
+  --fp-radius-xl: 18px;
+
+  --fp-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --fp-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --fp-shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.08);
+
+  --fp-space-1: 4px;
+  --fp-space-2: 8px;
+  --fp-space-3: 12px;
+  --fp-space-4: 16px;
+  --fp-space-5: 20px;
+  --fp-space-6: 24px;
+  --fp-space-8: 32px;
+  --fp-space-10: 40px;
+
+  --fp-max-content: 1120px;
+  --fp-max-form: 440px;
+  --fp-max-auth: 480px;
+
+  --fp-header-h: 64px;
+  --fp-focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.35);
+}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { signInWithProvider } from "../lib/oauth.js";
-import { btnGhost } from "./ui.js";
+import { Alert, Button, Divider } from "./ui.jsx";
 
 function GoogleIcon() {
   return (
@@ -42,20 +42,13 @@ export function OAuthButtons() {
 
   return (
     <div style={{ marginTop: 16 }}>
-      <p style={{ textAlign: "center", color: "#64748b", fontSize: 14, margin: "16px 0 12px" }}>veya</p>
-      <button
+      <Divider label="veya" />
+      <Button
         type="button"
+        variant="secondary"
+        className="fp-btn--block"
         disabled={!!busy}
         onClick={() => go("google")}
-        style={{
-          ...btnGhost,
-          width: "100%",
-          fontWeight: 600,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10
-        }}
       >
         {busy === "google" ? (
           "Yönlendiriliyor…"
@@ -65,9 +58,9 @@ export function OAuthButtons() {
             Google ile devam et
           </>
         )}
-      </button>
-      {msg && <p style={{ color: "#b91c1c", marginTop: 12, fontSize: 14 }}>{msg}</p>}
-      <p style={{ color: "#94a3b8", fontSize: 12, marginTop: 10, lineHeight: 1.4 }}>
+      </Button>
+      {msg && <Alert variant="error">{msg}</Alert>}
+      <p className="fp-hint" style={{ marginTop: 10 }}>
         İlk kez Google ile girerseniz kısa bir profil formu (18 yaş, hesap türü) sorulur.
       </p>
     </div>

@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
 import { ageFromBirthDate } from "../profiles.js";
-import { btnPrimary, card, input } from "../components/ui.js";
+import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 
 export default function CompleteProfilePage() {
   const { user, profile, refreshProfile, needsProfileCompletion } = useAuth();
@@ -45,24 +45,27 @@ export default function CompleteProfilePage() {
   }
 
   return (
-    <form onSubmit={submit} style={{ ...card, maxWidth: 480 }}>
-      <h2 style={{ marginTop: 0 }}>Profilinizi tamamlayın</h2>
-      <p style={{ color: "#64748b", fontSize: 14 }}>
-        Google ile giriş yaptınız. Devam etmek için bir kez bu bilgileri girin.
-      </p>
-      <label style={{ fontWeight: 600 }}>Ad soyad</label>
-      <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={input} required />
-      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Doğum tarihi (üye — 18+)</label>
-      <input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} style={input} required />
-      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Hesap türü</label>
-      <select value={role} onChange={(e) => setRole(e.target.value)} style={input}>
-        <option value="individual">Bireysel</option>
-        <option value="psychologist">Psikolog</option>
-      </select>
-      {msg && <p style={{ color: "#b91c1c", marginTop: 12 }}>{msg}</p>}
-      <button type="submit" disabled={busy} style={{ ...btnPrimary, width: "100%", marginTop: 20 }}>
-        {busy ? "Kaydediliyor…" : "Devam et"}
-      </button>
-    </form>
+    <Page narrow>
+      <Card as="form" onSubmit={submit}>
+        <h1 className="fp-auth-title">Profilinizi tamamlayın</h1>
+        <p className="fp-auth-sub">Google ile giriş yaptınız. Devam etmek için bir kez bu bilgileri girin.</p>
+        <Field label="Ad soyad">
+          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+        </Field>
+        <Field label="Doğum tarihi (üye — 18+)">
+          <Input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} required />
+        </Field>
+        <Field label="Hesap türü">
+          <Select value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="individual">Bireysel</option>
+            <option value="psychologist">Psikolog</option>
+          </Select>
+        </Field>
+        {msg && <Alert variant="error">{msg}</Alert>}
+        <Button type="submit" variant="primary" className="fp-btn--block" disabled={busy} style={{ marginTop: 20 }}>
+          {busy ? "Kaydediliyor…" : "Devam et"}
+        </Button>
+      </Card>
+    </Page>
   );
 }

@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { fetchMySessions, getReportPdfSignedUrl } from "../services/sessions.js";
-import { btnGhost, btnPrimary, card } from "../components/ui.js";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  CardHeader,
+  DataTable,
+  EmptyState,
+  Page,
+  Stack
+} from "../components/ui.jsx";
 
 const roleLabel = {
   admin: "Yönetici",
@@ -43,69 +52,67 @@ export default function DashboardPage() {
   }, [load]);
 
   return (
-    <div style={{ width: "100%", maxWidth: 900 }}>
-      <div style={{ ...card, maxWidth: 900, marginBottom: 20 }}>
-        <h2 style={{ marginTop: 0 }}>Hoş geldiniz, {profile?.full_name}</h2>
-        <p style={{ color: "#475569" }}>
-          Rol: <strong>{roleLabel[profile?.role] ?? profile?.role}</strong>
-        </p>
-        <p style={{ color: "#166534", background: "#ecfdf5", padding: 12, borderRadius: 10, marginTop: 10 }}>
-          Şimdilik <strong>sınırsız ücretsiz</strong> test yapabilirsiniz. Ücretli paketler ve ödeme sistemi daha sonra eklenecek.
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
-          <Link to="/test" style={{ ...btnPrimary, textDecoration: "none", display: "inline-block" }}>
+    <Page wide>
+      <Card>
+        <CardHeader
+          title={`Hoş geldiniz, ${profile?.full_name}`}
+          description="Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin."
+          action={<Badge variant="primary">{roleLabel[profile?.role] ?? profile?.role}</Badge>}
+        />
+        <Alert variant="success">
+          Şimdilik <strong>sınırsız ücretsiz</strong> test yapabilirsiniz. Ücretli paketler ve ödeme sistemi daha sonra
+          eklenecek.
+        </Alert>
+        <Stack gap={12} style={{ marginTop: 20 }}>
+          <Button asLink to="/test" variant="primary">
             Yeni test başlat
-          </Link>
+          </Button>
           {isAdmin && (
-            <Link to="/admin" style={{ ...btnGhost, textDecoration: "none", display: "inline-block" }}>
+            <Button asLink to="/admin" variant="secondary">
               Yönetim paneli
-            </Link>
+            </Button>
           )}
-        </div>
-        {msg && <p style={{ marginTop: 12, color: "#334155" }}>{msg}</p>}
-      </div>
-
-      <div style={{ ...card, maxWidth: 900 }}>
-        <h3 style={{ marginTop: 0 }}>Geçmiş testleriniz</h3>
-        {!sessions.length && <p style={{ color: "#64748b" }}>Henüz kayıtlı test yok.</p>}
-        {sessions.length > 0 && (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-            <thead>
-              <tr style={{ textAlign: "left", borderBottom: "2px solid #e2e8f0" }}>
-                <th style={{ padding: 8 }}>Tarih</th>
-                <th style={{ padding: 8 }}>Katılımcı</th>
-                <th style={{ padding: 8 }}>Profil</th>
-                <th style={{ padding: 8 }}>Genel skor</th>
-                <th style={{ padding: 8 }}>PDF</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sessions.map((s) => (
-                <tr key={s.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                  <td style={{ padding: 8 }}>{new Date(s.created_at).toLocaleString("tr-TR")}</td>
-                  <td style={{ padding: 8 }}>{s.participant_name}</td>
-                  <td style={{ padding: 8 }}>{s.profile_key}</td>
-                  <td style={{ padding: 8 }}>{s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—"}</td>
-                  <td style={{ padding: 8 }}>
-                    {s.pdf_path ? (
-                      <button
-                        type="button"
-                        onClick={() => openPdf(s)}
-                        disabled={pdfBusy === s.id}
-                        style={{ ...btnGhost, padding: "4px 10px", fontSize: 13 }}
-                      >
-                        {pdfBusy === s.id ? "…" : "Aç"}
-                      </button>
-                    ) : (
-                      <span style={{ color: "#94a3b8" }}>—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        </Stack>
+        {msg && (
+          <Alert variant="error" style={{ marginTop: 16 }}>
+            {msg}
+          </Alert>
         )}
-      </div>
-    </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="Geçmiş testleriniz" description="Kayıtlı oturumlar ve PDF raporları." />
+        {!sessions.length && <EmptyState title="Henüz kayıtlı test yok." description="İlk değerlendirmenizi başlatın." />}
+        {sessions.length > 0 && (
+          <DataTable
+            columns={[
+              {
+                label: "Tarih",
+                render: (s) => new Date(s.created_at).toLocaleString("tr-TR")
+              },
+              { key: "participant_name", label: "Katılımcı" },
+              { key: "profile_key", label: "Profil" },
+              {
+                label: "Genel skor",
+                render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
+              },
+              {
+                label: "PDF",
+                render: (s) =>
+                  s.pdf_path ? (
+                    <Button variant="secondary" size="sm" disabled={pdfBusy === s.id} onClick={() => openPdf(s)}>
+                      {pdfBusy === s.id ? "…" : "Aç"}
+                    </Button>
+                  ) : (
+                    <span style={{ color: "var(--fp-text-muted)" }}>—</span>
+                  )
+              }
+            ]}
+            rows={sessions}
+            rowKey={(s) => s.id}
+          />
+        )}
+      </Card>
+    </Page>
   );
 }

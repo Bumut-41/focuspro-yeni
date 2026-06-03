@@ -2,7 +2,7 @@ import { formatTestMs } from "../lib/testTime.js";
 import { shapeLabel } from "../lib/symbolLabels.js";
 import { getProfile } from "../profiles.js";
 import { ShapeView } from "../shapeUtils.jsx";
-import { card } from "./ui.js";
+import { Badge, Card, CardHeader } from "./ui.jsx";
 
 const ERROR_LABELS = {
   none: "Doğru basış",
@@ -34,15 +34,25 @@ export function AdminPressTimeline({ session, timeline, target }) {
   if (!session) return null;
 
   return (
-    <div style={{ marginTop: 20 }}>
-      <div style={{ ...card, maxWidth: 1100 }}>
-        <h3 style={{ marginTop: 0 }}>Basış zaman çizelgesi (yalnızca yönetici)</h3>
-        <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.5 }}>
-          Katılımcı: <strong>{session.participant_name}</strong> —{" "}
-          {new Date(session.created_at).toLocaleString("tr-TR")}
-        </p>
+    <Card style={{ maxWidth: 1100, marginTop: 20 }}>
+        <CardHeader
+          title="Basış zaman çizelgesi"
+          description={`${session.participant_name} · ${new Date(session.created_at).toLocaleString("tr-TR")}`}
+          action={<Badge variant="primary">Yalnızca yönetici</Badge>}
+        />
         {target && (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: 12, background: "#f8fafc", borderRadius: 10 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 16,
+              padding: 12,
+              background: "var(--fp-bg)",
+              borderRadius: "var(--fp-radius)",
+              border: "1px solid var(--fp-border)"
+            }}
+          >
             <span style={{ fontWeight: 600, fontSize: 13 }}>Aranacak hedef:</span>
             <SymbolCell shape={target.shape} color={target.color} caption="Üçgen (hedef)" />
           </div>
@@ -52,16 +62,16 @@ export function AdminPressTimeline({ session, timeline, target }) {
         <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 0 }}>
           “Ekranda” = o denemede gösterilen simge. Süreler test başlangıcından itibaren (dakika:saniye).
         </p>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse", minWidth: 720 }}>
+        <div className="fp-table-wrap">
+          <table className="fp-table" style={{ minWidth: 720 }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #e2e8f0", textAlign: "left" }}>
-                <th style={{ padding: 8 }}>#</th>
-                <th style={{ padding: 8 }}>Hedef ekranda (sn)</th>
-                <th style={{ padding: 8 }}>Ekrandaki simge</th>
-                <th style={{ padding: 8 }}>Basış (sn)</th>
-                <th style={{ padding: 8 }}>Tepki (ms)</th>
-                <th style={{ padding: 8 }}>Durum</th>
+              <tr>
+                <th>#</th>
+                <th>Hedef ekranda (sn)</th>
+                <th>Ekrandaki simge</th>
+                <th>Basış (sn)</th>
+                <th>Tepki (ms)</th>
+                <th>Durum</th>
               </tr>
             </thead>
             <tbody>
@@ -73,17 +83,17 @@ export function AdminPressTimeline({ session, timeline, target }) {
                     ? "Geç"
                     : "İsabet";
                 return (
-                  <tr key={t.trialNumber} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: 8 }}>{t.trialNumber}</td>
-                    <td style={{ padding: 8, fontFamily: "monospace" }}>{formatTestMs(t.onsetMs)}</td>
-                    <td style={{ padding: 8 }}>
+                  <tr key={t.trialNumber}>
+                    <td>{t.trialNumber}</td>
+                    <td style={{ fontFamily: "var(--fp-mono)" }}>{formatTestMs(t.onsetMs)}</td>
+                    <td>
                       <SymbolCell shape={t.shownShape} color={t.shownColor} />
                     </td>
-                    <td style={{ padding: 8, fontFamily: "monospace" }}>
+                    <td style={{ fontFamily: "var(--fp-mono)" }}>
                       {firstPress ? formatTestMs(firstPress.atMs) : "—"}
                     </td>
-                    <td style={{ padding: 8 }}>{t.responded ? Math.round(t.reactionTime) : "—"}</td>
-                    <td style={{ padding: 8, color: status === "İsabet" ? "#166534" : "#b91c1c" }}>{status}</td>
+                    <td>{t.responded ? Math.round(t.reactionTime) : "—"}</td>
+                    <td style={{ color: status === "İsabet" ? "var(--fp-success)" : "var(--fp-danger)" }}>{status}</td>
                   </tr>
                 );
               })}
@@ -155,7 +165,6 @@ export function AdminPressTimeline({ session, timeline, target }) {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+    </Card>
   );
 }

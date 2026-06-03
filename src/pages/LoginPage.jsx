@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { supabase, supabaseConfigured } from "../lib/supabase.js";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
-import { btnPrimary, card, input } from "../components/ui.js";
+import { Alert, Button, Card, Field, Input, Page } from "../components/ui.jsx";
 
 export default function LoginPage() {
   const { user, isSupabaseReady, needsProfileCompletion } = useAuth();
@@ -17,10 +17,14 @@ export default function LoginPage() {
 
   if (!isSupabaseReady) {
     return (
-      <div style={card}>
-        <h2>Supabase ayarı gerekli</h2>
-        <p>`.env` dosyasına VITE_SUPABASE_URL ve VITE_SUPABASE_ANON_KEY ekleyin. Detay: docs/SAAS_SENARYO.md</p>
-      </div>
+      <Page narrow>
+        <Card>
+          <h1 className="fp-auth-title">Supabase ayarı gerekli</h1>
+          <p className="fp-auth-sub">
+            `.env` dosyasına <code>VITE_SUPABASE_URL</code> ve <code>VITE_SUPABASE_ANON_KEY</code> ekleyin.
+          </p>
+        </Card>
+      </Page>
     );
   }
 
@@ -41,20 +45,31 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={submit} style={card}>
-      <h2 style={{ marginTop: 0 }}>Giriş</h2>
-      <label style={{ fontWeight: 600 }}>E-posta</label>
-      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={input} required />
-      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Şifre</label>
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={input} required />
-      {msg && <p style={{ color: "#b91c1c", marginTop: 12 }}>{msg}</p>}
-      <button type="submit" disabled={busy} style={{ ...btnPrimary, width: "100%", marginTop: 20 }}>
-        {busy ? "Bekleyin…" : "E-posta ile giriş"}
-      </button>
-      <OAuthButtons />
-      <p style={{ marginTop: 16, color: "#64748b" }}>
-        Hesabınız yok mu? <Link to="/kayit">Kayıt olun</Link>
-      </p>
-    </form>
+    <Page narrow>
+      <Card as="form" onSubmit={submit}>
+        <h1 className="fp-auth-title">Giriş</h1>
+        <p className="fp-auth-sub">Hesabınıza erişin ve değerlendirmelere devam edin.</p>
+        <Field label="E-posta">
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+        </Field>
+        <Field label="Şifre">
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+        </Field>
+        {msg && <Alert variant="error">{msg}</Alert>}
+        <Button type="submit" variant="primary" className="fp-btn--block" disabled={busy} style={{ marginTop: 20 }}>
+          {busy ? "Bekleyin…" : "E-posta ile giriş"}
+        </Button>
+        <OAuthButtons />
+        <p style={{ marginTop: 16, color: "var(--fp-text-muted)", fontSize: "0.875rem" }}>
+          Hesabınız yok mu? <Link to="/kayit">Kayıt olun</Link>
+        </p>
+      </Card>
+    </Page>
   );
 }

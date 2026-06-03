@@ -26,7 +26,7 @@ export async function saveTestSession({
 export async function fetchMySessions(limit = 50) {
   const { data, error } = await supabase
     .from("test_sessions")
-    .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path")
+    .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, admin_pdf_path")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -37,7 +37,7 @@ export async function fetchAllSessions(limit = 100) {
   const { data, error } = await supabase
     .from("test_sessions")
     .select(
-      "id, owner_id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, profiles(full_name, role)"
+      "id, owner_id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, admin_pdf_path, profiles(full_name, role)"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -78,6 +78,28 @@ export async function persistSessionReportPdf(userId, sessionId, blob) {
   const { error } = await supabase
     .from("test_sessions")
     .update({ pdf_path: path })
+    .eq("id", sessionId)
+    .eq("owner_id", userId);
+  if (error) throw error;
+  return path;
+}
+
+export async function uploadAdminReportPdf(userId, sessionId, blob) {
+  const path = `${userId}/${sessionId}-admin.pdf`;
+  const { error } = await supabase.storage.from("reports").upload(path, blob, {
+    contentType: "application/pdf",
+    upsert: true
+  });
+  if (error) throw error;
+  return path;
+}
+
+/** Yönetici basış PDF — yalnızca admin_pdf_path güncellenir. */
+export async function persistAdminReportPdf(userId, sessionId, blob) {
+  const path = await uploadAdminReportPdf(userId, sessionId, blob);
+  const { error } = await supabase
+    .from("test_sessions")
+    .update({ admin_pdf_path: path })
     .eq("id", sessionId)
     .eq("owner_id", userId);
   if (error) throw error;

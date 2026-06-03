@@ -9,7 +9,18 @@ import {
   fetchSessionDetail,
   getReportPdfSignedUrl
 } from "../services/sessions.js";
-import { btnGhost, card, input } from "../components/ui.js";
+import {
+  Alert,
+  Button,
+  Card,
+  CardHeader,
+  DataTable,
+  Field,
+  Input,
+  Page,
+  Select,
+  Stack
+} from "../components/ui.jsx";
 
 export default function AdminPage() {
   const { isAdmin } = useAuth();
@@ -88,111 +99,108 @@ export default function AdminPage() {
   }
 
   return (
-    <div style={{ width: "100%", maxWidth: 1000 }}>
-      <div style={{ ...card, maxWidth: 1000, marginBottom: 20 }}>
-        <h2 style={{ marginTop: 0 }}>Yönetim — Tüm sistem</h2>
-        <p style={{ color: "#64748b" }}>Tüm kullanıcılar ve test sonuçları (admin yetkisi).</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12, alignItems: "flex-end" }}>
-          <div style={{ flex: "1 1 200px" }}>
-            <label style={{ fontWeight: 600, fontSize: 13 }}>Kullanıcıya kredi ver</label>
-            <select value={grantUser} onChange={(e) => setGrantUser(e.target.value)} style={input}>
+    <Page wide>
+      <Card>
+        <CardHeader
+          title="Yönetim"
+          description="Tüm kullanıcılar ve test sonuçları (admin yetkisi)."
+        />
+        <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
+          <Field label="Kullanıcıya kredi ver" className="fp-field--grow">
+            <Select value={grantUser} onChange={(e) => setGrantUser(e.target.value)}>
               <option value="">Seçin</option>
               {profiles.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.full_name} ({p.role}) — {p.test_credits} kredi
                 </option>
               ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontWeight: 600, fontSize: 13 }}>Adet</label>
-            <input
+            </Select>
+          </Field>
+          <Field label="Adet">
+            <Input
               type="number"
               min={1}
               value={grantAmount}
               onChange={(e) => setGrantAmount(e.target.value)}
-              style={{ ...input, width: 80 }}
+              style={{ width: 88 }}
             />
-          </div>
-          <button type="button" onClick={grant} style={btnGhost}>
+          </Field>
+          <Button type="button" variant="secondary" onClick={grant}>
             Ekle
-          </button>
-        </div>
-        {msg && <p style={{ marginTop: 10 }}>{msg}</p>}
-      </div>
+          </Button>
+        </Stack>
+        {msg && (
+          <Alert variant={msg.includes("eklendi") ? "success" : "info"} style={{ marginTop: 12 }}>
+            {msg}
+          </Alert>
+        )}
+      </Card>
 
-      <div style={{ ...card, maxWidth: 1000, marginBottom: 20 }}>
-        <h3>Kullanıcılar ({profiles.length})</h3>
-        <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "2px solid #e2e8f0", textAlign: "left" }}>
-              <th style={{ padding: 6 }}>Ad</th>
-              <th style={{ padding: 6 }}>Rol</th>
-              <th style={{ padding: 6 }}>Kredi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {profiles.map((p) => (
-              <tr key={p.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                <td style={{ padding: 6 }}>{p.full_name}</td>
-                <td style={{ padding: 6 }}>{p.role}</td>
-                <td style={{ padding: 6 }}>{p.test_credits}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardHeader title={`Kullanıcılar (${profiles.length})`} />
+        <DataTable
+          columns={[
+            { key: "full_name", label: "Ad" },
+            { key: "role", label: "Rol" },
+            { key: "test_credits", label: "Kredi" }
+          ]}
+          rows={profiles}
+          rowKey={(p) => p.id}
+        />
+      </Card>
 
-      <div style={{ ...card, maxWidth: 1000 }}>
-        <h3>Tüm testler ({sessions.length})</h3>
-        <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "2px solid #e2e8f0", textAlign: "left" }}>
-              <th style={{ padding: 6 }}>Tarih</th>
-              <th style={{ padding: 6 }}>Uygulayan</th>
-              <th style={{ padding: 6 }}>Katılımcı</th>
-              <th style={{ padding: 6 }}>Skor</th>
-              <th style={{ padding: 6 }} />
-            </tr>
-          </thead>
-          <tbody>
-            {sessions.map((s) => (
-              <tr
-                key={s.id}
-                style={{
-                  borderBottom: "1px solid #f1f5f9",
-                  background: selectedId === s.id ? "#eff6ff" : undefined
-                }}
-              >
-                <td style={{ padding: 6 }}>{new Date(s.created_at).toLocaleString("tr-TR")}</td>
-                <td style={{ padding: 6 }}>{s.profiles?.full_name ?? s.owner_id?.slice(0, 8)}</td>
-                <td style={{ padding: 6 }}>{s.participant_name}</td>
-                <td style={{ padding: 6 }}>{s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—"}</td>
-                <td style={{ padding: 6 }}>
-                  <button type="button" onClick={() => openSession(s.id)} style={{ ...btnGhost, padding: "6px 12px", fontSize: 12 }}>
+      <Card>
+        <CardHeader title={`Tüm testler (${sessions.length})`} />
+        <DataTable
+          columns={[
+            { label: "Tarih", render: (s) => new Date(s.created_at).toLocaleString("tr-TR") },
+            { label: "Uygulayan", render: (s) => s.profiles?.full_name ?? s.owner_id?.slice(0, 8) },
+            { key: "participant_name", label: "Katılımcı" },
+            {
+              label: "Skor",
+              render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
+            },
+            {
+              label: "İşlemler",
+              render: (s) => (
+                <Stack gap={6} wrap>
+                  <Button variant="secondary" size="sm" onClick={() => openSession(s.id)}>
                     {selectedId === s.id ? "Kapat" : "Basış raporu"}
-                  </button>
+                  </Button>
                   {s.pdf_path && (
-                    <button
-                      type="button"
-                      onClick={() => openPdf(s.pdf_path, s.id)}
-                      disabled={pdfBusy === s.id}
-                      style={{ ...btnGhost, padding: "6px 12px", fontSize: 12, marginLeft: 6 }}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={pdfBusy === `${s.id}-p`}
+                      onClick={() => openPdf(s.pdf_path, `${s.id}-p`)}
                     >
-                      {pdfBusy === s.id ? "…" : "PDF"}
-                    </button>
+                      {pdfBusy === `${s.id}-p` ? "…" : "Katılımcı PDF"}
+                    </Button>
                   )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  {s.admin_pdf_path && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={pdfBusy === `${s.id}-a`}
+                      onClick={() => openPdf(s.admin_pdf_path, `${s.id}-a`)}
+                    >
+                      {pdfBusy === `${s.id}-a` ? "…" : "Basış PDF"}
+                    </Button>
+                  )}
+                </Stack>
+              )
+            }
+          ]}
+          rows={sessions}
+          rowKey={(s) => s.id}
+          activeKey={selectedId}
+        />
+      </Card>
 
-      {detailLoading && <p style={{ marginTop: 16, color: "#64748b" }}>Yükleniyor…</p>}
+      {detailLoading && <p className="fp-loading">Yükleniyor…</p>}
       {detail && !detailLoading && (
         <AdminPressTimeline session={detail} timeline={timeline ?? []} target={detail.target} />
       )}
-    </div>
+    </Page>
   );
 }

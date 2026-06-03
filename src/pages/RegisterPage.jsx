@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { supabase, supabaseConfigured } from "../lib/supabase.js";
 import { ageFromBirthDate } from "../profiles.js";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
-import { btnPrimary, card, input } from "../components/ui.js";
+import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 
 export default function RegisterPage() {
   const { user, isSupabaseReady, needsProfileCompletion } = useAuth();
@@ -21,10 +21,12 @@ export default function RegisterPage() {
 
   if (!isSupabaseReady) {
     return (
-      <div style={card}>
-        <h2>Supabase ayarı gerekli</h2>
-        <p>docs/SAAS_SENARYO.md dosyasına bakın.</p>
-      </div>
+      <Page narrow>
+        <Card>
+          <h1 className="fp-auth-title">Supabase ayarı gerekli</h1>
+          <p className="fp-auth-sub">docs/SAAS_SENARYO.md dosyasına bakın.</p>
+        </Card>
+      </Page>
     );
   }
 
@@ -61,36 +63,43 @@ export default function RegisterPage() {
     setTimeout(() => navigate("/giris"), 2500);
   }
 
+  const msgVariant = msg.includes("oluşturuldu") ? "success" : msg ? "error" : null;
+
   return (
-    <form onSubmit={submit} style={{ ...card, maxWidth: 520 }}>
-      <h2 style={{ marginTop: 0 }}>Üye ol</h2>
-      <OAuthButtons />
-      <p style={{ textAlign: "center", color: "#64748b", fontSize: 14, margin: "8px 0 16px" }}>veya e-posta ile</p>
-      <p style={{ color: "#64748b", fontSize: 14 }}>Üyelik için 18 yaş ve üzeri zorunludur.</p>
-      <label style={{ fontWeight: 600 }}>Ad soyad</label>
-      <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={input} required />
-      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Doğum tarihi (üye)</label>
-      <input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} style={input} required />
-      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Hesap türü</label>
-      <select value={role} onChange={(e) => setRole(e.target.value)} style={input}>
-        <option value="individual">Bireysel kullanıcı</option>
-        <option value="psychologist">Psikolog</option>
-      </select>
-      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>E-posta</label>
-      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={input} required />
-      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Şifre</label>
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={input} required />
-      {msg && (
-        <p style={{ color: msg.includes("oluşturuldu") ? "#166534" : "#b91c1c", marginTop: 12, background: "#f8fafc", padding: 12, borderRadius: 10 }}>
-          {msg}
+    <Page narrow>
+      <Card as="form" onSubmit={submit} style={{ maxWidth: 520 }}>
+        <h1 className="fp-auth-title">Üye ol</h1>
+        <p className="fp-auth-sub">Üyelik için 18 yaş ve üzeri zorunludur.</p>
+        <OAuthButtons />
+        <p className="fp-hint" style={{ textAlign: "center", margin: "8px 0 0" }}>
+          veya e-posta ile kayıt
         </p>
-      )}
-      <button type="submit" disabled={busy} style={{ ...btnPrimary, width: "100%", marginTop: 20 }}>
-        {busy ? "Bekleyin…" : "Kayıt ol"}
-      </button>
-      <p style={{ marginTop: 16 }}>
-        <Link to="/giris">Zaten hesabım var</Link>
-      </p>
-    </form>
+        <Field label="Ad soyad">
+          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoComplete="name" />
+        </Field>
+        <Field label="Doğum tarihi (üye)">
+          <Input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} required />
+        </Field>
+        <Field label="Hesap türü">
+          <Select value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="individual">Bireysel kullanıcı</option>
+            <option value="psychologist">Psikolog</option>
+          </Select>
+        </Field>
+        <Field label="E-posta">
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+        </Field>
+        <Field label="Şifre">
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
+        </Field>
+        {msgVariant && <Alert variant={msgVariant}>{msg}</Alert>}
+        <Button type="submit" variant="primary" className="fp-btn--block" disabled={busy} style={{ marginTop: 20 }}>
+          {busy ? "Bekleyin…" : "Kayıt ol"}
+        </Button>
+        <p style={{ marginTop: 16, fontSize: "0.875rem" }}>
+          <Link to="/giris">Zaten hesabım var</Link>
+        </p>
+      </Card>
+    </Page>
   );
 }

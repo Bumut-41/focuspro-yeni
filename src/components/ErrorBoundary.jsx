@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { Card, Page } from "./ui.jsx";
 
 export class ErrorBoundary extends Component {
   state = { error: null };
@@ -14,15 +15,28 @@ export class ErrorBoundary extends Component {
   render() {
     if (this.state.error) {
       return (
-        <div style={{ maxWidth: 520, margin: "40px auto", padding: 24, background: "#fff", borderRadius: 12, border: "1px solid #fecaca" }}>
-          <h2 style={{ marginTop: 0, color: "#b91c1c" }}>Sayfa yüklenemedi</h2>
-          <p style={{ color: "#475569", lineHeight: 1.5 }}>
-            Uygulama beklenmeyen bir hatayla durdu. Sayfayı yenileyin; sorun sürerse geliştiriciye bu metni iletin.
-          </p>
-          <pre style={{ fontSize: 12, overflow: "auto", padding: 12, background: "#f8fafc", borderRadius: 8 }}>
-            {this.state.error?.message || String(this.state.error)}
-          </pre>
-        </div>
+        <Page narrow>
+          <Card className="fp-alert--error" style={{ borderColor: "var(--fp-danger-border)" }}>
+            <h2 className="fp-card-title" style={{ color: "var(--fp-danger)" }}>
+              Sayfa yüklenemedi
+            </h2>
+            <p className="fp-card-desc">
+              Uygulama beklenmeyen bir hatayla durdu. Sayfayı yenileyin; sorun sürerse geliştiriciye bu metni iletin.
+            </p>
+            <pre
+              style={{
+                fontSize: 12,
+                overflow: "auto",
+                padding: 12,
+                background: "var(--fp-bg)",
+                borderRadius: "var(--fp-radius)",
+                marginTop: 12
+              }}
+            >
+              {this.state.error?.message || String(this.state.error)}
+            </pre>
+          </Card>
+        </Page>
       );
     }
     return this.props.children;

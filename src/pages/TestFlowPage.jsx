@@ -8,9 +8,10 @@ import { useAttentionTest } from "../useAttentionTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
 import { TestDevTimer } from "../components/TestDevTimer.jsx";
 import { ReportPanel } from "../components/ReportPanel.jsx";
+import { createAdminTimelinePdfBlob } from "../pdfAdminTimeline.js";
 import { createPdfBlob } from "../pdfReport.js";
-import { persistSessionReportPdf, saveTestSession } from "../services/sessions.js";
-import { btnGhost, btnPrimary, card, input } from "../components/ui.js";
+import { persistAdminReportPdf, persistSessionReportPdf, saveTestSession } from "../services/sessions.js";
+import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
   AUDIO_CHECK_SOUND,
@@ -29,6 +30,7 @@ export default function TestFlowPage() {
   const [age, setAge] = useState("");
   const [pkey, setPkey] = useState("adult");
   const [logs, setLogs] = useState([]);
+  const [pressTimeline, setPressTimeline] = useState([]);
   const [spaceVerified, setSpaceVerified] = useState(false);
   const [spaceCelebrating, setSpaceCelebrating] = useState(false);
   const [audioVerified, setAudioVerified] = useState(false);
@@ -54,8 +56,9 @@ export default function TestFlowPage() {
   }, [isImmersiveStep, setImmersive]);
 
   const onDone = useCallback(
-    async (snapshot, targetSnap, pressTimeline) => {
+    async (snapshot, targetSnap, timeline) => {
       setLogs(snapshot);
+      setPressTimeline(timeline ?? []);
       setStep("report");
       setSavedHint("");
       try {
@@ -69,7 +72,7 @@ export default function TestFlowPage() {
           logs: snapshot,
           metrics,
           target: targetSnap,
-          pressTimeline: pressTimeline ?? []
+          pressTimeline: timeline ?? []
         });
         setSessionId(id);
         pdfSavedRef.current = false;
@@ -198,9 +201,24 @@ export default function TestFlowPage() {
           chartImage
         });
         await persistSessionReportPdf(user.id, sessionId, blob);
+        if (pressTimeline.length) {
+          const adminBlob = await createAdminTimelinePdfBlob({
+            session: {
+              id: sessionId,
+              participant_name: name,
+              participant_age: Number(age) || null,
+              profile_key: pkey,
+              created_at: new Date().toISOString(),
+              logs
+            },
+            timeline: pressTimeline,
+            target
+          });
+          await persistAdminReportPdf(user.id, sessionId, adminBlob);
+        }
         if (!cancelled) {
           pdfSavedRef.current = true;
-          setSavedHint("Test ve PDF raporu hesabınıza kaydedildi.");
+          setSavedHint("Test ve PDF raporları hesabınıza kaydedildi.");
         }
       } catch (e) {
         console.warn(e);
@@ -218,7 +236,7 @@ export default function TestFlowPage() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [step, sessionId, user?.id, logs, target, profile, participant]);
+  }, [step, sessionId, user?.id, logs, target, profile, participant, pressTimeline, name, age, pkey]);
 
   useEffect(() => {
     if (step !== "spaceCheck" || spaceCelebrating) return undefined;
@@ -280,45 +298,53 @@ export default function TestFlowPage() {
       )}
 
       {!isImmersiveStep && (
-        <p style={{ marginBottom: 12, color: "#64748b", width: "100%", maxWidth: 640 }}>
-          <Link to="/">← Panele dön</Link>
-        </p>
+        <Page narrow>
+          <Link to="/" className="fp-back-link">
+            ← Panele dön
+          </Link>
+        </Page>
       )}
 
       {step === "form" && (
-        <form onSubmit={submitForm} style={card}>
-          <h2 style={{ marginTop: 0 }}>Katılımcı</h2>
-          <label style={{ fontWeight: 600 }}>Ad soyad</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} style={input} />
-          <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Doğum tarihi</label>
-          <input
-            type="date"
-            value={birth}
-            onChange={(e) => {
-              setBirth(e.target.value);
-              const a = ageFromBirthDate(e.target.value);
-              setPkey(a == null ? "adult" : profileKeyFromAge(a));
-              if (profileKeyFromAge(a) === "adult") setConsent(false);
-            }}
-            style={input}
-          />
-          <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Cinsiyet</label>
-          <select value={gender} onChange={(e) => setGender(e.target.value)} style={input}>
-            <option value="">Seçin</option>
-            <option value="Kadın">Kadın</option>
-            <option value="Erkek">Erkek</option>
-          </select>
-          {(pkey === "child" || pkey === "teen") && (
-            <label style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "flex-start" }}>
-              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-              <span>Veli / yasal temsilci onamı alındı.</span>
-            </label>
-          )}
-          {err && <p style={{ color: "#b91c1c", padding: 12, background: "#fef2f2", borderRadius: 12 }}>{err}</p>}
-          <button type="submit" style={{ ...btnPrimary, width: "100%", marginTop: 20 }}>
-            Devam
-          </button>
-        </form>
+        <Page narrow>
+          <Card as="form" onSubmit={submitForm}>
+            <h2 className="fp-card-title">Katılımcı bilgileri</h2>
+            <p className="fp-card-desc">Değerlendirme oturumu için katılımcı kaydı.</p>
+            <Field label="Ad soyad">
+              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            </Field>
+            <Field label="Doğum tarihi">
+              <Input
+                type="date"
+                value={birth}
+                onChange={(e) => {
+                  setBirth(e.target.value);
+                  const a = ageFromBirthDate(e.target.value);
+                  setPkey(a == null ? "adult" : profileKeyFromAge(a));
+                  if (profileKeyFromAge(a) === "adult") setConsent(false);
+                }}
+                required
+              />
+            </Field>
+            <Field label="Cinsiyet">
+              <Select value={gender} onChange={(e) => setGender(e.target.value)}>
+                <option value="">Seçin</option>
+                <option value="Kadın">Kadın</option>
+                <option value="Erkek">Erkek</option>
+              </Select>
+            </Field>
+            {(pkey === "child" || pkey === "teen") && (
+              <label className="fp-checkbox-row">
+                <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                <span>Veli / yasal temsilci onamı alındı.</span>
+              </label>
+            )}
+            {err && <Alert variant="error">{err}</Alert>}
+            <Button type="submit" variant="primary" className="fp-btn--block" style={{ marginTop: 20 }}>
+              Devam
+            </Button>
+          </Card>
+        </Page>
       )}
 
       {step === "guide" && (
@@ -441,7 +467,8 @@ export default function TestFlowPage() {
       )}
 
       {step === "report" && target && logs.length > 0 && (
-        <div style={{ ...card, maxWidth: 900 }}>
+        <Page wide>
+          <Card style={{ maxWidth: 900 }}>
           <ReportPanel
             logs={logs}
             profile={profile}
@@ -459,24 +486,26 @@ export default function TestFlowPage() {
             }
             extraActions={
               <>
-                <Link to="/" style={{ ...btnGhost, textDecoration: "none" }}>
+                <Button asLink to="/" variant="secondary">
                   Panele dön
-                </Link>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={() => {
                     resetAfterReport();
                     setLogs([]);
+                    setPressTimeline([]);
                     setStep("form");
                   }}
-                  style={btnGhost}
                 >
                   Yeni test
-                </button>
+                </Button>
               </>
             }
           />
-        </div>
+          </Card>
+        </Page>
       )}
     </div>
   );
