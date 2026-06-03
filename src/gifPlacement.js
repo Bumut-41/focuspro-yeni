@@ -176,11 +176,62 @@ export function buildGifItem(key, eventIndex, silent, activeItems = []) {
   };
 }
 
-/** Zaman aralığında aktif item listesi (çakışma için) */
+/** Tek bir anda ekrandaki item'lar */
 export function activeItemsAt(events, timeMs) {
   const items = [];
   for (const ev of events) {
     if (timeMs >= ev.at && timeMs < ev.at + ev.duration) {
+      items.push(...ev.items);
+    }
+  }
+  return items;
+}
+
+/** İki gif aynı anda yerleşim kurallarını ihlal ediyor mu? */
+export function pairViolatesPlacement(a, b) {
+  if (a.key === b.key) return "aynı-gif";
+  if (a.laneId && a.laneId === b.laneId) return "aynı-lane";
+
+  const horizVsStatic = (mover, stat) => {
+    if (stat.area === "left") return "sabit-sol-yatay-yol";
+    if (Math.abs(stat.top - mover.top) < HORIZONTAL_PATH_BAND) return "sabit-yatay-bant";
+    return null;
+  };
+
+  if (MOVING_HORIZONTAL_KEYS.has(a.key) && GIF_BEHAVIOR[b.key]?.movement === "static") {
+    const v = horizVsStatic(a, b);
+    if (v) return v;
+  }
+  if (MOVING_HORIZONTAL_KEYS.has(b.key) && GIF_BEHAVIOR[a.key]?.movement === "static") {
+    const v = horizVsStatic(b, a);
+    if (v) return v;
+  }
+
+  if (a.key === "top" && GIF_BEHAVIOR[b.key]?.movement === "static" && b.area === a.area) {
+    return "sabit-top-kolonu";
+  }
+  if (b.key === "top" && GIF_BEHAVIOR[a.key]?.movement === "static" && a.area === b.area) {
+    return "sabit-top-kolonu";
+  }
+
+  if (MOVING_HORIZONTAL_KEYS.has(a.key) && a.top > 22 && a.top < 78) return "yatay-orta-bant";
+  if (MOVING_HORIZONTAL_KEYS.has(b.key) && b.top > 22 && b.top < 78) return "yatay-orta-bant";
+
+  if (GIF_BEHAVIOR[a.key]?.movement === "static" && GIF_BEHAVIOR[b.key]?.movement === "static") {
+    const dx = Math.abs(a.left - b.left);
+    const dy = Math.abs(a.top - b.top);
+    if (dx <= 30 && dy <= 28) return "iki-sabit-yakın";
+  }
+
+  return null;
+}
+
+/** [at, at+duration) ile örtüşen tüm olayların item'ları — çizelge yerleşimi için */
+export function activeItemsOverlapping(events, at, duration) {
+  const end = at + duration;
+  const items = [];
+  for (const ev of events) {
+    if (ev.at < end && ev.at + ev.duration > at) {
       items.push(...ev.items);
     }
   }

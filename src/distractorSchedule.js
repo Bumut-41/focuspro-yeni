@@ -7,7 +7,12 @@ import {
   DISTRACTOR_SOUND_GIF_KEYS,
   DISTRACTOR_SOUND_KEYS
 } from "./constants.js";
-import { activeItemsAt, buildGifItem } from "./gifPlacement.js";
+import {
+  activeItemsAt,
+  activeItemsOverlapping,
+  buildGifItem,
+  pairViolatesPlacement
+} from "./gifPlacement.js";
 import {
   COMBINED_SOUND_STAGGER_MS,
   GIF_ON_SCREEN_MS,
@@ -30,8 +35,8 @@ function hasSoundGifActive(events, at) {
   return activeItemsAt(events, at).some((x) => !x.silent);
 }
 
-function pickItem(keys, keyIndexRef, at, eventIndex, silent, events) {
-  const active = activeItemsAt(events, at);
+function pickItem(keys, keyIndexRef, at, duration, eventIndex, silent, events, extraActive = []) {
+  const active = [...activeItemsOverlapping(events, at, duration), ...extraActive];
   const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
   const usedKeys = new Set(active.map((x) => x.key));
   let attempts = 0;
@@ -46,11 +51,56 @@ function pickItem(keys, keyIndexRef, at, eventIndex, silent, events) {
       attempts += 1;
       continue;
     }
+    if (extraActive.some((peer) => pairViolatesPlacement(it, peer))) {
+      attempts += 1;
+      continue;
+    }
     keyIndexRef.current += attempts + 1;
     return it;
   }
   keyIndexRef.current += attempts;
   return null;
+}
+
+/** Aynı dalgada sessiz + sesli birlikte planlanır (örtüşen süre). */
+function pickWavePair(events, tSilent, tSound, dur, durS, n, silentKeyRef, soundKeyRef, endMs) {
+  let silentIt = null;
+  let soundIt = null;
+
+  if (tSound < endMs && durS >= 400 && !hasSoundGifActive(events, tSound)) {
+    soundIt = pickItem(
+      SOUND_GIF_KEYS,
+      soundKeyRef,
+      tSound,
+      durS,
+      n * 10 + 5000,
+      false,
+      events
+    );
+  }
+
+  if (tSilent < endMs && dur >= 400 && !hasSilentActive(events, tSilent)) {
+    const peer = soundIt ? [soundIt] : [];
+    silentIt = pickItem(GIF_KEYS, silentKeyRef, tSilent, dur, n * 10, true, events, peer);
+    if (soundIt && silentIt && pairViolatesPlacement(silentIt, soundIt)) {
+      silentIt = pickItem(GIF_KEYS, silentKeyRef, tSilent, dur, n * 10 + 1, true, events, [soundIt]);
+    }
+  }
+
+  if (soundIt && silentIt && pairViolatesPlacement(silentIt, soundIt)) {
+    soundIt = pickItem(
+      SOUND_GIF_KEYS,
+      soundKeyRef,
+      tSound,
+      durS,
+      n * 10 + 5001,
+      false,
+      events,
+      [silentIt]
+    );
+  }
+
+  return { silentIt, soundIt };
 }
 
 function buildSilentGifWindow(startMs, endMs) {
@@ -59,9 +109,9 @@ function buildSilentGifWindow(startMs, endMs) {
   const keyIndexRef = { current: silentKeyIndex };
   const OFFSET_MS = Math.min(2400, Math.floor(GIF_START_INTERVAL_MS / 3));
 
-  function pickSingleSilentItem(at, eventIndex) {
+  function pickSingleSilentItem(at, dur, eventIndex) {
     keyIndexRef.current = silentKeyIndex;
-    const it = pickItem(GIF_KEYS, keyIndexRef, at, eventIndex, true, events);
+    const it = pickItem(GIF_KEYS, keyIndexRef, at, dur, eventIndex, true, events);
     silentKeyIndex = keyIndexRef.current;
     return it;
   }
@@ -76,7 +126,7 @@ function buildSilentGifWindow(startMs, endMs) {
     const duration = gifDuration(endMs, nextAt);
     if (duration < 400) break;
 
-    const it = pickSingleSilentItem(nextAt, i * 10);
+    const it = pickSingleSilentItem(nextAt, duration, i * 10);
     if (it) events.push({ at: nextAt, duration, items: [it] });
 
     if (nextAt === t1) t1 += GIF_START_INTERVAL_MS;
@@ -122,21 +172,21 @@ function buildSoundGifWindow(startMs, endMs) {
     const tSilent = startMs + n * GIF_ON_SCREEN_MS;
     const tSound = startMs + COMBINED_SOUND_STAGGER_MS + n * GIF_ON_SCREEN_MS;
 
-    if (tSilent < endMs) {
-      const dur = gifDuration(endMs, tSilent);
-      if (dur >= 400 && !hasSilentActive(events, tSilent)) {
-        const it = pickItem(GIF_KEYS, silentKeyRef, tSilent, n * 10, true, events);
-        if (it) events.push({ at: tSilent, duration: dur, items: [it] });
-      }
-    }
-
-    if (tSound < endMs) {
-      const durS = gifDuration(endMs, tSound);
-      if (durS >= 400 && !hasSoundGifActive(events, tSound)) {
-        const it = pickItem(SOUND_GIF_KEYS, soundKeyRef, tSound, n * 10 + 5000, false, events);
-        if (it) events.push({ at: tSound, duration: durS, items: [it] });
-      }
-    }
+    const dur = gifDuration(endMs, tSilent);
+    const durS = gifDuration(endMs, tSound);
+    const { silentIt, soundIt } = pickWavePair(
+      events,
+      tSilent,
+      tSound,
+      dur,
+      durS,
+      n,
+      silentKeyRef,
+      soundKeyRef,
+      endMs
+    );
+    if (soundIt) events.push({ at: tSound, duration: durS, items: [soundIt] });
+    if (silentIt) events.push({ at: tSilent, duration: dur, items: [silentIt] });
 
     n += 1;
     if (n > 5000) break;

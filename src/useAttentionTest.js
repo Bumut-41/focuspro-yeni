@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS, FIXED_TARGET_COLOR, GIF_FILES, INDEPENDENT_SOUNDS, SHAPES } from "./constants.js";
+import { pairViolatesPlacement } from "./gifPlacement.js";
 import { pickSeeded, resetSeed, seededRandom } from "./random.js";
 
 /** Takip edilecek hedef şekil (tüm test boyunca sabit). */
@@ -31,6 +32,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const soloSoundId = useRef(null);
   const gifLanesOnScreen = useRef(new Set());
   const gifKeysOnScreen = useRef(new Set());
+  const gifMetaOnScreen = useRef([]);
   const gifEventsFiredRef = useRef(new Set());
   const soundEventsFiredRef = useRef(new Set());
   const distractorClockRef = useRef(null);
@@ -104,6 +106,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     soundGifIds.current = [];
     gifLanesOnScreen.current.clear();
     gifKeysOnScreen.current.clear();
+    gifMetaOnScreen.current = [];
     setGifs([]);
   }, [clearEvents, stopAudio]);
 
@@ -120,6 +123,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       const gone = p.find((g) => g.id === id);
       if (gone?.laneId) gifLanesOnScreen.current.delete(gone.laneId);
       if (gone?.gifKey) gifKeysOnScreen.current.delete(gone.gifKey);
+      gifMetaOnScreen.current = gifMetaOnScreen.current.filter((x) => x.id !== id);
       return p.filter((g) => g.id !== id);
     });
   }, []);
@@ -137,6 +141,16 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     for (const it of items) {
       if (it.laneId && gifLanesOnScreen.current.has(it.laneId)) return false;
       if (it.gifKey && gifKeysOnScreen.current.has(it.gifKey)) return false;
+      const next = {
+        key: it.gifKey,
+        laneId: it.laneId,
+        left: it.left,
+        top: it.top,
+        area: it.area
+      };
+      for (const ex of gifMetaOnScreen.current) {
+        if (pairViolatesPlacement(ex, next)) return false;
+      }
     }
     return true;
   }, []);
@@ -182,6 +196,14 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       items.forEach((it) => {
         if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
         if (it.gifKey) gifKeysOnScreen.current.add(it.gifKey);
+        gifMetaOnScreen.current.push({
+          id: it.id,
+          key: it.gifKey,
+          laneId: it.laneId,
+          left: it.left,
+          top: it.top,
+          area: it.area
+        });
       });
       gifIds.current = [...gifIds.current, ...items.map((x) => x.id)];
       silentGifIds.current = [...silentGifIds.current, ...items.filter((x) => x.silent).map((x) => x.id)];
