@@ -12,6 +12,7 @@ import { createPdfBlob } from "../pdfReport.js";
 import { persistSessionReportPdf, saveTestSession } from "../services/sessions.js";
 import { btnGhost, btnPrimary, card, input } from "../components/ui.js";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
+import { TEST_INSTRUCTION_PARAGRAPHS, TEST_INSTRUCTION_TITLE } from "../copy/testInstructions.js";
 
 export default function TestFlowPage() {
   const { refreshProfile, user } = useAuth();
@@ -35,7 +36,7 @@ export default function TestFlowPage() {
   const profile = getProfile(pkey);
   const { setImmersive } = useTestChrome();
 
-  const isImmersiveStep = step === "spaceCheck" || step === "brief" || step === "run";
+  const isImmersiveStep = step === "guide" || step === "spaceCheck" || step === "brief" || step === "run";
 
   useEffect(() => {
     setImmersive(isImmersiveStep);
@@ -118,6 +119,10 @@ export default function TestFlowPage() {
     setSpaceVerified(false);
     spaceDoneLock.current = false;
     setSpaceCelebrating(false);
+    setStep("guide");
+  }
+
+  function continueToPractice() {
     setStep("spaceCheck");
   }
 
@@ -263,12 +268,28 @@ export default function TestFlowPage() {
         </form>
       )}
 
+      {step === "guide" && (
+        <div className="test-guide-card">
+          <h2 className="test-guide-title">{TEST_INSTRUCTION_TITLE}</h2>
+          <div className="test-guide-body">
+            {TEST_INSTRUCTION_PARAGRAPHS.map((text) => (
+              <p key={text} className="test-guide-p">
+                {text}
+              </p>
+            ))}
+          </div>
+          <button type="button" onClick={continueToPractice} className="test-guide-continue">
+            Alıştırmaya geç
+          </button>
+        </div>
+      )}
+
       {step === "spaceCheck" && (
         <div className="space-screen">
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">Adım 1 / 2 · Tuş kontrolü</p>
+            <p className="space-screen-kicker">Adım 2 / 3 · Tuş kontrolü</p>
             {!spaceCelebrating ? (
               <>
                 <h2 className="space-screen-head">Önce SPACE tuşunu deneyelim</h2>
@@ -291,6 +312,7 @@ export default function TestFlowPage() {
 
       {step === "brief" && target && (
         <div className="test-brief-card">
+          <p className="test-brief-kicker">Adım 3 / 3</p>
           <h2 className="test-brief-title">Test hazır</h2>
           <p className="test-brief-meta">
             {getProfile(pkey).label} — Süre: {Math.round(getProfile(pkey).durationMs / 60000)} dk
