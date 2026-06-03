@@ -34,9 +34,14 @@ function hasSoundGifActive(events, at) {
 function pickItem(keys, keyIndexRef, at, eventIndex, silent, events) {
   const active = activeItemsAt(events, at);
   const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
+  const usedKeys = new Set(active.map((x) => x.key));
   let attempts = 0;
   while (attempts < keys.length) {
     const key = keys[(keyIndexRef.current + attempts) % keys.length];
+    if (usedKeys.has(key)) {
+      attempts += 1;
+      continue;
+    }
     const it = buildGifItem(key, eventIndex + attempts, silent, active);
     if (!usedLaneIds.has(it.laneId)) {
       keyIndexRef.current += attempts + 1;
@@ -107,7 +112,7 @@ function buildSoloSoundWindow(startMs, endMs) {
  * Kombine pencere (sesli + sessiz gif) — yeniden kurulum:
  * - Aynı anda max 1 sessiz + max 1 sesli; farklı başlangıç zamanı; max 8 sn ekranda
  * - Her event tek gif (görsel+ses birlikte); ses tek başına yok
- * - İki kaydırılmış akış; boşluk max 1,8 sn
+ * - İki kaydırılmış akış; boşluk max 1 sn; ekrandaki iki gif farklı anahtar
  */
 function buildSoundGifWindow(startMs, endMs) {
   const events = [];

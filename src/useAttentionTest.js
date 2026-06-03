@@ -30,6 +30,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const soundGifIds = useRef([]);
   const soloSoundId = useRef(null);
   const gifLanesOnScreen = useRef(new Set());
+  const gifKeysOnScreen = useRef(new Set());
 
   /** Deneme zaman çizelgesi (performans kayması yerine planlanan ms). */
   const scheduleMsRef = useRef(0);
@@ -95,6 +96,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     silentGifIds.current = [];
     soundGifIds.current = [];
     gifLanesOnScreen.current.clear();
+    gifKeysOnScreen.current.clear();
     setGifs([]);
   }, [clearEvents, stopAudio]);
 
@@ -110,6 +112,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     setGifs((p) => {
       const gone = p.find((g) => g.id === id);
       if (gone?.laneId) gifLanesOnScreen.current.delete(gone.laneId);
+      if (gone?.gifKey) gifKeysOnScreen.current.delete(gone.gifKey);
       return p.filter((g) => g.id !== id);
     });
   }, []);
@@ -126,6 +129,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     if (nZ > 0 && silentGifIds.current.length > 0) return false;
     for (const it of items) {
       if (it.laneId && gifLanesOnScreen.current.has(it.laneId)) return false;
+      if (it.gifKey && gifKeysOnScreen.current.has(it.gifKey)) return false;
     }
     return true;
   }, []);
@@ -162,6 +166,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
 
       items.forEach((it) => {
         if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
+        if (it.gifKey) gifKeysOnScreen.current.add(it.gifKey);
       });
       gifIds.current = [...gifIds.current, ...items.map((x) => x.id)];
       silentGifIds.current = [...silentGifIds.current, ...items.filter((x) => x.silent).map((x) => x.id)];
