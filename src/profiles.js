@@ -139,4 +139,33 @@ export function getProfile(key) {
   return DISTRACTOR_ONLY_QA ? applyDistractorOnlyQa(base) : base;
 }
 
+/** 30 sn deneme — çeldirici yok; sonuç kaydedilmez */
+export const PRACTICE_DURATION_MS = 30_000;
+
+/** Deneme ana simge süresi (ms). Yetişkin: 1300 (not: 13800 yazım hatası varsayıldı). */
+export function practiceStimulusMs(profileKey) {
+  if (profileKey === "child") return 1800;
+  if (profileKey === "teen") return 1400;
+  return 1300;
+}
+
+export function getPracticeProfile(profile) {
+  const stimulus = practiceStimulusMs(profile.key);
+  return {
+    ...profile,
+    isPractice: true,
+    durationMs: PRACTICE_DURATION_MS,
+    phases: [
+      {
+        end: PRACTICE_DURATION_MS,
+        name: "Deneme (çeldiricisiz)",
+        stimulus,
+        gap: Math.round(stimulus * 0.45)
+      }
+    ],
+    gifEvents: [],
+    soundEvents: []
+  };
+}
+
 export { DISTRACTOR_ONLY_QA } from "./testQaMode.js";

@@ -838,6 +838,23 @@ a:hover {
   filter: brightness(1.06);
 }
 
+.space-screen-deny {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--fp-font);
+}
+
+.space-screen-deny:hover {
+  filter: brightness(1.08);
+}
+
 .space-screen-error {
   margin: 14px 0 0;
   padding: 10px 14px;
@@ -970,6 +987,16 @@ a:hover {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+}
+
+.test-guide-kicker {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  text-align: center;
 }
 
 .test-guide-title {
@@ -1117,6 +1144,22 @@ a:hover {
 .test-dev-timer-value {
   font-weight: 700;
   font-size: 14px;
+}
+
+.test-practice-banner {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.92);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .test-run-stage {

@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { ageFromBirthDate, getProfile, profileKeyFromAge, DISTRACTOR_ONLY_QA } from "../profiles.js";
+import {
+  ageFromBirthDate,
+  getPracticeProfile,
+  getProfile,
+  PRACTICE_DURATION_MS,
+  profileKeyFromAge,
+  DISTRACTOR_ONLY_QA
+} from "../profiles.js";
 import { computeMetrics } from "../metrics.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
@@ -16,7 +23,8 @@ import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
   AUDIO_CHECK_SOUND,
   TEST_INSTRUCTION_PARAGRAPHS,
-  TEST_INSTRUCTION_TITLE
+  TEST_INSTRUCTION_TITLE,
+  GUIDE_PRACTICE_BUTTON
 } from "../copy/testInstructions.js";
 
 export default function TestFlowPage() {
@@ -38,8 +46,12 @@ export default function TestFlowPage() {
   const [audioPlayError, setAudioPlayError] = useState("");
   const [savedHint, setSavedHint] = useState("");
   const [sessionId, setSessionId] = useState(null);
+  const [practiceCompleted, setPracticeCompleted] = useState(false);
+  const [activeTestProfile, setActiveTestProfile] = useState(() => getProfile(pkey));
 
   const spaceDoneLock = useRef(false);
+  const pendingPracticeStart = useRef(false);
+  const pendingMainStart = useRef(false);
   const audioDoneLock = useRef(false);
   const audioRef = useRef(null);
   const chartRef = useRef(null);
@@ -47,8 +59,19 @@ export default function TestFlowPage() {
   const profile = getProfile(pkey);
   const { setImmersive } = useTestChrome();
 
+  useEffect(() => {
+    if (["form", "spaceCheck", "audioCheck", "guide"].includes(step)) {
+      setActiveTestProfile(getProfile(pkey));
+    }
+  }, [pkey, step]);
+
   const isImmersiveStep =
-    step === "guide" || step === "spaceCheck" || step === "audioCheck" || step === "brief" || step === "run";
+    step === "guide" ||
+    step === "spaceCheck" ||
+    step === "audioCheck" ||
+    step === "brief" ||
+    step === "practiceRun" ||
+    step === "run";
 
   useEffect(() => {
     setImmersive(isImmersiveStep);
@@ -87,16 +110,45 @@ export default function TestFlowPage() {
     [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile]
   );
 
+  const handleTestFinished = useCallback(
+    (snapshot, targetSnap, timeline) => {
+      if (activeTestProfile.isPractice) {
+        setPracticeCompleted(true);
+        setActiveTestProfile(getProfile(pkey));
+        setStep("brief");
+        return;
+      }
+      onDone(snapshot, targetSnap, timeline);
+    },
+    [activeTestProfile.isPractice, pkey, onDone]
+  );
+
   const { target, scene, gifs, running, testElapsedMs, testDurationMs, start, register, resetAfterReport } =
-    useAttentionTest(profile, {
-    onFinished: onDone
-  });
+    useAttentionTest(activeTestProfile, {
+      onFinished: handleTestFinished
+    });
 
   const participant = { name, age, birthDate: birth, gender };
+
+  const playAudioSample = useCallback(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(AUDIO_CHECK_SOUND);
+      audioRef.current.volume = 0.65;
+    }
+    audioRef.current.currentTime = 0;
+    return audioRef.current.play().catch(() => {
+      setAudioPlayError(
+        "Ses otomatik çalınamadı. «Sesi duymadım» ile tekrar deneyin; ses seviyesini ve kulaklığı kontrol edin."
+      );
+      return Promise.reject();
+    });
+  }, []);
 
   const completeSpaceCheck = useCallback(() => {
     if (spaceCelebrating || spaceDoneLock.current) return;
     spaceDoneLock.current = true;
+    setAudioPlayError("");
+    playAudioSample().catch(() => {});
     setSpaceCelebrating(true);
     window.setTimeout(() => {
       setSpaceVerified(true);
@@ -104,19 +156,12 @@ export default function TestFlowPage() {
       setSpaceCelebrating(false);
       spaceDoneLock.current = false;
     }, 950);
-  }, [spaceCelebrating]);
+  }, [spaceCelebrating, playAudioSample]);
 
-  const playAudioSample = useCallback(() => {
-    setAudioPlayError("");
-    if (!audioRef.current) {
-      audioRef.current = new Audio(AUDIO_CHECK_SOUND);
-      audioRef.current.volume = 0.65;
-    }
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => {
-      setAudioPlayError("Ses çalınamadı. Ses seviyesini açın veya farklı bir cihaz deneyin.");
-    });
-  }, []);
+  const handleAudioNotHeard = useCallback(() => {
+    setAudioPlayError("Ses duyulamadıysa sesi açın veya kulaklığı kontrol edin. Test sesi tekrar çalınıyor…");
+    playAudioSample().then(() => setAudioPlayError(""));
+  }, [playAudioSample]);
 
   const completeAudioCheck = useCallback(() => {
     if (audioCelebrating || audioDoneLock.current) return;
@@ -127,7 +172,7 @@ export default function TestFlowPage() {
     }
     window.setTimeout(() => {
       setAudioVerified(true);
-      setStep("brief");
+      setStep("guide");
       setAudioCelebrating(false);
       audioDoneLock.current = false;
     }, 950);
@@ -158,6 +203,7 @@ export default function TestFlowPage() {
     setPkey(k);
     setSpaceVerified(false);
     setAudioVerified(false);
+    setPracticeCompleted(false);
     spaceDoneLock.current = false;
     audioDoneLock.current = false;
     setSpaceCelebrating(false);
@@ -167,21 +213,39 @@ export default function TestFlowPage() {
       audioRef.current.pause();
       audioRef.current = null;
     }
-    setStep("guide");
-  }
-
-  function continueToPractice() {
     setStep("spaceCheck");
   }
 
-  function beginTest() {
+  function startPractice() {
     if (!spaceVerified || !audioVerified) return;
+    setActiveTestProfile(getPracticeProfile(getProfile(pkey)));
+    pendingPracticeStart.current = true;
+    setStep("practiceRun");
+  }
+
+  function beginTest() {
+    if (!spaceVerified || !audioVerified || !practiceCompleted) return;
     setLogs([]);
     setSessionId(null);
     pdfSavedRef.current = false;
-    start();
+    setActiveTestProfile(getProfile(pkey));
+    pendingMainStart.current = true;
     setStep("run");
   }
+
+  useEffect(() => {
+    if (step === "practiceRun" && pendingPracticeStart.current) {
+      pendingPracticeStart.current = false;
+      start();
+    }
+  }, [step, start, activeTestProfile]);
+
+  useEffect(() => {
+    if (step === "run" && pendingMainStart.current && !activeTestProfile.isPractice) {
+      pendingMainStart.current = false;
+      start();
+    }
+  }, [step, start, activeTestProfile]);
 
   // Test bitince rapor ekranında PDF'i otomatik üret ve sisteme kaydet.
   useEffect(() => {
@@ -277,11 +341,16 @@ export default function TestFlowPage() {
       audioDoneLock.current = false;
       setAudioCelebrating(false);
       setAudioPlayError("");
+      const t = window.setTimeout(() => {
+        playAudioSample().catch(() => {});
+      }, 350);
+      return () => window.clearTimeout(t);
     }
     if (step !== "audioCheck" && audioRef.current) {
       audioRef.current.pause();
     }
-  }, [step]);
+    return undefined;
+  }, [step, playAudioSample]);
 
   if (!user) return <Navigate to="/giris" replace />;
 
@@ -292,8 +361,8 @@ export default function TestFlowPage() {
     >
       {isImmersiveStep && (
         <TestDevTimer
-          elapsedMs={step === "run" && running ? testElapsedMs : 0}
-          durationMs={profile.durationMs}
+          elapsedMs={(step === "run" || step === "practiceRun") && running ? testElapsedMs : 0}
+          durationMs={step === "practiceRun" ? PRACTICE_DURATION_MS : profile.durationMs}
         />
       )}
 
@@ -349,6 +418,7 @@ export default function TestFlowPage() {
 
       {step === "guide" && (
         <div className="test-guide-card">
+          <p className="test-guide-kicker">Adım 3 / 5 · Yönerge</p>
           <h2 className="test-guide-title">{TEST_INSTRUCTION_TITLE}</h2>
           <div className="test-guide-body">
             {TEST_INSTRUCTION_PARAGRAPHS.map((text) => (
@@ -357,8 +427,8 @@ export default function TestFlowPage() {
               </p>
             ))}
           </div>
-          <button type="button" onClick={continueToPractice} className="test-guide-continue">
-            Alıştırmaya geç
+          <button type="button" onClick={startPractice} className="test-guide-continue">
+            {GUIDE_PRACTICE_BUTTON}
           </button>
         </div>
       )}
@@ -368,7 +438,7 @@ export default function TestFlowPage() {
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">Adım 2 / 4 · Tuş kontrolü</p>
+            <p className="space-screen-kicker">Adım 1 / 5 · Tuş kontrolü</p>
             {!spaceCelebrating ? (
               <>
                 <h2 className="space-screen-head">Önce SPACE tuşunu deneyelim</h2>
@@ -394,19 +464,20 @@ export default function TestFlowPage() {
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">Adım 3 / 4 · Ses kontrolü</p>
+            <p className="space-screen-kicker">Adım 2 / 5 · Ses kontrolü</p>
             {!audioCelebrating ? (
               <>
                 <h2 className="space-screen-head">Şimdi sesi kontrol edelim</h2>
                 <p className="space-screen-sub">
-                  <strong>Sesi çal</strong> ile kısa bir test sesi dinleyin. Sesi net duyduysanız onaylayın.
+                  Kısa bir test sesi otomatik çalınır. Sesi net duyduysanız yeşil, duymadıysanız kırmızı butona
+                  basın.
                 </p>
                 <div className="space-screen-actions">
-                  <button type="button" className="space-screen-touch" onClick={playAudioSample}>
-                    Sesi çal
-                  </button>
                   <button type="button" className="space-screen-confirm" onClick={() => completeAudioCheck()}>
-                    Sesi duydum — devam
+                    Sesi duydum
+                  </button>
+                  <button type="button" className="space-screen-deny" onClick={handleAudioNotHeard}>
+                    Sesi duymadım
                   </button>
                 </div>
                 {audioPlayError && (
@@ -425,10 +496,22 @@ export default function TestFlowPage() {
         </div>
       )}
 
-      {step === "brief" && target && (
+      {step === "practiceRun" && running && (
+        <div
+          className="test-run-stage"
+          role="presentation"
+          onClick={register}
+          onTouchStart={register}
+        >
+          {scene && <ShapeView shape={scene.shape} color={scene.color} size={140} />}
+          <p className="test-practice-banner">Deneme — 30 sn (çeldirici yok, kayıt yok)</p>
+        </div>
+      )}
+
+      {step === "brief" && target && practiceCompleted && (
         <div className="test-brief-card">
-          <p className="test-brief-kicker">Adım 4 / 4</p>
-          <h2 className="test-brief-title">Test hazır</h2>
+          <p className="test-brief-kicker">Adım 5 / 5 · Asıl test</p>
+          <h2 className="test-brief-title">Deneme tamamlandı</h2>
           <p className="test-brief-meta">
             {getProfile(pkey).label} — Süre: {Math.round(getProfile(pkey).durationMs / 60000)} dk
           </p>
