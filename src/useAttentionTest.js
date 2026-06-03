@@ -128,7 +128,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const showGif = useCallback(
     (idx) => {
       const ev = profile.gifEvents[idx];
-      if (!ev || !playing.current || !canAdd(ev.items)) return;
+      if (!ev || !playing.current) return;
       const seq = eventIdSeqRef.current++;
       const items = ev.items
         .map((raw, i) => {
@@ -152,22 +152,50 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         })
         .filter(Boolean);
       if (!items.length) return;
-      items.forEach((it) => {
-        if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
-      });
-      gifIds.current = [...gifIds.current, ...items.map((x) => x.id)];
-      soundGifIds.current = [...soundGifIds.current, ...items.filter((x) => x.sound).map((x) => x.id)];
-      setGifs((p) => [...p, ...items]);
-      items.forEach((it) => {
-        if (it.sound) {
+
+      const canShowVisuals = canAdd(items);
+      const soundOnly = items.filter((it) => it.sound);
+
+      if (canShowVisuals) {
+        items.forEach((it) => {
+          if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
+        });
+        gifIds.current = [...gifIds.current, ...items.map((x) => x.id)];
+        soundGifIds.current = [...soundGifIds.current, ...items.filter((x) => x.sound).map((x) => x.id)];
+        setGifs((p) => [...p, ...items]);
+      } else {
+        soundOnly.forEach((it) => {
+          const audioId = `a-${it.id}`;
           const a = new Audio(it.sound);
           a.loop = true;
           a.volume = 0.65;
-          audioMap.current[it.id] = a;
-          a.play().catch(() => removeGif(it.id));
-        }
-        eventTimers.current.push(setTimeout(() => removeGif(it.id), ev.duration));
-      });
+          audioMap.current[audioId] = a;
+          a.play().catch(() => {
+            delete audioMap.current[audioId];
+          });
+          eventTimers.current.push(
+            setTimeout(() => {
+              a.pause();
+              delete audioMap.current[audioId];
+            }, ev.duration)
+          );
+        });
+      }
+
+      if (canShowVisuals) {
+        items.forEach((it) => {
+          if (it.sound) {
+            const a = new Audio(it.sound);
+            a.loop = true;
+            a.volume = 0.65;
+            audioMap.current[it.id] = a;
+            a.play().catch(() => removeGif(it.id));
+          }
+          if (it.gif) {
+            eventTimers.current.push(setTimeout(() => removeGif(it.id), ev.duration));
+          }
+        });
+      }
     },
     [canAdd, profile.gifEvents, removeGif]
   );

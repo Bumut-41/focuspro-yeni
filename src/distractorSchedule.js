@@ -82,8 +82,8 @@ function buildSoloSoundWindow(startMs, endMs) {
   let i = 0;
   // Sadece ses penceresi: sesler arası kısa bir boşluk olsun (çok sıkışık olmasın).
   // Boşluk hedefi ~0.5 sn (kısacık artırma).
-  const SOUND_ON_MS = 3_000;
-  const GAP_MS = 500;
+  const SOUND_ON_MS = 5_500;
+  const GAP_MS = 450;
 
   while (t < endMs) {
     // duration: bu sürenin sonunda useAttentionTest sesi kapatır.
@@ -101,53 +101,59 @@ function buildSoloSoundWindow(startMs, endMs) {
 }
 
 function buildSoundGifWindow(startMs, endMs) {
-  // Kombine pencere (sesli + sessiz GIF):
-  // - Baz: sessiz penceredeki akış AYNEN korunur (buildSilentGifWindow)
-  // - Fark: aynı zaman eksenine daha sık sesli GIF eklenir
-  // - Kurallar: aynı anda max 1 sesli; sesli varken ekranda sessiz de olmalı
-  const silentEvents = buildSilentGifWindow(startMs, endMs);
-  const soundEvents = [];
+  // Kombine: tek akış; aynı event içinde sessiz + (çoğu slotta) sesli gif → ses her zaman çalar.
+  const events = [];
+  let silentKeyIndex = 0;
   let soundKeyIndex = 0;
-
-  // Sesli GIF'ler daha sık gelsin ama çakışmasın.
-  const SOUND_ON_MS = 4_200; // <= 8 sn
-  const SOUND_GAP_MS = 700;
-  let nextSoundAllowedAt = startMs;
-
-  // Sessiz akışla aynı anda başlamasın diye küçük offset.
-  let t = startMs + Math.min(900, Math.floor(GIF_START_INTERVAL_MS / 6));
-  let idx = 0;
+  let t = startMs;
+  let i = 0;
 
   while (t < endMs) {
-    const duration = Math.min(SOUND_ON_MS, endMs - t);
+    const duration = gifDuration(endMs, t);
     if (duration < 400) break;
 
-    if (t < nextSoundAllowedAt) {
-      t += 200;
-      continue;
+    const active = activeItemsAt(events, t);
+    const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
+    const items = [];
+
+    let attempts = 0;
+    while (attempts < GIF_KEYS.length) {
+      const key = GIF_KEYS[(silentKeyIndex + attempts) % GIF_KEYS.length];
+      const it = buildGifItem(key, i * 10 + attempts, true, active);
+      if (!usedLaneIds.has(it.laneId)) {
+        silentKeyIndex += attempts + 1;
+        items.push(it);
+        usedLaneIds.add(it.laneId);
+        break;
+      }
+      attempts += 1;
+    }
+    if (attempts >= GIF_KEYS.length) silentKeyIndex += attempts;
+
+    if (isSoundGifSlot(i)) {
+      let sAttempts = 0;
+      while (sAttempts < SOUND_GIF_KEYS.length) {
+        const sKey = SOUND_GIF_KEYS[(soundKeyIndex + sAttempts) % SOUND_GIF_KEYS.length];
+        const soundItem = buildGifItem(sKey, i * 10 + 5000 + sAttempts, false, [...active, ...items]);
+        if (!usedLaneIds.has(soundItem.laneId)) {
+          soundKeyIndex += sAttempts + 1;
+          items.push(soundItem);
+          break;
+        }
+        sAttempts += 1;
+      }
+      if (sAttempts >= SOUND_GIF_KEYS.length) soundKeyIndex += sAttempts;
     }
 
-    // Sesli GIF ekleneceği anda ekranda en az 1 sessiz olmalı.
-    const activeSilent = activeItemsAt(silentEvents, t);
-    if (!activeSilent.some((x) => x.silent)) {
-      t += 200;
-      continue;
+    if (items.length) {
+      events.push({ at: t, duration, items });
     }
 
-    // Yerleşim için aktif item'ları (sessiz + mevcut sesliler) hesaba kat.
-    const active = activeItemsAt([...silentEvents, ...soundEvents], t);
-    const key = SOUND_GIF_KEYS[soundKeyIndex % SOUND_GIF_KEYS.length];
-    soundKeyIndex += 1;
-
-    const soundItem = buildGifItem(key, idx * 100 + 5000, false, active);
-    soundEvents.push({ at: t, duration, items: [soundItem] });
-    nextSoundAllowedAt = t + duration + SOUND_GAP_MS;
-
-    t += 200;
-    idx += 1;
+    t += GIF_START_INTERVAL_MS;
+    i += 1;
   }
 
-  return [...silentEvents, ...soundEvents].sort((a, b) => a.at - b.at);
+  return events;
 }
 
 export function mergeGifEvents(windows) {
