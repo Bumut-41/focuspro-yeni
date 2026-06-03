@@ -20,6 +20,9 @@ export const GIF_LANES = [
 export const MOVING_HORIZONTAL_KEYS = new Set(["kedi", "kosan"]);
 export const MOVING_VERTICAL_KEYS = new Set(["top"]);
 
+/** Yatay geçiş bandı (%) — bu aralıktaki şeritlere başka gif konmaz */
+const HORIZONTAL_PATH_BAND = 40;
+
 export const GIF_BEHAVIOR = {
   top: { movement: "vertical", sides: ["left", "right"] },
   kosan: { movement: "horizontal", sides: ["left"] },
@@ -64,13 +67,15 @@ function isInTargetSafeExclusionBox(lane) {
 }
 
 function isTooCloseToActive(lane, activeItems) {
-  // Yüzde koordinatlarında basit mesafe kuralı.
-  // Amaç: 2 GIF ekrandayken birbirine "yapışık" görünmesin.
-  // Not: Orta bant (mid-*) lane'leri kenar lane'lerine yakın olduğu için eşiği biraz büyük tuttuk.
-  const MIN_DX = 30;
-  const MIN_DY = 28;
   for (const it of activeItems) {
     if (!Number.isFinite(it.left) || !Number.isFinite(it.top)) continue;
+    if (MOVING_HORIZONTAL_KEYS.has(it.key) && Math.abs(lane.top - it.top) < HORIZONTAL_PATH_BAND) {
+      return true;
+    }
+    if (it.key === "top" && lane.area === it.area) return true;
+    const mover = isMovingKey(it.key);
+    const MIN_DX = mover ? 22 : 30;
+    const MIN_DY = mover ? HORIZONTAL_PATH_BAND : 28;
     const dx = Math.abs(lane.left - it.left);
     const dy = Math.abs(lane.top - it.top);
     if (dx <= MIN_DX && dy <= MIN_DY) return true;
@@ -83,10 +88,12 @@ function blockedLaneIds(activeItems) {
   const blocked = new Set();
   for (const it of activeItems) {
     if (MOVING_HORIZONTAL_KEYS.has(it.key)) {
-      // Sol→sağ: sol şerit + gifi takip eden yükseklik bandı (hareket hattı).
+      // Sol→sağ: sol şerit + tüm genişlikte yatay hareket bandı.
       laneIdsWhere((l) => l.area === "left").forEach((id) => blocked.add(id));
       if (Number.isFinite(it.top)) {
-        laneIdsWhere((l) => Math.abs(l.top - it.top) < 28).forEach((id) => blocked.add(id));
+        laneIdsWhere((l) => Math.abs(l.top - it.top) < HORIZONTAL_PATH_BAND).forEach((id) =>
+          blocked.add(id)
+        );
       }
     }
     if (it.key === "top") {
@@ -109,7 +116,7 @@ function filterOppositeToMovers(key, lanes, activeItems) {
     for (const m of movers) {
       if (MOVING_HORIZONTAL_KEYS.has(m.key)) {
         if (lane.area === "left") return false;
-        if (Number.isFinite(m.top) && Math.abs(lane.top - m.top) < 28) return false;
+        if (Number.isFinite(m.top) && Math.abs(lane.top - m.top) < HORIZONTAL_PATH_BAND) return false;
       }
       if (m.key === "top" && lane.area === m.area) return false;
     }
@@ -125,6 +132,8 @@ function lanesForKey(key, blocked, activeItems = []) {
     if (blocked.has(l.id)) return false;
     if (isInTargetSafeExclusionBox(l)) return false;
     if (movement !== "static" && l.id.includes("mid-")) return false;
+    // Kedi / koşan yalnızca üst veya alt kenardan geçsin (orta bantta sabit gif ile çakışmasın).
+    if (movement === "horizontal" && l.top > 22 && l.top < 78) return false;
     return true;
   });
   if (movement === "static") {
