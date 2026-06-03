@@ -31,6 +31,9 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const soloSoundId = useRef(null);
   const gifLanesOnScreen = useRef(new Set());
   const gifKeysOnScreen = useRef(new Set());
+  const gifEventsFiredRef = useRef(new Set());
+  const soundEventsFiredRef = useRef(new Set());
+  const distractorClockRef = useRef(null);
 
   /** Deneme zaman çizelgesi (performans kayması yerine planlanan ms). */
   const scheduleMsRef = useRef(0);
@@ -73,6 +76,10 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const clearEvents = useCallback(() => {
     eventTimers.current.forEach(clearTimeout);
     eventTimers.current = [];
+    if (distractorClockRef.current) {
+      clearTimeout(distractorClockRef.current);
+      distractorClockRef.current = null;
+    }
   }, []);
 
   const stopAudio = useCallback(() => {
@@ -135,9 +142,12 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   }, []);
 
   const showGif = useCallback(
-    (idx) => {
+    (idx, attempt = 0) => {
       const ev = profile.gifEvents[idx];
       if (!ev || !playing.current) return;
+      const now = elapsedMs();
+      if (now >= ev.at + ev.duration) return;
+
       const seq = eventIdSeqRef.current++;
       const items = ev.items
         .map((raw, i) => {
@@ -162,7 +172,12 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         .filter(Boolean);
       if (!items.length) return;
 
-      if (!canAdd(items)) return;
+      if (!canAdd(items)) {
+        if (attempt < 16 && now < ev.at + ev.duration - 50) {
+          eventTimers.current.push(setTimeout(() => showGif(idx, attempt + 1), 50));
+        }
+        return;
+      }
 
       items.forEach((it) => {
         if (it.laneId) gifLanesOnScreen.current.add(it.laneId);
@@ -172,6 +187,8 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       silentGifIds.current = [...silentGifIds.current, ...items.filter((x) => x.silent).map((x) => x.id)];
       soundGifIds.current = [...soundGifIds.current, ...items.filter((x) => x.sound).map((x) => x.id)];
       setGifs((p) => [...p, ...items]);
+      const plannedEnd = ev.at + ev.duration;
+      const removeIn = Math.max(0, plannedEnd - elapsedMs());
       items.forEach((it) => {
         if (it.sound) {
           const a = new Audio(it.sound);
@@ -180,10 +197,10 @@ export function useAttentionTest(profile, { onFinished } = {}) {
           audioMap.current[it.id] = a;
           a.play().catch(() => removeGif(it.id));
         }
-        eventTimers.current.push(setTimeout(() => removeGif(it.id), ev.duration));
+        eventTimers.current.push(setTimeout(() => removeGif(it.id), removeIn));
       });
     },
-    [canAdd, profile.gifEvents, removeGif]
+    [canAdd, elapsedMs, profile.gifEvents, removeGif]
   );
 
   const playSolo = useCallback(
@@ -220,9 +237,35 @@ export function useAttentionTest(profile, { onFinished } = {}) {
 
   const scheduleDistractors = useCallback(() => {
     clearEvents();
-    profile.gifEvents.forEach((e, i) => eventTimers.current.push(setTimeout(() => showGif(i), e.at)));
-    profile.soundEvents.forEach((e, i) => eventTimers.current.push(setTimeout(() => playSolo(i), e.at)));
-  }, [clearEvents, profile.gifEvents, profile.soundEvents, playSolo, showGif]);
+    if (distractorClockRef.current) {
+      clearTimeout(distractorClockRef.current);
+      distractorClockRef.current = null;
+    }
+    gifEventsFiredRef.current = new Set();
+    soundEventsFiredRef.current = new Set();
+
+    const tick = () => {
+      if (!playing.current) return;
+      const now = elapsedMs();
+      profile.gifEvents.forEach((ev, i) => {
+        if (gifEventsFiredRef.current.has(i)) return;
+        if (now >= ev.at) {
+          gifEventsFiredRef.current.add(i);
+          showGif(i);
+        }
+      });
+      profile.soundEvents.forEach((ev, i) => {
+        if (soundEventsFiredRef.current.has(i)) return;
+        if (now >= ev.at) {
+          soundEventsFiredRef.current.add(i);
+          playSolo(i);
+        }
+      });
+      distractorClockRef.current = setTimeout(tick, 40);
+      eventTimers.current.push(distractorClockRef.current);
+    };
+    tick();
+  }, [clearEvents, elapsedMs, profile.gifEvents, profile.soundEvents, playSolo, showGif]);
 
   const flushTrial = useCallback(() => {
     const t = trialRef.current;

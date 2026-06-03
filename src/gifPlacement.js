@@ -97,35 +97,48 @@ function blockedLaneIds(activeItems) {
   return blocked;
 }
 
+/** Hareket yolunda değil: zıt şerit / zıt kolon */
+function filterOppositeToMovers(key, lanes, activeItems) {
+  const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
+  if (movement !== "static") return lanes;
+
+  const movers = activeItems.filter((m) => isMovingKey(m.key));
+  if (!movers.length) return lanes;
+
+  return lanes.filter((lane) => {
+    for (const m of movers) {
+      if (MOVING_HORIZONTAL_KEYS.has(m.key)) {
+        if (lane.area === "left") return false;
+        if (Number.isFinite(m.top) && Math.abs(lane.top - m.top) < 28) return false;
+      }
+      if (m.key === "top" && lane.area === m.area) return false;
+    }
+    return true;
+  });
+}
+
 function lanesForKey(key, blocked, activeItems = []) {
   const sides = GIF_BEHAVIOR[key]?.sides ?? ["left", "right"];
   const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
-  const list = GIF_LANES.filter((l) => {
+  let list = GIF_LANES.filter((l) => {
     if (!sides.includes(l.area)) return false;
     if (blocked.has(l.id)) return false;
     if (isInTargetSafeExclusionBox(l)) return false;
     if (movement !== "static" && l.id.includes("mid-")) return false;
     return true;
   });
-  // Hareketsiz gifler yalnızca ekranın sol/sağ kenarına yakın lane'lerde.
   if (movement === "static") {
     let edgeOnly = list.filter(isEdgeLane);
-    // Yatay hareketli gif varken statikler yalnızca sağ şeritte (sol yol üstüne binmesin).
-    if (activeItems.some((it) => MOVING_HORIZONTAL_KEYS.has(it.key))) {
-      const rightOnly = edgeOnly.filter((l) => l.area === "right");
-      if (rightOnly.length) edgeOnly = rightOnly;
-    }
+    edgeOnly = filterOppositeToMovers(key, edgeOnly, activeItems);
     if (edgeOnly.length) return edgeOnly;
   }
-  return list;
+  return filterOppositeToMovers(key, list, activeItems);
 }
 
 export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   const blocked = blockedLaneIds(activeItems.filter((x) => isMovingKey(x.key)));
   let allowed = lanesForKey(key, blocked, activeItems);
-  if (!allowed.length) allowed = lanesForKey(key, new Set(), activeItems);
 
-  // Mesafe filtresi: aktif giflere çok yakın lane'leri ele.
   const spaced = allowed.filter((l) => !isTooCloseToActive(l, activeItems));
   if (spaced.length) allowed = spaced;
 
@@ -134,13 +147,13 @@ export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   );
   if (rot.length) return rot[eventIndex % rot.length];
 
-  // Yedek: merkeze en uzak lane'i seç
   const byEdge = [...allowed].sort((a, b) => Math.abs(50 - b.left) - Math.abs(50 - a.left));
-  return byEdge[0] ?? GIF_LANES[eventIndex % GIF_LANES.length];
+  return byEdge[0] ?? null;
 }
 
 export function buildGifItem(key, eventIndex, silent, activeItems = []) {
   const lane = pickLaneForEvent(key, eventIndex, activeItems);
+  if (!lane) return null;
   const behavior = GIF_BEHAVIOR[key] ?? { movement: "static", sides: ["left", "right"] };
   return {
     key,

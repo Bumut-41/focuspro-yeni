@@ -7,12 +7,11 @@ import {
   DISTRACTOR_SOUND_GIF_KEYS,
   DISTRACTOR_SOUND_KEYS
 } from "./constants.js";
-import { activeItemsAt, buildGifItem, MOVING_HORIZONTAL_KEYS } from "./gifPlacement.js";
+import { activeItemsAt, buildGifItem } from "./gifPlacement.js";
 import {
-  COMBINED_START_INTERVAL_MS,
+  COMBINED_SOUND_STAGGER_MS,
   GIF_ON_SCREEN_MS,
-  GIF_START_INTERVAL_MS,
-  isSoundGifSlot
+  GIF_START_INTERVAL_MS
 } from "./distractorTiming.js";
 
 const GIF_KEYS = DISTRACTOR_GIF_KEYS;
@@ -43,11 +42,12 @@ function pickItem(keys, keyIndexRef, at, eventIndex, silent, events) {
       continue;
     }
     const it = buildGifItem(key, eventIndex + attempts, silent, active);
-    if (!usedLaneIds.has(it.laneId)) {
-      keyIndexRef.current += attempts + 1;
-      return it;
+    if (!it || usedLaneIds.has(it.laneId)) {
+      attempts += 1;
+      continue;
     }
-    attempts += 1;
+    keyIndexRef.current += attempts + 1;
+    return it;
   }
   keyIndexRef.current += attempts;
   return null;
@@ -109,22 +109,18 @@ function buildSoloSoundWindow(startMs, endMs) {
 }
 
 /**
- * Kombine pencere (sesli + sessiz gif) — yeniden kurulum:
- * - Aynı anda max 1 sessiz + max 1 sesli; farklı başlangıç zamanı; max 8 sn ekranda
- * - Her event tek gif (görsel+ses birlikte); ses tek başına yok
- * - İki kaydırılmış akış; boşluk max 1 sn; ekrandaki iki gif farklı anahtar
+ * Kombine pencere: sürekli 1 sessiz + 1 sesli (farklı gif), max 8 sn ekranda,
+ * el değişiminde en fazla 0,8 sn tamamen boş ekran.
  */
 function buildSoundGifWindow(startMs, endMs) {
   const events = [];
   const silentKeyRef = { current: 0 };
   const soundKeyRef = { current: 0 };
-  // Sesli akışı kaydır: sessiz bittiğinde ekranda en fazla 1,8 sn boş kalmasın.
-  const SOUND_STAGGER_MS = Math.floor(COMBINED_START_INTERVAL_MS / 2);
   let n = 0;
 
   while (startMs + n * GIF_ON_SCREEN_MS < endMs) {
     const tSilent = startMs + n * GIF_ON_SCREEN_MS;
-    const tSound = startMs + SOUND_STAGGER_MS + n * GIF_ON_SCREEN_MS;
+    const tSound = startMs + COMBINED_SOUND_STAGGER_MS + n * GIF_ON_SCREEN_MS;
 
     if (tSilent < endMs) {
       const dur = gifDuration(endMs, tSilent);
@@ -134,7 +130,7 @@ function buildSoundGifWindow(startMs, endMs) {
       }
     }
 
-    if (tSound < endMs && isSoundGifSlot(n)) {
+    if (tSound < endMs) {
       const durS = gifDuration(endMs, tSound);
       if (durS >= 400 && !hasSoundGifActive(events, tSound)) {
         const it = pickItem(SOUND_GIF_KEYS, soundKeyRef, tSound, n * 10 + 5000, false, events);
