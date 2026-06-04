@@ -4,7 +4,8 @@
  */
 
 import { getProfile, PROFILES } from "../src/profiles.js";
-import { buildSilentGifWindow, buildSoundGifWindow } from "../src/distractorSchedule.js";
+import { buildSilentGifWindow } from "../src/distractors/silentGifSchedule.js";
+import { buildSoundGifWindow } from "../src/distractors/combinedGifSchedule.js";
 import { activeItemsAt, isMovingItem, pairViolatesPlacement } from "../src/gifPlacement.js";
 import { COMBINED_MAX_EMPTY_MS, SILENT_MAX_EMPTY_MS } from "../src/distractorTiming.js";
 
