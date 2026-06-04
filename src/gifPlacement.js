@@ -25,8 +25,8 @@ const HORIZONTAL_PATH_BAND = 40;
 
 export const GIF_BEHAVIOR = {
   top: { movement: "vertical", sides: ["left", "right"] },
-  kosan: { movement: "horizontal", sides: ["left"] },
-  kedi: { movement: "horizontal", sides: ["left"] },
+  kosan: { movement: "horizontal", sides: ["left", "right"] },
+  kedi: { movement: "horizontal", sides: ["left", "right"] },
   araba: { movement: "static", sides: ["left", "right"] },
   agac: { movement: "static", sides: ["left", "right"] },
   arabakorna: { movement: "static", sides: ["left", "right"] },

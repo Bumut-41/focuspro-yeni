@@ -23,9 +23,9 @@ import {
 } from "./distractorTiming.js";
 const MOVER_KEYS = ["top", "kosan", "kedi"];
 /** Sessiz pencerede her hareketli gif en fazla kaç kez (top/koşan/kedi ayrı ayrı) */
-const SILENT_MOVER_MAX_PER_KEY = 2;
-/** Yaklaşık her N slotta bir hareketli gif denenir */
-const SILENT_MOVER_SLOT_PERIOD = 7;
+const SILENT_MOVER_MAX_PER_KEY = 4;
+/** Yaklaşık her N slotta bir hareketli gif denenir (küçük = daha sık) */
+const SILENT_MOVER_SLOT_PERIOD = 4;
 
 const GIF_KEYS = DISTRACTOR_GIF_KEYS;
 const STATIC_GIF_KEYS = GIF_KEYS.filter((k) => !MOVER_KEYS.includes(k));
@@ -128,20 +128,29 @@ function silentGifDuration(endMs, at) {
 function silentKeysForSlot(slotIndex, moverCounts) {
   const moversLeft = MOVER_KEYS.filter((k) => moverCounts[k] < SILENT_MOVER_MAX_PER_KEY);
   if (moversLeft.length && slotIndex % SILENT_MOVER_SLOT_PERIOD === 0) {
+    const turn = Math.floor(slotIndex / SILENT_MOVER_SLOT_PERIOD);
+    const preferred = MOVER_KEYS[turn % MOVER_KEYS.length];
+    if (moversLeft.includes(preferred)) return [preferred];
     return moversLeft;
   }
   return STATIC_GIF_KEYS;
 }
 
 function pickSilentItem(slotIndex, keyRef, at, duration, guard, events, active, moverCounts) {
-  let pool = silentKeysForSlot(slotIndex, moverCounts);
-  let it = pickItem(pool, keyRef, at, duration, guard, true, events, active);
-  if (!it && pool !== STATIC_GIF_KEYS) {
-    it = pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active);
+  if (slotIndex % SILENT_MOVER_SLOT_PERIOD === 0) {
+    const order = [...MOVER_KEYS].sort(
+      (a, b) => (moverCounts[a] ?? 0) - (moverCounts[b] ?? 0)
+    );
+    for (const key of order) {
+      if ((moverCounts[key] ?? 0) >= SILENT_MOVER_MAX_PER_KEY) continue;
+      const it = pickItem([key], { current: 0 }, at, duration, guard, true, events, active);
+      if (it) {
+        moverCounts[it.key] = (moverCounts[it.key] ?? 0) + 1;
+        return it;
+      }
+    }
   }
-  if (it && MOVER_KEYS.includes(it.key)) {
-    moverCounts[it.key] = (moverCounts[it.key] ?? 0) + 1;
-  }
+  const it = pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active);
   return it;
 }
 
