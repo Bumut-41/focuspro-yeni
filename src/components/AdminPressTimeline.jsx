@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatTestMs } from "../lib/testTime.js";
 import { symbolCaption } from "../lib/symbolLabels.js";
 import {
@@ -8,9 +9,10 @@ import {
   pressStatusLabel,
   summarizePresses
 } from "../lib/pressTimelineReport.js";
+import { downloadAdminTimelinePdf } from "../pdfAdminTimeline.js";
 import { getProfile } from "../profiles.js";
 import { ShapeView } from "../shapeUtils.jsx";
-import { Badge, Card, CardHeader } from "./ui.jsx";
+import { Badge, Button, Card, CardHeader } from "./ui.jsx";
 
 function SymbolCell({ shape, color, caption }) {
   if (!shape || !color) {
@@ -24,10 +26,15 @@ function SymbolCell({ shape, color, caption }) {
   );
 }
 
-function PressRow({ p, lateMs }) {
+function PressRow({ p, lateMs, highlight = false }) {
   const sym = p.onScreen ?? (p.shownShape ? { shape: p.shownShape, color: p.shownColor } : null);
   return (
-    <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+    <tr
+      style={{
+        borderBottom: "1px solid #f1f5f9",
+        background: highlight ? "#fef3c7" : p.errorType === "idle" ? "#f8fafc" : undefined
+      }}
+    >
       <td>{p.pressIndex}</td>
       <td style={{ fontFamily: "var(--fp-mono)" }}>{formatTestMs(p.atMs)}</td>
       <td>{p.trialNumber ?? "—"}</td>
@@ -51,6 +58,18 @@ export function AdminPressTimeline({ session, timeline, target }) {
   const lateMs = session?.profile_key ? getProfile(session.profile_key).lateResponseMs : 600;
   const stats = summarizePresses(presses);
   const wrongSymbolPresses = presses.filter((p) => p.isWrongSymbol || p.errorType === "false_alarm");
+  const idlePresses = presses.filter((p) => p.errorType === "idle");
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  async function handleDownloadPdf() {
+    if (!presses.length) return;
+    setPdfBusy(true);
+    try {
+      await downloadAdminTimelinePdf({ session, timeline, target });
+    } finally {
+      setPdfBusy(false);
+    }
+  }
 
   if (!session) return null;
 
@@ -59,7 +78,20 @@ export function AdminPressTimeline({ session, timeline, target }) {
       <CardHeader
         title="Basış zaman çizelgesi"
         description={`${session.participant_name} · ${new Date(session.created_at).toLocaleString("tr-TR")}`}
-        action={<Badge variant="primary">Yalnızca yönetici</Badge>}
+        action={
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={pdfBusy || !presses.length}
+              onClick={handleDownloadPdf}
+            >
+              {pdfBusy ? "PDF…" : "Basış PDF indir"}
+            </Button>
+            <Badge variant="primary">Yalnızca yönetici</Badge>
+          </div>
+        }
       />
       {target && (
         <div
@@ -94,6 +126,7 @@ export function AdminPressTimeline({ session, timeline, target }) {
         <div className="fp-metric-pill">Yanlış simge: <strong>{stats.falseAlarm}</strong></div>
         <div className="fp-metric-pill">Çoklu basış: <strong>{stats.multi}</strong></div>
         <div className="fp-metric-pill">Boş ekran: <strong>{stats.idle}</strong></div>
+        <div className="fp-metric-pill">Aynı denemede 2+ basış: <strong>{stats.repeatInTrial}</strong></div>
       </div>
 
       <h4 style={{ marginBottom: 8 }}>Tüm Space basışları (kronolojik)</h4>
@@ -121,7 +154,44 @@ export function AdminPressTimeline({ session, timeline, target }) {
             </thead>
             <tbody>
               {presses.map((p) => (
-                <PressRow key={`${p.pressIndex}-${p.atMs}`} p={p} lateMs={lateMs} />
+                <PressRow
+                  key={`${p.pressIndex}-${p.atMs}`}
+                  p={p}
+                  lateMs={lateMs}
+                  highlight={(p.pressInTrial ?? 0) > 1 || p.errorType === "multi"}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <h4 style={{ marginBottom: 8 }}>Boş ekran basışları ({idlePresses.length})</h4>
+      <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 0 }}>
+        Simge gösterilmediği aralıklarda (boşluk / ara) yapılan tüm Space basışları.
+      </p>
+      {!idlePresses.length && <p style={{ color: "#64748b", marginBottom: 20 }}>Kayıt yok.</p>}
+      {idlePresses.length > 0 && (
+        <div className="fp-table-wrap" style={{ marginBottom: 24 }}>
+          <table className="fp-table" style={{ minWidth: 520 }}>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Basış (sn)</th>
+                <th>Bölüm</th>
+                <th>Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {idlePresses.map((p) => (
+                <tr key={`idle-${p.pressIndex}`} style={{ background: "#f8fafc" }}>
+                  <td>{p.pressIndex}</td>
+                  <td style={{ fontFamily: "var(--fp-mono)" }}>{formatTestMs(p.atMs)}</td>
+                  <td style={{ fontSize: 11, color: "#64748b" }}>
+                    {p.section ? p.section.replace(/^[^—]+—\s*/, "") : "—"}
+                  </td>
+                  <td style={{ color: "#64748b" }}>{pressStatusLabel(p, lateMs)}</td>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -153,7 +223,7 @@ export function AdminPressTimeline({ session, timeline, target }) {
                     <SymbolCell shape={p.shownShape ?? p.onScreen?.shape} color={p.shownColor ?? p.onScreen?.color} />
                   </td>
                   <td>{p.reactionMs != null ? Math.round(p.reactionMs) : "—"}</td>
-                  <td style={{ color: "#b45309" }}>{PRESS_ERROR_LABELS.false_alarm}</td>
+                  <td style={{ color: pressStatusColor(p) }}>{pressStatusLabel(p, lateMs)}</td>
                 </tr>
               ))}
             </tbody>

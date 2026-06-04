@@ -62,7 +62,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       targetColor: t.targetColor,
       responded: t.responded,
       reactionTime: t.reactionTime || 0,
-      responseCount: t.responses.length,
+      responseCount: Math.max(t.responses.length, t.trialPresses?.length ?? 0),
       onsetMs: t.onsetMs,
       offsetMs: t.offsetMs ?? null,
       trialPresses: t.trialPresses ?? []
@@ -393,26 +393,29 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     let errorType = "none";
     let isCorrectHit = false;
     let reactionMs = null;
+    let pressInTrial = null;
 
-    if (!onScreen || !t) {
+    if (!onScreen) {
       errorType = "idle";
-    } else if (t.isTarget) {
-      reactionMs = atMs - t.onsetMs;
-      const isFirst = t.responses.length === 0;
-      if (isFirst) {
-        isCorrectHit = true;
-        errorType = reactionMs > lateMs ? "late" : "none";
-      } else {
-        errorType = "multi";
-      }
-      t.trialPresses.push({ atMs, reactionMs });
+    } else if (!t) {
+      errorType = "idle";
     } else {
-      errorType = "false_alarm";
+      pressInTrial = t.trialPresses.length + 1;
       reactionMs = atMs - t.onsetMs;
+      if (t.isTarget) {
+        const isFirst = t.trialPresses.length === 0;
+        if (isFirst) {
+          isCorrectHit = true;
+          errorType = reactionMs > lateMs ? "late" : "none";
+        } else {
+          errorType = "multi";
+        }
+      } else {
+        errorType = pressInTrial > 1 ? "multi" : "false_alarm";
+      }
       t.trialPresses.push({ atMs, reactionMs });
     }
 
-    const pressInTrial = t ? (t.trialPresses?.length ?? 0) + 1 : null;
     pressTimelineRef.current.push({
       pressIndex: pressTimelineRef.current.length + 1,
       pressInTrial,
@@ -445,9 +448,6 @@ export function useAttentionTest(profile, { onFinished } = {}) {
 
   const register = useCallback(() => {
     recordPress();
-    const now = performance.now();
-    if (now - lastKey.current < 120) return;
-    lastKey.current = now;
     respond();
   }, [recordPress, respond]);
 

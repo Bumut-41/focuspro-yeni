@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { AdminPressTimeline } from "../components/AdminPressTimeline.jsx";
 import { adminAddCredits, fetchAllProfiles } from "../services/credits.js";
+import { downloadAdminTimelinePdf } from "../pdfAdminTimeline.js";
 import {
   fetchAdminPressTimeline,
   fetchAllSessions,
@@ -59,6 +60,31 @@ export default function AdminPage() {
   }, [isAdmin, load]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
+
+  async function downloadPressPdf(sessionRow) {
+    const busyId = `${sessionRow.id}-basis`;
+    setPdfBusy(busyId);
+    setMsg("");
+    try {
+      const [sess, tl] = await Promise.all([
+        fetchSessionDetail(sessionRow.id),
+        fetchAdminPressTimeline(sessionRow.id)
+      ]);
+      if (!tl?.length) {
+        setMsg("Bu test için basış kaydı yok (eski kayıt veya SQL güncellemesi öncesi).");
+        return;
+      }
+      await downloadAdminTimelinePdf({
+        session: { ...sess, logs: sess.logs ?? [] },
+        timeline: tl,
+        target: sess.target
+      });
+    } catch (e) {
+      setMsg(e.message || "Basış PDF oluşturulamadı.");
+    } finally {
+      setPdfBusy(null);
+    }
+  }
 
   async function openSession(id) {
     if (selectedId === id) {
@@ -177,6 +203,14 @@ export default function AdminPage() {
                       {pdfBusy === `${s.id}-p` ? "…" : "Katılımcı PDF"}
                     </Button>
                   )}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={pdfBusy === `${s.id}-basis`}
+                    onClick={() => downloadPressPdf(s)}
+                  >
+                    {pdfBusy === `${s.id}-basis` ? "…" : "Basış PDF indir"}
+                  </Button>
                   {s.admin_pdf_path && (
                     <Button
                       variant="secondary"
@@ -184,7 +218,7 @@ export default function AdminPage() {
                       disabled={pdfBusy === `${s.id}-a`}
                       onClick={() => openPdf(s.admin_pdf_path, `${s.id}-a`)}
                     >
-                      {pdfBusy === `${s.id}-a` ? "…" : "Basış PDF"}
+                      {pdfBusy === `${s.id}-a` ? "…" : "Kayıtlı PDF"}
                     </Button>
                   )}
                 </Stack>

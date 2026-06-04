@@ -11,9 +11,12 @@ export const PRESS_ERROR_LABELS = {
 
 export function pressStatusLabel(p, lateMs) {
   if (!p) return "—";
-  if (p.errorType === "idle") return "Simge yokken";
-  if (p.errorType === "false_alarm") return "Yanlış simge";
-  if (p.errorType === "multi") return `Çoklu basış (${p.pressInTrial ?? "?"}. basış)`;
+  if (p.errorType === "idle") return "Boş ekran / simge yokken";
+  if (p.errorType === "false_alarm") return "Yanlış simge (1. basış)";
+  if (p.errorType === "multi") {
+    if (p.isWrongSymbol) return `Yanlış simgede tekrar (${p.pressInTrial ?? "?"}. basış)`;
+    return `Çoklu basış (${p.pressInTrial ?? "?"}. basış)`;
+  }
   if (p.errorType === "late") return "Geç";
   if (p.errorType === "none" && p.isCorrectHit) return "İsabet";
   return PRESS_ERROR_LABELS[p.errorType] ?? p.errorType;
@@ -34,7 +37,8 @@ export function summarizePresses(presses) {
     late: list.filter((p) => p.errorType === "late").length,
     falseAlarm: list.filter((p) => p.errorType === "false_alarm").length,
     multi: list.filter((p) => p.errorType === "multi").length,
-    idle: list.filter((p) => p.errorType === "idle").length
+    idle: list.filter((p) => p.errorType === "idle").length,
+    repeatInTrial: list.filter((p) => (p.pressInTrial ?? 0) > 1).length
   };
 }
 

@@ -53,6 +53,7 @@ export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
   const targetTrials = logs.filter((t) => t.isTarget);
   const stats = summarizePresses(presses);
   const wrongPresses = presses.filter((p) => p.isWrongSymbol || p.errorType === "false_alarm");
+  const idlePresses = presses.filter((p) => p.errorType === "idle");
 
   const allPressRows = presses.slice(0, 350).map((p) => pressToTableRow(p));
 
@@ -139,6 +140,33 @@ export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
         layout: tableLayout(),
         margin: [0, 0, 0, 10]
       },
+      idlePresses.length
+        ? sectionHead(`Boş ekran basışları (${idlePresses.length})`)
+        : null,
+      idlePresses.length
+        ? {
+            table: {
+              headerRows: 1,
+              widths: [22, 44, "*", "*"],
+              body: [
+                [
+                  { text: "#", bold: true, color: "#fff" },
+                  { text: "Basış", bold: true, color: "#fff" },
+                  { text: "Bölüm", bold: true, color: "#fff" },
+                  { text: "Durum", bold: true, color: "#fff" }
+                ],
+                ...idlePresses.slice(0, 80).map((p) => [
+                  String(p.pressIndex),
+                  formatTestMs(p.atMs),
+                  p.section ? p.section.replace(/^[^—]+—\s*/, "") : "—",
+                  pressStatusLabel(p, lateMs)
+                ])
+              ]
+            },
+            layout: tableLayout(),
+            margin: [0, 0, 0, 10]
+          }
+        : null,
       wrongRows.length
         ? sectionHead(`Yanlış simgede basışlar (${wrongPresses.length})`)
         : null,
@@ -205,4 +233,17 @@ export async function createAdminTimelinePdfBlob({ session, timeline, target }) 
       reject(e);
     }
   });
+}
+
+/** Yönetim ekranından doğrudan indirme */
+export async function downloadAdminTimelinePdf({ session, timeline, target }) {
+  const blob = await createAdminTimelinePdfBlob({ session, timeline, target });
+  const name = session?.participant_name?.replace(/\s+/g, "_") ?? "katilimci";
+  const stamp = new Date(session?.created_at ?? Date.now()).toISOString().slice(0, 10);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `FocusProLab_Basis_${name}_${stamp}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
