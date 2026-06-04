@@ -157,8 +157,9 @@ function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
     if (movement === "horizontal" && l.top > 22 && l.top < 78) return false;
     // Koşan/kedi sol→sağ: yalnızca sol şeritten başlar (alt öncelik pickLane'de)
     if (movement === "horizontal" && l.area !== "left") return false;
-    // Top: sabit gif hangi kolondaysa iniş karşı kolondan.
+    // Top: yukarıdan aşağı — yalnızca üst şerit, sol/sağ kenar.
     if (key === "top") {
+      if (l.top > 30) return false;
       const staticLeft = activeItems.some(
         (x) => (GIF_BEHAVIOR[x.key]?.movement ?? "static") === "static" && x.area === "left"
       );
@@ -169,9 +170,6 @@ function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
       if (staticLeft && l.area === "left") return false;
       if (staticRight && l.area === "right") return false;
       if (horizOnLeft && l.area === "left") return false;
-      if (!horizOnLeft && !staticLeft && !staticRight && eventIndex % 2 === 0 && l.area === "left") {
-        return false;
-      }
     }
     return true;
   });
@@ -183,15 +181,22 @@ function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
   return filterOppositeToMovers(key, list, activeItems);
 }
 
-function sortLanesByPlacementPreference(movement, lanes) {
+function sortLanesByPlacementPreference(movement, lanes, eventIndex = 0) {
   if (movement === "static") {
     return [...lanes].sort((a, b) => a.top - b.top || Math.abs(50 - b.left) - Math.abs(50 - a.left));
   }
   if (movement === "horizontal") {
-    return [...lanes].sort((a, b) => b.top - a.top || a.left - b.left);
+    const preferLower = eventIndex >= 6;
+    return [...lanes].sort((a, b) =>
+      preferLower ? b.top - a.top || a.left - b.left : a.top - b.top || a.left - b.left
+    );
   }
   if (movement === "vertical") {
-    return [...lanes].sort((a, b) => Math.abs(50 - b.left) - Math.abs(50 - a.left));
+    const preferLeft = eventIndex % 2 === 0;
+    return [...lanes].sort((a, b) => {
+      if (a.area !== b.area) return preferLeft ? (a.area === "left" ? -1 : 1) : a.area === "right" ? -1 : 1;
+      return a.top - b.top;
+    });
   }
   return lanes;
 }
@@ -204,7 +209,7 @@ export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   if (spaced.length) allowed = spaced;
 
   const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
-  const ordered = sortLanesByPlacementPreference(movement, allowed);
+  const ordered = sortLanesByPlacementPreference(movement, allowed, eventIndex);
   if (ordered.length) return ordered[eventIndex % ordered.length];
 
   const rot = LANE_ROTATION.map((id) => GIF_LANES.find((l) => l.id === id)).filter((l) =>
