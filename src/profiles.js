@@ -10,7 +10,12 @@ import {
   mergeGifEvents,
   mergeSoundEvents
 } from "./distractorSchedule.js";
-import { DISTRACTOR_ONLY_QA, applyDistractorOnlyQa } from "./testQaMode.js";
+import {
+  DISTRACTOR_ONLY_QA,
+  DISTRACTOR_SECTIONS_ONLY_QA,
+  applyDistractorOnlyQa,
+  applyDistractorSectionsOnlyQa
+} from "./testQaMode.js";
 
 const MIN = 60_000;
 
@@ -136,7 +141,9 @@ export function profileKeyFromAge(age) {
 
 export function getProfile(key) {
   const base = PROFILES[key] ?? PROFILES.adult;
-  return DISTRACTOR_ONLY_QA ? applyDistractorOnlyQa(base) : base;
+  if (DISTRACTOR_ONLY_QA) return applyDistractorOnlyQa(base);
+  if (DISTRACTOR_SECTIONS_ONLY_QA) return applyDistractorSectionsOnlyQa(base);
+  return base;
 }
 
 /** 30 sn deneme — çeldirici yok; sonuç kaydedilmez */
@@ -168,4 +175,4 @@ export function getPracticeProfile(profile) {
   };
 }
 
-export { DISTRACTOR_ONLY_QA } from "./testQaMode.js";
+export { DISTRACTOR_ONLY_QA, DISTRACTOR_SECTIONS_ONLY_QA } from "./testQaMode.js";

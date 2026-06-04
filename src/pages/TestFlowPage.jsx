@@ -7,7 +7,8 @@ import {
   getProfile,
   PRACTICE_DURATION_MS,
   profileKeyFromAge,
-  DISTRACTOR_ONLY_QA
+  DISTRACTOR_ONLY_QA,
+  DISTRACTOR_SECTIONS_ONLY_QA
 } from "../profiles.js";
 import { computeMetrics } from "../metrics.js";
 import { ShapeView } from "../shapeUtils.jsx";
@@ -516,6 +517,12 @@ export default function TestFlowPage() {
           {DISTRACTOR_ONLY_QA && (
             <p className="test-brief-qa-hint" role="status">
               Geçici mod: yalnızca «sessiz gif» bölümü (~3 dk) test ediliyor; diğer fazlar kapalı.
+            </p>
+          )}
+          {DISTRACTOR_SECTIONS_ONLY_QA && !DISTRACTOR_ONLY_QA && (
+            <p className="test-brief-qa-hint" role="status">
+              Geçici mod: çeldirici bölümler açık (sessiz gif, sadece ses, sessiz+sesli gif). Temel
+              (0–3 dk) ve kapanış kapalı.
             </p>
           )}
           <div className="test-brief-shape">
