@@ -124,7 +124,13 @@ function filterOppositeToMovers(key, lanes, activeItems) {
   return lanes.filter((lane) => {
     for (const m of movers) {
       if (MOVING_HORIZONTAL_KEYS.has(m.key)) {
-        if (lane.area === "left") return false;
+        if (
+          lane.area === "left" &&
+          Number.isFinite(m.top) &&
+          Math.abs(lane.top - m.top) < HORIZONTAL_PATH_BAND
+        ) {
+          return false;
+        }
         if (Number.isFinite(m.top) && Math.abs(lane.top - m.top) < HORIZONTAL_PATH_BAND) return false;
       }
       if (m.key === "top" && lane.area === m.area) return false;
@@ -149,6 +155,8 @@ function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
     if (movement !== "static" && l.id.includes("mid-")) return false;
     // Kedi / koşan yalnızca üst veya alt kenardan geçsin (orta bantta sabit gif ile çakışmasın).
     if (movement === "horizontal" && l.top > 22 && l.top < 78) return false;
+    // Koşan/kedi sol→sağ: yalnızca sol şeritten başlar (alt öncelik pickLane'de)
+    if (movement === "horizontal" && l.area !== "left") return false;
     // Top: sabit gif hangi kolondaysa iniş karşı kolondan.
     if (key === "top") {
       const staticLeft = activeItems.some(
@@ -250,7 +258,14 @@ export function pairViolatesPlacement(a, b) {
   }
 
   const horizVsStatic = (mover, stat) => {
-    if (stat.area === "left") return "sabit-sol-yatay-yol";
+    if (
+      stat.area === "left" &&
+      Number.isFinite(stat.top) &&
+      Number.isFinite(mover.top) &&
+      Math.abs(stat.top - mover.top) < HORIZONTAL_PATH_BAND
+    ) {
+      return "sabit-sol-yatay-yol";
+    }
     if (Math.abs(stat.top - mover.top) < HORIZONTAL_PATH_BAND) return "sabit-yatay-bant";
     return null;
   };

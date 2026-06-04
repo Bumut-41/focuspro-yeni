@@ -35,13 +35,25 @@ function silentGifDuration(endMs, at) {
   return Math.min(SILENT_GIF_ON_SCREEN_MS, endMs - at);
 }
 
+function tryPickMoverKey(key, at, duration, guard, events, active) {
+  for (let laneTry = 0; laneTry < 12; laneTry++) {
+    const it = pickItem([key], { current: laneTry }, at, duration, guard + laneTry, true, events, active);
+    if (it) return it;
+  }
+  return null;
+}
+
 function trySilentMover(slotIndex, at, duration, guard, events, active, moverCounts) {
   if (slotIndex % SILENT_MOVER_SLOT_PERIOD !== 0) return null;
   if (active.some(isMovingItem)) return null;
 
-  for (const key of sortMoversByQuota(moverCounts)) {
+  const order = sortMoversByQuota(moverCounts);
+  const horizontals = order.filter((k) => k === "kosan" || k === "kedi");
+  const rest = order.filter((k) => k !== "kosan" && k !== "kedi");
+
+  for (const key of [...horizontals, ...rest]) {
     if ((moverCounts[key] ?? 0) >= silentMoverMax(key)) continue;
-    const it = pickItem([key], { current: 0 }, at, duration, guard, true, events, active);
+    const it = tryPickMoverKey(key, at, duration, guard, events, active);
     if (it) {
       moverCounts[it.key] = (moverCounts[it.key] ?? 0) + 1;
       return it;
