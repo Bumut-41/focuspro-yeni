@@ -7,8 +7,6 @@ import {
   getProfile,
   PRACTICE_DURATION_MS,
   profileKeyFromAge,
-  DISTRACTOR_ONLY_QA,
-  DISTRACTOR_SECTIONS_ONLY_QA
 } from "../profiles.js";
 import { computeMetrics } from "../metrics.js";
 import { ShapeView } from "../shapeUtils.jsx";
@@ -508,23 +506,26 @@ export default function TestFlowPage() {
       )}
 
       {step === "brief" && target && practiceCompleted && (
-        <div className="test-brief-card">
+        <div className="test-brief-card test-brief-card--instructions">
           <p className="test-brief-kicker">Adım 5 / 5 · Asıl test</p>
-          <h2 className="test-brief-title">Deneme tamamlandı</h2>
-          <p className="test-brief-meta">
-            {getProfile(pkey).label} — Süre: {Math.round(getProfile(pkey).durationMs / 60000)} dk
-          </p>
-          {DISTRACTOR_ONLY_QA && (
-            <p className="test-brief-qa-hint" role="status">
-              Geçici mod: yalnızca «sessiz gif» bölümü (~3 dk) test ediliyor; diğer fazlar kapalı.
+          <h2 className="test-brief-title">FocusProlab Dikkat Testi Yönergesi</h2>
+          <div className="test-brief-instructions">
+            <p>Bu testte ekranda farklı şekiller göreceksin.</p>
+            <p>
+              Senin görevin yalnızca mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde
+              sadece bir kez basmaktır.
             </p>
-          )}
-          {DISTRACTOR_SECTIONS_ONLY_QA && !DISTRACTOR_ONLY_QA && (
-            <p className="test-brief-qa-hint" role="status">
-              Geçici mod: çeldirici bölümler açık (sessiz gif, sadece ses, sessiz+sesli gif). Temel
-              (0–3 dk) ve kapanış kapalı.
+            <p>Mavi üçgen dışında başka hiçbir şekli gördüğünde basma.</p>
+            <p>
+              Örneğin; mavi kare, yeşil üçgen, kırmızı daire, siyah artı veya başka şekiller
+              gördüğünde basma.
             </p>
-          )}
+            <p>Hazırsan asıl teste başlayabilirsin.</p>
+            <p className="test-brief-instructions-emphasis">
+              Unutma: Sadece mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir
+              kez basmalısın
+            </p>
+          </div>
           <div className="test-brief-shape">
             <ShapeView shape={target.shape} color={target.color} size={90} />
           </div>

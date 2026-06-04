@@ -12,13 +12,13 @@ export function DistractorGif({ item, onError }) {
   const movement = item.movement ?? "static";
 
   if (movement === "horizontal") {
-    const toRight = item.area === "left";
+    // Koşan / kedi her zaman sol→sağ (area yalnızca dikey şerit)
     return (
       <img
         src={item.gif}
         alt=""
         onError={onError}
-        className={toRight ? "distractor-gif-move-ltr" : "distractor-gif-move-rtl"}
+        className="distractor-gif-move-ltr"
         style={{
           ...base,
           top: `${item.top}%`,
