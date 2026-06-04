@@ -56,7 +56,7 @@ function tryPickMoverKey(key, at, duration, guard, events, active, moverCounts) 
   const laneStart = laneEventIndexForMover(key, moverCounts);
   for (let laneTry = 0; laneTry < 12; laneTry++) {
     const idx = laneStart + laneTry;
-    const it = pickItem([key], { current: idx }, at, duration, guard + idx, true, events, active);
+    const it = pickItem([key], { current: idx }, at, duration, guard + idx, true, events, active, "silent");
     if (it) return it;
   }
   return null;
@@ -92,15 +92,15 @@ function trySilentMover(slotIndex, at, duration, guard, events, active, moverCou
 function pickSilentTrackItem(slotIndex, keyRef, at, duration, guard, events, active, moverCounts, lastMoverKey) {
   if (active.some(isMovingItem)) {
     return (
-      pickStaticBesideMover(STATIC_GIF_KEYS, keyRef, at, duration, guard, events, active) ??
-      pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active)
+      pickStaticBesideMover(STATIC_GIF_KEYS, keyRef, at, duration, guard, events, active, true, "silent") ??
+      pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active, "silent")
     );
   }
 
   const mover = trySilentMover(slotIndex, at, duration, guard, events, active, moverCounts, lastMoverKey);
   if (mover) return mover;
 
-  return pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active);
+  return pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active, "silent");
 }
 
 export function buildSilentGifWindow(startMs, endMs) {

@@ -181,9 +181,22 @@ function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
   return filterOppositeToMovers(key, list, activeItems);
 }
 
-function sortLanesByPlacementPreference(movement, lanes, eventIndex = 0) {
+/** @typedef {'default' | 'silent' | 'combined'} PlacementProfile */
+
+function sortLanesByPlacementPreference(movement, lanes, eventIndex = 0, profile = "default") {
   if (movement === "static") {
-    return [...lanes].sort((a, b) => a.top - b.top || Math.abs(50 - b.left) - Math.abs(50 - a.left));
+    if (profile === "combined") {
+      const preferBottom = eventIndex % 2 === 0;
+      return [...lanes].sort((a, b) =>
+        preferBottom ? b.top - a.top : a.top - b.top || Math.abs(50 - b.left) - Math.abs(50 - a.left)
+      );
+    }
+    if (profile === "silent") {
+      return [...lanes].sort((a, b) => a.top - b.top || Math.abs(50 - b.left) - Math.abs(50 - a.left));
+    }
+    return [...lanes].sort(
+      (a, b) => Math.abs(50 - b.left) - Math.abs(50 - a.left) || a.top - b.top
+    );
   }
   if (movement === "horizontal") {
     const preferLower = eventIndex >= 6;
@@ -201,7 +214,7 @@ function sortLanesByPlacementPreference(movement, lanes, eventIndex = 0) {
   return lanes;
 }
 
-export function pickLaneForEvent(key, eventIndex, activeItems = []) {
+export function pickLaneForEvent(key, eventIndex, activeItems = [], profile = "default") {
   const blocked = blockedLaneIds(activeItems.filter((x) => isMovingKey(x.key)));
   let allowed = lanesForKey(key, blocked, activeItems, eventIndex);
 
@@ -209,7 +222,9 @@ export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   if (spaced.length) allowed = spaced;
 
   const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
-  const ordered = sortLanesByPlacementPreference(movement, allowed, eventIndex);
+  const laneProfile =
+    profile === "combined" && movement === "horizontal" ? "default" : profile;
+  const ordered = sortLanesByPlacementPreference(movement, allowed, eventIndex, laneProfile);
   if (ordered.length) return ordered[eventIndex % ordered.length];
 
   const rot = LANE_ROTATION.map((id) => GIF_LANES.find((l) => l.id === id)).filter((l) =>
@@ -221,8 +236,8 @@ export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   return byEdge[0] ?? null;
 }
 
-export function buildGifItem(key, eventIndex, silent, activeItems = []) {
-  const lane = pickLaneForEvent(key, eventIndex, activeItems);
+export function buildGifItem(key, eventIndex, silent, activeItems = [], profile = "default") {
+  const lane = pickLaneForEvent(key, eventIndex, activeItems, profile);
   if (!lane) return null;
   const behavior = GIF_BEHAVIOR[key] ?? { movement: "static", sides: ["left", "right"] };
   return {

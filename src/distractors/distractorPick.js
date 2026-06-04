@@ -9,8 +9,18 @@ function keyPickOrder(keys, offset) {
   return [...keys.slice(i), ...keys.slice(0, i)];
 }
 
-/** Tek gif dene (sıralı anahtar listesi). */
-export function pickItem(keys, keyIndexRef, at, duration, eventIndex, silent, events, extraActive = []) {
+/** Tek gif dene (sıralı anahtar listesi). profile: 'silent' | 'combined' | 'default' */
+export function pickItem(
+  keys,
+  keyIndexRef,
+  at,
+  duration,
+  eventIndex,
+  silent,
+  events,
+  extraActive = [],
+  profile = "default"
+) {
   const active = [...activeItemsOverlapping(events, at, duration), ...extraActive];
   const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
   const usedKeys = new Set(active.map((x) => x.key));
@@ -22,7 +32,7 @@ export function pickItem(keys, keyIndexRef, at, duration, eventIndex, silent, ev
       attempts += 1;
       continue;
     }
-    const it = buildGifItem(key, eventIndex + attempts, silent, active);
+    const it = buildGifItem(key, eventIndex + attempts, silent, active, profile);
     if (!it || usedLaneIds.has(it.laneId)) {
       attempts += 1;
       continue;
@@ -38,7 +48,7 @@ export function pickItem(keys, keyIndexRef, at, duration, eventIndex, silent, ev
   return null;
 }
 
-/** Hareketli varken ikinci gif: hareketsiz, üst şerit öncelikli, yol üstüne konmaz. */
+/** Hareketli varken ikinci gif: hareketsiz, yol üstüne konmaz. */
 export function pickStaticBesideMover(
   staticKeys,
   keyIndexRef,
@@ -47,7 +57,8 @@ export function pickStaticBesideMover(
   eventIndex,
   events,
   extraActive = [],
-  silent = true
+  silent = true,
+  profile = "silent"
 ) {
   const active = [...activeItemsOverlapping(events, at, duration), ...extraActive];
   const order = keyPickOrder(staticKeys, keyIndexRef.current);
@@ -56,10 +67,15 @@ export function pickStaticBesideMover(
     const key = order[ki];
     if (active.some((p) => p.key === key)) continue;
     for (let laneTry = 0; laneTry < 12; laneTry++) {
-      const it = buildGifItem(key, eventIndex + ki * 12 + laneTry, silent, active);
+      const idx = eventIndex + ki * 12 + laneTry;
+      const it = buildGifItem(key, idx, silent, active, profile);
       if (!it) continue;
       if (active.some((p) => p.laneId && p.laneId === it.laneId)) continue;
       if (active.some((peer) => pairViolatesPlacement(it, peer))) continue;
+      if (profile === "combined") {
+        keyIndexRef.current += ki + 1;
+        return it;
+      }
       if (!best || it.top < best.top) best = it;
       if (it.top <= 20) {
         keyIndexRef.current += ki + 1;
