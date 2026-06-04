@@ -16,10 +16,15 @@ import {
 import {
   COMBINED_SOUND_STAGGER_MS,
   GIF_ON_SCREEN_MS,
-  GIF_START_INTERVAL_MS
+  GIF_START_INTERVAL_MS,
+  SILENT_GIF_ON_SCREEN_MS,
+  SILENT_TRACK_INTERVAL_MS,
+  SILENT_TRACK_STAGGER_MS
 } from "./distractorTiming.js";
+const MOVER_KEYS = ["top", "kosan", "kedi"];
 
 const GIF_KEYS = DISTRACTOR_GIF_KEYS;
+const STATIC_GIF_KEYS = GIF_KEYS.filter((k) => !MOVER_KEYS.includes(k));
 const SOUND_KEYS = DISTRACTOR_SOUND_KEYS;
 const SOUND_GIF_KEYS = DISTRACTOR_SOUND_GIF_KEYS;
 
@@ -35,13 +40,22 @@ function hasSoundGifActive(events, at) {
   return activeItemsAt(events, at).some((x) => !x.silent);
 }
 
+function keyPickOrder(keys, offset) {
+  const movers = MOVER_KEYS.filter((k) => keys.includes(k));
+  const rest = keys.filter((k) => !movers.includes(k));
+  const ordered = [...movers, ...rest];
+  const i = offset % ordered.length;
+  return [...ordered.slice(i), ...ordered.slice(0, i)];
+}
+
 function pickItem(keys, keyIndexRef, at, duration, eventIndex, silent, events, extraActive = []) {
   const active = [...activeItemsOverlapping(events, at, duration), ...extraActive];
   const usedLaneIds = new Set(active.map((x) => x.laneId).filter(Boolean));
   const usedKeys = new Set(active.map((x) => x.key));
+  const order = keyPickOrder(keys, keyIndexRef.current);
   let attempts = 0;
-  while (attempts < keys.length) {
-    const key = keys[(keyIndexRef.current + attempts) % keys.length];
+  while (attempts < order.length) {
+    const key = order[attempts];
     if (usedKeys.has(key)) {
       attempts += 1;
       continue;
@@ -103,40 +117,39 @@ function pickWavePair(events, tSilent, tSound, dur, durS, n, silentKeyRef, sound
   return { silentIt, soundIt };
 }
 
+function silentGifDuration(endMs, at) {
+  return Math.min(SILENT_GIF_ON_SCREEN_MS, endMs - at);
+}
+
+/** İki bağımsız iz: genelde 2 sessiz gif, max 0,8 sn ekranda, max 0,7 sn tamamen boş. */
 function buildSilentGifWindow(startMs, endMs) {
-  const slots = [];
-  const OFFSET_MS = Math.min(2400, Math.floor(GIF_START_INTERVAL_MS / 3));
-  let t1 = startMs;
-  let t2 = startMs + OFFSET_MS;
-  let i = 0;
-
-  while (t1 < endMs || t2 < endMs) {
-    const nextAt = t2 < endMs && t2 <= t1 ? t2 : t1;
-    if (nextAt >= endMs) break;
-    const duration = gifDuration(endMs, nextAt);
-    if (duration < 400) break;
-    slots.push({ at: nextAt, duration, eventIndex: i * 10 });
-    if (nextAt === t1) t1 += GIF_START_INTERVAL_MS;
-    else t2 += GIF_START_INTERVAL_MS;
-    i += 1;
-  }
-
-  // Geç başlayan önce planlansın; örtüşen sürede çakışma olmasın.
-  slots.sort((a, b) => b.at - a.at);
-
   const events = [];
-  const keyIndexRef = { current: 0 };
-  for (const slot of slots) {
-    const it = pickItem(
-      GIF_KEYS,
-      keyIndexRef,
-      slot.at,
-      slot.duration,
-      slot.eventIndex,
-      true,
-      events
-    );
-    if (it) events.push({ at: slot.at, duration: slot.duration, items: [it] });
+  const tracks = [
+    { t: startMs, keyRef: { current: 0 }, keys: MOVER_KEYS },
+    { t: startMs + SILENT_TRACK_STAGGER_MS, keyRef: { current: 0 }, keys: STATIC_GIF_KEYS }
+  ];
+  let guard = 0;
+
+  while (guard++ < 8000) {
+    tracks.sort((a, b) => a.t - b.t);
+    const tr = tracks[0];
+    if (tr.t >= endMs) break;
+
+    const at = tr.t;
+    const duration = silentGifDuration(endMs, at);
+    if (duration >= 400) {
+      const active = activeItemsOverlapping(events, at, duration);
+      let it = null;
+      if (tr.keys === MOVER_KEYS) {
+        const forced = MOVER_KEYS[guard % MOVER_KEYS.length];
+        it = pickItem([forced], { current: 0 }, at, duration, guard, true, events, active);
+        if (!it) it = pickItem(MOVER_KEYS, tr.keyRef, at, duration, guard, true, events, active);
+      } else {
+        it = pickItem(tr.keys, tr.keyRef, at, duration, guard, true, events, active);
+      }
+      if (it) events.push({ at, duration, items: [it] });
+    }
+    tr.t += SILENT_TRACK_INTERVAL_MS;
   }
 
   return events.sort((a, b) => a.at - b.at);

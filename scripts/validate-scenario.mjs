@@ -6,7 +6,7 @@
 import { getProfile, PROFILES } from "../src/profiles.js";
 import { buildSilentGifWindow, buildSoundGifWindow } from "../src/distractorSchedule.js";
 import { activeItemsAt, pairViolatesPlacement } from "../src/gifPlacement.js";
-import { COMBINED_MAX_EMPTY_MS } from "../src/distractorTiming.js";
+import { COMBINED_MAX_EMPTY_MS, SILENT_MAX_EMPTY_MS } from "../src/distractorTiming.js";
 
 const MIN = 60_000;
 
@@ -41,6 +41,38 @@ function scanPlacement(events, startMs, endMs, stepMs = 250) {
     uniq.set(`${i.type}|${i.a}|${i.b}`, i);
   }
   return [...uniq.values()];
+}
+
+function scanSilentRules(events, startMs, endMs, stepMs = 100) {
+  const issues = [];
+  let maxEmpty = 0;
+  let emptyStart = null;
+
+  for (let t = startMs; t < endMs; t += stepMs) {
+    const active = activeItemsAt(events, t);
+    if (active.length === 0) {
+      if (emptyStart == null) emptyStart = t;
+    } else {
+      if (emptyStart != null) {
+        maxEmpty = Math.max(maxEmpty, t - emptyStart);
+        emptyStart = null;
+      }
+      if (active.length > 2) issues.push({ type: "kural", msg: `>${2} gif ekranda`, label: fmt(t) });
+      const keys = new Set(active.map((x) => x.key));
+      if (keys.size !== active.length) {
+        issues.push({ type: "kural", msg: "aynı gif anahtarı", label: fmt(t) });
+      }
+    }
+  }
+  if (emptyStart != null) maxEmpty = Math.max(maxEmpty, endMs - emptyStart);
+  if (maxEmpty > SILENT_MAX_EMPTY_MS) {
+    issues.push({
+      type: "kural",
+      msg: `boş ekran ${(maxEmpty / 1000).toFixed(2)}s > ${SILENT_MAX_EMPTY_MS / 1000}s`,
+      label: "—"
+    });
+  }
+  return issues;
 }
 
 function scanCombinedRules(events, startMs, endMs, stepMs = 250) {
@@ -106,11 +138,17 @@ for (const key of ["child", "teen", "adult"]) {
     0,
     sw.end - sw.start
   );
-  console.log(
-    `  ${key}: kombine ${combIssues.length} çakışma, sessiz ${silIssues.length} çakışma`
+  const silRules = scanSilentRules(
+    sil.map((e) => ({ ...e, at: e.at - sw.start })),
+    0,
+    sw.end - sw.start
   );
-  for (const i of [...combIssues, ...silIssues]) {
-    console.log(`    ⚠ ${i.type} ${i.label}: ${i.a} + ${i.b}`);
+  console.log(
+    `  ${key}: kombine ${combIssues.length} çakışma, sessiz ${silIssues.length} çakışma, sessiz kural ${silRules.length}`
+  );
+  for (const i of [...combIssues, ...silIssues, ...silRules]) {
+    if (i.a) console.log(`    ⚠ ${i.type} ${i.label}: ${i.a} + ${i.b}`);
+    else console.log(`    ⚠ ${i.msg} (${i.label})`);
     total++;
   }
 }
@@ -124,10 +162,12 @@ for (const key of ["child", "teen", "adult"]) {
   const combRules = scanCombinedRules(p.gifEvents, cw.start, cw.end);
   const sw = silentWindow();
   const silPlace = scanPlacement(p.gifEvents, sw.start, sw.end);
+  const silRules = scanSilentRules(p.gifEvents, sw.start, sw.end);
 
   console.log(`  ${key} (${p.durationMs / MIN} dk, ${p.gifEvents.length} gif olayı):`);
   console.log(`    Yerleşim (tüm test): ${place.length} uyarı`);
   console.log(`    Yerleşim (sessiz 3–6 dk): ${silPlace.length} uyarı`);
+  console.log(`    Sessiz kurallar (2 gif / 0,7s boş): ${silRules.length} uyarı`);
   console.log(`    Yerleşim (kombine): ${combPlace.length} uyarı`);
   console.log(`    Kombine kurallar: ${combRules.length} uyarı`);
 
@@ -136,6 +176,10 @@ for (const key of ["child", "teen", "adult"]) {
     total++;
   }
   for (const i of combRules) {
+    console.log(`    ⚠ ${i.msg} (${i.label})`);
+    total++;
+  }
+  for (const i of silRules) {
     console.log(`    ⚠ ${i.msg} (${i.label})`);
     total++;
   }

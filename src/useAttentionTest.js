@@ -134,10 +134,9 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     if (!items.length) return false;
     if (gifIds.current.length + items.length > 2) return false;
     if (soundGifIds.current.length + nS > 1) return false;
-    if (silentGifIds.current.length + nZ > 1) return false;
-    if (nS > 1 || nZ > 1) return false;
+    if (silentGifIds.current.length + nZ > 2) return false;
+    if (nS > 1 || nZ > 2) return false;
     if (nS > 0 && soundGifIds.current.length > 0) return false;
-    if (nZ > 0 && silentGifIds.current.length > 0) return false;
     for (const it of items) {
       if (it.laneId && gifLanesOnScreen.current.has(it.laneId)) return false;
       if (it.gifKey && gifKeysOnScreen.current.has(it.gifKey)) return false;

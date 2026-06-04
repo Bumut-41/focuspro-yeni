@@ -124,7 +124,7 @@ function filterOppositeToMovers(key, lanes, activeItems) {
   });
 }
 
-function lanesForKey(key, blocked, activeItems = []) {
+function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
   const sides = GIF_BEHAVIOR[key]?.sides ?? ["left", "right"];
   const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
   let list = GIF_LANES.filter((l) => {
@@ -142,8 +142,13 @@ function lanesForKey(key, blocked, activeItems = []) {
       const staticRight = activeItems.some(
         (x) => (GIF_BEHAVIOR[x.key]?.movement ?? "static") === "static" && x.area === "right"
       );
+      const horizOnLeft = activeItems.some((x) => MOVING_HORIZONTAL_KEYS.has(x.key));
       if (staticLeft && l.area === "left") return false;
       if (staticRight && l.area === "right") return false;
+      if (horizOnLeft && l.area === "left") return false;
+      if (!horizOnLeft && !staticLeft && !staticRight && eventIndex % 2 === 0 && l.area === "left") {
+        return false;
+      }
     }
     return true;
   });
@@ -157,7 +162,7 @@ function lanesForKey(key, blocked, activeItems = []) {
 
 export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   const blocked = blockedLaneIds(activeItems.filter((x) => isMovingKey(x.key)));
-  let allowed = lanesForKey(key, blocked, activeItems);
+  let allowed = lanesForKey(key, blocked, activeItems, eventIndex);
 
   const spaced = allowed.filter((l) => !isTooCloseToActive(l, activeItems));
   if (spaced.length) allowed = spaced;
