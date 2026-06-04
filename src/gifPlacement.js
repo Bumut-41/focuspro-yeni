@@ -57,6 +57,15 @@ function isMovingKey(key) {
   return MOVING_HORIZONTAL_KEYS.has(key) || MOVING_VERTICAL_KEYS.has(key);
 }
 
+export function itemMovement(it) {
+  return GIF_BEHAVIOR[it?.key]?.movement ?? it?.movement ?? "static";
+}
+
+export function isMovingItem(it) {
+  const m = itemMovement(it);
+  return m === "horizontal" || m === "vertical";
+}
+
 function laneIdsWhere(fn) {
   return new Set(GIF_LANES.filter(fn).map((l) => l.id));
 }
@@ -127,6 +136,12 @@ function filterOppositeToMovers(key, lanes, activeItems) {
 function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
   const sides = GIF_BEHAVIOR[key]?.sides ?? ["left", "right"];
   const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
+  if (key === "top" && activeItems.some((x) => MOVING_HORIZONTAL_KEYS.has(x.key))) {
+    return [];
+  }
+  if (MOVING_HORIZONTAL_KEYS.has(key) && activeItems.some((x) => x.key === "top")) {
+    return [];
+  }
   let list = GIF_LANES.filter((l) => {
     if (!sides.includes(l.area)) return false;
     if (blocked.has(l.id)) return false;
@@ -207,6 +222,15 @@ export function activeItemsAt(events, timeMs) {
 export function pairViolatesPlacement(a, b) {
   if (a.key === b.key) return "aynı-gif";
   if (a.laneId && a.laneId === b.laneId) return "aynı-lane";
+
+  if (isMovingItem(a) && isMovingItem(b)) return "iki-hareketli";
+
+  if (
+    (a.key === "top" && MOVING_HORIZONTAL_KEYS.has(b.key)) ||
+    (b.key === "top" && MOVING_HORIZONTAL_KEYS.has(a.key))
+  ) {
+    return "top-yatay";
+  }
 
   const horizVsStatic = (mover, stat) => {
     if (stat.area === "left") return "sabit-sol-yatay-yol";

@@ -5,7 +5,7 @@
 
 import { getProfile, PROFILES } from "../src/profiles.js";
 import { buildSilentGifWindow, buildSoundGifWindow } from "../src/distractorSchedule.js";
-import { activeItemsAt, pairViolatesPlacement } from "../src/gifPlacement.js";
+import { activeItemsAt, isMovingItem, pairViolatesPlacement } from "../src/gifPlacement.js";
 import { COMBINED_MAX_EMPTY_MS, SILENT_MAX_EMPTY_MS } from "../src/distractorTiming.js";
 
 const MIN = 60_000;
@@ -61,6 +61,14 @@ function scanSilentRules(events, startMs, endMs, stepMs = 100) {
       const keys = new Set(active.map((x) => x.key));
       if (keys.size !== active.length) {
         issues.push({ type: "kural", msg: "aynı gif anahtarı", label: fmt(t) });
+      }
+      const movers = active.filter(isMovingItem);
+      if (movers.length > 1) {
+        issues.push({
+          type: "kural",
+          msg: `>${1} hareketli gif (${movers.map((x) => x.key).join("+")})`,
+          label: fmt(t)
+        });
       }
     }
   }

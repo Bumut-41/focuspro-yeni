@@ -11,7 +11,7 @@ import {
   activeItemsAt,
   activeItemsOverlapping,
   buildGifItem,
-  MOVING_HORIZONTAL_KEYS,
+  isMovingItem,
   pairViolatesPlacement
 } from "./gifPlacement.js";
 import {
@@ -27,7 +27,7 @@ const MOVER_KEYS = ["top", "kosan", "kedi"];
 const SILENT_MOVER_MAX = { top: 4, kosan: 6, kedi: 6 };
 /** Eşit sayıda iken önce denenecek (koşan/kedi biraz daha sık) */
 const SILENT_MOVER_PRIORITY = { kedi: 0, kosan: 1, top: 2 };
-/** Her N slotta tam hareketli deneme; arada yalnızca koşan/kedi */
+/** Her N slotta bir hareketli gif denenir (ekrandaki 2. gif hep hareketsiz) */
 const SILENT_MOVER_SLOT_PERIOD = 3;
 
 function silentMoverMax(key) {
@@ -151,14 +151,11 @@ function silentKeysForSlot(slotIndex, moverCounts) {
   return STATIC_GIF_KEYS;
 }
 
-function trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts, horizontalOnly) {
-  const phase = slotIndex % SILENT_MOVER_SLOT_PERIOD;
-  if (phase !== 0 && !(horizontalOnly && phase === 1)) return null;
+function trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts) {
+  if (slotIndex % SILENT_MOVER_SLOT_PERIOD !== 0) return null;
+  if (active.some(isMovingItem)) return null;
 
-  let order = sortMoversByQuota(moverCounts);
-  if (horizontalOnly) {
-    order = order.filter((k) => MOVING_HORIZONTAL_KEYS.has(k));
-  }
+  const order = sortMoversByQuota(moverCounts);
   for (const key of order) {
     if ((moverCounts[key] ?? 0) >= silentMoverMax(key)) continue;
     const it = pickItem([key], { current: 0 }, at, duration, guard, true, events, active);
@@ -171,13 +168,10 @@ function trySilentMovers(slotIndex, at, duration, guard, events, active, moverCo
 }
 
 function pickSilentItem(slotIndex, keyRef, at, duration, guard, events, active, moverCounts) {
-  const mover =
-    trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts, false) ??
-    trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts, true);
+  const mover = trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts);
   if (mover) return mover;
 
-  const it = pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active);
-  return it;
+  return pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active);
 }
 
 /** İki bağımsız iz: genelde 2 sessiz gif, max 8 sn ekranda, max 0,8 sn tamamen boş. */

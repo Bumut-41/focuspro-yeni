@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS, FIXED_TARGET_COLOR, GIF_FILES, INDEPENDENT_SOUNDS, SHAPES } from "./constants.js";
-import { pairViolatesPlacement } from "./gifPlacement.js";
+import { isMovingItem, pairViolatesPlacement } from "./gifPlacement.js";
 import { pickSeeded, resetSeed, seededRandom } from "./random.js";
 
 /** Takip edilecek hedef şekil (tüm test boyunca sabit). */
@@ -137,11 +137,18 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     if (silentGifIds.current.length + nZ > 2) return false;
     if (nS > 1 || nZ > 2) return false;
     if (nS > 0 && soundGifIds.current.length > 0) return false;
+
+    const screenHasMover = gifMetaOnScreen.current.some((ex) => isMovingItem(ex));
+    const incomingMovers = items.filter((it) => isMovingItem({ key: it.gifKey, movement: it.movement }));
+    if (incomingMovers.length > 1) return false;
+    if (screenHasMover && incomingMovers.length > 0) return false;
+
     for (const it of items) {
       if (it.laneId && gifLanesOnScreen.current.has(it.laneId)) return false;
       if (it.gifKey && gifKeysOnScreen.current.has(it.gifKey)) return false;
       const next = {
         key: it.gifKey,
+        movement: it.movement ?? "static",
         laneId: it.laneId,
         left: it.left,
         top: it.top,
@@ -198,6 +205,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         gifMetaOnScreen.current.push({
           id: it.id,
           key: it.gifKey,
+          movement: it.movement ?? "static",
           laneId: it.laneId,
           left: it.left,
           top: it.top,
