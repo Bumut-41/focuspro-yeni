@@ -501,8 +501,17 @@ export default function TestFlowPage() {
           onClick={register}
           onTouchStart={register}
         >
+          {gifs.map((g) => (
+            <DistractorGif
+              key={g.id}
+              item={g}
+              onError={(e) => {
+                e.target.style.display = "none";
+              }}
+            />
+          ))}
           {scene && <ShapeView shape={scene.shape} color={scene.color} size={140} />}
-          <p className="test-practice-banner">Deneme — 30 sn (çeldirici yok, kayıt yok)</p>
+          <p className="test-practice-banner">Deneme — 30 sn (sessiz gif, kayıt yok)</p>
         </div>
       )}
 

@@ -149,7 +149,7 @@ export function getProfile(key) {
   return base;
 }
 
-/** 30 sn deneme — çeldirici yok; sonuç kaydedilmez */
+/** 30 sn deneme — sessiz gif (sessiz bölüm kuralları); sonuç kaydedilmez */
 export const PRACTICE_DURATION_MS = 30_000;
 
 /** Deneme ana simge süresi (ms). Yetişkin: 1300 (not: 13800 yazım hatası varsayıldı). */
@@ -168,12 +168,12 @@ export function getPracticeProfile(profile) {
     phases: [
       {
         end: PRACTICE_DURATION_MS,
-        name: "Deneme (çeldiricisiz)",
+        name: "Deneme (sessiz gif)",
         stimulus,
         gap: Math.round(stimulus * 0.45)
       }
     ],
-    gifEvents: [],
+    gifEvents: buildSilentGifWindow(0, PRACTICE_DURATION_MS),
     soundEvents: []
   };
 }

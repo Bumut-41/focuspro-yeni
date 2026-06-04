@@ -7,7 +7,7 @@
  */
 export const DISTRACTOR_ONLY_QA = false;
 export const DISTRACTOR_SECTIONS_ONLY_QA = false;
-export const DISTRACTOR_GIF_SECTIONS_QA = true;
+export const DISTRACTOR_GIF_SECTIONS_QA = false;
 
 const MIN = 60_000;
 
