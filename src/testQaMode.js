@@ -1,15 +1,15 @@
 /**
- * Geçici QA: yalnızca «sessiz + sesli gif» (kombine) penceresi.
+ * Geçici QA: yalnızca «sessiz gif» penceresi (3–6 dk).
  * Normal teste dönmek için DISTRACTOR_ONLY_QA = false yapın.
  */
-export const DISTRACTOR_ONLY_QA = false;
+export const DISTRACTOR_ONLY_QA = true;
 
 const MIN = 60_000;
 
-const COMBINED_ONLY = {
-  child: { start: 8 * MIN, end: 11 * MIN, label: "8–11 dk (sessiz + sesli gif)", stimulus: 1600 },
-  adult: { start: 9 * MIN, end: 12 * MIN, label: "9–12 dk (sessiz + sesli gif)", stimulus: 1200 },
-  teen: { start: 9 * MIN, end: 12 * MIN, label: "9–12 dk (sessiz + sesli gif)", stimulus: 900 }
+const SILENT_GIF_ONLY = {
+  child: { start: 3 * MIN, end: 6 * MIN, label: "3–6 dk (sessiz gif)", stimulus: 1600 },
+  adult: { start: 3 * MIN, end: 6 * MIN, label: "3–6 dk (sessiz gif)", stimulus: 1100 },
+  teen: { start: 3 * MIN, end: 6 * MIN, label: "3–6 dk (sessiz gif)", stimulus: 1100 }
 };
 
 function shiftEvents(events, start, end) {
@@ -19,8 +19,12 @@ function shiftEvents(events, start, end) {
 }
 
 export function applyDistractorOnlyQa(profile) {
-  const seg = COMBINED_ONLY[profile.key] ?? COMBINED_ONLY.adult;
-  const gifEvents = shiftEvents(profile.gifEvents, seg.start, seg.end);
+  const seg = SILENT_GIF_ONLY[profile.key] ?? SILENT_GIF_ONLY.adult;
+  const gifEvents = shiftEvents(
+    profile.gifEvents.filter((e) => e.silent !== false),
+    seg.start,
+    seg.end
+  );
   const soundEvents = [];
 
   return {
@@ -36,6 +40,6 @@ export function applyDistractorOnlyQa(profile) {
     ],
     gifEvents,
     soundEvents,
-    label: `${profile.label} (QA — kombine gif)`
+    label: `${profile.label} (QA — sessiz gif)`
   };
 }
