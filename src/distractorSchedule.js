@@ -1,13 +1,14 @@
 /**
- * Çeldirici çizelgeleri — senaryolar ayrı modüllerde.
- * @see distractors/silentGifSchedule.js
- * @see distractors/soloSoundSchedule.js
- * @see distractors/combinedGifSchedule.js
+ * Çeldirici çizelgeleri — üç bağımsız senaryo modülü.
+ *
+ * distractors/silent/   → yalnızca sessiz gif
+ * distractors/combined/ → sessiz + sesli gif
+ * distractors/soloSoundSchedule.js → yalnızca ses
  */
 
-export { buildSilentGifWindow } from "./distractors/silentGifSchedule.js";
+export { buildSilentGifWindow } from "./distractors/silent/schedule.js";
+export { buildSoundGifWindow } from "./distractors/combined/schedule.js";
 export { buildSoloSoundWindow } from "./distractors/soloSoundSchedule.js";
-export { buildSoundGifWindow } from "./distractors/combinedGifSchedule.js";
 
 export function mergeGifEvents(windows) {
   return windows.flat().sort((a, b) => a.at - b.at);

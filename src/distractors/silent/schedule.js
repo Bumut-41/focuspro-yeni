@@ -1,24 +1,21 @@
 /**
- * Sadece sessiz gif penceresi (3–6 dk) — diğer senaryolardan bağımsız.
- * En fazla 2 sessiz gif; en fazla 1 hareketli; ikincisi hareketsiz.
+ * Sadece sessiz gif penceresi (3–6 dk) — tamamen bağımsız modül.
  */
 
-import { DISTRACTOR_GIF_KEYS } from "../constants.js";
-import { activeItemsOverlapping, isMovingItem } from "../gifPlacement.js";
+import { DISTRACTOR_GIF_KEYS } from "../../constants.js";
+import { activeItemsOverlapping, isMovingItem } from "../../gifPlacementCore.js";
 import {
   SILENT_GIF_ON_SCREEN_MS,
   SILENT_TRACK_INTERVAL_MS,
   SILENT_TRACK_STAGGER_MS
-} from "../distractorTiming.js";
-import { pickItem, pickStaticBesideMover } from "./distractorPick.js";
+} from "../../distractorTiming.js";
+import { pickSilentGif, pickSilentStaticBesideMover } from "./pick.js";
 
 const MOVER_KEYS = ["top", "kosan", "kedi"];
 const STATIC_GIF_KEYS = DISTRACTOR_GIF_KEYS.filter((k) => !MOVER_KEYS.includes(k));
 
-/** Daha seyrek hareketli gif */
 const SILENT_MOVER_MAX = { top: 4, kosan: 4, kedi: 4 };
 const SILENT_MOVER_SLOT_PERIOD = 5;
-
 const MOVER_TURN = ["top", "kosan", "kedi"];
 
 function silentMoverMax(key) {
@@ -27,11 +24,7 @@ function silentMoverMax(key) {
 
 function sortMoversByQuota(moverCounts, slotIndex) {
   const turn = Math.floor(slotIndex / SILENT_MOVER_SLOT_PERIOD) % MOVER_TURN.length;
-  const preferred = [
-    MOVER_TURN[turn],
-    MOVER_TURN[(turn + 1) % 3],
-    MOVER_TURN[(turn + 2) % 3]
-  ];
+  const preferred = [MOVER_TURN[turn], MOVER_TURN[(turn + 1) % 3], MOVER_TURN[(turn + 2) % 3]];
   return [...preferred].sort((a, b) => {
     const diff = (moverCounts[a] ?? 0) - (moverCounts[b] ?? 0);
     if (diff !== 0) return diff;
@@ -43,7 +36,6 @@ function silentGifDuration(endMs, at) {
   return Math.min(SILENT_GIF_ON_SCREEN_MS, endMs - at);
 }
 
-/** Üst (16) / alt (84) şerit — koşan ve kedi sırayla değişir. */
 function laneEventIndexForMover(key, moverCounts) {
   const n = moverCounts[key] ?? 0;
   if (key === "kosan") return n % 2 === 0 ? 0 : 8;
@@ -56,7 +48,7 @@ function tryPickMoverKey(key, at, duration, guard, events, active, moverCounts) 
   const laneStart = laneEventIndexForMover(key, moverCounts);
   for (let laneTry = 0; laneTry < 12; laneTry++) {
     const idx = laneStart + laneTry;
-    const it = pickItem([key], { current: idx }, at, duration, guard + idx, true, events, active, "silent");
+    const it = pickSilentGif([key], { current: idx }, at, duration, guard + idx, events, active);
     if (it) return it;
   }
   return null;
@@ -92,15 +84,15 @@ function trySilentMover(slotIndex, at, duration, guard, events, active, moverCou
 function pickSilentTrackItem(slotIndex, keyRef, at, duration, guard, events, active, moverCounts, lastMoverKey) {
   if (active.some(isMovingItem)) {
     return (
-      pickStaticBesideMover(STATIC_GIF_KEYS, keyRef, at, duration, guard, events, active, true, "silent") ??
-      pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active, "silent")
+      pickSilentStaticBesideMover(STATIC_GIF_KEYS, keyRef, at, duration, guard, events, active) ??
+      pickSilentGif(STATIC_GIF_KEYS, keyRef, at, duration, guard, events, active)
     );
   }
 
   const mover = trySilentMover(slotIndex, at, duration, guard, events, active, moverCounts, lastMoverKey);
   if (mover) return mover;
 
-  return pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active, "silent");
+  return pickSilentGif(STATIC_GIF_KEYS, keyRef, at, duration, guard, events, active);
 }
 
 export function buildSilentGifWindow(startMs, endMs) {

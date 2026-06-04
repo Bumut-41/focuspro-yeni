@@ -1,12 +1,11 @@
 /**
- * Sessiz + sesli gif birlikte (kombine pencere) — sessiz modülden ayrı kurallar.
- * Sürekli 1 sessiz + 1 sesli gif; sessiz tarafta hareketli olabilir, sesli hep hareketsiz.
+ * Sessiz + sesli gif birlikte (kombine) — tamamen bağımsız modül.
  */
 
-import { DISTRACTOR_GIF_KEYS, DISTRACTOR_SOUND_GIF_KEYS } from "../constants.js";
-import { activeItemsAt, pairViolatesPlacement } from "../gifPlacement.js";
-import { COMBINED_SOUND_STAGGER_MS, GIF_ON_SCREEN_MS } from "../distractorTiming.js";
-import { pickItem, pickStaticBesideMover } from "./distractorPick.js";
+import { DISTRACTOR_GIF_KEYS, DISTRACTOR_SOUND_GIF_KEYS } from "../../constants.js";
+import { activeItemsAt, pairViolatesPlacement } from "../../gifPlacementCore.js";
+import { COMBINED_SOUND_STAGGER_MS, GIF_ON_SCREEN_MS } from "../../distractorTiming.js";
+import { pickCombinedGif, pickCombinedStaticBesideMover } from "./pick.js";
 
 const MOVER_KEYS = ["top", "kosan", "kedi"];
 const STATIC_GIF_KEYS = DISTRACTOR_GIF_KEYS.filter((k) => !MOVER_KEYS.includes(k));
@@ -29,22 +28,12 @@ function pickCombinedSound(events, tSound, durS, n, soundKeyRef, peerSilent) {
   const extra = peerSilent ? [peerSilent] : [];
 
   let it =
-    pickStaticBesideMover(
-      SOUND_GIF_KEYS,
-      soundKeyRef,
-      tSound,
-      durS,
-      n * 10 + 5000,
-      events,
-      extra,
-      false,
-      "combined"
-    ) ??
-    pickItem(SOUND_GIF_KEYS, soundKeyRef, tSound, durS, n * 10 + 5000, false, events, extra, "combined");
+    pickCombinedStaticBesideMover(SOUND_GIF_KEYS, soundKeyRef, tSound, durS, n * 10 + 5000, events, extra, false) ??
+    pickCombinedGif(SOUND_GIF_KEYS, soundKeyRef, tSound, durS, n * 10 + 5000, false, events, extra);
 
   if (it && peerSilent && pairViolatesPlacement(peerSilent, it)) {
     it =
-      pickStaticBesideMover(
+      pickCombinedStaticBesideMover(
         SOUND_GIF_KEYS,
         { current: soundKeyRef.current + 2 },
         tSound,
@@ -52,10 +41,9 @@ function pickCombinedSound(events, tSound, durS, n, soundKeyRef, peerSilent) {
         n * 10 + 5001,
         events,
         [peerSilent],
-        false,
-        "combined"
+        false
       ) ??
-      pickItem(SOUND_GIF_KEYS, soundKeyRef, tSound, durS, n * 10 + 5002, false, events, [peerSilent], "combined");
+      pickCombinedGif(SOUND_GIF_KEYS, soundKeyRef, tSound, durS, n * 10 + 5002, false, events, [peerSilent]);
   }
   return it;
 }
@@ -64,7 +52,7 @@ function pickCombinedWave(events, tSilent, tSound, dur, durS, n, silentKeyRef, s
   if (tSilent >= endMs || dur < 400) return { silentIt: null, soundIt: null };
   if (tSound >= endMs || durS < 400) return { silentIt: null, soundIt: null };
 
-  let soundIt = pickCombinedSound(events, tSound, durS, n, soundKeyRef, null);
+  const soundIt = pickCombinedSound(events, tSound, durS, n, soundKeyRef, null);
   if (!soundIt) return { silentIt: null, soundIt: null };
 
   let silentIt = null;
@@ -72,7 +60,7 @@ function pickCombinedWave(events, tSilent, tSound, dur, durS, n, silentKeyRef, s
 
   if (moverSlot && !hasSilentActive(events, tSilent)) {
     for (const key of MOVER_KEYS) {
-      const candidate = pickItem([key], { current: 0 }, tSilent, dur, n * 10, true, events, [soundIt], "combined");
+      const candidate = pickCombinedGif([key], { current: 0 }, tSilent, dur, n * 10, true, events, [soundIt]);
       if (candidate && !pairViolatesPlacement(candidate, soundIt)) {
         silentIt = candidate;
         break;
@@ -82,13 +70,13 @@ function pickCombinedWave(events, tSilent, tSound, dur, durS, n, silentKeyRef, s
 
   if (!silentIt) {
     silentIt =
-      pickStaticBesideMover(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10, events, [soundIt], true, "combined") ??
-      pickItem(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10 + 1, true, events, [soundIt], "combined");
+      pickCombinedStaticBesideMover(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10, events, [soundIt], true) ??
+      pickCombinedGif(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10 + 1, true, events, [soundIt]);
   }
 
-  if (silentIt && soundIt && pairViolatesPlacement(silentIt, soundIt)) {
+  if (silentIt && pairViolatesPlacement(silentIt, soundIt)) {
     silentIt =
-      pickStaticBesideMover(
+      pickCombinedStaticBesideMover(
         STATIC_GIF_KEYS,
         { current: silentKeyRef.current + 2 },
         tSilent,
@@ -96,16 +84,12 @@ function pickCombinedWave(events, tSilent, tSound, dur, durS, n, silentKeyRef, s
         n * 10 + 3,
         events,
         [soundIt],
-        true,
-        "combined"
+        true
       ) ??
-      pickItem(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10 + 4, true, events, [soundIt], "combined");
+      pickCombinedGif(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10 + 4, true, events, [soundIt]);
   }
 
-  if (!silentIt) {
-    return { silentIt: null, soundIt };
-  }
-
+  if (!silentIt) return { silentIt: null, soundIt };
   return { silentIt, soundIt };
 }
 
