@@ -22,6 +22,10 @@ import {
   SILENT_TRACK_STAGGER_MS
 } from "./distractorTiming.js";
 const MOVER_KEYS = ["top", "kosan", "kedi"];
+/** Sessiz pencerede her hareketli gif en fazla kaç kez (top/koşan/kedi ayrı ayrı) */
+const SILENT_MOVER_MAX_PER_KEY = 2;
+/** Yaklaşık her N slotta bir hareketli gif denenir */
+const SILENT_MOVER_SLOT_PERIOD = 7;
 
 const GIF_KEYS = DISTRACTOR_GIF_KEYS;
 const STATIC_GIF_KEYS = GIF_KEYS.filter((k) => !MOVER_KEYS.includes(k));
@@ -121,12 +125,33 @@ function silentGifDuration(endMs, at) {
   return Math.min(SILENT_GIF_ON_SCREEN_MS, endMs - at);
 }
 
-/** İki bağımsız iz: genelde 2 sessiz gif, max 0,8 sn ekranda, max 0,7 sn tamamen boş. */
+function silentKeysForSlot(slotIndex, moverCounts) {
+  const moversLeft = MOVER_KEYS.filter((k) => moverCounts[k] < SILENT_MOVER_MAX_PER_KEY);
+  if (moversLeft.length && slotIndex % SILENT_MOVER_SLOT_PERIOD === 0) {
+    return moversLeft;
+  }
+  return STATIC_GIF_KEYS;
+}
+
+function pickSilentItem(slotIndex, keyRef, at, duration, guard, events, active, moverCounts) {
+  let pool = silentKeysForSlot(slotIndex, moverCounts);
+  let it = pickItem(pool, keyRef, at, duration, guard, true, events, active);
+  if (!it && pool !== STATIC_GIF_KEYS) {
+    it = pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active);
+  }
+  if (it && MOVER_KEYS.includes(it.key)) {
+    moverCounts[it.key] = (moverCounts[it.key] ?? 0) + 1;
+  }
+  return it;
+}
+
+/** İki bağımsız iz: genelde 2 sessiz gif, max 8 sn ekranda, max 0,8 sn tamamen boş. */
 function buildSilentGifWindow(startMs, endMs) {
   const events = [];
+  const moverCounts = Object.fromEntries(MOVER_KEYS.map((k) => [k, 0]));
   const tracks = [
-    { t: startMs, keyRef: { current: 0 }, keys: MOVER_KEYS },
-    { t: startMs + SILENT_TRACK_STAGGER_MS, keyRef: { current: 0 }, keys: STATIC_GIF_KEYS }
+    { t: startMs, keyRef: { current: 0 } },
+    { t: startMs + SILENT_TRACK_STAGGER_MS, keyRef: { current: 4 } }
   ];
   let guard = 0;
 
@@ -139,14 +164,7 @@ function buildSilentGifWindow(startMs, endMs) {
     const duration = silentGifDuration(endMs, at);
     if (duration >= 400) {
       const active = activeItemsOverlapping(events, at, duration);
-      let it = null;
-      if (tr.keys === MOVER_KEYS) {
-        const forced = MOVER_KEYS[guard % MOVER_KEYS.length];
-        it = pickItem([forced], { current: 0 }, at, duration, guard, true, events, active);
-        if (!it) it = pickItem(MOVER_KEYS, tr.keyRef, at, duration, guard, true, events, active);
-      } else {
-        it = pickItem(tr.keys, tr.keyRef, at, duration, guard, true, events, active);
-      }
+      const it = pickSilentItem(guard, tr.keyRef, at, duration, guard, events, active, moverCounts);
       if (it) events.push({ at, duration, items: [it] });
     }
     tr.t += SILENT_TRACK_INTERVAL_MS;
