@@ -74,7 +74,15 @@ function pickCombinedWave(events, tSilent, tSound, dur, durS, n, silentKeyRef, s
       pickItem(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10 + 1, true, events, [soundIt]);
   }
 
-  if (!silentIt || pairViolatesPlacement(silentIt, soundIt)) {
+  if (silentIt && soundIt && pairViolatesPlacement(silentIt, soundIt)) {
+    silentIt =
+      pickStaticBesideMover(STATIC_GIF_KEYS, { current: silentKeyRef.current + 2 }, tSilent, dur, n * 10 + 3, events, [
+        soundIt
+      ]) ??
+      pickItem(STATIC_GIF_KEYS, silentKeyRef, tSilent, dur, n * 10 + 4, true, events, [soundIt]);
+  }
+
+  if (!silentIt) {
     return { silentIt: null, soundIt };
   }
 

@@ -175,12 +175,29 @@ function lanesForKey(key, blocked, activeItems = [], eventIndex = 0) {
   return filterOppositeToMovers(key, list, activeItems);
 }
 
+function sortLanesByPlacementPreference(movement, lanes) {
+  if (movement === "static") {
+    return [...lanes].sort((a, b) => a.top - b.top || Math.abs(50 - b.left) - Math.abs(50 - a.left));
+  }
+  if (movement === "horizontal") {
+    return [...lanes].sort((a, b) => b.top - a.top || a.left - b.left);
+  }
+  if (movement === "vertical") {
+    return [...lanes].sort((a, b) => Math.abs(50 - b.left) - Math.abs(50 - a.left));
+  }
+  return lanes;
+}
+
 export function pickLaneForEvent(key, eventIndex, activeItems = []) {
   const blocked = blockedLaneIds(activeItems.filter((x) => isMovingKey(x.key)));
   let allowed = lanesForKey(key, blocked, activeItems, eventIndex);
 
   const spaced = allowed.filter((l) => !isTooCloseToActive(l, activeItems));
   if (spaced.length) allowed = spaced;
+
+  const movement = GIF_BEHAVIOR[key]?.movement ?? "static";
+  const ordered = sortLanesByPlacementPreference(movement, allowed);
+  if (ordered.length) return ordered[eventIndex % ordered.length];
 
   const rot = LANE_ROTATION.map((id) => GIF_LANES.find((l) => l.id === id)).filter((l) =>
     allowed.some((a) => a.id === l.id)

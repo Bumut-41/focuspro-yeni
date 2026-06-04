@@ -38,7 +38,7 @@ export function pickItem(keys, keyIndexRef, at, duration, eventIndex, silent, ev
   return null;
 }
 
-/** Hareketli varken ikinci gif: tüm hareketsiz adaylar, birden fazla lane denemesi. */
+/** Hareketli varken ikinci gif: hareketsiz, üst şerit öncelikli, yol üstüne konmaz. */
 export function pickStaticBesideMover(
   staticKeys,
   keyIndexRef,
@@ -51,17 +51,22 @@ export function pickStaticBesideMover(
 ) {
   const active = [...activeItemsOverlapping(events, at, duration), ...extraActive];
   const order = keyPickOrder(staticKeys, keyIndexRef.current);
+  let best = null;
   for (let ki = 0; ki < order.length; ki++) {
     const key = order[ki];
     if (active.some((p) => p.key === key)) continue;
-    for (let laneTry = 0; laneTry < 8; laneTry++) {
-      const it = buildGifItem(key, eventIndex + ki * 8 + laneTry, silent, active);
+    for (let laneTry = 0; laneTry < 12; laneTry++) {
+      const it = buildGifItem(key, eventIndex + ki * 12 + laneTry, silent, active);
       if (!it) continue;
       if (active.some((p) => p.laneId && p.laneId === it.laneId)) continue;
       if (active.some((peer) => pairViolatesPlacement(it, peer))) continue;
-      keyIndexRef.current += ki + 1;
-      return it;
+      if (!best || it.top < best.top) best = it;
+      if (it.top <= 20) {
+        keyIndexRef.current += ki + 1;
+        return it;
+      }
     }
   }
-  return null;
+  if (best) keyIndexRef.current += 1;
+  return best;
 }

@@ -7,6 +7,7 @@ import {
   getProfile,
   PRACTICE_DURATION_MS,
   profileKeyFromAge,
+  DISTRACTOR_GIF_SECTIONS_QA
 } from "../profiles.js";
 import { computeMetrics } from "../metrics.js";
 import { ShapeView } from "../shapeUtils.jsx";
@@ -521,6 +522,12 @@ export default function TestFlowPage() {
               gördüğünde basma.
             </p>
             <p>Hazırsan asıl teste başlayabilirsin.</p>
+            {DISTRACTOR_GIF_SECTIONS_QA && (
+              <p className="test-brief-qa-hint" role="status">
+                Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses,
+                temel ve kapanış kapalı.
+              </p>
+            )}
             <p className="test-brief-instructions-emphasis">
               Unutma: Sadece mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir
               kez basmalısın

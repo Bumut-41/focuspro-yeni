@@ -11,8 +11,10 @@ import {
   mergeSoundEvents
 } from "./distractorSchedule.js";
 import {
+  DISTRACTOR_GIF_SECTIONS_QA,
   DISTRACTOR_ONLY_QA,
   DISTRACTOR_SECTIONS_ONLY_QA,
+  applyDistractorGifSectionsQa,
   applyDistractorOnlyQa,
   applyDistractorSectionsOnlyQa
 } from "./testQaMode.js";
@@ -142,6 +144,7 @@ export function profileKeyFromAge(age) {
 export function getProfile(key) {
   const base = PROFILES[key] ?? PROFILES.adult;
   if (DISTRACTOR_ONLY_QA) return applyDistractorOnlyQa(base);
+  if (DISTRACTOR_GIF_SECTIONS_QA) return applyDistractorGifSectionsQa(base);
   if (DISTRACTOR_SECTIONS_ONLY_QA) return applyDistractorSectionsOnlyQa(base);
   return base;
 }
@@ -175,4 +178,8 @@ export function getPracticeProfile(profile) {
   };
 }
 
-export { DISTRACTOR_ONLY_QA, DISTRACTOR_SECTIONS_ONLY_QA } from "./testQaMode.js";
+export {
+  DISTRACTOR_GIF_SECTIONS_QA,
+  DISTRACTOR_ONLY_QA,
+  DISTRACTOR_SECTIONS_ONLY_QA
+} from "./testQaMode.js";
