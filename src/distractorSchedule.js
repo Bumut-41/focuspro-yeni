@@ -11,6 +11,7 @@ import {
   activeItemsAt,
   activeItemsOverlapping,
   buildGifItem,
+  MOVING_HORIZONTAL_KEYS,
   pairViolatesPlacement
 } from "./gifPlacement.js";
 import {
@@ -22,10 +23,24 @@ import {
   SILENT_TRACK_STAGGER_MS
 } from "./distractorTiming.js";
 const MOVER_KEYS = ["top", "kosan", "kedi"];
-/** Sessiz pencerede her hareketli gif en fazla kaç kez (top/koşan/kedi ayrı ayrı) */
-const SILENT_MOVER_MAX_PER_KEY = 4;
-/** Yaklaşık her N slotta bir hareketli gif denenir (küçük = daha sık) */
-const SILENT_MOVER_SLOT_PERIOD = 4;
+/** Sessiz pencerede hareketli gif üst sınırı (gif başına) */
+const SILENT_MOVER_MAX = { top: 4, kosan: 6, kedi: 6 };
+/** Eşit sayıda iken önce denenecek (koşan/kedi biraz daha sık) */
+const SILENT_MOVER_PRIORITY = { kedi: 0, kosan: 1, top: 2 };
+/** Her N slotta tam hareketli deneme; arada yalnızca koşan/kedi */
+const SILENT_MOVER_SLOT_PERIOD = 3;
+
+function silentMoverMax(key) {
+  return SILENT_MOVER_MAX[key] ?? 4;
+}
+
+function sortMoversByQuota(moverCounts) {
+  return [...MOVER_KEYS].sort((a, b) => {
+    const diff = (moverCounts[a] ?? 0) - (moverCounts[b] ?? 0);
+    if (diff !== 0) return diff;
+    return (SILENT_MOVER_PRIORITY[a] ?? 9) - (SILENT_MOVER_PRIORITY[b] ?? 9);
+  });
+}
 
 const GIF_KEYS = DISTRACTOR_GIF_KEYS;
 const STATIC_GIF_KEYS = GIF_KEYS.filter((k) => !MOVER_KEYS.includes(k));
@@ -126,7 +141,7 @@ function silentGifDuration(endMs, at) {
 }
 
 function silentKeysForSlot(slotIndex, moverCounts) {
-  const moversLeft = MOVER_KEYS.filter((k) => moverCounts[k] < SILENT_MOVER_MAX_PER_KEY);
+  const moversLeft = MOVER_KEYS.filter((k) => (moverCounts[k] ?? 0) < silentMoverMax(k));
   if (moversLeft.length && slotIndex % SILENT_MOVER_SLOT_PERIOD === 0) {
     const turn = Math.floor(slotIndex / SILENT_MOVER_SLOT_PERIOD);
     const preferred = MOVER_KEYS[turn % MOVER_KEYS.length];
@@ -136,20 +151,31 @@ function silentKeysForSlot(slotIndex, moverCounts) {
   return STATIC_GIF_KEYS;
 }
 
-function pickSilentItem(slotIndex, keyRef, at, duration, guard, events, active, moverCounts) {
-  if (slotIndex % SILENT_MOVER_SLOT_PERIOD === 0) {
-    const order = [...MOVER_KEYS].sort(
-      (a, b) => (moverCounts[a] ?? 0) - (moverCounts[b] ?? 0)
-    );
-    for (const key of order) {
-      if ((moverCounts[key] ?? 0) >= SILENT_MOVER_MAX_PER_KEY) continue;
-      const it = pickItem([key], { current: 0 }, at, duration, guard, true, events, active);
-      if (it) {
-        moverCounts[it.key] = (moverCounts[it.key] ?? 0) + 1;
-        return it;
-      }
+function trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts, horizontalOnly) {
+  const phase = slotIndex % SILENT_MOVER_SLOT_PERIOD;
+  if (phase !== 0 && !(horizontalOnly && phase === 1)) return null;
+
+  let order = sortMoversByQuota(moverCounts);
+  if (horizontalOnly) {
+    order = order.filter((k) => MOVING_HORIZONTAL_KEYS.has(k));
+  }
+  for (const key of order) {
+    if ((moverCounts[key] ?? 0) >= silentMoverMax(key)) continue;
+    const it = pickItem([key], { current: 0 }, at, duration, guard, true, events, active);
+    if (it) {
+      moverCounts[it.key] = (moverCounts[it.key] ?? 0) + 1;
+      return it;
     }
   }
+  return null;
+}
+
+function pickSilentItem(slotIndex, keyRef, at, duration, guard, events, active, moverCounts) {
+  const mover =
+    trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts, false) ??
+    trySilentMovers(slotIndex, at, duration, guard, events, active, moverCounts, true);
+  if (mover) return mover;
+
   const it = pickItem(STATIC_GIF_KEYS, keyRef, at, duration, guard, true, events, active);
   return it;
 }
