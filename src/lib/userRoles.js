@@ -47,7 +47,14 @@ export function formatRoleError(err) {
   }
   if (code.includes("cannot_delete_self")) return "Kendi hesabınızı silemezsiniz.";
   if (code.includes("delete_failed")) {
-    return "Kullanıcı silinemedi. Supabase'te super-admin-fix-delete.sql çalıştırıldı mı?";
+    const detail = code.replace(/^.*delete_failed:\s*/i, "").trim();
+    if (detail && !detail.startsWith("delete_failed")) {
+      return `Kullanıcı silinemedi: ${detail}`;
+    }
+    return "Kullanıcı silinemedi. Supabase'te super-admin-fix-delete.sql dosyasını çalıştırın.";
+  }
+  if (code.includes("permission denied") || code.includes("42501")) {
+    return "RPC izni eksik. Supabase'te super-admin-fix-credits.sql dosyasını çalıştırın.";
   }
   if (code.includes("forbidden")) return "Bu işlem için yetkiniz yok.";
   if (code.includes("user_not_found")) return "Kullanıcı bulunamadı.";

@@ -191,7 +191,8 @@ export default function AdminPage() {
       setMsg(`${profileRow.full_name} kredisi ${credits} olarak kaydedildi.`);
       await load();
     } catch (e) {
-      setMsg(formatRoleError(e));
+      const detail = e?.message || e?.details || "";
+      setMsg(detail ? `${formatRoleError(e)} (${detail})` : formatRoleError(e));
     } finally {
       setCreditBusy(null);
     }

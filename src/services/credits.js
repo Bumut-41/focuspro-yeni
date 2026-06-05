@@ -46,8 +46,43 @@ export async function superAdminSetCredits(userId, credits) {
   return data;
 }
 
-/** Super admin: kullanıcıyı siler. */
+/** Super admin: kullanıcının Storage PDF'lerini siler (SQL ile silinemez). */
+async function deleteUserReportPdfs(userId) {
+  const paths = new Set();
+
+  const { data: sessions, error: sessionsError } = await supabase
+    .from("test_sessions")
+    .select("pdf_path, admin_pdf_path")
+    .eq("owner_id", userId);
+  if (sessionsError) throw sessionsError;
+
+  for (const row of sessions ?? []) {
+    if (row.pdf_path) paths.add(row.pdf_path);
+    if (row.admin_pdf_path) paths.add(row.admin_pdf_path);
+  }
+
+  const { data: listed, error: listError } = await supabase.storage.from("reports").list(userId, {
+    limit: 1000
+  });
+  if (listError) {
+    const msg = listError.message ?? "";
+    if (!/not found|does not exist/i.test(msg)) throw listError;
+  } else {
+    for (const file of listed ?? []) {
+      if (file?.name) paths.add(`${userId}/${file.name}`);
+    }
+  }
+
+  const pathList = [...paths];
+  if (!pathList.length) return;
+
+  const { error: removeError } = await supabase.storage.from("reports").remove(pathList);
+  if (removeError) throw removeError;
+}
+
+/** Super admin: kullanıcıyı siler (önce PDF'ler, sonra veritabanı). */
 export async function superAdminDeleteUser(userId) {
+  await deleteUserReportPdfs(userId);
   const { error } = await supabase.rpc("super_admin_delete_user", {
     p_user_id: userId
   });
