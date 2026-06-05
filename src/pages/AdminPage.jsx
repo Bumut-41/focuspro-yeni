@@ -217,7 +217,8 @@ export default function AdminPage() {
       }
       await load();
     } catch (e) {
-      setMsg(formatRoleError(e));
+      const detail = e?.message || e?.details || "";
+      setMsg(detail ? `${formatRoleError(e)} (${detail})` : formatRoleError(e));
     } finally {
       setDeleteBusy(null);
     }

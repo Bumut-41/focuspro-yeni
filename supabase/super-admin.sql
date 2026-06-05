@@ -153,13 +153,15 @@ begin
 end;
 $$;
 
--- Super admin: kullanıcıyı tamamen sil (auth + profil cascade)
+-- Super admin: kullanıcıyı tamamen sil (storage + auth + profil cascade)
 create or replace function public.super_admin_delete_user(p_user_id uuid)
 returns void
 language plpgsql
 security definer
-set search_path = public, auth
+set search_path = public, auth, storage
 as $$
+declare
+  v_deleted int;
 begin
   if not public.is_super_admin() then
     raise exception 'forbidden';
@@ -177,9 +179,28 @@ begin
     raise exception 'user_not_found';
   end if;
 
+  -- Storage PDF'leri önce sil (aksi halde auth.users silinemez)
+  delete from storage.objects
+  where bucket_id = 'reports'
+    and (
+      owner = p_user_id
+      or (storage.foldername(name))[1] = p_user_id::text
+    );
+
   delete from auth.users where id = p_user_id;
+  get diagnostics v_deleted = row_count;
+
+  if v_deleted = 0 then
+    delete from public.profiles where id = p_user_id;
+    get diagnostics v_deleted = row_count;
+    if v_deleted = 0 then
+      raise exception 'delete_failed';
+    end if;
+  end if;
 end;
 $$;
+
+grant execute on function public.super_admin_delete_user(uuid) to authenticated;
 
 -- İlk super admin (e-postanızı yazın):
 -- update public.profiles set role = 'super_admin'

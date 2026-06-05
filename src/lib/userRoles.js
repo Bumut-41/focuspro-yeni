@@ -46,6 +46,9 @@ export function formatRoleError(err) {
     return "Super Admin rolünü yalnızca mevcut bir Super Admin atayabilir.";
   }
   if (code.includes("cannot_delete_self")) return "Kendi hesabınızı silemezsiniz.";
+  if (code.includes("delete_failed")) {
+    return "Kullanıcı silinemedi. Supabase'te super-admin-fix-delete.sql çalıştırıldı mı?";
+  }
   if (code.includes("forbidden")) return "Bu işlem için yetkiniz yok.";
   if (code.includes("user_not_found")) return "Kullanıcı bulunamadı.";
   return err?.message || "İşlem başarısız.";
