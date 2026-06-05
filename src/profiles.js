@@ -20,6 +20,8 @@ import {
 } from "./testQaMode.js";
 
 const MIN = 60_000;
+const DISTRACTOR_RAMP_STEP_MS = 30_000;
+const DISTRACTOR_RAMP_STIMULUS_DROP = 100;
 
 function phase(endMin, name, stimulus) {
   return {
@@ -28,6 +30,30 @@ function phase(endMin, name, stimulus) {
     stimulus,
     gap: Math.round(stimulus * 0.45)
   };
+}
+
+/**
+ * Çeldirici bloğu: bölümün tanımlı başlangıç hızından başlar, her 30 sn −100 ms.
+ * Sonraki bölüme geçince hız sıfırlanır (önceki bölümün son hızı devam etmez).
+ */
+function distractorRampPhases(startMin, endMin, baseName, sectionStartStimulus) {
+  const startMs = startMin * MIN;
+  const endMs = endMin * MIN;
+  const phases = [];
+  let step = 0;
+  for (let t = startMs + DISTRACTOR_RAMP_STEP_MS; t <= endMs; t += DISTRACTOR_RAMP_STEP_MS) {
+    const stimulus = sectionStartStimulus - step * DISTRACTOR_RAMP_STIMULUS_DROP;
+    const segStartSec = step * 30;
+    const segEndSec = (step + 1) * 30;
+    phases.push({
+      end: t,
+      name: `${baseName} · ${segStartSec}–${segEndSec} sn`,
+      stimulus,
+      gap: Math.round(stimulus * 0.45)
+    });
+    step += 1;
+  }
+  return phases;
 }
 
 /** Çocuk — 13 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–8 ses, 8–11 gif, 11–13 kapanış) */
@@ -49,14 +75,21 @@ const childGif = mergeGifEvents([
 
 const childSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 8 * MIN)]);
 
+/** Yetişkin çeldirici bölüm başlangıç hızları (ms) — her bölüm kendi hızından ramp yapar. */
+const ADULT_DISTRACTOR_START_MS = {
+  silent: 1300,
+  sound: 900,
+  combined: 1200
+};
+
 /** Yetişkin — 15 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–9 ses, 9–12 gif, 12–15 kapanış) */
 const adultPhases = [
   phase(1, "Yetişkin — 0–1 dk", 1300),
   phase(2, "Yetişkin — 1–2 dk", 1100),
   phase(3, "Yetişkin — 2–3 dk", 1000),
-  phase(6, "Yetişkin — 3–6 dk (sessiz gif)", 1100),
-  phase(9, "Yetişkin — 6–9 dk (sadece ses)", 900),
-  phase(12, "Yetişkin — 9–12 dk (sessiz + sesli gif)", 1200),
+  ...distractorRampPhases(3, 6, "Yetişkin — 3–6 dk (sessiz gif)", ADULT_DISTRACTOR_START_MS.silent),
+  ...distractorRampPhases(6, 9, "Yetişkin — 6–9 dk (sadece ses)", ADULT_DISTRACTOR_START_MS.sound),
+  ...distractorRampPhases(9, 12, "Yetişkin — 9–12 dk (sessiz + sesli gif)", ADULT_DISTRACTOR_START_MS.combined),
   phase(13, "Yetişkin — 12–13 dk", 1100),
   phase(14, "Yetişkin — 13–14 dk", 900),
   phase(15, "Yetişkin — 14–15 dk", 700)
@@ -69,14 +102,21 @@ const adultGif = mergeGifEvents([
 
 const adultSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 9 * MIN)]);
 
+/** Ergen çeldirici bölüm başlangıç hızları (ms). */
+const TEEN_DISTRACTOR_START_MS = {
+  silent: 1100,
+  sound: 1000,
+  combined: 900
+};
+
 /** Ergen — 15 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–9 ses, 9–12 gif, 12–15 kapanış) */
 const teenPhases = [
   phase(1, "Ergen — 0–1 dk", 1400),
   phase(2, "Ergen — 1–2 dk", 1200),
   phase(3, "Ergen — 2–3 dk", 1000),
-  phase(6, "Ergen — 3–6 dk (sessiz gif)", 1100),
-  phase(9, "Ergen — 6–9 dk (sadece ses)", 1000),
-  phase(12, "Ergen — 9–12 dk (sessiz + sesli gif)", 900),
+  ...distractorRampPhases(3, 6, "Ergen — 3–6 dk (sessiz gif)", TEEN_DISTRACTOR_START_MS.silent),
+  ...distractorRampPhases(6, 9, "Ergen — 6–9 dk (sadece ses)", TEEN_DISTRACTOR_START_MS.sound),
+  ...distractorRampPhases(9, 12, "Ergen — 9–12 dk (sessiz + sesli gif)", TEEN_DISTRACTOR_START_MS.combined),
   phase(13, "Ergen — 12–13 dk", 1300),
   phase(14, "Ergen — 13–14 dk", 1100),
   phase(15, "Ergen — 14–15 dk", 900)
