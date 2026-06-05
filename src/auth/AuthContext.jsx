@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { hasAdminAccess } from "../lib/userRoles.js";
 import { supabase, supabaseConfigured } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
@@ -58,7 +59,7 @@ export function AuthProvider({ children }) {
       loading,
       isSupabaseReady: supabaseConfigured,
       isSuperAdmin: profile?.role === "super_admin",
-      isAdmin: profile?.role === "admin" || profile?.role === "super_admin",
+      isAdmin: hasAdminAccess(profile?.role),
       isPsychologist: profile?.role === "psychologist",
       credits: profile?.test_credits ?? 0,
       needsProfileCompletion,

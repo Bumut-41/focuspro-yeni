@@ -232,6 +232,11 @@ export default function AdminPage() {
           title="Yönetim"
           description="Tüm kullanıcılar ve test sonuçları. Her oturum için test raporu ve basış raporu PDF indirilebilir."
         />
+        {isSuperAdmin && (
+          <p style={{ margin: "0 0 12px", fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
+            Super Admin: aşağıdaki tüm yönetici işlemleri + tabloda manuel kredi ve kullanıcı silme.
+          </p>
+        )}
         <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
           <Field label="Kullanıcıya kredi ver" className="fp-field--grow">
             <Select value={grantUser} onChange={(e) => setGrantUser(e.target.value)}>

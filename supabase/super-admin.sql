@@ -7,7 +7,10 @@
 -- Hata "unsafe use of new value super_admin" alırsanız: Adım 1 atlanmış veya
 -- aynı sekmede birleştirilmiş demektir; önce 01-enum dosyasını ayrı çalıştırın.
 
--- Yönetici paneli: admin + super_admin
+-- is_admin = yönetici paneli + tüm admin RPC/RLS (super_admin DAHİL).
+-- Super Admin ek olarak: super_admin_set_credits, super_admin_delete_user, super_admin rol atama.
+-- Devralınan admin yetkileri: admin_add_credits, admin_set_user_role, admin_list_profiles,
+-- tüm test_sessions/test_press_timelines görüntüleme, reports storage okuma.
 create or replace function public.is_admin()
 returns boolean
 language sql

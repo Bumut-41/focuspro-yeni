@@ -12,9 +12,12 @@ export const ROLE_LABELS = {
   individual: "Bireysel"
 };
 
+/** Yönetim paneli + tüm admin RPC/RLS yetkileri (is_admin). */
+export const ADMIN_PANEL_ROLES = ["admin", "super_admin"];
+
 export const ROLE_DESCRIPTIONS = {
   super_admin:
-    "Tüm yönetici yetkileri + kullanıcı silme, manuel kredi tanımlama, Super Admin atama.",
+    "Yöneticinin TÜM yetkileri (panel, tüm testler, kredi ekleme, rol atama, basış raporları) + manuel kredi, kullanıcı silme, Super Admin atama.",
   admin:
     "Yönetim paneli, tüm testler ve kullanıcılar, kredi ekleme, rol atama, basış raporları.",
   psychologist: "Test uygular, kendi panelinde kendi test kayıtlarını ve raporlarını görür.",
@@ -23,6 +26,11 @@ export const ROLE_DESCRIPTIONS = {
 
 export function roleLabel(role) {
   return ROLE_LABELS[role] ?? role ?? "—";
+}
+
+/** Yönetim paneli ve admin API erişimi (super_admin dahil). */
+export function hasAdminAccess(role) {
+  return ADMIN_PANEL_ROLES.includes(role);
 }
 
 export function assignableRoles(isSuperAdmin) {
