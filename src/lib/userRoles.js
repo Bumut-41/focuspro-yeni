@@ -1,16 +1,22 @@
 /** Sistemdeki kullanıcı rolleri (profiles.role = user_role enum). */
 
-export const USER_ROLES = ["admin", "psychologist", "individual"];
+export const USER_ROLES = ["super_admin", "admin", "psychologist", "individual"];
+
+/** Normal yönetici super_admin atayamaz. */
+export const ROLES_ASSIGNABLE_BY_ADMIN = ["admin", "psychologist", "individual"];
 
 export const ROLE_LABELS = {
+  super_admin: "Super Admin",
   admin: "Yönetici",
   psychologist: "Psikolog",
   individual: "Bireysel"
 };
 
 export const ROLE_DESCRIPTIONS = {
+  super_admin:
+    "Tüm yönetici yetkileri + kullanıcı silme, manuel kredi tanımlama, Super Admin atama.",
   admin:
-    "Yönetim paneli, tüm testler ve kullanıcılar, kredi/rol atama, basış raporları (tam yetki).",
+    "Yönetim paneli, tüm testler ve kullanıcılar, kredi ekleme, rol atama, basış raporları.",
   psychologist: "Test uygular, kendi panelinde kendi test kayıtlarını ve raporlarını görür.",
   individual: "Test uygular, kendi panelinde yalnızca kendi test kayıtlarını görür."
 };
@@ -19,12 +25,20 @@ export function roleLabel(role) {
   return ROLE_LABELS[role] ?? role ?? "—";
 }
 
+export function assignableRoles(isSuperAdmin) {
+  return isSuperAdmin ? USER_ROLES : ROLES_ASSIGNABLE_BY_ADMIN;
+}
+
 export function formatRoleError(err) {
   const code = err?.message ?? "";
-  if (code.includes("cannot_demote_self")) {
-    return "Kendi yönetici rolünüzü kaldıramazsınız.";
+  if (code.includes("cannot_change_own_role")) {
+    return "Kendi rolünüzü bu ekrandan değiştiremezsiniz.";
   }
-  if (code.includes("forbidden")) return "Bu işlem için yönetici yetkisi gerekir.";
+  if (code.includes("forbidden_super_admin_role")) {
+    return "Super Admin rolünü yalnızca mevcut bir Super Admin atayabilir.";
+  }
+  if (code.includes("cannot_delete_self")) return "Kendi hesabınızı silemezsiniz.";
+  if (code.includes("forbidden")) return "Bu işlem için yetkiniz yok.";
   if (code.includes("user_not_found")) return "Kullanıcı bulunamadı.";
-  return err?.message || "Rol güncellenemedi.";
+  return err?.message || "İşlem başarısız.";
 }

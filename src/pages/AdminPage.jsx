@@ -6,8 +6,20 @@ import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession
 } from "../lib/adminSessionPdf.js";
-import { ROLE_DESCRIPTIONS, USER_ROLES, formatRoleError, roleLabel } from "../lib/userRoles.js";
-import { adminAddCredits, adminSetUserRole, fetchAllProfiles } from "../services/credits.js";
+import {
+  ROLE_DESCRIPTIONS,
+  USER_ROLES,
+  assignableRoles,
+  formatRoleError,
+  roleLabel
+} from "../lib/userRoles.js";
+import {
+  adminAddCredits,
+  adminSetUserRole,
+  fetchAllProfiles,
+  superAdminDeleteUser,
+  superAdminSetCredits
+} from "../services/credits.js";
 import {
   fetchAdminPressTimeline,
   fetchAllSessions,
@@ -28,7 +40,7 @@ import {
 } from "../components/ui.jsx";
 
 export default function AdminPage() {
-  const { isAdmin, user: authUser } = useAuth();
+  const { isAdmin, isSuperAdmin, user: authUser } = useAuth();
   const [profiles, setProfiles] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [grantUser, setGrantUser] = useState("");
@@ -40,6 +52,9 @@ export default function AdminPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(null);
   const [roleBusy, setRoleBusy] = useState(null);
+  const [creditDrafts, setCreditDrafts] = useState({});
+  const [creditBusy, setCreditBusy] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(null);
 
   async function openStoredPdf(pdfPath, busyKey) {
     if (!pdfPath) return;
@@ -58,6 +73,7 @@ export default function AdminPage() {
     const [p, s] = await Promise.all([fetchAllProfiles(), fetchAllSessions(200)]);
     setProfiles(p);
     setSessions(s);
+    setCreditDrafts(Object.fromEntries(p.map((row) => [row.id, String(row.test_credits ?? 0)])));
   }, []);
 
   useEffect(() => {
@@ -160,6 +176,55 @@ export default function AdminPage() {
     }
   }
 
+  async function saveUserCredits(profileRow) {
+    const raw = creditDrafts[profileRow.id];
+    const credits = Number(raw);
+    if (!Number.isFinite(credits) || credits < 0) {
+      setMsg("Geçerli bir kredi değeri girin (0 veya üzeri).");
+      return;
+    }
+    if (credits === profileRow.test_credits) return;
+    setCreditBusy(profileRow.id);
+    setMsg("");
+    try {
+      await superAdminSetCredits(profileRow.id, credits);
+      setMsg(`${profileRow.full_name} kredisi ${credits} olarak kaydedildi.`);
+      await load();
+    } catch (e) {
+      setMsg(formatRoleError(e));
+    } finally {
+      setCreditBusy(null);
+    }
+  }
+
+  async function deleteUser(profileRow) {
+    if (
+      !window.confirm(
+        `${profileRow.full_name} (${profileRow.email ?? "e-posta yok"}) silinsin mi? Bu işlem geri alınamaz.`
+      )
+    ) {
+      return;
+    }
+    setDeleteBusy(profileRow.id);
+    setMsg("");
+    try {
+      await superAdminDeleteUser(profileRow.id);
+      setMsg(`${profileRow.full_name} silindi.`);
+      if (selectedId && detail?.owner_id === profileRow.id) {
+        setSelectedId(null);
+        setDetail(null);
+        setTimeline(null);
+      }
+      await load();
+    } catch (e) {
+      setMsg(formatRoleError(e));
+    } finally {
+      setDeleteBusy(null);
+    }
+  }
+
+  const rolesForPicker = assignableRoles(isSuperAdmin);
+
   return (
     <Page wide>
       <Card>
@@ -192,7 +257,10 @@ export default function AdminPage() {
           </Button>
         </Stack>
         {msg && (
-          <Alert variant={msg.includes("eklendi") ? "success" : "info"} style={{ marginTop: 12 }}>
+          <Alert
+            variant={msg.includes("eklendi") || msg.includes("güncellendi") || msg.includes("kaydedildi") || msg.includes("silindi") ? "success" : "info"}
+            style={{ marginTop: 12 }}
+          >
             {msg}
           </Alert>
         )}
@@ -201,7 +269,11 @@ export default function AdminPage() {
       <Card>
         <CardHeader
           title={`Kullanıcılar (${profiles.length})`}
-          description="Rol ve yetki: listeden seçin; kayıt anında uygulanır."
+          description={
+            isSuperAdmin
+              ? "Super Admin: rol, manuel kredi ve kullanıcı silme. Değişiklikler anında uygulanır."
+              : "Rol ve yetki: listeden seçin; kayıt anında uygulanır."
+          }
         />
         <ul
           style={{
@@ -222,16 +294,22 @@ export default function AdminPage() {
           columns={[
             { key: "full_name", label: "Ad" },
             {
+              label: "E-posta",
+              render: (p) => (
+                <span style={{ fontSize: "0.875rem" }}>{p.email ?? "—"}</span>
+              )
+            },
+            {
               label: "Rol / yetki",
               render: (p) => (
                 <Select
                   value={p.role}
-                  disabled={roleBusy === p.id}
+                  disabled={roleBusy === p.id || p.id === authUser?.id}
                   onChange={(e) => changeUserRole(p, e.target.value)}
                   style={{ minWidth: 140 }}
                   aria-label={`${p.full_name} rolü`}
                 >
-                  {USER_ROLES.map((r) => (
+                  {rolesForPicker.map((r) => (
                     <option key={r} value={r}>
                       {roleLabel(r)}
                     </option>
@@ -239,13 +317,57 @@ export default function AdminPage() {
                 </Select>
               )
             },
-            { key: "test_credits", label: "Kredi" },
+            {
+              label: "Kredi",
+              render: (p) =>
+                isSuperAdmin ? (
+                  <Stack gap={6} wrap style={{ alignItems: "center" }}>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={creditDrafts[p.id] ?? String(p.test_credits ?? 0)}
+                      disabled={creditBusy === p.id}
+                      onChange={(e) =>
+                        setCreditDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))
+                      }
+                      style={{ width: 96 }}
+                      aria-label={`${p.full_name} kredi`}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={creditBusy === p.id}
+                      onClick={() => saveUserCredits(p)}
+                    >
+                      {creditBusy === p.id ? "…" : "Kaydet"}
+                    </Button>
+                  </Stack>
+                ) : (
+                  <span>{p.test_credits}</span>
+                )
+            },
             {
               label: "",
-              render: (p) =>
-                p.id === authUser?.id ? (
-                  <span style={{ fontSize: "0.75rem", color: "var(--fp-text-muted)" }}>Siz</span>
-                ) : null
+              render: (p) => (
+                <Stack gap={6} wrap style={{ alignItems: "center" }}>
+                  {p.id === authUser?.id && (
+                    <span style={{ fontSize: "0.75rem", color: "var(--fp-text-muted)" }}>Siz</span>
+                  )}
+                  {isSuperAdmin && p.id !== authUser?.id && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={deleteBusy === p.id}
+                      onClick={() => deleteUser(p)}
+                      style={{ color: "#dc2626" }}
+                    >
+                      {deleteBusy === p.id ? "…" : "Sil"}
+                    </Button>
+                  )}
+                </Stack>
+              )
             }
           ]}
           rows={profiles}

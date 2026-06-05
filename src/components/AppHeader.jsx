@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { AppNavLink, Button } from "./ui.jsx";
 
 export function AppHeader() {
-  const { user, profile, signOut, isSupabaseReady } = useAuth();
+  const { user, profile, signOut, isSupabaseReady, isAdmin } = useAuth();
 
   return (
     <header className="fp-header">
@@ -26,7 +26,7 @@ export function AppHeader() {
                   Panel
                 </AppNavLink>
                 <AppNavLink to="/test">Test</AppNavLink>
-                {profile?.role === "admin" && <AppNavLink to="/admin">Yönetim</AppNavLink>}
+                {isAdmin && <AppNavLink to="/admin">Yönetim</AppNavLink>}
                 <div className="fp-nav-user">
                   <span className="fp-nav-user-name">{profile?.full_name}</span>
                   <Button variant="ghost" size="sm" onClick={() => signOut()}>
