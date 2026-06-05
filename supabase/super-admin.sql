@@ -1,11 +1,11 @@
 -- Super Admin: rol, e-posta listesi, manuel kredi, kullanıcı silme
--- Supabase SQL Editor'da bir kez çalıştırın (admin-user-role.sql sonrası).
-
-do $$ begin
-  alter type public.user_role add value 'super_admin';
-exception
-  when duplicate_object then null;
-end $$;
+--
+-- ÖNEMLİ — İKİ ADIM:
+--   1) super-admin-01-enum.sql  → Run (tek başına)
+--   2) Bu dosya (super-admin.sql) → Run
+--
+-- Hata "unsafe use of new value super_admin" alırsanız: Adım 1 atlanmış veya
+-- aynı sekmede birleştirilmiş demektir; önce 01-enum dosyasını ayrı çalıştırın.
 
 -- Yönetici paneli: admin + super_admin
 create or replace function public.is_admin()
