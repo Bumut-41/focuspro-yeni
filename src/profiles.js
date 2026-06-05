@@ -149,32 +149,62 @@ export function getProfile(key) {
   return base;
 }
 
-/** 30 sn deneme — sessiz gif (sessiz bölüm kuralları); sonuç kaydedilmez */
+/** 30 sn deneme; sonuç kaydedilmez. Süre notasyonu: 0.5 = 5. sn, 0.11 = 11. sn … */
 export const PRACTICE_DURATION_MS = 30_000;
 
-/** Deneme ana simge süresi (ms). Yetişkin: 1300 (not: 13800 yazım hatası varsayıldı). */
-export function practiceStimulusMs(profileKey) {
-  if (profileKey === "child") return 1800;
-  if (profileKey === "teen") return 1400;
-  return 1300;
+const PRACTICE_MS = {
+  silentStart: 5_000,
+  soundStart: 11_000,
+  combinedStart: 18_000,
+  closingStart: 26_000,
+  end: PRACTICE_DURATION_MS
+};
+
+function practicePhase(endMs, name, stimulus) {
+  return {
+    end: endMs,
+    name,
+    stimulus,
+    gap: Math.round(stimulus * 0.45)
+  };
 }
 
+/** Yetişkin / ergen — tablo hızları (ergen = yetişkin ile aynı). */
+const PRACTICE_ADULT_TEEN_PHASES = [
+  practicePhase(5_000, "Deneme — çeldirici yok", 1300),
+  practicePhase(11_000, "Deneme — sessiz gif", 1100),
+  practicePhase(18_000, "Deneme — sadece ses", 1000),
+  practicePhase(26_000, "Deneme — kombine", 900),
+  practicePhase(PRACTICE_DURATION_MS, "Deneme — çeldirici yok", 1000)
+];
+
+/** Çocuk — tüm aralıklarda 1800 ms. */
+const PRACTICE_CHILD_PHASES = [
+  practicePhase(5_000, "Deneme — çeldirici yok", 1800),
+  practicePhase(11_000, "Deneme — sessiz gif", 1800),
+  practicePhase(18_000, "Deneme — sadece ses", 1800),
+  practicePhase(26_000, "Deneme — kombine", 1800),
+  practicePhase(PRACTICE_DURATION_MS, "Deneme — çeldirici yok", 1800)
+];
+
+const PRACTICE_GIF = mergeGifEvents([
+  buildSilentGifWindow(PRACTICE_MS.silentStart, PRACTICE_MS.soundStart),
+  buildSoundGifWindow(PRACTICE_MS.combinedStart, PRACTICE_MS.closingStart)
+]);
+
+const PRACTICE_SOUND = mergeSoundEvents([
+  buildSoloSoundWindow(PRACTICE_MS.soundStart, PRACTICE_MS.combinedStart)
+]);
+
 export function getPracticeProfile(profile) {
-  const stimulus = practiceStimulusMs(profile.key);
+  const phases = profile.key === "child" ? PRACTICE_CHILD_PHASES : PRACTICE_ADULT_TEEN_PHASES;
   return {
     ...profile,
     isPractice: true,
     durationMs: PRACTICE_DURATION_MS,
-    phases: [
-      {
-        end: PRACTICE_DURATION_MS,
-        name: "Deneme (sessiz gif)",
-        stimulus,
-        gap: Math.round(stimulus * 0.45)
-      }
-    ],
-    gifEvents: buildSilentGifWindow(0, PRACTICE_DURATION_MS),
-    soundEvents: []
+    phases,
+    gifEvents: PRACTICE_GIF,
+    soundEvents: PRACTICE_SOUND
   };
 }
 

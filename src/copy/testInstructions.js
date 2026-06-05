@@ -9,7 +9,7 @@ export const TEST_INSTRUCTION_PARAGRAPHS = [
   "Senin görevin yalnızca mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmaktır.",
   "Mavi üçgen dışında başka hiçbir şekli gördüğünde basma.",
   "Örneğin; mavi kare, yeşil üçgen, kırmızı daire, siyah artı veya başka şekiller gördüğünde basma.",
-  "Yönergeden sonra 30 saniyelik bir deneme yapacaksın; ekranda sessiz gifler de görünebilir (asıl testteki sessiz gif bölümüyle aynı kurallar). Bu deneme kaydedilmez.",
+  "Yönergeden sonra 30 saniyelik bir deneme yapacaksın; asıl testteki gibi sırayla çeldirici yok, sessiz gif, sadece ses ve kombine bölümler kısa süreyle gelir. Bu deneme kaydedilmez.",
   "Unutma: Sadece mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmalısın."
 ];
 
