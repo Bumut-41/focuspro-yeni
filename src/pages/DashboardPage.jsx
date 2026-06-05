@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { roleLabel } from "../lib/userRoles.js";
 import { fetchMySessions, getReportPdfSignedUrl } from "../services/sessions.js";
 import {
   Alert,
@@ -12,12 +13,6 @@ import {
   Page,
   Stack
 } from "../components/ui.jsx";
-
-const roleLabel = {
-  admin: "Yönetici",
-  psychologist: "Psikolog",
-  individual: "Bireysel"
-};
 
 export default function DashboardPage() {
   const { profile, isAdmin } = useAuth();
@@ -57,11 +52,10 @@ export default function DashboardPage() {
         <CardHeader
           title={`Hoş geldiniz, ${profile?.full_name}`}
           description="Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin."
-          action={<Badge variant="primary">{roleLabel[profile?.role] ?? profile?.role}</Badge>}
+          action={<Badge variant="primary">{roleLabel(profile?.role)}</Badge>}
         />
         <Alert variant="success">
-          Şimdilik <strong>sınırsız ücretsiz</strong> test yapabilirsiniz. Ücretli paketler ve ödeme sistemi daha sonra
-          eklenecek.
+          Test bittiğinde <strong>rapor PDF otomatik kaydedilir</strong> ve aşağıdaki listeden açılabilir.
         </Alert>
         <Stack gap={12} style={{ marginTop: 20 }}>
           <Button asLink to="/test" variant="primary">
@@ -81,7 +75,10 @@ export default function DashboardPage() {
       </Card>
 
       <Card>
-        <CardHeader title="Geçmiş testleriniz" description="Kayıtlı oturumlar ve PDF raporları." />
+        <CardHeader
+          title="Geçmiş testleriniz"
+          description="Katılımcı test raporu PDF — dashboard üzerinden görüntülenir."
+        />
         {!sessions.length && <EmptyState title="Henüz kayıtlı test yok." description="İlk değerlendirmenizi başlatın." />}
         {sessions.length > 0 && (
           <DataTable
@@ -97,14 +94,16 @@ export default function DashboardPage() {
                 render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
               },
               {
-                label: "PDF",
+                label: "Test raporu",
                 render: (s) =>
                   s.pdf_path ? (
-                    <Button variant="secondary" size="sm" disabled={pdfBusy === s.id} onClick={() => openPdf(s)}>
-                      {pdfBusy === s.id ? "…" : "Aç"}
+                    <Button variant="primary" size="sm" disabled={pdfBusy === s.id} onClick={() => openPdf(s)}>
+                      {pdfBusy === s.id ? "…" : "Raporu aç"}
                     </Button>
                   ) : (
-                    <span style={{ color: "var(--fp-text-muted)" }}>—</span>
+                    <span style={{ color: "var(--fp-text-muted)", fontSize: "0.875rem" }}>
+                      PDF hazırlanıyor…
+                    </span>
                   )
               }
             ]}

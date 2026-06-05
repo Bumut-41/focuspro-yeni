@@ -6,7 +6,8 @@ import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession
 } from "../lib/adminSessionPdf.js";
-import { adminAddCredits, fetchAllProfiles } from "../services/credits.js";
+import { ROLE_DESCRIPTIONS, USER_ROLES, formatRoleError, roleLabel } from "../lib/userRoles.js";
+import { adminAddCredits, adminSetUserRole, fetchAllProfiles } from "../services/credits.js";
 import {
   fetchAdminPressTimeline,
   fetchAllSessions,
@@ -27,7 +28,7 @@ import {
 } from "../components/ui.jsx";
 
 export default function AdminPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user: authUser } = useAuth();
   const [profiles, setProfiles] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [grantUser, setGrantUser] = useState("");
@@ -38,6 +39,7 @@ export default function AdminPage() {
   const [timeline, setTimeline] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(null);
+  const [roleBusy, setRoleBusy] = useState(null);
 
   async function openStoredPdf(pdfPath, busyKey) {
     if (!pdfPath) return;
@@ -143,6 +145,21 @@ export default function AdminPage() {
     }
   }
 
+  async function changeUserRole(profileRow, newRole) {
+    if (!newRole || newRole === profileRow.role) return;
+    setRoleBusy(profileRow.id);
+    setMsg("");
+    try {
+      await adminSetUserRole(profileRow.id, newRole);
+      setMsg(`${profileRow.full_name} → ${roleLabel(newRole)} olarak güncellendi.`);
+      await load();
+    } catch (e) {
+      setMsg(formatRoleError(e));
+    } finally {
+      setRoleBusy(null);
+    }
+  }
+
   return (
     <Page wide>
       <Card>
@@ -182,12 +199,54 @@ export default function AdminPage() {
       </Card>
 
       <Card>
-        <CardHeader title={`Kullanıcılar (${profiles.length})`} />
+        <CardHeader
+          title={`Kullanıcılar (${profiles.length})`}
+          description="Rol ve yetki: listeden seçin; kayıt anında uygulanır."
+        />
+        <ul
+          style={{
+            margin: "0 0 16px",
+            paddingLeft: 20,
+            fontSize: "0.875rem",
+            color: "var(--fp-text-secondary)",
+            lineHeight: 1.55
+          }}
+        >
+          {USER_ROLES.map((r) => (
+            <li key={r}>
+              <strong>{roleLabel(r)}</strong> — {ROLE_DESCRIPTIONS[r]}
+            </li>
+          ))}
+        </ul>
         <DataTable
           columns={[
             { key: "full_name", label: "Ad" },
-            { key: "role", label: "Rol" },
-            { key: "test_credits", label: "Kredi" }
+            {
+              label: "Rol / yetki",
+              render: (p) => (
+                <Select
+                  value={p.role}
+                  disabled={roleBusy === p.id}
+                  onChange={(e) => changeUserRole(p, e.target.value)}
+                  style={{ minWidth: 140 }}
+                  aria-label={`${p.full_name} rolü`}
+                >
+                  {USER_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {roleLabel(r)}
+                    </option>
+                  ))}
+                </Select>
+              )
+            },
+            { key: "test_credits", label: "Kredi" },
+            {
+              label: "",
+              render: (p) =>
+                p.id === authUser?.id ? (
+                  <span style={{ fontSize: "0.75rem", color: "var(--fp-text-muted)" }}>Siz</span>
+                ) : null
+            }
           ]}
           rows={profiles}
           rowKey={(p) => p.id}

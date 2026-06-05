@@ -15,6 +15,16 @@ export async function adminAddCredits(userId, amount) {
   return data;
 }
 
+/** Admin: kullanıcı rolü (admin / psychologist / individual). */
+export async function adminSetUserRole(userId, role) {
+  const { data, error } = await supabase.rpc("admin_set_user_role", {
+    p_user_id: userId,
+    p_role: role
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchAllProfiles() {
   const { data, error } = await supabase
     .from("profiles")
