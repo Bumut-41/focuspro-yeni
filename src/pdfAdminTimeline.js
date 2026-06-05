@@ -7,24 +7,8 @@ import {
   pressToTableRow,
   summarizePresses
 } from "./lib/pressTimelineReport.js";
+import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { getProfile } from "./profiles.js";
-
-let pdfMakePromise;
-
-async function getPdfMake() {
-  if (!pdfMakePromise) {
-    pdfMakePromise = (async () => {
-      const pdfMakeMod = await import("pdfmake/build/pdfmake");
-      const pdfFontsMod = await import("pdfmake/build/vfs_fonts");
-      const pdfMake = pdfMakeMod.default ?? pdfMakeMod;
-      const pdfFonts = pdfFontsMod.default ?? pdfFontsMod;
-      pdfMake.vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs;
-      if (!pdfMake.vfs) throw new Error("PDF yazı tipleri yüklenemedi.");
-      return pdfMake;
-    })();
-  }
-  return pdfMakePromise;
-}
 
 function tableLayout() {
   return {

@@ -2,8 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { AdminPressTimeline } from "../components/AdminPressTimeline.jsx";
+import {
+  downloadParticipantReportFromSession,
+  downloadPressReportFromSession
+} from "../lib/adminSessionPdf.js";
 import { adminAddCredits, fetchAllProfiles } from "../services/credits.js";
-import { downloadAdminTimelinePdf } from "../pdfAdminTimeline.js";
 import {
   fetchAdminPressTimeline,
   fetchAllSessions,
@@ -36,14 +39,14 @@ export default function AdminPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(null);
 
-  async function openPdf(pdfPath, id) {
+  async function openStoredPdf(pdfPath, busyKey) {
     if (!pdfPath) return;
-    setPdfBusy(id);
+    setPdfBusy(busyKey);
     try {
       const url = await getReportPdfSignedUrl(pdfPath);
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
-      setMsg(e.message || "PDF açılamadı.");
+      setMsg(e.message || "Kayıtlı PDF açılamadı.");
     } finally {
       setPdfBusy(null);
     }
@@ -61,26 +64,45 @@ export default function AdminPage() {
 
   if (!isAdmin) return <Navigate to="/" replace />;
 
-  async function downloadPressPdf(sessionRow) {
+  async function loadSessionBundle(sessionId) {
+    const [sess, tl] = await Promise.all([
+      fetchSessionDetail(sessionId),
+      fetchAdminPressTimeline(sessionId)
+    ]);
+    return { sess, tl: tl ?? [] };
+  }
+
+  async function openOrDownloadTestReport(sessionRow) {
+    if (sessionRow.pdf_path) {
+      await openStoredPdf(sessionRow.pdf_path, `${sessionRow.id}-test-open`);
+      return;
+    }
+    const busyId = `${sessionRow.id}-test`;
+    setPdfBusy(busyId);
+    setMsg("");
+    try {
+      const { sess, tl } = await loadSessionBundle(sessionRow.id);
+      await downloadParticipantReportFromSession(sess, tl);
+    } catch (e) {
+      setMsg(e.message || "Test raporu PDF oluşturulamadı.");
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+
+  async function downloadPressReportPdf(sessionRow) {
+    if (sessionRow.admin_pdf_path) {
+      await openStoredPdf(sessionRow.admin_pdf_path, `${sessionRow.id}-basis-open`);
+      return;
+    }
     const busyId = `${sessionRow.id}-basis`;
     setPdfBusy(busyId);
     setMsg("");
     try {
-      const [sess, tl] = await Promise.all([
-        fetchSessionDetail(sessionRow.id),
-        fetchAdminPressTimeline(sessionRow.id)
-      ]);
-      if (!tl?.length) {
-        setMsg("Bu test için basış kaydı yok (eski kayıt veya SQL güncellemesi öncesi).");
-        return;
-      }
-      await downloadAdminTimelinePdf({
-        session: { ...sess, logs: sess.logs ?? [] },
-        timeline: tl,
-        target: sess.target
-      });
+      const { sess, tl } = await loadSessionBundle(sessionRow.id);
+      await downloadPressReportFromSession(sess, tl);
     } catch (e) {
-      setMsg(e.message || "Basış PDF oluşturulamadı.");
+      setMsg(e.message || "Basış raporu PDF oluşturulamadı.");
     } finally {
       setPdfBusy(null);
     }
@@ -99,12 +121,9 @@ export default function AdminPage() {
     setDetailLoading(true);
     setMsg("");
     try {
-      const [sess, tl] = await Promise.all([fetchSessionDetail(id), fetchAdminPressTimeline(id)]);
+      const { sess, tl } = await loadSessionBundle(id);
       setDetail(sess);
       setTimeline(tl);
-      if (!tl?.length) {
-        setMsg("Bu test için basış çizelgesi yok (eski kayıt veya SQL güncellemesi öncesi).");
-      }
     } catch (e) {
       setMsg(e.message);
       setSelectedId(null);
@@ -129,7 +148,7 @@ export default function AdminPage() {
       <Card>
         <CardHeader
           title="Yönetim"
-          description="Tüm kullanıcılar ve test sonuçları (admin yetkisi)."
+          description="Tüm kullanıcılar ve test sonuçları. Her oturum için test raporu ve basış raporu PDF indirilebilir."
         />
         <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
           <Field label="Kullanıcıya kredi ver" className="fp-field--grow">
@@ -176,7 +195,10 @@ export default function AdminPage() {
       </Card>
 
       <Card>
-        <CardHeader title={`Tüm testler (${sessions.length})`} />
+        <CardHeader
+          title={`Tüm testler (${sessions.length})`}
+          description="Test bitince PDF'ler otomatik kaydedilir. Test raporu: katılımcı A/T/I/H. Basış raporu: yalnızca admin."
+        />
         <DataTable
           columns={[
             { label: "Tarih", render: (s) => new Date(s.created_at).toLocaleString("tr-TR") },
@@ -187,40 +209,37 @@ export default function AdminPage() {
               render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
             },
             {
-              label: "İşlemler",
+              label: "Kayıt",
+              render: (s) => (
+                <span style={{ fontSize: "0.8rem", color: "var(--fp-text-muted)" }}>
+                  {s.pdf_path ? "Test ✓" : "Test …"}
+                  {s.admin_pdf_path ? " · Basış ✓" : ""}
+                </span>
+              )
+            },
+            {
+              label: "Raporlar",
               render: (s) => (
                 <Stack gap={6} wrap>
-                  <Button variant="secondary" size="sm" onClick={() => openSession(s.id)}>
-                    {selectedId === s.id ? "Kapat" : "Basış raporu"}
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={pdfBusy?.startsWith(`${s.id}-test`)}
+                    onClick={() => openOrDownloadTestReport(s)}
+                  >
+                    {pdfBusy?.startsWith(`${s.id}-test`) ? "…" : s.pdf_path ? "Test raporu aç" : "Test raporu indir"}
                   </Button>
-                  {s.pdf_path && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={pdfBusy === `${s.id}-p`}
-                      onClick={() => openPdf(s.pdf_path, `${s.id}-p`)}
-                    >
-                      {pdfBusy === `${s.id}-p` ? "…" : "Katılımcı PDF"}
-                    </Button>
-                  )}
                   <Button
                     variant="secondary"
                     size="sm"
-                    disabled={pdfBusy === `${s.id}-basis`}
-                    onClick={() => downloadPressPdf(s)}
+                    disabled={pdfBusy?.startsWith(`${s.id}-basis`)}
+                    onClick={() => downloadPressReportPdf(s)}
                   >
-                    {pdfBusy === `${s.id}-basis` ? "…" : "Basış PDF indir"}
+                    {pdfBusy?.startsWith(`${s.id}-basis`) ? "…" : s.admin_pdf_path ? "Basış raporu aç" : "Basış raporu indir"}
                   </Button>
-                  {s.admin_pdf_path && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={pdfBusy === `${s.id}-a`}
-                      onClick={() => openPdf(s.admin_pdf_path, `${s.id}-a`)}
-                    >
-                      {pdfBusy === `${s.id}-a` ? "…" : "Kayıtlı PDF"}
-                    </Button>
-                  )}
+                  <Button variant="ghost" size="sm" onClick={() => openSession(s.id)}>
+                    {selectedId === s.id ? "Kapat" : "Basış detayı"}
+                  </Button>
                 </Stack>
               )
             }
@@ -233,7 +252,32 @@ export default function AdminPage() {
 
       {detailLoading && <p className="fp-loading">Yükleniyor…</p>}
       {detail && !detailLoading && (
-        <AdminPressTimeline session={detail} timeline={timeline ?? []} target={detail.target} />
+        <AdminPressTimeline
+          session={detail}
+          timeline={timeline ?? []}
+          target={detail.target}
+          onDownloadTestPdf={async () => {
+            setPdfBusy(`${detail.id}-detail-test`);
+            try {
+              await downloadParticipantReportFromSession(detail, timeline ?? []);
+            } catch (e) {
+              setMsg(e.message || "Test raporu PDF oluşturulamadı.");
+            } finally {
+              setPdfBusy(null);
+            }
+          }}
+          onDownloadPressPdf={async () => {
+            setPdfBusy(`${detail.id}-detail-basis`);
+            try {
+              await downloadPressReportFromSession(detail, timeline ?? []);
+            } catch (e) {
+              setMsg(e.message || "Basış raporu PDF oluşturulamadı.");
+            } finally {
+              setPdfBusy(null);
+            }
+          }}
+          pdfBusy={pdfBusy?.startsWith(`${detail.id}-detail`) ?? false}
+        />
       )}
     </Page>
   );

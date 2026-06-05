@@ -24,24 +24,8 @@ import {
   severityLevel
 } from "./reportHelpers.js";
 import { normLevelTextFromZ } from "./reportNorms.js";
+import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { buildReportChartImages } from "./reportCharts.js";
-
-let pdfMakePromise;
-
-async function getPdfMake() {
-  if (!pdfMakePromise) {
-    pdfMakePromise = (async () => {
-      const pdfMakeMod = await import("pdfmake/build/pdfmake");
-      const pdfFontsMod = await import("pdfmake/build/vfs_fonts");
-      const pdfMake = pdfMakeMod.default ?? pdfMakeMod;
-      const pdfFonts = pdfFontsMod.default ?? pdfFontsMod;
-      pdfMake.vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs;
-      if (!pdfMake.vfs) throw new Error("PDF yazı tipleri yüklenemedi (pdfmake vfs).");
-      return pdfMake;
-    })();
-  }
-  return pdfMakePromise;
-}
 
 const HEADER = "#4c1d95";
 const HEADER_LIGHT = "#ede9fe";
