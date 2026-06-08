@@ -378,7 +378,7 @@ export function buildDocDefinition({ participant, profile, logs, target, reportC
       {
         table: {
           headerRows: 1,
-          widths: ["*", "auto", "auto", "auto", "auto", "*"],
+          widths: ["*", "auto", "auto", "auto", "*"],
           body: [
             [
               { text: "İndeks", bold: true, color: "#fff" },
@@ -603,22 +603,28 @@ export function buildDocDefinition({ participant, profile, logs, target, reportC
 export async function createPdfBlob(args) {
   const pdfMake = await getPdfMake();
   const reportCharts =
-    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile));
+    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile, args.participant?.age));
   const doc = buildDocDefinition({ ...args, reportCharts });
   return new Promise((resolve, reject) => {
     try {
-      pdfMake.createPdf(doc).getBlob((b) => resolve(b));
+      pdfMake.createPdf(doc).getBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Test raporu PDF oluşturulamadı."));
+      });
     } catch (e) {
       reject(e);
     }
   });
 }
 
+/** Basış raporu ile aynı yöntem: blob + indirme linki (tarayıcı uyumluluğu). */
 export async function downloadPdf(args) {
-  const pdfMake = await getPdfMake();
-  const reportCharts =
-    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile));
-  const doc = buildDocDefinition({ ...args, reportCharts });
+  const blob = await createPdfBlob(args);
   const name = `FocusProLab_${args.participant.name.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
-  pdfMake.createPdf(doc).download(name);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
 }
