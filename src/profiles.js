@@ -88,10 +88,12 @@ const adultPhases = [
   phase(3, "Yetişkin — 2–3 dk", 1000),
   ...distractorRampPhases(3, 6, "Yetişkin — 3–6 dk (sessiz gif)", ADULT_DISTRACTOR_START_MS.silent),
   ...distractorRampPhases(6, 9, "Yetişkin — 6–9 dk (sadece ses)", ADULT_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(9, 12, "Yetişkin — 9–12 dk (sessiz + sesli gif)", ADULT_DISTRACTOR_START_MS.combined),
+  ...distractorRampPhases(9, 11, "Yetişkin — 9–12 dk (sessiz + sesli gif)", ADULT_DISTRACTOR_START_MS.combined),
+  phase(11.5, "Yetişkin — 9–12 dk (sessiz + sesli gif) · 11–11:30", 900),
+  phase(12, "Yetişkin — 9–12 dk (sessiz + sesli gif) · 11:30–12", 900),
   phase(13, "Yetişkin — 12–13 dk", 1100),
   phase(14, "Yetişkin — 13–14 dk", 900),
-  phase(15, "Yetişkin — 14–15 dk", 700)
+  phase(15, "Yetişkin — 14–15 dk", 900)
 ];
 
 const adultGif = mergeGifEvents([
@@ -114,7 +116,9 @@ const teenPhases = [
   phase(3, "Ergen — 2–3 dk", 1000),
   ...distractorRampPhases(3, 6, "Ergen — 3–6 dk (sessiz gif)", TEEN_DISTRACTOR_START_MS.silent),
   ...distractorRampPhases(6, 9, "Ergen — 6–9 dk (sadece ses)", TEEN_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(9, 12, "Ergen — 9–12 dk (sessiz + sesli gif)", TEEN_DISTRACTOR_START_MS.combined),
+  ...distractorRampPhases(9, 11, "Ergen — 9–12 dk (sessiz + sesli gif)", TEEN_DISTRACTOR_START_MS.combined),
+  phase(11.5, "Ergen — 9–12 dk (sessiz + sesli gif) · 11–11:30", 500),
+  phase(12, "Ergen — 9–12 dk (sessiz + sesli gif) · 11:30–12", 500),
   phase(13, "Ergen — 12–13 dk", 1300),
   phase(14, "Ergen — 13–14 dk", 1100),
   phase(15, "Ergen — 14–15 dk", 900)
