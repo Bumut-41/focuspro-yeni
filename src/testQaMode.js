@@ -42,12 +42,12 @@ const DISTRACTOR_SECTIONS = {
   ],
   adult: [
     { start: 3 * MIN, end: 6 * MIN, name: "3–6 dk (sessiz gif)", stimulus: 1100 },
-    { start: 6 * MIN, end: 9 * MIN, name: "6–9 dk (sadece ses)", stimulus: 900 },
+    { start: 6 * MIN, end: 9 * MIN, name: "6–9 dk (sadece ses)", stimulus: 1100 },
     { start: 9 * MIN, end: 12 * MIN, name: "9–12 dk (sessiz + sesli gif)", stimulus: 1200 }
   ],
   teen: [
     { start: 3 * MIN, end: 6 * MIN, name: "3–6 dk (sessiz gif)", stimulus: 1100 },
-    { start: 6 * MIN, end: 9 * MIN, name: "6–9 dk (sadece ses)", stimulus: 1000 },
+    { start: 6 * MIN, end: 9 * MIN, name: "6–9 dk (sadece ses)", stimulus: 1100 },
     { start: 9 * MIN, end: 12 * MIN, name: "9–12 dk (sessiz + sesli gif)", stimulus: 900 }
   ]
 };

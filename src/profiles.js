@@ -78,7 +78,6 @@ const childSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 8 * MIN)]);
 /** Yetişkin çeldirici bölüm başlangıç hızları (ms) — her bölüm kendi hızından ramp yapar. */
 const ADULT_DISTRACTOR_START_MS = {
   silent: 1300,
-  sound: 900,
   combined: 1200
 };
 
@@ -88,7 +87,7 @@ const adultPhases = [
   phase(2, "Yetişkin — 1–2 dk", 1100),
   phase(3, "Yetişkin — 2–3 dk", 1000),
   ...distractorRampPhases(3, 6, "Yetişkin — 3–6 dk (sessiz gif)", ADULT_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(6, 9, "Yetişkin — 6–9 dk (sadece ses)", ADULT_DISTRACTOR_START_MS.sound),
+  ...distractorRampPhases(6, 9, "Yetişkin — 6–9 dk (sadece ses)", ADULT_DISTRACTOR_START_MS.silent),
   ...distractorRampPhases(9, 12, "Yetişkin — 9–12 dk (sessiz + sesli gif)", ADULT_DISTRACTOR_START_MS.combined),
   phase(13, "Yetişkin — 12–13 dk", 1100),
   phase(14, "Yetişkin — 13–14 dk", 900),
@@ -105,7 +104,6 @@ const adultSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 9 * MIN)]);
 /** Ergen çeldirici bölüm başlangıç hızları (ms). */
 const TEEN_DISTRACTOR_START_MS = {
   silent: 1100,
-  sound: 1000,
   combined: 900
 };
 
@@ -115,7 +113,7 @@ const teenPhases = [
   phase(2, "Ergen — 1–2 dk", 1200),
   phase(3, "Ergen — 2–3 dk", 1000),
   ...distractorRampPhases(3, 6, "Ergen — 3–6 dk (sessiz gif)", TEEN_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(6, 9, "Ergen — 6–9 dk (sadece ses)", TEEN_DISTRACTOR_START_MS.sound),
+  ...distractorRampPhases(6, 9, "Ergen — 6–9 dk (sadece ses)", TEEN_DISTRACTOR_START_MS.silent),
   ...distractorRampPhases(9, 12, "Ergen — 9–12 dk (sessiz + sesli gif)", TEEN_DISTRACTOR_START_MS.combined),
   phase(13, "Ergen — 12–13 dk", 1300),
   phase(14, "Ergen — 13–14 dk", 1100),
@@ -213,7 +211,7 @@ function practicePhase(endMs, name, stimulus) {
 const PRACTICE_ADULT_TEEN_PHASES = [
   practicePhase(5_000, "Deneme — çeldirici yok", 1300),
   practicePhase(11_000, "Deneme — sessiz gif", 1100),
-  practicePhase(18_000, "Deneme — sadece ses", 1000),
+  practicePhase(18_000, "Deneme — sadece ses", 1100),
   practicePhase(26_000, "Deneme — kombine", 900),
   practicePhase(PRACTICE_DURATION_MS, "Deneme — çeldirici yok", 1000)
 ];
