@@ -21,35 +21,37 @@ export function AppHeader() {
           </span>
         </Link>
 
-        <nav className="fp-nav" aria-label="Main">
-          <LocaleToggle />
-          {isSupabaseReady &&
-            (user ? (
-              <>
-                <AppNavLink to="/panel" end>
-                  {t("nav.panel")}
-                </AppNavLink>
-                <AppNavLink to="/test">{t("nav.test")}</AppNavLink>
-                {isAdmin && <AppNavLink to="/admin">{t("nav.admin")}</AppNavLink>}
-                <div className="fp-nav-user">
-                  <span className="fp-nav-user-name">{profile?.full_name}</span>
-                  <Button variant="ghost" size="sm" onClick={() => signOut()}>
-                    {t("nav.logout")}
+        <div className="fp-header-end">
+          <nav className="fp-nav" aria-label="Main">
+            {isSupabaseReady &&
+              (user ? (
+                <>
+                  <AppNavLink to="/panel" end>
+                    {t("nav.panel")}
+                  </AppNavLink>
+                  <AppNavLink to="/test">{t("nav.test")}</AppNavLink>
+                  {isAdmin && <AppNavLink to="/admin">{t("nav.admin")}</AppNavLink>}
+                  <div className="fp-nav-user">
+                    <span className="fp-nav-user-name">{profile?.full_name}</span>
+                    <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                      {t("nav.logout")}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <AppNavLink to="/" end>
+                    {t("nav.home")}
+                  </AppNavLink>
+                  <AppNavLink to="/giris">{t("nav.login")}</AppNavLink>
+                  <Button asLink to="/kayit" variant="primary" size="sm">
+                    {t("nav.register")}
                   </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <AppNavLink to="/" end>
-                  {t("nav.home")}
-                </AppNavLink>
-                <AppNavLink to="/giris">{t("nav.login")}</AppNavLink>
-                <Button asLink to="/kayit" variant="primary" size="sm">
-                  {t("nav.register")}
-                </Button>
-              </>
-            ))}
-        </nav>
+                </>
+              ))}
+          </nav>
+          <LocaleToggle />
+        </div>
       </div>
     </header>
   );
