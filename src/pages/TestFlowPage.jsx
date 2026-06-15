@@ -264,11 +264,12 @@ export default function TestFlowPage() {
           profile,
           logs,
           target,
-          pressTimeline
+          pressTimeline,
+          locale
         });
         if (!cancelled) {
           if (result.testSaved) pdfSavedRef.current = true;
-          setSavedHint(formatPersistResult(result, pressTimeline.length > 0));
+          setSavedHint(formatPersistResult(result, pressTimeline.length > 0, locale));
         }
       } catch (e) {
         console.warn(e);
@@ -564,10 +565,11 @@ export default function TestFlowPage() {
                       profile,
                       logs,
                       target,
-                      pressTimeline
+                      pressTimeline,
+                      locale
                     });
                     if (result.testSaved) pdfSavedRef.current = true;
-                    setSavedHint(formatPersistResult(result, pressTimeline.length > 0));
+                    setSavedHint(formatPersistResult(result, pressTimeline.length > 0, locale));
                     return result.testBlob;
                   }
                 : undefined

@@ -1,5 +1,6 @@
 import { createAdminTimelinePdfBlob } from "../pdfAdminTimeline.js";
 import { createPdfBlob } from "../pdfReport.js";
+import { sendSessionReportEmail } from "../services/emailReport.js";
 import { persistAdminReportPdf, persistSessionReportPdf } from "../services/sessions.js";
 
 async function withRetry(fn, retries = 1) {
@@ -25,11 +26,13 @@ export async function persistAllSessionPdfs({
   profile,
   logs,
   target,
-  pressTimeline = []
+  pressTimeline = [],
+  locale = "tr"
 }) {
   const errors = [];
   let testSaved = false;
   let adminSaved = false;
+  let emailSent = false;
   let testBlob = null;
 
   try {
@@ -38,6 +41,15 @@ export async function persistAllSessionPdfs({
     );
     await withRetry(() => persistSessionReportPdf(userId, sessionId, testBlob));
     testSaved = true;
+
+    try {
+      await sendSessionReportEmail(sessionId, locale);
+      emailSent = true;
+    } catch (e) {
+      if (e?.message !== "email_not_configured") {
+        errors.push(`E-posta: ${e?.message || "gönderilemedi"}`);
+      }
+    }
   } catch (e) {
     errors.push(`Test raporu PDF: ${e?.message || "kayıt başarısız"}`);
   }
@@ -67,12 +79,24 @@ export async function persistAllSessionPdfs({
     }
   }
 
-  return { testSaved, adminSaved, testBlob, errors };
+  return { testSaved, adminSaved, emailSent, testBlob, errors };
 }
 
-export function formatPersistResult({ testSaved, adminSaved, errors }, hasTimeline) {
+export function formatPersistResult({ testSaved, adminSaved, emailSent, errors }, hasTimeline, locale = "tr") {
+  const tr = locale !== "en";
   if (testSaved && (adminSaved || !hasTimeline)) {
-    return "Test raporu sisteme kaydedildi." + (adminSaved ? " Basış raporu (admin) kaydedildi." : "");
+    let msg = tr
+      ? "Test raporu sisteme kaydedildi."
+      : "Test report saved to your account.";
+    if (adminSaved) {
+      msg += tr ? " Basış raporu (admin) kaydedildi." : " Press report (admin) saved.";
+    }
+    if (emailSent) {
+      msg += tr
+        ? " Rapor kayıtlı e-posta adresinize gönderildi."
+        : " Report sent to your registered email.";
+    }
+    return msg;
   }
   if (testSaved) {
     return `Test raporu kaydedildi. ${errors.join(" ")}`;
