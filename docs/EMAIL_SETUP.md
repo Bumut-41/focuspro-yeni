@@ -1,8 +1,10 @@
-# Test raporu e-posta gönderimi
+# Test raporu e-posta gönderimi (şimdilik kapalı)
 
-Test bittiğinde katılımcı raporu PDF, **oturumu açan kullanıcının** Supabase kayıtlı e-posta adresine otomatik gönderilir.
+Bu özellik kodda hazır ancak **devre dışı**. Test bitince yalnızca PDF panelde kaydedilir; otomatik e-posta gönderilmez.
 
-## Kurulum (tek sefer)
+Tekrar açmak için: `src/lib/persistSessionPdfs.js` içinde `sendSessionReportEmail` çağrısını geri ekleyin ve aşağıdaki kurulumu yapın.
+
+---
 
 ### 1. SQL
 
