@@ -386,6 +386,12 @@ export const en = {
     validityMissingPhase: "Missing phase: no data in {{count}} report section(s)",
     validityTooFast: "Excessively fast responses (possible random pressing)",
     validityFewTrials: "Fewer trials than expected (test may have ended early)",
-    validityScattered: "Scattered response pattern (high omission + false alarms)"
+    validityScattered: "Scattered response pattern (high omission + false alarms)",
+    validityNoOnTimeHits: "No on-time target hits — results may be unreliable",
+    validityLowEngagement: "Low engagement (hit rate below 15%)",
+    validityHighLate: "High late-response rate — attention score reduced",
+    flagNoEngagement: "No responses (no test engagement)",
+    flagLate: "High late-response rate",
+    flagNoHits: "No on-time target hits"
   }
 };

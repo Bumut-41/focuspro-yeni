@@ -107,21 +107,37 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
   }
 
   const omissionRatio = safeDiv(behaviors.omissions, behaviors.targets);
+  const lateRatio = safeDiv(behaviors.late, behaviors.targets);
+  const missRatio = safeDiv(behaviors.omissions + behaviors.late, behaviors.targets);
   const falseOnTotalRatio = safeDiv(behaviors.falseAlarms, behaviors.totalTrials);
   const attentionRaw = safeDiv(behaviors.hits, behaviors.targets) * 100;
-  const attention = clamp(100 - omissionRatio * 70 - falseOnTotalRatio * 30);
+  // Geç yanıtlar da kaçırma sayılır — aksi halde basmama/geç basma iyi skor üretir.
+  const attention = clamp(100 - missRatio * 70 - falseOnTotalRatio * 30);
 
   const rtMean = mean(rts);
   const refRt = referenceRtMs(age);
   const timing = rtMean > 0 ? clamp((refRt / rtMean) * 100) : 0;
 
   const impulsivityRate = safeDiv(behaviors.falseAlarms, behaviors.nonTargets) * 100;
-  const impulsivity = clamp(100 - impulsivityRate * 5);
+  const hyper = countHyperPressStats(logs, pressTimeline);
+  const totalResponses = behaviors.hits + behaviors.late + behaviors.falseAlarms;
+  const engaged = totalResponses > 0 || hyper.totalPresses > 0;
 
-  const { hyperRate } = countHyperPressStats(logs, pressTimeline);
-  const hyperactivity = clamp(100 - hyperRate * 4);
+  let impulsivity = clamp(100 - impulsivityRate * 5);
+  let hyperactivity = clamp(100 - hyper.hyperRate * 4);
+  if (!engaged && behaviors.targets >= 5) {
+    impulsivity = 0;
+    hyperactivity = 0;
+  }
 
-  const overall = clamp(attention * 0.35 + timing * 0.3 + impulsivity * 0.2 + hyperactivity * 0.15);
+  let overall = clamp(attention * 0.35 + timing * 0.3 + impulsivity * 0.2 + hyperactivity * 0.15);
+  if (!engaged && behaviors.targets >= 5) {
+    overall = Math.min(overall, 25);
+  } else if (behaviors.targets > 0 && behaviors.hits === 0) {
+    overall = Math.min(overall, 35);
+  } else if (attentionRaw < 25) {
+    overall = Math.min(overall, 45);
+  }
 
   return {
     attention: Math.round(attention),
@@ -130,7 +146,7 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
     impulsivity: Math.round(impulsivity),
     impulsivityRate: Number(impulsivityRate.toFixed(1)),
     hyperactivity: Math.round(hyperactivity),
-    hyperRate: Number(hyperRate.toFixed(1)),
+    hyperRate: Number(hyper.hyperRate.toFixed(1)),
     overall: Math.round(overall)
   };
 }
@@ -174,21 +190,28 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   const indices = computeIndexScoresFromData(behaviors, rts, age, logs, pressTimeline);
   const hyper = countHyperPressStats(logs, pressTimeline);
   const idlePresses = countIdlePresses(pressTimeline);
+  const engaged =
+    behaviors.hits + behaviors.late + behaviors.falseAlarms > 0 || hyper.totalPresses > 0;
 
   const omissionR = safeDiv(behaviors.omissions, behaviors.targets) * 100;
   const faR = safeDiv(behaviors.falseAlarms, behaviors.nonTargets) * 100;
   const lateR = safeDiv(behaviors.late, behaviors.targets) * 100;
   const multiR = safeDiv(behaviors.multiPress, behaviors.totalTrials) * 100;
-  const acc = safeDiv(behaviors.hits + behaviors.correctRejects, behaviors.totalTrials) * 100;
+  const acc = Math.round(
+    safeDiv(behaviors.hits, behaviors.targets) * 80 + safeDiv(behaviors.correctRejects, behaviors.nonTargets) * 20
+  );
 
   const flags = [];
+  if (!engaged && behaviors.targets >= 5) flags.push(m.flagNoEngagement);
   if (indices.attention < 60) flags.push(m.flagAttentionPoor);
   else if (indices.attention < 70) flags.push(m.flagAttentionLow);
   if (indices.timing < 70) flags.push(m.flagTiming);
+  if (lateR >= 25) flags.push(m.flagLate);
   if (indices.impulsivity < 60) flags.push(m.flagImpulseMarked);
   else if (indices.impulsivity < 75) flags.push(m.flagImpulseMild);
   if (indices.hyperactivity < 60) flags.push(m.flagHyper);
   if (omissionR >= 25) flags.push(m.flagOmission);
+  if (behaviors.hits === 0 && behaviors.targets >= 10) flags.push(m.flagNoHits);
   if (faR >= 20) flags.push(m.flagFalseAlarm);
   if (multiR >= 10) flags.push(m.flagMulti);
   if (idlePresses >= 6) flags.push(m.flagIdle);
@@ -228,7 +251,11 @@ export function scoreSeries(logs, lateMs, metricOptions = null) {
   const spd = [];
   const hyp = [];
   for (let i = 0; i < logs.length; i++) {
-    const m = computeMetrics(logs.slice(0, i + 1), lateMs, { pressTimeline: pressTimeline.slice(0), age });
+    const maxTrial = logs[i].trialNumber ?? i + 1;
+    const tlSlice = pressTimeline.filter(
+      (p) => p.trialNumber == null || p.trialNumber <= maxTrial
+    );
+    const m = computeMetrics(logs.slice(0, i + 1), lateMs, { pressTimeline: tlSlice, age });
     att.push(m.attentionScore);
     imp.push(m.impulseScore);
     spd.push(m.speedScore);

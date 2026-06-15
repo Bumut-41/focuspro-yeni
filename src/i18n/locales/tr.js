@@ -389,6 +389,12 @@ export const tr = {
     validityMissingPhase: "Eksik faz: {{count}} rapor bölümünde veri yok",
     validityTooFast: "Aşırı hızlı tepkiler (olası rastgele basış)",
     validityFewTrials: "Beklenenden az deneme (test erken bitmiş olabilir)",
-    validityScattered: "Dağınık yanıt paterni (yüksek kaçırma + yanlış basış)"
+    validityScattered: "Dağınık yanıt paterni (yüksek kaçırma + yanlış basış)",
+    validityNoOnTimeHits: "Zamanında hedef isabeti yok — sonuçlar güvenilir olmayabilir",
+    validityLowEngagement: "Düşük katılım (hit oranı %15 altında)",
+    validityHighLate: "Yüksek geç yanıt oranı — dikkat skoru düşürüldü",
+    flagNoEngagement: "Yanıt verilmedi (teste katılım yok)",
+    flagLate: "Yüksek geç yanıt oranı",
+    flagNoHits: "Zamanında hedef isabeti yok"
   }
 };

@@ -71,7 +71,7 @@ function normalizeMetricOptions(third, fourth) {
 
 export function timelineForBucket(pressTimeline, bucket) {
   const names = new Set(bucket.phaseNames);
-  return (pressTimeline ?? []).filter((p) => !p.section || names.has(p.section));
+  return (pressTimeline ?? []).filter((p) => p.section && names.has(p.section));
 }
 
 /** Katılımcı raporu — tek kaynak (UI, PDF, DB). */
@@ -202,6 +202,16 @@ export function computeValidityFlags(logs, metrics, profile, locale = "tr") {
 
   if (metrics.omissionRate >= 40 && metrics.falseAlarmRate >= 25) {
     flags.push(vm.validityScattered);
+  }
+
+  if (metrics.correctHits === 0 && metrics.targets >= 15) {
+    flags.push(vm.validityNoOnTimeHits);
+  }
+  if (metrics.hitRate < 15 && metrics.targets >= 15) {
+    flags.push(vm.validityLowEngagement);
+  }
+  if (metrics.lateRate >= 30) {
+    flags.push(vm.validityHighLate);
   }
 
   return flags;
@@ -649,7 +659,7 @@ export function buildSmartComment(scores, metrics, profile) {
 export const INDEX_DEFINITIONS = [
   [
     "A — Dikkat",
-    "100 − (kaçırma/hedef×70) − (yanlış/toplam_uyaran×30). 90+ Çok iyi, 80–89 İyi, 70–79 Ortalama, 60–69 Düşük, <60 Belirgin güçlük"
+    "100 − ((kaçırma+geç)/hedef×70) − (yanlış/toplam_uyaran×30). Geç yanıt kaçırma sayılır. 90+ Çok iyi, 80–89 İyi, 70–79 Ortalama, 60–69 Düşük, <60 Belirgin güçlük"
   ],
   [
     "T — Zamanlama",
