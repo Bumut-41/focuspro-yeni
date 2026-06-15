@@ -96,8 +96,9 @@ a:hover {
 }
 
 .fp-brand-logo--header {
-  height: 44px;
-  max-width: min(200px, 40vw);
+  height: 76px;
+  width: auto;
+  max-width: min(280px, 52vw);
 }
 
 .fp-brand-logo--auth {
@@ -650,8 +651,8 @@ a:hover {
   }
 
   .fp-brand-logo--header {
-    max-height: 38px;
-    max-width: min(160px, 38vw);
+    height: 58px;
+    max-width: min(220px, 58vw);
   }
 
   .fp-nav-user-name {
