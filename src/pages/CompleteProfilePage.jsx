@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { supabase } from "../lib/supabase.js";
 import { ageFromBirthDate } from "../profiles.js";
+import { BrandLogo } from "../components/BrandLogo.jsx";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 
 export default function CompleteProfilePage() {
@@ -49,6 +50,9 @@ export default function CompleteProfilePage() {
   return (
     <Page narrow>
       <Card as="form" onSubmit={submit}>
+        <div className="fp-auth-logo-wrap">
+          <BrandLogo variant="auth" />
+        </div>
         <h1 className="fp-auth-title">{t("auth.completeProfileTitle")}</h1>
         <p className="fp-auth-sub">{t("auth.completeProfileSub")}</p>
         <Field label={t("auth.fullName")}>

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
+import { BrandLogo } from "./BrandLogo.jsx";
 import { LocaleToggle } from "./LocaleToggle.jsx";
 import { AppNavLink, Button } from "./ui.jsx";
 
@@ -11,14 +12,8 @@ export function AppHeader() {
   return (
     <header className="fp-header">
       <div className="fp-header-inner">
-        <Link to="/" className="fp-brand">
-          <span className="fp-brand-mark" aria-hidden>
-            FP
-          </span>
-          <span className="fp-brand-text">
-            <span className="fp-brand-name">FocusProLab</span>
-            <span className="fp-brand-tagline">{t("nav.brandTagline")}</span>
-          </span>
+        <Link to="/" className="fp-brand" aria-label="Focus Pro Lab">
+          <BrandLogo variant="header" />
         </Link>
 
         <div className="fp-header-end">

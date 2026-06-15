@@ -13,10 +13,10 @@
   --fp-text-muted: #64748b;
   --fp-text-inverse: #f8fafc;
 
-  --fp-primary: #4f46e5;
-  --fp-primary-hover: #4338ca;
-  --fp-primary-soft: #eef2ff;
-  --fp-accent: #0d9488;
+  --fp-primary: #0088a9;
+  --fp-primary-hover: #006f8a;
+  --fp-primary-soft: #e6f7fb;
+  --fp-accent: #00b4d8;
 
   --fp-success: #059669;
   --fp-success-bg: #ecfdf5;
@@ -53,5 +53,5 @@
   --fp-max-auth: 480px;
 
   --fp-header-h: 64px;
-  --fp-focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.35);
+  --fp-focus-ring: 0 0 0 3px rgba(0, 136, 169, 0.35);
 }

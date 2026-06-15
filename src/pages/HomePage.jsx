@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
+import { BrandLogo } from "../components/BrandLogo.jsx";
 import { Button } from "../components/ui.jsx";
 
 export default function HomePage() {
@@ -150,7 +151,7 @@ export default function HomePage() {
       <footer className="fp-landing-footer">
         <div className="fp-landing-container fp-footer-inner">
           <div>
-            <p className="fp-footer-brand">FocusProLab</p>
+            <BrandLogo variant="footer" />
             <p className="fp-footer-tag">{t("home.footerTag")}</p>
           </div>
           <nav className="fp-footer-nav" aria-label="Footer">
@@ -159,7 +160,7 @@ export default function HomePage() {
             {user && <Link to="/panel">{t("nav.panel")}</Link>}
             {user && <Link to="/test">{t("nav.test")}</Link>}
           </nav>
-          <p className="fp-footer-copy">© {new Date().getFullYear()} FocusProLab</p>
+          <p className="fp-footer-copy">© {new Date().getFullYear()} Focus Pro Lab</p>
         </div>
       </footer>
     </div>

@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { supabase } from "../lib/supabase.js";
+import { BrandLogo } from "../components/BrandLogo.jsx";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
 import { Alert, Button, Card, Field, Input, Page } from "../components/ui.jsx";
 
@@ -21,6 +22,9 @@ export default function LoginPage() {
     return (
       <Page narrow>
         <Card>
+          <div className="fp-auth-logo-wrap">
+            <BrandLogo variant="auth" />
+          </div>
           <h1 className="fp-auth-title">{t("auth.setupTitle")}</h1>
           <p className="fp-auth-sub">{t("auth.setupDesc")}</p>
         </Card>
@@ -47,6 +51,9 @@ export default function LoginPage() {
   return (
     <Page narrow>
       <Card as="form" onSubmit={submit}>
+        <div className="fp-auth-logo-wrap">
+          <BrandLogo variant="auth" />
+        </div>
         <h1 className="fp-auth-title">{t("auth.loginTitle")}</h1>
         <p className="fp-auth-sub">{t("auth.loginSub")}</p>
         <Field label={t("auth.email")}>
