@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useLocale } from "../i18n/LocaleContext.jsx";
+import { profileLabel } from "../i18n/index.js";
 import { AdminPressTimeline } from "../components/AdminPressTimeline.jsx";
 import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession
 } from "../lib/adminSessionPdf.js";
 import {
-  ROLE_DESCRIPTIONS,
   USER_ROLES,
   assignableRoles,
   formatRoleError,
+  roleDescription,
   roleLabel
 } from "../lib/userRoles.js";
 import {
@@ -41,6 +43,7 @@ import {
 
 export default function AdminPage() {
   const { isAdmin, isSuperAdmin, user: authUser } = useAuth();
+  const { t, locale, dateLocale } = useLocale();
   const [profiles, setProfiles] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [grantUser, setGrantUser] = useState("");
@@ -63,7 +66,7 @@ export default function AdminPage() {
       const url = await getReportPdfSignedUrl(pdfPath);
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
-      setMsg(e.message || "Kayıtlı PDF açılamadı.");
+      setMsg(e.message || t("admin.storedPdfFailed"));
     } finally {
       setPdfBusy(null);
     }
@@ -102,7 +105,7 @@ export default function AdminPage() {
       const { sess, tl } = await loadSessionBundle(sessionRow.id);
       await downloadParticipantReportFromSession(sess, tl);
     } catch (e) {
-      setMsg(e.message || "Test raporu PDF oluşturulamadı.");
+      setMsg(e.message || t("admin.testPdfFailed"));
     } finally {
       setPdfBusy(null);
     }
@@ -120,7 +123,7 @@ export default function AdminPage() {
       const { sess, tl } = await loadSessionBundle(sessionRow.id);
       await downloadPressReportFromSession(sess, tl);
     } catch (e) {
-      setMsg(e.message || "Basış raporu PDF oluşturulamadı.");
+      setMsg(e.message || t("admin.pressPdfFailed"));
     } finally {
       setPdfBusy(null);
     }
@@ -154,7 +157,7 @@ export default function AdminPage() {
     if (!grantUser) return;
     try {
       await adminAddCredits(grantUser, Number(grantAmount));
-      setMsg("Kredi eklendi.");
+      setMsg(t("admin.creditAdded"));
       load();
     } catch (e) {
       setMsg(e.message);
@@ -167,10 +170,10 @@ export default function AdminPage() {
     setMsg("");
     try {
       await adminSetUserRole(profileRow.id, newRole);
-      setMsg(`${profileRow.full_name} → ${roleLabel(newRole)} olarak güncellendi.`);
+      setMsg(t("admin.roleUpdated", { name: profileRow.full_name, role: roleLabel(newRole, locale) }));
       await load();
     } catch (e) {
-      setMsg(formatRoleError(e));
+      setMsg(formatRoleError(e, locale));
     } finally {
       setRoleBusy(null);
     }
@@ -180,7 +183,7 @@ export default function AdminPage() {
     const raw = creditDrafts[profileRow.id];
     const credits = Number(raw);
     if (!Number.isFinite(credits) || credits < 0) {
-      setMsg("Geçerli bir kredi değeri girin (0 veya üzeri).");
+      setMsg(t("admin.invalidCredit"));
       return;
     }
     if (credits === profileRow.test_credits) return;
@@ -188,11 +191,11 @@ export default function AdminPage() {
     setMsg("");
     try {
       await superAdminSetCredits(profileRow.id, credits);
-      setMsg(`${profileRow.full_name} kredisi ${credits} olarak kaydedildi.`);
+      setMsg(t("admin.creditSaved", { name: profileRow.full_name, credits }));
       await load();
     } catch (e) {
       const detail = e?.message || e?.details || "";
-      setMsg(detail ? `${formatRoleError(e)} (${detail})` : formatRoleError(e));
+      setMsg(detail ? `${formatRoleError(e, locale)} (${detail})` : formatRoleError(e, locale));
     } finally {
       setCreditBusy(null);
     }
@@ -201,7 +204,10 @@ export default function AdminPage() {
   async function deleteUser(profileRow) {
     if (
       !window.confirm(
-        `${profileRow.full_name} (${profileRow.email ?? "e-posta yok"}) silinsin mi? Bu işlem geri alınamaz.`
+        t("admin.deleteConfirm", {
+          name: profileRow.full_name,
+          email: profileRow.email ?? t("admin.noEmail")
+        })
       )
     ) {
       return;
@@ -210,7 +216,7 @@ export default function AdminPage() {
     setMsg("");
     try {
       await superAdminDeleteUser(profileRow.id);
-      setMsg(`${profileRow.full_name} silindi.`);
+      setMsg(t("admin.userDeleted", { name: profileRow.full_name }));
       if (selectedId && detail?.owner_id === profileRow.id) {
         setSelectedId(null);
         setDetail(null);
@@ -219,7 +225,7 @@ export default function AdminPage() {
       await load();
     } catch (e) {
       const detail = e?.message || e?.details || "";
-      setMsg(detail ? `${formatRoleError(e)} (${detail})` : formatRoleError(e));
+      setMsg(detail ? `${formatRoleError(e, locale)} (${detail})` : formatRoleError(e, locale));
     } finally {
       setDeleteBusy(null);
     }
@@ -230,19 +236,16 @@ export default function AdminPage() {
   return (
     <Page wide>
       <Card>
-        <CardHeader
-          title="Yönetim"
-          description="Tüm kullanıcılar ve test sonuçları. Her oturum için test raporu ve basış raporu PDF indirilebilir."
-        />
+        <CardHeader title={t("admin.title")} description={t("admin.description")} />
         {isSuperAdmin && (
           <p style={{ margin: "0 0 12px", fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
-            Super Admin: aşağıdaki tüm yönetici işlemleri + tabloda manuel kredi ve kullanıcı silme.
+            {t("admin.superHint")}
           </p>
         )}
         <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
-          <Field label="Kullanıcıya kredi ver" className="fp-field--grow">
+          <Field label={t("admin.grantLabel")} className="fp-field--grow">
             <Select value={grantUser} onChange={(e) => setGrantUser(e.target.value)}>
-              <option value="">Seçin</option>
+              <option value="">{t("common.select")}</option>
               {profiles.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.full_name} ({p.role}) — {p.test_credits} kredi
@@ -250,7 +253,7 @@ export default function AdminPage() {
               ))}
             </Select>
           </Field>
-          <Field label="Adet">
+          <Field label={t("admin.amount")}>
             <Input
               type="number"
               min={1}
@@ -260,12 +263,12 @@ export default function AdminPage() {
             />
           </Field>
           <Button type="button" variant="secondary" onClick={grant}>
-            Ekle
+            {t("admin.add")}
           </Button>
         </Stack>
         {msg && (
           <Alert
-            variant={msg.includes("eklendi") || msg.includes("güncellendi") || msg.includes("kaydedildi") || msg.includes("silindi") ? "success" : "info"}
+            variant={/eklendi|güncellendi|kaydedildi|silindi|added|updated|saved|deleted/i.test(msg) ? "success" : "info"}
             style={{ marginTop: 12 }}
           >
             {msg}
@@ -275,12 +278,8 @@ export default function AdminPage() {
 
       <Card>
         <CardHeader
-          title={`Kullanıcılar (${profiles.length})`}
-          description={
-            isSuperAdmin
-              ? "Super Admin: rol, manuel kredi ve kullanıcı silme. Değişiklikler anında uygulanır."
-              : "Rol ve yetki: listeden seçin; kayıt anında uygulanır."
-          }
+          title={t("admin.usersTitle", { count: profiles.length })}
+          description={isSuperAdmin ? t("admin.usersDescSuper") : t("admin.usersDesc")}
         />
         <ul
           style={{
@@ -293,21 +292,21 @@ export default function AdminPage() {
         >
           {USER_ROLES.map((r) => (
             <li key={r}>
-              <strong>{roleLabel(r)}</strong> — {ROLE_DESCRIPTIONS[r]}
+              <strong>{roleLabel(r, locale)}</strong> — {roleDescription(r, locale)}
             </li>
           ))}
         </ul>
         <DataTable
           columns={[
-            { key: "full_name", label: "Ad" },
+            { key: "full_name", label: t("admin.name") },
             {
-              label: "E-posta",
+              label: t("admin.email"),
               render: (p) => (
                 <span style={{ fontSize: "0.875rem" }}>{p.email ?? "—"}</span>
               )
             },
             {
-              label: "Rol / yetki",
+              label: t("admin.roleCol"),
               render: (p) => (
                 <Select
                   value={p.role}
@@ -318,14 +317,14 @@ export default function AdminPage() {
                 >
                   {rolesForPicker.map((r) => (
                     <option key={r} value={r}>
-                      {roleLabel(r)}
+                      {roleLabel(r, locale)}
                     </option>
                   ))}
                 </Select>
               )
             },
             {
-              label: "Kredi",
+              label: t("admin.credits"),
               render: (p) =>
                 isSuperAdmin ? (
                   <Stack gap={6} wrap style={{ alignItems: "center" }}>
@@ -347,7 +346,7 @@ export default function AdminPage() {
                       disabled={creditBusy === p.id}
                       onClick={() => saveUserCredits(p)}
                     >
-                      {creditBusy === p.id ? "…" : "Kaydet"}
+                      {creditBusy === p.id ? "…" : t("common.save")}
                     </Button>
                   </Stack>
                 ) : (
@@ -359,7 +358,7 @@ export default function AdminPage() {
               render: (p) => (
                 <Stack gap={6} wrap style={{ alignItems: "center" }}>
                   {p.id === authUser?.id && (
-                    <span style={{ fontSize: "0.75rem", color: "var(--fp-text-muted)" }}>Siz</span>
+                    <span style={{ fontSize: "0.75rem", color: "var(--fp-text-muted)" }}>{t("common.you")}</span>
                   )}
                   {isSuperAdmin && p.id !== authUser?.id && (
                     <Button
@@ -370,7 +369,7 @@ export default function AdminPage() {
                       onClick={() => deleteUser(p)}
                       style={{ color: "#dc2626" }}
                     >
-                      {deleteBusy === p.id ? "…" : "Sil"}
+                      {deleteBusy === p.id ? "…" : t("common.delete")}
                     </Button>
                   )}
                 </Stack>
@@ -384,29 +383,29 @@ export default function AdminPage() {
 
       <Card>
         <CardHeader
-          title={`Tüm testler (${sessions.length})`}
-          description="Test bitince PDF'ler otomatik kaydedilir. Test raporu: katılımcı A/T/I/H. Basış raporu: yalnızca admin."
+          title={t("admin.sessionsTitle", { count: sessions.length })}
+          description={t("admin.sessionsDesc")}
         />
         <DataTable
           columns={[
-            { label: "Tarih", render: (s) => new Date(s.created_at).toLocaleString("tr-TR") },
-            { label: "Uygulayan", render: (s) => s.profiles?.full_name ?? s.owner_id?.slice(0, 8) },
-            { key: "participant_name", label: "Katılımcı" },
+            { label: t("admin.date"), render: (s) => new Date(s.created_at).toLocaleString(dateLocale) },
+            { label: t("admin.operator"), render: (s) => s.profiles?.full_name ?? s.owner_id?.slice(0, 8) },
+            { key: "participant_name", label: t("admin.participant") },
             {
-              label: "Skor",
+              label: t("admin.score"),
               render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
             },
             {
-              label: "Kayıt",
+              label: t("admin.record"),
               render: (s) => (
                 <span style={{ fontSize: "0.8rem", color: "var(--fp-text-muted)" }}>
-                  {s.pdf_path ? "Test ✓" : "Test …"}
-                  {s.admin_pdf_path ? " · Basış ✓" : ""}
+                  {s.pdf_path ? t("admin.testSaved") : t("admin.testPending")}
+                  {s.admin_pdf_path ? t("admin.pressSaved") : ""}
                 </span>
               )
             },
             {
-              label: "Raporlar",
+              label: t("admin.reports"),
               render: (s) => (
                 <Stack gap={6} wrap>
                   <Button
@@ -415,7 +414,7 @@ export default function AdminPage() {
                     disabled={pdfBusy?.startsWith(`${s.id}-test`)}
                     onClick={() => openOrDownloadTestReport(s)}
                   >
-                    {pdfBusy?.startsWith(`${s.id}-test`) ? "…" : s.pdf_path ? "Test raporu aç" : "Test raporu indir"}
+                    {pdfBusy?.startsWith(`${s.id}-test`) ? "…" : s.pdf_path ? t("admin.openTestReport") : t("admin.downloadTestReport")}
                   </Button>
                   <Button
                     variant="secondary"
@@ -423,10 +422,10 @@ export default function AdminPage() {
                     disabled={pdfBusy?.startsWith(`${s.id}-basis`)}
                     onClick={() => downloadPressReportPdf(s)}
                   >
-                    {pdfBusy?.startsWith(`${s.id}-basis`) ? "…" : s.admin_pdf_path ? "Basış raporu aç" : "Basış raporu indir"}
+                    {pdfBusy?.startsWith(`${s.id}-basis`) ? "…" : s.admin_pdf_path ? t("admin.openPressReport") : t("admin.downloadPressReport")}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => openSession(s.id)}>
-                    {selectedId === s.id ? "Kapat" : "Basış detayı"}
+                    {selectedId === s.id ? t("common.close") : t("admin.pressDetail")}
                   </Button>
                 </Stack>
               )
@@ -438,7 +437,7 @@ export default function AdminPage() {
         />
       </Card>
 
-      {detailLoading && <p className="fp-loading">Yükleniyor…</p>}
+      {detailLoading && <p className="fp-loading">{t("common.loading")}</p>}
       {detail && !detailLoading && (
         <AdminPressTimeline
           session={detail}
@@ -449,7 +448,7 @@ export default function AdminPage() {
             try {
               await downloadParticipantReportFromSession(detail, timeline ?? []);
             } catch (e) {
-              setMsg(e.message || "Test raporu PDF oluşturulamadı.");
+              setMsg(e.message || t("admin.testPdfFailed"));
             } finally {
               setPdfBusy(null);
             }
@@ -459,7 +458,7 @@ export default function AdminPage() {
             try {
               await downloadPressReportFromSession(detail, timeline ?? []);
             } catch (e) {
-              setMsg(e.message || "Basış raporu PDF oluşturulamadı.");
+              setMsg(e.message || t("admin.pressPdfFailed"));
             } finally {
               setPdfBusy(null);
             }

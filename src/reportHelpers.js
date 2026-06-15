@@ -1,3 +1,4 @@
+import { getStrings } from "./i18n/index.js";
 import {
   computeMetrics,
   countTrialBehaviors,
@@ -57,11 +58,15 @@ function correctedRate(rate, total) {
 }
 
 function normalizeMetricOptions(third, fourth) {
-  if (Array.isArray(third)) return { pressTimeline: third, age: fourth ?? null };
+  if (Array.isArray(third)) return { pressTimeline: third, age: fourth ?? null, locale: "tr" };
   if (third && typeof third === "object") {
-    return { pressTimeline: third.pressTimeline ?? [], age: third.age ?? null };
+    return {
+      pressTimeline: third.pressTimeline ?? [],
+      age: third.age ?? null,
+      locale: third.locale ?? "tr"
+    };
   }
-  return { pressTimeline: [], age: fourth ?? null };
+  return { pressTimeline: [], age: fourth ?? null, locale: "tr" };
 }
 
 export function timelineForBucket(pressTimeline, bucket) {
@@ -169,20 +174,21 @@ export function getReportPhaseChartScores(logs, profile, age = null, pressTimeli
     .filter(Boolean);
 }
 
-export function computeValidityFlags(logs, metrics, profile) {
+export function computeValidityFlags(logs, metrics, profile, locale = "tr") {
+  const vm = getStrings(locale).metrics;
   const flags = [];
   // Yetişkin/ergen ramp fazları 30 sn dilimler; boş dilim uyarısı yanıltıcı olabilir — 8 rapor kutusu kontrol edilir.
   const missingBuckets = buildReportPhaseBuckets(profile).filter(
     (bucket) => !logsForBucket(logs, bucket).length
   );
   if (missingBuckets.length) {
-    flags.push(`Eksik faz: ${missingBuckets.length} rapor bölümünde veri yok`);
+    flags.push(vm.validityMissingPhase.replace("{{count}}", missingBuckets.length));
   }
 
   const targetHits = logs.filter((t) => t.isTarget && t.responded && t.reactionTime > 0);
   const tooFast = targetHits.filter((t) => t.reactionTime < 150).length;
   if (targetHits.length && tooFast / targetHits.length > 0.05) {
-    flags.push("Aşırı hızlı tepkiler (olası rastgele basış)");
+    flags.push(vm.validityTooFast);
   }
 
   const avgInterval =
@@ -191,20 +197,21 @@ export function computeValidityFlags(logs, metrics, profile) {
       : 1500;
   const expectedTrials = Math.round(profile.durationMs / avgInterval);
   if (metrics.totalTrials < expectedTrials * 0.6) {
-    flags.push("Beklenenden az deneme (test erken bitmiş olabilir)");
+    flags.push(vm.validityFewTrials);
   }
 
   if (metrics.omissionRate >= 40 && metrics.falseAlarmRate >= 25) {
-    flags.push("Dağınık yanıt paterni (yüksek kaçırma + yanlış basış)");
+    flags.push(vm.validityScattered);
   }
 
   return flags;
 }
 
-export function computeSustainabilityIndex(logs, profile, age = null, pressTimeline = []) {
+export function computeSustainabilityIndex(logs, profile, age = null, pressTimeline = [], locale = "tr") {
+  const sm = getStrings(locale).metrics;
   const buckets = buildReportPhaseBuckets(profile);
   if (buckets.length < 4) {
-    return { delta: null, firstAvg: null, lastAvg: null, label: "Yetersiz veri" };
+    return { delta: null, firstAvg: null, lastAvg: null, label: sm.insufficientData };
   }
   const late = profile.lateResponseMs;
   const scoreOf = (bucket) => {
@@ -216,16 +223,16 @@ export function computeSustainabilityIndex(logs, profile, age = null, pressTimel
   const firstScores = buckets.slice(0, 2).map(scoreOf).filter((v) => v != null);
   const lastScores = buckets.slice(-2).map(scoreOf).filter((v) => v != null);
   if (!firstScores.length || !lastScores.length) {
-    return { delta: null, firstAvg: null, lastAvg: null, label: "Yetersiz veri" };
+    return { delta: null, firstAvg: null, lastAvg: null, label: sm.insufficientData };
   }
   const firstAvg = firstScores.reduce((a, b) => a + b, 0) / firstScores.length;
   const lastAvg = lastScores.reduce((a, b) => a + b, 0) / lastScores.length;
   const delta = lastAvg - firstAvg;
   let label;
-  if (delta >= 5) label = "Isınma / düzelme";
-  else if (delta >= -5) label = "Değişiklik yok";
-  else if (delta >= -15) label = "Hafif düşüş";
-  else label = "Belirgin performans bozulması";
+  if (delta >= 5) label = sm.sustainWarmup;
+  else if (delta >= -5) label = sm.sustainStable;
+  else if (delta >= -15) label = sm.sustainMild;
+  else label = sm.sustainMarked;
   return {
     delta: Math.round(delta),
     firstAvg: Math.round(firstAvg),
@@ -272,8 +279,8 @@ export function getLevel(score) {
   return 5;
 }
 
-export function getLevelText(score) {
-  return getOverallRiskText(score);
+export function getLevelText(score, locale = "tr") {
+  return getOverallRiskText(score, locale);
 }
 
 export function getAttentionIndexText(score) {

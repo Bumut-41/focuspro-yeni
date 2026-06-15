@@ -1,3 +1,4 @@
+import { profileLabel } from "./i18n/index.js";
 import { riskLabel } from "./metrics.js";
 import { getShapeSvg } from "./shapeUtils.jsx";
 import {
@@ -231,16 +232,18 @@ export function buildDocDefinition({
   logs,
   target,
   pressTimeline = [],
-  reportCharts = {}
+  reportCharts = {},
+  locale = "tr"
 }) {
   const profileKey = profile.key ?? "adult";
+  const profileDisplay = profileLabel(profileKey, locale) || profile.label;
   const age = participant?.age ?? null;
-  const metricOpts = { pressTimeline, age };
+  const metricOpts = { pressTimeline, age, locale };
   const metrics = computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
   const scores = getScores(metrics);
-  const risk = riskLabel(metrics);
-  const validityFlags = computeValidityFlags(logs, metrics, profile);
-  const vigilance = computeVigilanceIndex(logs, profile, age, pressTimeline);
+  const risk = riskLabel(metrics, locale);
+  const validityFlags = computeValidityFlags(logs, metrics, profile, locale);
+  const vigilance = computeVigilanceIndex(logs, profile, age, pressTimeline, locale);
   const sections = getSectionSummaries(logs, profile, age, pressTimeline);
   const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline);
   const professional = buildProfessionalSummary(scores, metrics, profile, vigilance);
@@ -336,7 +339,7 @@ export function buildDocDefinition({
               { text: `Doğum tarihi: ${participant.birthDate || "—"}`, margin: [0, 4, 0, 0] },
               { text: `Yaş: ${participant.age}`, margin: [0, 4, 0, 0] },
               { text: `Cinsiyet: ${participant.gender || "—"}`, margin: [0, 4, 0, 0] },
-              { text: `Test profili: ${profile.label}`, bold: true, margin: [0, 6, 0, 0] },
+              { text: `Test profili: ${profileDisplay}`, bold: true, margin: [0, 6, 0, 0] },
               { text: `Süre: ${formatDurationSeconds(profile.durationMs)} sn`, margin: [0, 4, 0, 0] },
               { text: `Geç yanıt eşiği: ${profile.lateResponseMs} ms`, margin: [0, 4, 0, 0] },
               { text: `Deneme sayısı: ${metrics.totalTrials}`, margin: [0, 4, 0, 0] },

@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useLocale } from "../i18n/LocaleContext.jsx";
+import { LocaleToggle } from "./LocaleToggle.jsx";
 import { AppNavLink, Button } from "./ui.jsx";
 
 export function AppHeader() {
   const { user, profile, signOut, isSupabaseReady, isAdmin } = useAuth();
+  const { t } = useLocale();
 
   return (
     <header className="fp-header">
@@ -14,39 +17,39 @@ export function AppHeader() {
           </span>
           <span className="fp-brand-text">
             <span className="fp-brand-name">FocusProLab</span>
-            <span className="fp-brand-tagline">Sürekli performans değerlendirmesi</span>
+            <span className="fp-brand-tagline">{t("nav.brandTagline")}</span>
           </span>
         </Link>
 
-        {isSupabaseReady && (
-          <nav className="fp-nav" aria-label="Main">
-            {user ? (
+        <nav className="fp-nav" aria-label="Main">
+          <LocaleToggle />
+          {isSupabaseReady &&
+            (user ? (
               <>
                 <AppNavLink to="/panel" end>
-                  Panel
+                  {t("nav.panel")}
                 </AppNavLink>
-                <AppNavLink to="/test">Test</AppNavLink>
-                {isAdmin && <AppNavLink to="/admin">Yönetim</AppNavLink>}
+                <AppNavLink to="/test">{t("nav.test")}</AppNavLink>
+                {isAdmin && <AppNavLink to="/admin">{t("nav.admin")}</AppNavLink>}
                 <div className="fp-nav-user">
                   <span className="fp-nav-user-name">{profile?.full_name}</span>
                   <Button variant="ghost" size="sm" onClick={() => signOut()}>
-                    Çıkış
+                    {t("nav.logout")}
                   </Button>
                 </div>
               </>
             ) : (
               <>
                 <AppNavLink to="/" end>
-                  Ana sayfa
+                  {t("nav.home")}
                 </AppNavLink>
-                <AppNavLink to="/giris">Giriş</AppNavLink>
+                <AppNavLink to="/giris">{t("nav.login")}</AppNavLink>
                 <Button asLink to="/kayit" variant="primary" size="sm">
-                  Kayıt ol
+                  {t("nav.register")}
                 </Button>
               </>
-            )}
-          </nav>
-        )}
+            ))}
+        </nav>
       </div>
     </header>
   );

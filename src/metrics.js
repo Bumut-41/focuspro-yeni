@@ -1,3 +1,5 @@
+import { getStrings } from "./i18n/index.js";
+
 function clamp(x, a = 0, b = 100) {
   return Math.max(a, Math.min(b, x));
 }
@@ -21,12 +23,16 @@ export function referenceRtMs(age) {
 
 function normalizeMetricOptions(third, fourth) {
   if (Array.isArray(third)) {
-    return { pressTimeline: third, age: fourth ?? null };
+    return { pressTimeline: third, age: fourth ?? null, locale: "tr" };
   }
   if (third && typeof third === "object") {
-    return { pressTimeline: third.pressTimeline ?? [], age: third.age ?? null };
+    return {
+      pressTimeline: third.pressTimeline ?? [],
+      age: third.age ?? null,
+      locale: third.locale ?? "tr"
+    };
   }
-  return { pressTimeline: [], age: fourth ?? null };
+  return { pressTimeline: [], age: fourth ?? null, locale: "tr" };
 }
 
 /** Deneme düzeyinde davranış sayımları. */
@@ -131,7 +137,8 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
 
 /** Go/No-Go deneme logundan skorlar. */
 export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null) {
-  const { pressTimeline, age } = normalizeMetricOptions(metricOptions, ageArg);
+  const { pressTimeline, age, locale } = normalizeMetricOptions(metricOptions, ageArg);
+  const m = getStrings(locale).metrics;
 
   if (!logs.length) {
     return {
@@ -155,7 +162,7 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
       speedScore: 0,
       consistencyScore: 0,
       overallScore: 0,
-      flags: ["Yetersiz veri"]
+      flags: [m.insufficientData]
     };
   }
 
@@ -175,16 +182,16 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   const acc = safeDiv(behaviors.hits + behaviors.correctRejects, behaviors.totalTrials) * 100;
 
   const flags = [];
-  if (indices.attention < 60) flags.push("Belirgin dikkat güçlüğü");
-  else if (indices.attention < 70) flags.push("Düşük dikkat performansı");
-  if (indices.timing < 70) flags.push("Zamanlama / yavaş tepki");
-  if (indices.impulsivity < 60) flags.push("Belirgin dürtüsellik");
-  else if (indices.impulsivity < 75) flags.push("Hafif dürtüsellik");
-  if (indices.hyperactivity < 60) flags.push("Belirgin hiperaktivite göstergesi");
-  if (omissionR >= 25) flags.push("Yüksek kaçırma oranı");
-  if (faR >= 20) flags.push("Yüksek yanlış basış oranı");
-  if (multiR >= 10) flags.push("Çoklu basma");
-  if (idlePresses >= 6) flags.push("Boş ekranda basış");
+  if (indices.attention < 60) flags.push(m.flagAttentionPoor);
+  else if (indices.attention < 70) flags.push(m.flagAttentionLow);
+  if (indices.timing < 70) flags.push(m.flagTiming);
+  if (indices.impulsivity < 60) flags.push(m.flagImpulseMarked);
+  else if (indices.impulsivity < 75) flags.push(m.flagImpulseMild);
+  if (indices.hyperactivity < 60) flags.push(m.flagHyper);
+  if (omissionR >= 25) flags.push(m.flagOmission);
+  if (faR >= 20) flags.push(m.flagFalseAlarm);
+  if (multiR >= 10) flags.push(m.flagMulti);
+  if (idlePresses >= 6) flags.push(m.flagIdle);
 
   return {
     totalTrials: behaviors.totalTrials,
@@ -230,46 +237,69 @@ export function scoreSeries(logs, lateMs, metricOptions = null) {
   return { att, imp, spd, hyp };
 }
 
-export function getAttentionLevelText(score) {
-  if (score >= 90) return "Çok iyi";
-  if (score >= 80) return "İyi";
-  if (score >= 70) return "Ortalama";
-  if (score >= 60) return "Düşük";
-  return "Belirgin dikkat güçlüğü";
+export function getAttentionLevelText(score, locale = "tr") {
+  const m = getStrings(locale).metrics;
+  if (score >= 90) return m.attentionVeryGood;
+  if (score >= 80) return m.attentionGood;
+  if (score >= 70) return m.attentionAverage;
+  if (score >= 60) return m.attentionLow;
+  return m.attentionPoor;
 }
 
-export function getImpulsivityLevelText(score) {
-  if (score >= 90) return "İyi dürtü kontrolü";
-  if (score >= 75) return "Kabul edilebilir";
-  if (score >= 60) return "Hafif dürtüsellik";
-  if (score >= 40) return "Belirgin dürtüsellik";
-  return "Şiddetli dürtüsellik";
+export function getImpulsivityLevelText(score, locale = "tr") {
+  const m = getStrings(locale).metrics;
+  if (score >= 90) return m.impulseGood;
+  if (score >= 75) return m.impulseOk;
+  if (score >= 60) return m.impulseMild;
+  if (score >= 40) return m.impulseMarked;
+  return m.impulseSevere;
 }
 
-export function getOverallRiskText(score) {
-  if (score >= 85) return "Güçlü performans";
-  if (score >= 70) return "Normal / izlenebilir";
-  if (score >= 55) return "Riskli alanlar var";
-  if (score >= 40) return "Belirgin güçlük";
-  return "Yüksek risk";
+export function getOverallRiskText(score, locale = "tr") {
+  const m = getStrings(locale).metrics;
+  if (score >= 85) return m.riskStrong;
+  if (score >= 70) return m.riskNormal;
+  if (score >= 55) return m.riskAreas;
+  if (score >= 40) return m.riskMarked;
+  return m.riskHigh;
 }
 
-export function riskLabel(m) {
-  return getOverallRiskText(m.overallScore);
+export function riskLabel(metrics, locale = "tr") {
+  return getOverallRiskText(metrics.overallScore, locale);
 }
 
-export function summaryText(m, profileLabel) {
-  const b = m.behaviors;
+export function summaryText(metrics, profileLabel, locale = "tr") {
+  const m = getStrings(locale).metrics;
+  const b = metrics.behaviors;
   const behaviorLine = b
-    ? `Davranış özeti: isabet ${b.hits}, kaçırma ${b.omissions}, geç ${b.late}, yanlış basış ${b.falseAlarms}, çoklu ${b.multiPress}, doğru ret ${b.correctRejects}, boş ekran basışı ${m.idlePresses ?? 0}.`
+    ? m.summaryBehavior
+        .replace("{{hits}}", b.hits)
+        .replace("{{omissions}}", b.omissions)
+        .replace("{{late}}", b.late)
+        .replace("{{falseAlarms}}", b.falseAlarms)
+        .replace("{{multiPress}}", b.multiPress)
+        .replace("{{correctRejects}}", b.correctRejects)
+        .replace("{{idle}}", metrics.idlePresses ?? 0)
     : "";
   return [
-    `Test ${m.totalTrials} deneme ile tamamlandı. Profil: ${profileLabel}.`,
-    `Genel skor ${m.overallScore}/100 (${getOverallRiskText(m.overallScore)}). A-Dikkat ${m.attentionScore} (${getAttentionLevelText(m.attentionScore)}), T-Zamanlama ${m.speedScore}, I-Dürtüsellik ${m.impulseScore} (${getImpulsivityLevelText(m.impulseScore)}), H-Hiper-reaktivite ${m.consistencyScore}.`,
+    m.summaryIntro.replace("{{trials}}", metrics.totalTrials).replace("{{profile}}", profileLabel),
+    m.summaryScores
+      .replace("{{overall}}", metrics.overallScore)
+      .replace("{{risk}}", getOverallRiskText(metrics.overallScore, locale))
+      .replace("{{attention}}", metrics.attentionScore)
+      .replace("{{attentionText}}", getAttentionLevelText(metrics.attentionScore, locale))
+      .replace("{{timing}}", metrics.speedScore)
+      .replace("{{impulse}}", metrics.impulseScore)
+      .replace("{{impulseText}}", getImpulsivityLevelText(metrics.impulseScore, locale))
+      .replace("{{hyper}}", metrics.consistencyScore),
     behaviorLine,
-    `Referans RT ${m.referenceRtMs} ms, ortalama doğru tepki ${m.avgReaction} ms.`,
-    m.flags.length ? `Öne çıkanlar: ${m.flags.join("; ")}.` : "Belirgin uyarı yok.",
-    "Bu yazılım tanı koymaz; yalnızca ön değerlendirme içindir."
+    m.summaryRt
+      .replace("{{refRt}}", metrics.referenceRtMs)
+      .replace("{{avgRt}}", metrics.avgReaction),
+    metrics.flags.length
+      ? m.summaryFlags.replace("{{flags}}", metrics.flags.join("; "))
+      : m.summaryNoFlags,
+    m.disclaimer
   ]
     .filter(Boolean)
     .join(" ");

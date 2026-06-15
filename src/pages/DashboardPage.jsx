@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useLocale } from "../i18n/LocaleContext.jsx";
+import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
 import { fetchMySessions, getReportPdfSignedUrl } from "../services/sessions.js";
 import {
@@ -16,6 +18,7 @@ import {
 
 export default function DashboardPage() {
   const { profile, isAdmin } = useAuth();
+  const { t, locale, dateLocale } = useLocale();
   const [sessions, setSessions] = useState([]);
   const [msg, setMsg] = useState("");
   const [pdfBusy, setPdfBusy] = useState(null);
@@ -28,7 +31,7 @@ export default function DashboardPage() {
       const url = await getReportPdfSignedUrl(session.pdf_path);
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
-      setMsg(e.message || "PDF açılamadı.");
+      setMsg(e.message || t("dashboard.pdfOpenFailed"));
     } finally {
       setPdfBusy(null);
     }
@@ -50,20 +53,18 @@ export default function DashboardPage() {
     <Page wide>
       <Card>
         <CardHeader
-          title={`Hoş geldiniz, ${profile?.full_name}`}
-          description="Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin."
-          action={<Badge variant="primary">{roleLabel(profile?.role)}</Badge>}
+          title={t("dashboard.welcome", { name: profile?.full_name })}
+          description={t("dashboard.description")}
+          action={<Badge variant="primary">{roleLabel(profile?.role, locale)}</Badge>}
         />
-        <Alert variant="success">
-          Test bittiğinde <strong>rapor PDF otomatik kaydedilir</strong> ve aşağıdaki listeden açılabilir.
-        </Alert>
+        <Alert variant="success">{t("dashboard.pdfAutoSave")}</Alert>
         <Stack gap={12} style={{ marginTop: 20 }}>
           <Button asLink to="/test" variant="primary">
-            Yeni test başlat
+            {t("dashboard.newTest")}
           </Button>
           {isAdmin && (
             <Button asLink to="/admin" variant="secondary">
-              Yönetim paneli
+              {t("dashboard.adminPanel")}
             </Button>
           )}
         </Stack>
@@ -75,34 +76,37 @@ export default function DashboardPage() {
       </Card>
 
       <Card>
-        <CardHeader
-          title="Geçmiş testleriniz"
-          description="Katılımcı test raporu PDF — dashboard üzerinden görüntülenir."
-        />
-        {!sessions.length && <EmptyState title="Henüz kayıtlı test yok." description="İlk değerlendirmenizi başlatın." />}
+        <CardHeader title={t("dashboard.historyTitle")} description={t("dashboard.historyDesc")} />
+        {!sessions.length && (
+          <EmptyState title={t("dashboard.noTests")} description={t("dashboard.noTestsDesc")} />
+        )}
         {sessions.length > 0 && (
           <DataTable
             columns={[
               {
-                label: "Tarih",
-                render: (s) => new Date(s.created_at).toLocaleString("tr-TR")
+                label: t("dashboard.date"),
+                render: (s) => new Date(s.created_at).toLocaleString(dateLocale)
               },
-              { key: "participant_name", label: "Katılımcı" },
-              { key: "profile_key", label: "Profil" },
+              { key: "participant_name", label: t("dashboard.participant") },
               {
-                label: "Genel skor",
+                key: "profile_key",
+                label: t("dashboard.profile"),
+                render: (s) => profileLabel(s.profile_key, locale)
+              },
+              {
+                label: t("dashboard.overallScore"),
                 render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
               },
               {
-                label: "Test raporu",
+                label: t("dashboard.testReport"),
                 render: (s) =>
                   s.pdf_path ? (
                     <Button variant="primary" size="sm" disabled={pdfBusy === s.id} onClick={() => openPdf(s)}>
-                      {pdfBusy === s.id ? "…" : "Raporu aç"}
+                      {pdfBusy === s.id ? "…" : t("dashboard.openReport")}
                     </Button>
                   ) : (
                     <span style={{ color: "var(--fp-text-muted)", fontSize: "0.875rem" }}>
-                      PDF hazırlanıyor…
+                      {t("dashboard.pdfPreparing")}
                     </span>
                   )
               }

@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { supabase, supabaseConfigured } from "../lib/supabase.js";
+import { useLocale } from "../i18n/LocaleContext.jsx";
+import { supabase } from "../lib/supabase.js";
 import { ageFromBirthDate } from "../profiles.js";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 
 export default function RegisterPage() {
   const { user, isSupabaseReady, needsProfileCompletion } = useAuth();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [birth, setBirth] = useState("");
@@ -23,8 +25,8 @@ export default function RegisterPage() {
     return (
       <Page narrow>
         <Card>
-          <h1 className="fp-auth-title">Supabase ayarı gerekli</h1>
-          <p className="fp-auth-sub">docs/SAAS_SENARYO.md dosyasına bakın.</p>
+          <h1 className="fp-auth-title">{t("auth.setupTitle")}</h1>
+          <p className="fp-auth-sub">{t("auth.setupDescRegister")}</p>
         </Card>
       </Page>
     );
@@ -35,11 +37,11 @@ export default function RegisterPage() {
     setMsg("");
     const age = ageFromBirthDate(birth);
     if (age === null || age < 18) {
-      setMsg("Üyelik için 18 yaş ve üzeri olmalısınız.");
+      setMsg(t("auth.age18Required"));
       return;
     }
     if (password.length < 6) {
-      setMsg("Şifre en az 6 karakter olmalı.");
+      setMsg(t("auth.passwordMin"));
       return;
     }
     setBusy(true);
@@ -59,45 +61,45 @@ export default function RegisterPage() {
       setMsg(error.message);
       return;
     }
-    setMsg("Kayıt oluşturuldu. E-posta onayı açıksa gelen kutusunu kontrol edin, ardından giriş yapın.");
+    setMsg(t("auth.registerSuccess"));
     setTimeout(() => navigate("/giris"), 2500);
   }
 
-  const msgVariant = msg.includes("oluşturuldu") ? "success" : msg ? "error" : null;
+  const msgVariant = msg === t("auth.registerSuccess") ? "success" : msg ? "error" : null;
 
   return (
     <Page narrow>
       <Card as="form" onSubmit={submit} style={{ maxWidth: 520 }}>
-        <h1 className="fp-auth-title">Üye ol</h1>
-        <p className="fp-auth-sub">Üyelik için 18 yaş ve üzeri zorunludur.</p>
+        <h1 className="fp-auth-title">{t("auth.registerTitle")}</h1>
+        <p className="fp-auth-sub">{t("auth.registerSub")}</p>
         <OAuthButtons />
         <p className="fp-hint" style={{ textAlign: "center", margin: "8px 0 0" }}>
-          veya e-posta ile kayıt
+          {t("auth.registerEmailHint")}
         </p>
-        <Field label="Ad soyad">
+        <Field label={t("auth.fullName")}>
           <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoComplete="name" />
         </Field>
-        <Field label="Doğum tarihi (üye)">
+        <Field label={t("auth.birthDateMember")}>
           <Input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} required />
         </Field>
-        <Field label="Hesap türü">
+        <Field label={t("auth.accountType")}>
           <Select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="individual">Bireysel kullanıcı</option>
-            <option value="psychologist">Psikolog</option>
+            <option value="individual">{t("auth.roleIndividual")}</option>
+            <option value="psychologist">{t("auth.rolePsychologist")}</option>
           </Select>
         </Field>
-        <Field label="E-posta">
+        <Field label={t("auth.email")}>
           <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
         </Field>
-        <Field label="Şifre">
+        <Field label={t("auth.password")}>
           <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
         </Field>
         {msgVariant && <Alert variant={msgVariant}>{msg}</Alert>}
         <Button type="submit" variant="primary" className="fp-btn--block" disabled={busy} style={{ marginTop: 20 }}>
-          {busy ? "Bekleyin…" : "Kayıt ol"}
+          {busy ? t("common.wait") : t("auth.registerBtn")}
         </Button>
         <p style={{ marginTop: 16, fontSize: "0.875rem" }}>
-          <Link to="/giris">Zaten hesabım var</Link>
+          <Link to="/giris">{t("auth.hasAccount")}</Link>
         </p>
       </Card>
     </Page>

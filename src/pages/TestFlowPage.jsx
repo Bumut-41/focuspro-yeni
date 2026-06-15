@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useLocale } from "../i18n/LocaleContext.jsx";
 import {
   ageFromBirthDate,
   getPracticeProfile,
@@ -20,14 +21,13 @@ import { saveTestSession } from "../services/sessions.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
-  AUDIO_CHECK_SOUND,
-  TEST_INSTRUCTION_PARAGRAPHS,
-  TEST_INSTRUCTION_TITLE,
-  GUIDE_PRACTICE_BUTTON
+  AUDIO_CHECK_SOUND
 } from "../copy/testInstructions.js";
 
 export default function TestFlowPage() {
   const { refreshProfile, user } = useAuth();
+  const { t, strings, locale } = useLocale();
+  const instr = strings.test.instructions;
   const [step, setStep] = useState("form");
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
@@ -87,7 +87,8 @@ export default function TestFlowPage() {
         const metrics = {
           ...computeReportMetrics(snapshot, profile.lateResponseMs, {
             pressTimeline: timeline ?? [],
-            age: Number(age) || null
+            age: Number(age) || null,
+            locale
           }),
           lateResponseMs: profile.lateResponseMs
         };
@@ -101,15 +102,15 @@ export default function TestFlowPage() {
         });
         setSessionId(id);
         pdfSavedRef.current = false;
-        setSavedHint("Test kaydedildi. PDF raporu hazırlanıyor…");
+        setSavedHint(t("test.saved"));
         await refreshProfile();
       } catch (e) {
         const m = e?.message || "";
-        if (m.includes("no_credits")) setSavedHint("Kayıt yapılamadı: test hakkınız kalmadı.");
-        else setSavedHint(`Kayıt hatası: ${m}`);
+        if (m.includes("no_credits")) setSavedHint(t("test.noCredits"));
+        else setSavedHint(t("test.saveError", { msg: m }));
       }
     },
-    [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile]
+    [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile, t, locale]
   );
 
   const handleTestFinished = useCallback(
@@ -139,9 +140,7 @@ export default function TestFlowPage() {
     }
     audioRef.current.currentTime = 0;
     return audioRef.current.play().catch(() => {
-      setAudioPlayError(
-        "Ses otomatik çalınamadı. «Sesi duymadım» ile tekrar deneyin; ses seviyesini ve kulaklığı kontrol edin."
-      );
+      setAudioPlayError(t("test.audioPlayError"));
       return Promise.reject();
     });
   }, []);
@@ -161,9 +160,9 @@ export default function TestFlowPage() {
   }, [spaceCelebrating, playAudioSample]);
 
   const handleAudioNotHeard = useCallback(() => {
-    setAudioPlayError("Ses duyulamadıysa sesi açın veya kulaklığı kontrol edin. Test sesi tekrar çalınıyor…");
+    setAudioPlayError(t("test.audioRetry"));
     playAudioSample().then(() => setAudioPlayError(""));
-  }, [playAudioSample]);
+  }, [playAudioSample, t]);
 
   const completeAudioCheck = useCallback(() => {
     if (audioCelebrating || audioDoneLock.current) return;
@@ -184,21 +183,21 @@ export default function TestFlowPage() {
     e.preventDefault();
     setErr("");
     if (!name.trim()) {
-      setErr("Ad soyad girin.");
+      setErr(t("test.errName"));
       return;
     }
     const a = ageFromBirthDate(birth);
     if (a === null || a < 6 || a > 99) {
-      setErr("Geçerli doğum tarihi (6–99 yaş).");
+      setErr(t("test.errBirth"));
       return;
     }
     if (!gender) {
-      setErr("Cinsiyet seçin.");
+      setErr(t("test.errGender"));
       return;
     }
     const k = profileKeyFromAge(a);
     if ((k === "child" || k === "teen") && !consent) {
-      setErr("Çocuk/ergen için onam kutusunu işaretleyin.");
+      setErr(t("test.errConsent"));
       return;
     }
     setAge(String(a));
@@ -277,7 +276,7 @@ export default function TestFlowPage() {
           setSavedHint((prev) =>
             prev.includes("PDF")
               ? prev
-              : `${prev} PDF kaydı başarısız; «PDF indir» ile tekrar deneyebilirsiniz.`
+              : `${prev} ${t("test.pdfSaveFailed")}`
           );
         }
       }
@@ -356,7 +355,7 @@ export default function TestFlowPage() {
       {!isImmersiveStep && (
         <Page narrow>
           <Link to="/panel" className="fp-back-link">
-            ← Panele dön
+            {t("common.backToPanel")}
           </Link>
         </Page>
       )}
@@ -364,12 +363,12 @@ export default function TestFlowPage() {
       {step === "form" && (
         <Page narrow>
           <Card as="form" onSubmit={submitForm}>
-            <h2 className="fp-card-title">Katılımcı bilgileri</h2>
-            <p className="fp-card-desc">Değerlendirme oturumu için katılımcı kaydı.</p>
-            <Field label="Ad soyad">
+            <h2 className="fp-card-title">{t("test.participantTitle")}</h2>
+            <p className="fp-card-desc">{t("test.participantDesc")}</p>
+            <Field label={t("auth.fullName")}>
               <Input value={name} onChange={(e) => setName(e.target.value)} required />
             </Field>
-            <Field label="Doğum tarihi">
+            <Field label={t("auth.birthDate")}>
               <Input
                 type="date"
                 value={birth}
@@ -382,22 +381,22 @@ export default function TestFlowPage() {
                 required
               />
             </Field>
-            <Field label="Cinsiyet">
+            <Field label={t("test.gender")}>
               <Select value={gender} onChange={(e) => setGender(e.target.value)}>
-                <option value="">Seçin</option>
-                <option value="Kadın">Kadın</option>
-                <option value="Erkek">Erkek</option>
+                <option value="">{t("common.select")}</option>
+                <option value="Kadın">{t("test.genderFemale")}</option>
+                <option value="Erkek">{t("test.genderMale")}</option>
               </Select>
             </Field>
             {(pkey === "child" || pkey === "teen") && (
               <label className="fp-checkbox-row">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-                <span>Veli / yasal temsilci onamı alındı.</span>
+                <span>{t("test.consent")}</span>
               </label>
             )}
             {err && <Alert variant="error">{err}</Alert>}
             <Button type="submit" variant="primary" className="fp-btn--block" style={{ marginTop: 20 }}>
-              Devam
+              {t("common.continue")}
             </Button>
           </Card>
         </Page>
@@ -405,17 +404,17 @@ export default function TestFlowPage() {
 
       {step === "guide" && (
         <div className="test-guide-card">
-          <p className="test-guide-kicker">Adım 3 / 5 · Yönerge</p>
-          <h2 className="test-guide-title">{TEST_INSTRUCTION_TITLE}</h2>
+          <p className="test-guide-kicker">{t("test.stepGuide")}</p>
+          <h2 className="test-guide-title">{instr.title}</h2>
           <div className="test-guide-body">
-            {TEST_INSTRUCTION_PARAGRAPHS.map((text) => (
+            {instr.paragraphs.map((text) => (
               <p key={text} className="test-guide-p">
                 {text}
               </p>
             ))}
           </div>
           <button type="button" onClick={startPractice} className="test-guide-continue">
-            {GUIDE_PRACTICE_BUTTON}
+            {instr.practiceBtn}
           </button>
         </div>
       )}
@@ -425,21 +424,19 @@ export default function TestFlowPage() {
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">Adım 1 / 5 · Tuş kontrolü</p>
+            <p className="space-screen-kicker">{t("test.stepSpace")}</p>
             {!spaceCelebrating ? (
               <>
-                <h2 className="space-screen-head">Önce SPACE tuşunu deneyelim</h2>
-                <p className="space-screen-sub">
-                  SPACE tuşuna <strong>bir kez</strong> basın veya dokunun.
-                </p>
+                <h2 className="space-screen-head">{t("test.spaceTitle")}</h2>
+                <p className="space-screen-sub">{t("test.spaceSub")}</p>
                 <button type="button" className="space-screen-touch" onClick={() => completeSpaceCheck()}>
-                  Dokunarak geç
+                  {t("test.spaceTouch")}
                 </button>
               </>
             ) : (
               <div className="space-screen-win">
                 <span className="space-screen-win-check">✓</span>
-                <p className="space-screen-win-title">Tamam</p>
+                <p className="space-screen-win-title">{t("common.ok")}</p>
               </div>
             )}
           </div>
@@ -451,20 +448,17 @@ export default function TestFlowPage() {
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">Adım 2 / 5 · Ses kontrolü</p>
+            <p className="space-screen-kicker">{t("test.stepAudio")}</p>
             {!audioCelebrating ? (
               <>
-                <h2 className="space-screen-head">Şimdi sesi kontrol edelim</h2>
-                <p className="space-screen-sub">
-                  Kısa bir test sesi otomatik çalınır. Sesi net duyduysanız yeşil, duymadıysanız kırmızı butona
-                  basın.
-                </p>
+                <h2 className="space-screen-head">{t("test.audioTitle")}</h2>
+                <p className="space-screen-sub">{t("test.audioSub")}</p>
                 <div className="space-screen-actions">
                   <button type="button" className="space-screen-confirm" onClick={() => completeAudioCheck()}>
-                    Sesi duydum
+                    {t("test.audioHeard")}
                   </button>
                   <button type="button" className="space-screen-deny" onClick={handleAudioNotHeard}>
-                    Sesi duymadım
+                    {t("test.audioNotHeard")}
                   </button>
                 </div>
                 {audioPlayError && (
@@ -476,7 +470,7 @@ export default function TestFlowPage() {
             ) : (
               <div className="space-screen-win">
                 <span className="space-screen-win-check">✓</span>
-                <p className="space-screen-win-title">Tamam</p>
+                <p className="space-screen-win-title">{t("common.ok")}</p>
               </div>
             )}
           </div>
@@ -500,42 +494,31 @@ export default function TestFlowPage() {
             />
           ))}
           {scene && <ShapeView shape={scene.shape} color={scene.color} size={140} />}
-          <p className="test-practice-banner">Deneme — 30 sn (tüm bölümler, kayıt yok)</p>
+          <p className="test-practice-banner">{t("test.practiceBanner")}</p>
         </div>
       )}
 
       {step === "brief" && target && practiceCompleted && (
         <div className="test-brief-card test-brief-card--instructions">
-          <p className="test-brief-kicker">Adım 5 / 5 · Asıl test</p>
-          <h2 className="test-brief-title">FocusProlab Dikkat Testi Yönergesi</h2>
+          <p className="test-brief-kicker">{t("test.stepMain")}</p>
+          <h2 className="test-brief-title">{instr.title}</h2>
           <div className="test-brief-instructions">
-            <p>Bu testte ekranda farklı şekiller göreceksin.</p>
-            <p>
-              Senin görevin yalnızca mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde
-              sadece bir kez basmaktır.
-            </p>
-            <p>Mavi üçgen dışında başka hiçbir şekli gördüğünde basma.</p>
-            <p>
-              Örneğin; mavi kare, yeşil üçgen, kırmızı daire, siyah artı veya başka şekiller
-              gördüğünde basma.
-            </p>
-            <p>Hazırsan asıl teste başlayabilirsin.</p>
+            {instr.paragraphs.slice(0, 4).map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+            <p>{instr.briefExtra}</p>
             {DISTRACTOR_GIF_SECTIONS_QA && (
               <p className="test-brief-qa-hint" role="status">
-                Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses,
-                temel ve kapanış kapalı.
+                {t("test.qaHint")}
               </p>
             )}
-            <p className="test-brief-instructions-emphasis">
-              Unutma: Sadece mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir
-              kez basmalısın
-            </p>
+            <p className="test-brief-instructions-emphasis">{instr.briefEmphasis}</p>
           </div>
           <div className="test-brief-shape">
             <ShapeView shape={target.shape} color={target.color} size={90} />
           </div>
           <button type="button" onClick={beginTest} className="test-brief-start">
-            Teste başla
+            {t("test.startTest")}
           </button>
         </div>
       )}
@@ -592,7 +575,7 @@ export default function TestFlowPage() {
             extraActions={
               <>
                 <Button asLink to="/panel" variant="secondary">
-                  Panele dön
+                  {t("common.panelBack")}
                 </Button>
                 <Button
                   type="button"
@@ -604,7 +587,7 @@ export default function TestFlowPage() {
                     setStep("form");
                   }}
                 >
-                  Yeni test
+                  {t("test.newTest")}
                 </Button>
               </>
             }

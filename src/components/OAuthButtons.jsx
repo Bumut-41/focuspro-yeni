@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { signInWithProvider } from "../lib/oauth.js";
+import { useLocale } from "../i18n/LocaleContext.jsx";
 import { Alert, Button, Divider } from "./ui.jsx";
 
 function GoogleIcon() {
@@ -26,6 +27,7 @@ function GoogleIcon() {
 }
 
 export function OAuthButtons() {
+  const { t } = useLocale();
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
 
@@ -35,14 +37,14 @@ export function OAuthButtons() {
     try {
       await signInWithProvider(provider);
     } catch (e) {
-      setMsg(e.message || "Giriş başlatılamadı. Supabase’te bu sağlayıcı açık mı kontrol edin.");
+      setMsg(e.message || t("auth.oauthError"));
       setBusy("");
     }
   }
 
   return (
     <div style={{ marginTop: 16 }}>
-      <Divider label="veya" />
+      <Divider label={t("common.or")} />
       <Button
         type="button"
         variant="secondary"
@@ -51,17 +53,17 @@ export function OAuthButtons() {
         onClick={() => go("google")}
       >
         {busy === "google" ? (
-          "Yönlendiriliyor…"
+          t("auth.redirecting")
         ) : (
           <>
             <GoogleIcon />
-            Google ile devam et
+            {t("auth.googleContinue")}
           </>
         )}
       </Button>
       {msg && <Alert variant="error">{msg}</Alert>}
       <p className="fp-hint" style={{ marginTop: 10 }}>
-        İlk kez Google ile girerseniz kısa bir profil formu (18 yaş, hesap türü) sorulur.
+        {t("auth.googleHint")}
       </p>
     </div>
   );

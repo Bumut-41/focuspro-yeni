@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { getStrings } from "../i18n/index.js";
 import { Card, Page } from "./ui.jsx";
 
 export class ErrorBoundary extends Component {
@@ -9,20 +10,19 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("FocusProLab render hatası:", error, info);
+    console.error("FocusProLab render error:", error, info);
   }
 
   render() {
     if (this.state.error) {
+      const e = getStrings("tr").error;
       return (
         <Page narrow>
           <Card className="fp-alert--error" style={{ borderColor: "var(--fp-danger-border)" }}>
             <h2 className="fp-card-title" style={{ color: "var(--fp-danger)" }}>
-              Sayfa yüklenemedi
+              {e.pageTitle}
             </h2>
-            <p className="fp-card-desc">
-              Uygulama beklenmeyen bir hatayla durdu. Sayfayı yenileyin; sorun sürerse geliştiriciye bu metni iletin.
-            </p>
+            <p className="fp-card-desc">{e.pageDesc}</p>
             <pre
               style={{
                 fontSize: 12,

@@ -1,6 +1,8 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext.jsx";
+import { LocaleProvider } from "./i18n/LocaleContext.jsx";
+import { useLocale } from "./i18n/LocaleContext.jsx";
 import { AppHeader } from "./components/AppHeader.jsx";
 import { TestChromeProvider, useTestChrome } from "./test/TestChromeContext.jsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
@@ -37,6 +39,8 @@ function Shell({ children }) {
 }
 
 function AppRoutes() {
+  const { t } = useLocale();
+
   return (
     <Routes>
       <Route path="/giris" element={<LoginPage />} />
@@ -62,7 +66,7 @@ function AppRoutes() {
         path="/test"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<p className="fp-loading">Test yükleniyor…</p>}>
+            <Suspense fallback={<p className="fp-loading">{t("common.testLoading")}</p>}>
               <TestFlowPage />
             </Suspense>
           </ProtectedRoute>
@@ -83,14 +87,16 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <TestChromeProvider>
-        <BrowserRouter>
-          <Shell>
-            <AppRoutes />
-          </Shell>
-        </BrowserRouter>
-      </TestChromeProvider>
-    </AuthProvider>
+    <LocaleProvider>
+      <AuthProvider>
+        <TestChromeProvider>
+          <BrowserRouter>
+            <Shell>
+              <AppRoutes />
+            </Shell>
+          </BrowserRouter>
+        </TestChromeProvider>
+      </AuthProvider>
+    </LocaleProvider>
   );
 }

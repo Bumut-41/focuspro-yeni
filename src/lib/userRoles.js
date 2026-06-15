@@ -1,3 +1,5 @@
+import { getStrings } from "../i18n/index.js";
+
 /** Sistemdeki kullanıcı rolleri (profiles.role = user_role enum). */
 
 export const USER_ROLES = ["super_admin", "admin", "psychologist", "individual"];
@@ -5,27 +7,16 @@ export const USER_ROLES = ["super_admin", "admin", "psychologist", "individual"]
 /** Normal yönetici super_admin atayamaz. */
 export const ROLES_ASSIGNABLE_BY_ADMIN = ["admin", "psychologist", "individual"];
 
-export const ROLE_LABELS = {
-  super_admin: "Super Admin",
-  admin: "Yönetici",
-  psychologist: "Psikolog",
-  individual: "Bireysel"
-};
-
 /** Yönetim paneli + tüm admin RPC/RLS yetkileri (is_admin). */
 export const ADMIN_PANEL_ROLES = ["admin", "super_admin"];
 
-export const ROLE_DESCRIPTIONS = {
-  super_admin:
-    "Yöneticinin TÜM yetkileri (panel, tüm testler, kredi ekleme, rol atama, basış raporları) + manuel kredi, kullanıcı silme, Super Admin atama.",
-  admin:
-    "Yönetim paneli, tüm testler ve kullanıcılar, kredi ekleme, rol atama, basış raporları.",
-  psychologist: "Test uygular, kendi panelinde kendi test kayıtlarını ve raporlarını görür.",
-  individual: "Test uygular, kendi panelinde yalnızca kendi test kayıtlarını görür."
-};
+export function roleLabel(role, locale = "tr") {
+  const labels = getStrings(locale).roles;
+  return labels[role] ?? role ?? "—";
+}
 
-export function roleLabel(role) {
-  return ROLE_LABELS[role] ?? role ?? "—";
+export function roleDescription(role, locale = "tr") {
+  return getStrings(locale).roles.descriptions[role] ?? "";
 }
 
 /** Yönetim paneli ve admin API erişimi (super_admin dahil). */
@@ -37,26 +28,21 @@ export function assignableRoles(isSuperAdmin) {
   return isSuperAdmin ? USER_ROLES : ROLES_ASSIGNABLE_BY_ADMIN;
 }
 
-export function formatRoleError(err) {
+export function formatRoleError(err, locale = "tr") {
+  const e = getStrings(locale).roles.errors;
   const code = err?.message ?? "";
-  if (code.includes("cannot_change_own_role")) {
-    return "Kendi rolünüzü bu ekrandan değiştiremezsiniz.";
-  }
-  if (code.includes("forbidden_super_admin_role")) {
-    return "Super Admin rolünü yalnızca mevcut bir Super Admin atayabilir.";
-  }
-  if (code.includes("cannot_delete_self")) return "Kendi hesabınızı silemezsiniz.";
+  if (code.includes("cannot_change_own_role")) return e.cannotChangeOwnRole;
+  if (code.includes("forbidden_super_admin_role")) return e.forbiddenSuperAdmin;
+  if (code.includes("cannot_delete_self")) return e.cannotDeleteSelf;
   if (code.includes("delete_failed")) {
     const detail = code.replace(/^.*delete_failed:\s*/i, "").trim();
     if (detail && !detail.startsWith("delete_failed")) {
-      return `Kullanıcı silinemedi: ${detail}`;
+      return e.deleteFailedDetail.replace("{{detail}}", detail);
     }
-    return "Kullanıcı silinemedi. Supabase'te super-admin-fix-delete.sql dosyasını çalıştırın.";
+    return e.deleteFailed;
   }
-  if (code.includes("permission denied") || code.includes("42501")) {
-    return "RPC izni eksik. Supabase'te super-admin-fix-credits.sql dosyasını çalıştırın.";
-  }
-  if (code.includes("forbidden")) return "Bu işlem için yetkiniz yok.";
-  if (code.includes("user_not_found")) return "Kullanıcı bulunamadı.";
-  return err?.message || "İşlem başarısız.";
+  if (code.includes("permission denied") || code.includes("42501")) return e.permissionDenied;
+  if (code.includes("forbidden")) return e.forbidden;
+  if (code.includes("user_not_found")) return e.userNotFound;
+  return err?.message || e.generic;
 }
