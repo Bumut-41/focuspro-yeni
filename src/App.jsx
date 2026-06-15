@@ -1,11 +1,12 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthContext.jsx";
 import { AppHeader } from "./components/AppHeader.jsx";
 import { TestChromeProvider, useTestChrome } from "./test/TestChromeContext.jsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CompleteProfilePage from "./pages/CompleteProfilePage.jsx";
@@ -14,11 +15,21 @@ const TestFlowPage = lazy(() => import("./pages/TestFlowPage.jsx"));
 
 function Shell({ children }) {
   const { immersive } = useTestChrome();
+  const { pathname } = useLocation();
+  const isLanding = pathname === "/";
 
   return (
     <div className={immersive ? "app-shell app-shell--immersive" : "app-shell"}>
       {!immersive && <AppHeader />}
-      <main className={immersive ? "app-shell-main app-shell-main--immersive" : "app-shell-main"}>
+      <main
+        className={
+          immersive
+            ? "app-shell-main app-shell-main--immersive"
+            : isLanding
+              ? "app-shell-main app-shell-main--landing"
+              : "app-shell-main"
+        }
+      >
         {children}
       </main>
     </div>
@@ -38,8 +49,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/" element={<HomePage />} />
       <Route
-        path="/"
+        path="/panel"
         element={
           <ProtectedRoute>
             <DashboardPage />

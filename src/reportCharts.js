@@ -10,9 +10,7 @@ import {
   Tooltip
 } from "chart.js";
 import {
-  getAllPhaseChartScores,
-  reportPhaseKey,
-  shortPhaseLabel,
+  getReportPhaseChartScores,
   computeDetailedMetrics,
   getScores
 } from "./reportHelpers.js";
@@ -58,24 +56,9 @@ const COMBINED_COLORS = {
   hyperactivity: "#d4a574"
 };
 
-/** Profil fazları boyunca skorlar (birleşik grafik). */
+/** 8 nokta — birleşik grafik serisi. */
 export function getProfilePhaseSeries(logs, profile) {
-  return profile.phases
-    .map((phase) => {
-      const list = logs.filter((t) => t.section === phase.name);
-      if (!list.length) return null;
-      const m = computeDetailedMetrics(list, profile.lateResponseMs);
-      const sc = getScores(m);
-      return {
-        label: shortPhaseLabel(phase.name),
-        phaseKey: reportPhaseKey(phase.name),
-        attention: sc.attention,
-        timing: sc.timing,
-        impulsivity: sc.impulsivity,
-        hyperactivity: sc.hyperactivity
-      };
-    })
-    .filter(Boolean);
+  return getReportPhaseChartScores(logs, profile);
 }
 
 function renderChart(config, width = 520, height = 300) {
@@ -111,7 +94,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey) {
   const chartW = Math.min(560, 420 + n * 14);
   const chartH = n > 6 ? 340 : 300;
 
-  const labels = phaseRows.map((r) => r.label);
+  const labels = phaseRows.map((r) => (r.axisLabel ? `${r.axisLabel}\n${r.label}` : r.label));
   const userData = phaseRows.map((r) => r[meta.field]);
   const normMeans = [];
   const normLows = [];
@@ -197,7 +180,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey) {
 /** Dört endeks — profil fazları (8–9 nokta). */
 export function renderCombinedPhaseChart(phaseSeries, profileKey) {
   if (!phaseSeries.length) return null;
-  const labels = phaseSeries.map((p) => p.label);
+  const labels = phaseSeries.map((p) => (p.axisLabel ? `${p.axisLabel} · ${p.label}` : p.label));
 
   const datasets = Object.entries(COMBINED_COLORS).map(([key, color]) => {
     const meta = INDEX_META[key];
@@ -244,10 +227,10 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey) {
  * PDF için tüm rapor grafikleri.
  * @returns {Promise<{ attention, timing, impulsivity, hyperactivity, combined, timeline? }>}
  */
-export async function buildReportChartImages(logs, profile) {
+export async function buildReportChartImages(logs, profile, age = null, pressTimeline = []) {
   const profileKey = profile.key ?? "adult";
-  const phaseRows = getAllPhaseChartScores(logs, profile);
-  const phaseSeries = getProfilePhaseSeries(logs, profile);
+  const phaseRows = getReportPhaseChartScores(logs, profile, age, pressTimeline);
+  const phaseSeries = phaseRows;
 
   return {
     attention: renderIndexPhaseChart(phaseRows, profileKey, "attention"),

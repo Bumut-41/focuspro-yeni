@@ -8,7 +8,7 @@ export function AppHeader() {
   return (
     <header className="fp-header">
       <div className="fp-header-inner">
-        <Link to={user ? "/" : "/giris"} className="fp-brand">
+        <Link to="/" className="fp-brand">
           <span className="fp-brand-mark" aria-hidden>
             FP
           </span>
@@ -22,7 +22,7 @@ export function AppHeader() {
           <nav className="fp-nav" aria-label="Main">
             {user ? (
               <>
-                <AppNavLink to="/" end>
+                <AppNavLink to="/panel" end>
                   Panel
                 </AppNavLink>
                 <AppNavLink to="/test">Test</AppNavLink>
@@ -36,6 +36,9 @@ export function AppHeader() {
               </>
             ) : (
               <>
+                <AppNavLink to="/" end>
+                  Ana sayfa
+                </AppNavLink>
                 <AppNavLink to="/giris">Giriş</AppNavLink>
                 <Button asLink to="/kayit" variant="primary" size="sm">
                   Kayıt ol

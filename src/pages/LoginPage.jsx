@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to={needsProfileCompletion ? "/profil-tamamla" : "/"} replace />;
+  if (user) return <Navigate to={needsProfileCompletion ? "/profil-tamamla" : "/panel"} replace />;
 
   if (!isSupabaseReady) {
     return (
@@ -41,7 +41,7 @@ export default function LoginPage() {
       setMsg(error.message);
       return;
     }
-    navigate("/");
+    navigate("/panel");
   }
 
   return (

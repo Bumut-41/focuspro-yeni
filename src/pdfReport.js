@@ -225,15 +225,24 @@ function buildNormComparison(scores, profileKey) {
   return blocks;
 }
 
-export function buildDocDefinition({ participant, profile, logs, target, reportCharts = {} }) {
+export function buildDocDefinition({
+  participant,
+  profile,
+  logs,
+  target,
+  pressTimeline = [],
+  reportCharts = {}
+}) {
   const profileKey = profile.key ?? "adult";
-  const metrics = computeDetailedMetrics(logs, profile.lateResponseMs);
+  const age = participant?.age ?? null;
+  const metricOpts = { pressTimeline, age };
+  const metrics = computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
   const scores = getScores(metrics);
   const risk = riskLabel(metrics);
   const validityFlags = computeValidityFlags(logs, metrics, profile);
-  const vigilance = computeVigilanceIndex(logs, profile);
-  const sections = getSectionSummaries(logs, profile);
-  const matrix = getDistractorSummaryMatrix(logs, profile);
+  const vigilance = computeVigilanceIndex(logs, profile, age, pressTimeline);
+  const sections = getSectionSummaries(logs, profile, age, pressTimeline);
+  const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline);
   const professional = buildProfessionalSummary(scores, metrics, profile, vigilance);
   const smart = buildSmartComment(scores, metrics, profile);
   const zGlobal = getGlobalIndexZScores(scores, profileKey);

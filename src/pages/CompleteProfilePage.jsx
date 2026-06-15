@@ -15,7 +15,7 @@ export default function CompleteProfilePage() {
   const [busy, setBusy] = useState(false);
 
   if (!user) return <Navigate to="/giris" replace />;
-  if (!needsProfileCompletion) return <Navigate to="/" replace />;
+  if (!needsProfileCompletion) return <Navigate to="/panel" replace />;
 
   async function submit(e) {
     e.preventDefault();
@@ -41,7 +41,7 @@ export default function CompleteProfilePage() {
       return;
     }
     await refreshProfile();
-    navigate("/");
+    navigate("/panel");
   }
 
   return (

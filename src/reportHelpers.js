@@ -1,5 +1,13 @@
-import { computeMetrics, riskLabel } from "./metrics.js";
-import { normLevelFromZ, normZScore } from "./reportNorms.js";
+import {
+  computeMetrics,
+  countTrialBehaviors,
+  getAttentionLevelText,
+  getImpulsivityLevelText,
+  getOverallRiskText,
+  riskLabel
+} from "./metrics.js";
+import { buildReportPhaseBuckets, logsForBucket } from "./report/phaseBuckets.js";
+import { normLevelFromZ, normLevelTextFromZ, normZScore } from "./reportNorms.js";
 
 function inverseNormalCDF(p) {
   if (p <= 0 || p >= 1) return 0;
@@ -48,9 +56,28 @@ function correctedRate(rate, total) {
   return rate;
 }
 
-/** Genişletilmiş metrikler (d-prime, ayrıntılı sayımlar). */
-export function computeDetailedMetrics(logs, lateMs) {
-  const base = computeMetrics(logs, lateMs);
+function normalizeMetricOptions(third, fourth) {
+  if (Array.isArray(third)) return { pressTimeline: third, age: fourth ?? null };
+  if (third && typeof third === "object") {
+    return { pressTimeline: third.pressTimeline ?? [], age: third.age ?? null };
+  }
+  return { pressTimeline: [], age: fourth ?? null };
+}
+
+export function timelineForBucket(pressTimeline, bucket) {
+  const names = new Set(bucket.phaseNames);
+  return (pressTimeline ?? []).filter((p) => !p.section || names.has(p.section));
+}
+
+/** Katılımcı raporu — tek kaynak (UI, PDF, DB). */
+export function computeReportMetrics(logs, lateMs, metricOptions = null, age = null) {
+  return computeDetailedMetrics(logs, lateMs, metricOptions, age);
+}
+
+/** Genişletilmiş metrikler (d-prime, davranış sayımları, dört endeks). */
+export function computeDetailedMetrics(logs, lateMs, metricOptions = null, age = null) {
+  const opts = normalizeMetricOptions(metricOptions, age);
+  const base = computeMetrics(logs, lateMs, opts);
   const targets = logs.filter((t) => t.isTarget);
   const nonT = logs.filter((t) => !t.isTarget);
   const hits = targets.filter((t) => t.responded && t.reactionTime <= lateMs);
@@ -67,7 +94,8 @@ export function computeDetailedMetrics(logs, lateMs) {
   const zFa = inverseNormalCDF(correctedRate(faRateRaw, nonT.length));
   const dPrime = Number((zHit - zFa).toFixed(2));
   const criterionC = Number((-0.5 * (zHit + zFa)).toFixed(2));
-  const beta = Math.abs(criterionC) > 0.05 ? Number((dPrime / criterionC).toFixed(2)) : null;
+  const beta =
+    Math.abs(dPrime) > 0.05 ? Number(Math.exp(-criterionC * dPrime).toFixed(2)) : null;
 
   let perseverationCount = 0;
   for (let i = 1; i < logs.length; i++) {
@@ -115,16 +143,23 @@ export function mapSectionToNormPhase(sectionName) {
   return k === "other" ? "temel1" : k;
 }
 
-/** Tüm profil fazları — indeks grafikleri (8–9 nokta). */
+/** 8 grafik noktası — temel 3 + 3 çeldirici + kapanış 2. */
 export function getAllPhaseChartScores(logs, profile) {
-  return profile.phases
-    .map((phase) => {
-      const list = logs.filter((t) => t.section === phase.name);
+  return getReportPhaseChartScores(logs, profile);
+}
+
+export function getReportPhaseChartScores(logs, profile, age = null, pressTimeline = []) {
+  return buildReportPhaseBuckets(profile)
+    .map((bucket) => {
+      const list = logsForBucket(logs, bucket);
       if (!list.length) return null;
-      const sc = getScores(computeDetailedMetrics(list, profile.lateResponseMs));
+      const tl = timelineForBucket(pressTimeline, bucket);
+      const m = computeDetailedMetrics(list, profile.lateResponseMs, { pressTimeline: tl, age });
+      const sc = getScores(m);
       return {
-        label: shortPhaseLabel(phase.name),
-        phaseKey: mapSectionToNormPhase(phase.name),
+        label: bucket.label,
+        axisLabel: bucket.axisLabel,
+        phaseKey: bucket.phaseKey,
         attention: sc.attention,
         timing: sc.timing,
         impulsivity: sc.impulsivity,
@@ -136,8 +171,13 @@ export function getAllPhaseChartScores(logs, profile) {
 
 export function computeValidityFlags(logs, metrics, profile) {
   const flags = [];
-  const missing = profile.phases.filter((p) => !logs.some((t) => t.section === p.name));
-  if (missing.length) flags.push(`Eksik faz: ${missing.length} bölümde veri yok`);
+  // Yetişkin/ergen ramp fazları 30 sn dilimler; boş dilim uyarısı yanıltıcı olabilir — 8 rapor kutusu kontrol edilir.
+  const missingBuckets = buildReportPhaseBuckets(profile).filter(
+    (bucket) => !logsForBucket(logs, bucket).length
+  );
+  if (missingBuckets.length) {
+    flags.push(`Eksik faz: ${missingBuckets.length} rapor bölümünde veri yok`);
+  }
 
   const targetHits = logs.filter((t) => t.isTarget && t.responded && t.reactionTime > 0);
   const tooFast = targetHits.filter((t) => t.reactionTime < 150).length;
@@ -145,8 +185,12 @@ export function computeValidityFlags(logs, metrics, profile) {
     flags.push("Aşırı hızlı tepkiler (olası rastgele basış)");
   }
 
-  const expectedTrials = Math.round(profile.durationMs / 1500);
-  if (metrics.totalTrials < expectedTrials * 0.65) {
+  const avgInterval =
+    profile.phases?.length > 0
+      ? profile.phases.reduce((s, p) => s + p.stimulus + p.gap, 0) / profile.phases.length
+      : 1500;
+  const expectedTrials = Math.round(profile.durationMs / avgInterval);
+  if (metrics.totalTrials < expectedTrials * 0.6) {
     flags.push("Beklenenden az deneme (test erken bitmiş olabilir)");
   }
 
@@ -157,28 +201,49 @@ export function computeValidityFlags(logs, metrics, profile) {
   return flags;
 }
 
-export function computeVigilanceIndex(logs, profile) {
-  const late = profile.lateResponseMs;
-  const baseline = phaseLogs(
-    logs,
-    (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses")
-  );
-  const closing = phaseLogs(logs, (s) => /11–12|12–13|13–14|14–15|11-12|12-13|14-15/.test(s));
-  if (!baseline.length || !closing.length) {
-    return { deltaAttention: null, deltaTiming: null, deltaRt: null, label: "Yetersiz veri" };
+export function computeSustainabilityIndex(logs, profile, age = null, pressTimeline = []) {
+  const buckets = buildReportPhaseBuckets(profile);
+  if (buckets.length < 4) {
+    return { delta: null, firstAvg: null, lastAvg: null, label: "Yetersiz veri" };
   }
-  const mb = computeDetailedMetrics(baseline, late);
-  const mc = computeDetailedMetrics(closing, late);
-  const sb = getScores(mb);
-  const sc = getScores(mc);
-  const deltaA = sc.attention - sb.attention;
-  const deltaT = sc.timing - sb.timing;
-  const deltaRt = mc.medianReaction - mb.medianReaction;
-  let label = "Stabil (başlangıç–kapanış)";
-  if (deltaA < -8 || deltaRt > 90) label = "Vigilance düşüşü — yorgunluk etkisi olası";
-  else if (deltaA > 8 && deltaRt < -40) label = "Kapanışta performans artışı";
-  else if (deltaA < -5) label = "Hafif vigilance düşüşü";
-  return { deltaAttention: deltaA, deltaTiming: deltaT, deltaRt, label };
+  const late = profile.lateResponseMs;
+  const scoreOf = (bucket) => {
+    const list = logsForBucket(logs, bucket);
+    if (!list.length) return null;
+    const tl = timelineForBucket(pressTimeline, bucket);
+    return computeDetailedMetrics(list, late, { pressTimeline: tl, age }).overallScore;
+  };
+  const firstScores = buckets.slice(0, 2).map(scoreOf).filter((v) => v != null);
+  const lastScores = buckets.slice(-2).map(scoreOf).filter((v) => v != null);
+  if (!firstScores.length || !lastScores.length) {
+    return { delta: null, firstAvg: null, lastAvg: null, label: "Yetersiz veri" };
+  }
+  const firstAvg = firstScores.reduce((a, b) => a + b, 0) / firstScores.length;
+  const lastAvg = lastScores.reduce((a, b) => a + b, 0) / lastScores.length;
+  const delta = lastAvg - firstAvg;
+  let label;
+  if (delta >= 5) label = "Isınma / düzelme";
+  else if (delta >= -5) label = "Değişiklik yok";
+  else if (delta >= -15) label = "Hafif düşüş";
+  else label = "Belirgin performans bozulması";
+  return {
+    delta: Math.round(delta),
+    firstAvg: Math.round(firstAvg),
+    lastAvg: Math.round(lastAvg),
+    label
+  };
+}
+
+export function computeVigilanceIndex(logs, profile, age = null, pressTimeline = []) {
+  const s = computeSustainabilityIndex(logs, profile, age, pressTimeline);
+  return {
+    deltaAttention: s.delta,
+    deltaTiming: null,
+    deltaRt: null,
+    label: s.label,
+    firstAvg: s.firstAvg,
+    lastAvg: s.lastAvg
+  };
 }
 
 export function formatDurationSeconds(ms) {
@@ -203,15 +268,20 @@ export function getLevel(score) {
   if (score >= 85) return 1;
   if (score >= 70) return 2;
   if (score >= 55) return 3;
-  return 4;
+  if (score >= 40) return 4;
+  return 5;
 }
 
 export function getLevelText(score) {
-  const level = getLevel(score);
-  if (level === 1) return "İyi Performans";
-  if (level === 2) return "Standart Performans";
-  if (level === 3) return "Düşük Performans";
-  return "Performansta Zorluk";
+  return getOverallRiskText(score);
+}
+
+export function getAttentionIndexText(score) {
+  return getAttentionLevelText(score);
+}
+
+export function getImpulsivityIndexText(score) {
+  return getImpulsivityLevelText(score);
 }
 
 export function getScoreColor(score) {
@@ -246,15 +316,116 @@ export function severityLevel(score) {
 export function getPhaseComment(sectionName, score) {
   if (score >= 75) return "Performans bu fazda genel olarak korunmuştur.";
   const s = sectionName.toLowerCase();
-  if (s.includes("sessiz + sesli") || s.includes("kombine")) {
+  if (s.includes("sessiz + sesli") || s.includes("sesli gif")) {
     return "Birleşik çeldiriciler altında dikkat ve dürtü kontrolü zorlanmış olabilir.";
   }
   if (s.includes("sessiz gif")) return "Görsel çeldiriciler altında dikkat performansı etkilenmiş olabilir.";
   if (s.includes("sadece ses")) return "İşitsel çeldiriciler altında performans etkilenmiş olabilir.";
-  if (s.includes("12") || s.includes("13") || s.includes("14") || s.includes("15")) {
+  if (/11–|12–|13–|14–|15–|11-|12-|13-|14-|15-/.test(s)) {
     return "Testin son bölümünde yorgunluk etkisi görülebilir.";
   }
   return "Bu fazda performansta düşüş izlenmiştir.";
+}
+
+export function getBehaviorRates(behaviors) {
+  if (!behaviors?.totalTrials) {
+    return {
+      hitRate: 0,
+      omissionRate: 0,
+      lateRate: 0,
+      falseAlarmRate: 0,
+      multiPressRate: 0,
+      correctRejectRate: 0
+    };
+  }
+  const { hits, omissions, late, falseAlarms, correctRejects, multiPress, targets, nonTargets, totalTrials } =
+    behaviors;
+  return {
+    hitRate: targets ? (hits / targets) * 100 : 0,
+    omissionRate: targets ? (omissions / targets) * 100 : 0,
+    lateRate: targets ? (late / targets) * 100 : 0,
+    falseAlarmRate: nonTargets ? (falseAlarms / nonTargets) * 100 : 0,
+    multiPressRate: (multiPress / totalTrials) * 100,
+    correctRejectRate: nonTargets ? (correctRejects / nonTargets) * 100 : 0
+  };
+}
+
+/** 8 faz × davranış türleri tablosu. */
+export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTimeline = []) {
+  const late = profile.lateResponseMs;
+  return buildReportPhaseBuckets(profile).map((bucket) => {
+    const list = logsForBucket(logs, bucket);
+    const behaviors = countTrialBehaviors(list, late);
+    const rates = getBehaviorRates(behaviors);
+    const tl = timelineForBucket(pressTimeline, bucket);
+    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age });
+    const sc = getScores(m);
+    return {
+      label: bucket.label,
+      axisLabel: bucket.axisLabel,
+      kind: bucket.kind,
+      behaviors,
+      rates,
+      attention: sc.attention,
+      timing: sc.timing,
+      impulsivity: sc.impulsivity,
+      hyperactivity: sc.hyperactivity,
+      comment: getPhaseComment(bucket.label, sc.overall)
+    };
+  });
+}
+
+export function buildNarrativeComment(scores, zGlobal) {
+  const lines = [];
+  if (scores.attention >= 70) {
+    lines.push("Dikkat performansı genel olarak yeterlidir.");
+  } else if (scores.attention >= 60) {
+    lines.push("Dikkat performansı orta düzeydedir.");
+  } else {
+    lines.push("Dikkat alanında belirgin zorluk gözlenmiştir.");
+  }
+  if (scores.timing < 70 || zGlobal.timing < -1) {
+    lines.push("Zamanlama alanında normlara göre yavaşlama gözlenmiştir.");
+  } else {
+    lines.push("Zamanlama performansı kabul edilebilir düzeydedir.");
+  }
+  if (scores.impulsivity >= 75) {
+    lines.push("Dürtüsellik göstergeleri belirgin değildir.");
+  } else if (scores.impulsivity >= 60) {
+    lines.push("Hafif dürtüsellik göstergeleri izlenmiştir.");
+  } else {
+    lines.push("Dürtüsellik alanında belirgin zorluk gözlenmiştir.");
+  }
+  if (scores.hyperactivity >= 75) {
+    lines.push("Hiperaktivite göstergeleri belirgin değildir.");
+  } else {
+    lines.push("Hiperaktivite / fazla motor tepki göstergeleri dikkat çekmektedir.");
+  }
+  return lines.join(" ");
+}
+
+export function buildMoxoSummary(scores, metrics, profile, vigilance) {
+  const z = getGlobalIndexZScores(scores, profile.key ?? "adult");
+  const weakest = [
+    { key: "A", label: "Dikkat", score: scores.attention, z: z.attention },
+    { key: "T", label: "Zamanlama", score: scores.timing, z: z.timing },
+    { key: "I", label: "Dürtüsellik", score: scores.impulsivity, z: z.impulsivity },
+    { key: "H", label: "Hiper-reaktivite", score: scores.hyperactivity, z: z.hyperactivity }
+  ].sort((a, b) => a.z - b.z)[0];
+
+  const narrative = buildNarrativeComment(scores, z);
+  const genelCalc = `Genel Skor = ${scores.attention}×0.35 + ${scores.timing}×0.30 + ${scores.impulsivity}×0.20 + ${scores.hyperactivity}×0.15 = ${scores.overall}`;
+
+  return [
+    `MOXO Özeti (FocusPro): A: ${scores.attention}, T: ${scores.timing}, I: ${scores.impulsivity}, H: ${scores.hyperactivity}. ${genelCalc}. ${getOverallRiskText(scores.overall)}.`,
+    narrative,
+    `Norma göre en düşük alan: ${weakest.label} (z=${weakest.z.toFixed(2)}, ${normLevelTextFromZ(weakest.z)}).`,
+    `Sürdürülebilir performans (ilk 2 / son 2 blok): ${vigilance.label}${vigilance.firstAvg != null ? ` (başlangıç ${vigilance.firstAvg}, bitiş ${vigilance.lastAvg})` : ""}.`,
+    metrics.flags.length ? `Ek bulgular: ${metrics.flags.join("; ")}.` : "",
+    "Sonuçlar yalnızca nitelikli profesyonel değerlendirme için ön bilgi sağlar."
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 /** MOXO tarzı rapor faz anahtarı */
@@ -285,24 +456,31 @@ export const FULL_PHASE_LEGEND = [
   ["Temel - 2", "Sürekli performans — test kapanışı"]
 ];
 
-export function getSectionSummaries(logs, profile) {
-  return profile.phases.map((phase) => {
-    const list = logs.filter((t) => t.section === phase.name);
-    const m = computeDetailedMetrics(list, profile.lateResponseMs);
+export function getSectionSummaries(logs, profile, age = null, pressTimeline = []) {
+  const late = profile.lateResponseMs;
+  return buildReportPhaseBuckets(profile).map((bucket) => {
+    const list = logsForBucket(logs, bucket);
+    const tl = timelineForBucket(pressTimeline, bucket);
+    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age });
     const sc = getScores(m);
+    const behaviors = countTrialBehaviors(list, late);
+    const rates = getBehaviorRates(behaviors);
     return {
-      section: phase.name,
-      shortLabel: phase.name.replace(/^[^—]+—\s*/, ""),
+      section: bucket.label,
+      shortLabel: bucket.label,
+      axisLabel: bucket.axisLabel,
       totalTrials: m.totalTrials,
       attentionScore: sc.attention,
       timingScore: sc.timing,
       impulsivityScore: sc.impulsivity,
       hyperactivityScore: sc.hyperactivity,
+      behaviors,
+      rates,
       accuracy: m.accuracy,
-      omissionRate: m.omissionRate,
-      falseAlarmRate: m.falseAlarmRate,
+      omissionRate: rates.omissionRate,
+      falseAlarmRate: rates.falseAlarmRate,
       medianReaction: m.medianReaction,
-      comment: getPhaseComment(phase.name, m.overallScore)
+      comment: getPhaseComment(bucket.label, sc.overall)
     };
   });
 }
@@ -335,77 +513,105 @@ function phaseLogs(logs, matcher) {
   return logs.filter((t) => matcher((t.section || "").toLowerCase()));
 }
 
-/** Dört endeks × çeldirici özeti (F.docx tablosu). */
-export function getDistractorSummaryMatrix(logs, profile) {
+function distractorEffectCell(temelScore, celdiriciScore) {
+  if (temelScore == null || celdiriciScore == null || temelScore <= 0) {
+    return { text: "—", color: "#64748b" };
+  }
+  const pct = ((temelScore - celdiriciScore) / temelScore) * 100;
+  let band;
+  if (pct < -5) band = "Düzelme";
+  else if (pct <= 5) band = "Etki yok";
+  else if (pct <= 15) band = "Hafif etki";
+  else if (pct <= 30) band = "Orta etki";
+  else band = "Belirgin etki";
+  const color = pct > 30 ? "#dc2626" : pct > 15 ? "#f59e0b" : "#64748b";
+  return { text: `${band} (${pct.toFixed(0)}%)`, color };
+}
+
+function sustainabilityCell(logs, profile, age, pressTimeline, key) {
+  const buckets = buildReportPhaseBuckets(profile);
   const late = profile.lateResponseMs;
+  const idxOf = (bucket) => {
+    const list = logsForBucket(logs, bucket);
+    if (!list.length) return null;
+    const tl = timelineForBucket(pressTimeline, bucket);
+    return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age }))[key];
+  };
+  const first = buckets.slice(0, 2).map(idxOf).filter((v) => v != null);
+  const last = buckets.slice(-2).map(idxOf).filter((v) => v != null);
+  if (!first.length || !last.length) return { text: "—", color: "#64748b" };
+  const firstAvg = first.reduce((a, b) => a + b, 0) / first.length;
+  const lastAvg = last.reduce((a, b) => a + b, 0) / last.length;
+  const delta = lastAvg - firstAvg;
+  let text;
+  if (delta >= 5) text = `Isınma (+${delta.toFixed(0)})`;
+  else if (delta >= -5) text = "Değişiklik yok";
+  else if (delta >= -15) text = `Hafif düşüş (${delta.toFixed(0)})`;
+  else text = `Belirgin bozulma (${delta.toFixed(0)})`;
+  const color = delta < -15 ? "#dc2626" : delta < -5 ? "#f59e0b" : "#64748b";
+  return { text, color };
+}
+
+/** Dört endeks × çeldirici özeti — yüzde etki bantları. */
+export function getDistractorSummaryMatrix(logs, profile, age = null, pressTimeline = []) {
+  const late = profile.lateResponseMs;
+  const opts = { pressTimeline, age };
   const baseline = phaseLogs(
     logs,
     (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses")
   );
-  const closing = phaseLogs(logs, (s) => /1[12]-1[35]|12–|13–|14–|15–/.test(s));
-  const visual = phaseLogs(logs, (s) => s.includes("sessiz gif"));
+  const visual = phaseLogs(logs, (s) => s.includes("sessiz gif") && !s.includes("sesli"));
   const auditory = phaseLogs(logs, (s) => s.includes("sadece ses"));
   const combined = phaseLogs(logs, (s) => s.includes("sessiz + sesli") || s.includes("sesli gif"));
-  const smallD = [...visual.slice(0, Math.ceil(visual.length / 2)), ...auditory.slice(0, Math.ceil(auditory.length / 2))];
-  const largeD = [...visual.slice(Math.ceil(visual.length / 2)), ...auditory.slice(Math.ceil(auditory.length / 2)), ...combined];
+  const allDistractors = [...visual, ...auditory, ...combined];
 
-  const scoreOf = (list) => (list.length ? getScores(computeDetailedMetrics(list, late)) : null);
+  const scoreOf = (list) => (list.length ? getScores(computeDetailedMetrics(list, late, opts)) : null);
 
   const baseSc = scoreOf(baseline);
-  const closeSc = scoreOf(closing);
   const visSc = scoreOf(visual);
   const audSc = scoreOf(auditory);
   const combSc = scoreOf(combined);
-  const smallSc = scoreOf(smallD);
-  const largeSc = scoreOf(largeD);
+  const loadSc = scoreOf(allDistractors);
 
-  const deltaLabel = (a, b, key) => {
-    if (!a || !b) return { text: "Değişiklik yok", color: "#64748b" };
-    const diff = b[key] - a[key];
-    if (Math.abs(diff) < 5) return { text: "Değişiklik yok", color: "#64748b" };
-    if (diff > 0) return { text: "Puanda Artma (Düzelme)", color: "#16a34a" };
-    return { text: "Puanda Azalma (Bozulma)", color: "#dc2626" };
-  };
+  const effect = (distSc, key) => distractorEffectCell(baseSc?.[key], distSc?.[key]);
 
-  const rows = [
+  return [
     {
       name: "Sürdürülebilir performans",
-      A: deltaLabel(baseSc, closeSc, "attention"),
-      T: deltaLabel(baseSc, closeSc, "timing"),
-      I: deltaLabel(baseSc, closeSc, "impulsivity"),
-      H: deltaLabel(baseSc, closeSc, "hyperactivity")
+      A: sustainabilityCell(logs, profile, age, pressTimeline, "attention"),
+      T: sustainabilityCell(logs, profile, age, pressTimeline, "timing"),
+      I: sustainabilityCell(logs, profile, age, pressTimeline, "impulsivity"),
+      H: sustainabilityCell(logs, profile, age, pressTimeline, "hyperactivity")
     },
     {
       name: "Görsel",
-      A: deltaLabel(baseSc, visSc, "attention"),
-      T: deltaLabel(baseSc, visSc, "timing"),
-      I: deltaLabel(baseSc, visSc, "impulsivity"),
-      H: deltaLabel(baseSc, visSc, "hyperactivity")
+      A: effect(visSc, "attention"),
+      T: effect(visSc, "timing"),
+      I: effect(visSc, "impulsivity"),
+      H: effect(visSc, "hyperactivity")
     },
     {
       name: "İşitsel",
-      A: deltaLabel(baseSc, audSc, "attention"),
-      T: deltaLabel(baseSc, audSc, "timing"),
-      I: deltaLabel(baseSc, audSc, "impulsivity"),
-      H: deltaLabel(baseSc, audSc, "hyperactivity")
+      A: effect(audSc, "attention"),
+      T: effect(audSc, "timing"),
+      I: effect(audSc, "impulsivity"),
+      H: effect(audSc, "hyperactivity")
     },
     {
       name: "Kombine",
-      A: deltaLabel(baseSc, combSc, "attention"),
-      T: deltaLabel(baseSc, combSc, "timing"),
-      I: deltaLabel(baseSc, combSc, "impulsivity"),
-      H: deltaLabel(baseSc, combSc, "hyperactivity")
+      A: effect(combSc, "attention"),
+      T: effect(combSc, "timing"),
+      I: effect(combSc, "impulsivity"),
+      H: effect(combSc, "hyperactivity")
     },
     {
       name: "Çeldirici yükü",
-      A: deltaLabel(smallSc, largeSc, "attention"),
-      T: deltaLabel(smallSc, largeSc, "timing"),
-      I: deltaLabel(smallSc, largeSc, "impulsivity"),
-      H: deltaLabel(smallSc, largeSc, "hyperactivity")
+      A: effect(loadSc, "attention"),
+      T: effect(loadSc, "timing"),
+      I: effect(loadSc, "impulsivity"),
+      H: effect(loadSc, "hyperactivity")
     }
   ];
-
-  return rows;
 }
 
 export function buildProfessionalSummary(scores, metrics, profile, vigilance) {
@@ -434,10 +640,17 @@ export function buildSmartComment(scores, metrics, profile) {
 }
 
 export const INDEX_DEFINITIONS = [
-  ["A — Dikkat", "Doğru yanıt verme ve odaklanma becerisi"],
-  ["T — Zamanlama", "Hızlı ve doğru yanıt verme yeteneği"],
-  ["I — Dürtüsellik", "Durumu değerlendirmeden aceleci tepki verme eğilimi"],
-  ["H — Hiper-reaktivite", "Motor tepkilerin düzenlenmesinde zorluk"]
+  [
+    "A — Dikkat",
+    "100 − (kaçırma/hedef×70) − (yanlış/toplam_uyaran×30). 90+ Çok iyi, 80–89 İyi, 70–79 Ortalama, 60–69 Düşük, <60 Belirgin güçlük"
+  ],
+  [
+    "T — Zamanlama",
+    "referans_RT / ortalama_RT × 100 (max 100). Referans: 7–9 yaş 950 ms, 10–12 850, 13–17 750, 18+ 650 ms"
+  ],
+  ["I — Dürtüsellik", "100 − (yanlış/hedef_dışı×100) × 5"],
+  ["H — Hiper-reaktivite", "100 − (fazladan_tıklama / toplam_tepki × 100) × 4"],
+  ["Genel skor", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
 ];
 
 export const SDT_DEFINITIONS = [
@@ -449,10 +662,11 @@ export const SDT_DEFINITIONS = [
 ];
 
 export const NORM_LEVELS = [
-  { level: 1, label: "İyi Performans", color: "#0d9488" },
-  { level: 2, label: "Standart Performans", color: "#86efac" },
-  { level: 3, label: "Düşük Performans", color: "#f59e0b" },
-  { level: 4, label: "Performansta Zorluk", color: "#dc2626" }
+  { level: 1, label: "Çok iyi performans (Z ≥ 1.0)", color: "#0d9488" },
+  { level: 2, label: "Standart performans (0 – 0.99)", color: "#86efac" },
+  { level: 3, label: "Düşük performans (−1 – −0.01)", color: "#f59e0b" },
+  { level: 4, label: "Performansta zorluk (Z < −1)", color: "#dc2626" },
+  { level: 5, label: "Belirgin zorluk (Z < −2)", color: "#7f1d1d" }
 ];
 
 export const SEVERITY_LEVELS = [

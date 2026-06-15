@@ -9,15 +9,14 @@ import {
   profileKeyFromAge,
   DISTRACTOR_GIF_SECTIONS_QA
 } from "../profiles.js";
-import { computeMetrics } from "../metrics.js";
+import { computeReportMetrics } from "../reportHelpers.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
 import { TestDevTimer } from "../components/TestDevTimer.jsx";
 import { ReportPanel } from "../components/ReportPanel.jsx";
-import { createAdminTimelinePdfBlob } from "../pdfAdminTimeline.js";
-import { createPdfBlob } from "../pdfReport.js";
-import { persistAdminReportPdf, persistSessionReportPdf, saveTestSession } from "../services/sessions.js";
+import { formatPersistResult, persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
+import { saveTestSession } from "../services/sessions.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
@@ -86,7 +85,10 @@ export default function TestFlowPage() {
       setSavedHint("");
       try {
         const metrics = {
-          ...computeMetrics(snapshot, profile.lateResponseMs),
+          ...computeReportMetrics(snapshot, profile.lateResponseMs, {
+            pressTimeline: timeline ?? [],
+            age: Number(age) || null
+          }),
           lateResponseMs: profile.lateResponseMs
         };
         const id = await saveTestSession({
@@ -256,31 +258,18 @@ export default function TestFlowPage() {
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       try {
-        const blob = await createPdfBlob({
+        const result = await persistAllSessionPdfs({
+          userId: user.id,
+          sessionId,
           participant,
           profile,
           logs,
-          target
+          target,
+          pressTimeline
         });
-        await persistSessionReportPdf(user.id, sessionId, blob);
-        if (pressTimeline.length) {
-          const adminBlob = await createAdminTimelinePdfBlob({
-            session: {
-              id: sessionId,
-              participant_name: name,
-              participant_age: Number(age) || null,
-              profile_key: pkey,
-              created_at: new Date().toISOString(),
-              logs
-            },
-            timeline: pressTimeline,
-            target
-          });
-          await persistAdminReportPdf(user.id, sessionId, adminBlob);
-        }
         if (!cancelled) {
-          pdfSavedRef.current = true;
-          setSavedHint("Test ve PDF raporları hesabınıza kaydedildi.");
+          if (result.testSaved) pdfSavedRef.current = true;
+          setSavedHint(formatPersistResult(result, pressTimeline.length > 0));
         }
       } catch (e) {
         console.warn(e);
@@ -366,7 +355,7 @@ export default function TestFlowPage() {
 
       {!isImmersiveStep && (
         <Page narrow>
-          <Link to="/" className="fp-back-link">
+          <Link to="/panel" className="fp-back-link">
             ← Panele dön
           </Link>
         </Page>
@@ -511,7 +500,7 @@ export default function TestFlowPage() {
             />
           ))}
           {scene && <ShapeView shape={scene.shape} color={scene.color} size={140} />}
-          <p className="test-practice-banner">Deneme — 30 sn (sessiz gif, kayıt yok)</p>
+          <p className="test-practice-banner">Deneme — 30 sn (tüm bölümler, kayıt yok)</p>
         </div>
       )}
 
@@ -579,19 +568,30 @@ export default function TestFlowPage() {
             profile={profile}
             participant={participant}
             target={target}
+            pressTimeline={pressTimeline}
             chartRef={chartRef}
             savedHint={savedHint}
             persistPdf={
               sessionId && user?.id
-                ? async (blob) => {
-                    await persistSessionReportPdf(user.id, sessionId, blob);
-                    pdfSavedRef.current = true;
+                ? async () => {
+                    const result = await persistAllSessionPdfs({
+                      userId: user.id,
+                      sessionId,
+                      participant,
+                      profile,
+                      logs,
+                      target,
+                      pressTimeline
+                    });
+                    if (result.testSaved) pdfSavedRef.current = true;
+                    setSavedHint(formatPersistResult(result, pressTimeline.length > 0));
+                    return result.testBlob;
                   }
                 : undefined
             }
             extraActions={
               <>
-                <Button asLink to="/" variant="secondary">
+                <Button asLink to="/panel" variant="secondary">
                   Panele dön
                 </Button>
                 <Button

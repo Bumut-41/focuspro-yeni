@@ -80,7 +80,7 @@ export default function AdminPage() {
     if (isAdmin) load().catch((e) => setMsg(e.message));
   }, [isAdmin, load]);
 
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (!isAdmin) return <Navigate to="/panel" replace />;
 
   async function loadSessionBundle(sessionId) {
     const [sess, tl] = await Promise.all([

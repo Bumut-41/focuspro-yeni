@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { formatTestMs } from "../lib/testTime.js";
 import { symbolCaption } from "../lib/symbolLabels.js";
 import {
@@ -9,7 +8,6 @@ import {
   pressStatusLabel,
   summarizePresses
 } from "../lib/pressTimelineReport.js";
-import { downloadAdminTimelinePdf } from "../pdfAdminTimeline.js";
 import { getProfile } from "../profiles.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { Badge, Button, Card, CardHeader } from "./ui.jsx";
@@ -51,7 +49,14 @@ function PressRow({ p, lateMs, highlight = false }) {
   );
 }
 
-export function AdminPressTimeline({ session, timeline, target }) {
+export function AdminPressTimeline({
+  session,
+  timeline,
+  target,
+  onDownloadTestPdf,
+  onDownloadPressPdf,
+  pdfBusy = false
+}) {
   const logs = session?.logs ?? [];
   const presses = enrichPressList(timeline);
   const targetTrials = logs.filter((t) => t.isTarget);
@@ -59,17 +64,8 @@ export function AdminPressTimeline({ session, timeline, target }) {
   const stats = summarizePresses(presses);
   const wrongSymbolPresses = presses.filter((p) => p.isWrongSymbol || p.errorType === "false_alarm");
   const idlePresses = presses.filter((p) => p.errorType === "idle");
-  const [pdfBusy, setPdfBusy] = useState(false);
-
-  async function handleDownloadPdf() {
-    if (!presses.length) return;
-    setPdfBusy(true);
-    try {
-      await downloadAdminTimelinePdf({ session, timeline, target });
-    } finally {
-      setPdfBusy(false);
-    }
-  }
+  const logsOk = logs.length > 0;
+  const hasPresses = presses.length > 0;
 
   if (!session) return null;
 
@@ -80,15 +76,28 @@ export function AdminPressTimeline({ session, timeline, target }) {
         description={`${session.participant_name} · ${new Date(session.created_at).toLocaleString("tr-TR")}`}
         action={
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={pdfBusy || !presses.length}
-              onClick={handleDownloadPdf}
-            >
-              {pdfBusy ? "PDF…" : "Basış PDF indir"}
-            </Button>
+            {onDownloadTestPdf && (
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={pdfBusy || !logsOk}
+                onClick={onDownloadTestPdf}
+              >
+                {pdfBusy ? "PDF…" : "Test raporu PDF"}
+              </Button>
+            )}
+            {onDownloadPressPdf && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={pdfBusy || !hasPresses}
+                onClick={onDownloadPressPdf}
+              >
+                {pdfBusy ? "PDF…" : "Basış raporu PDF"}
+              </Button>
+            )}
             <Badge variant="primary">Yalnızca yönetici</Badge>
           </div>
         }

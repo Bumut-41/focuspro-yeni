@@ -63,20 +63,22 @@ export function normZScore(score, profileKey, phaseKey, indexKey) {
   return Number(((score - mean) / sd).toFixed(2));
 }
 
-/** MOXO tarzı performans düzeyi (z-puanına göre) */
+/** MOXO tarzı performans düzeyi (z-puanına göre). */
 export function normLevelFromZ(z) {
-  if (z >= 0.75) return 1;
-  if (z >= -0.5) return 2;
-  if (z >= -1.25) return 3;
-  return 4;
+  if (z >= 1.0) return 1;
+  if (z >= 0) return 2;
+  if (z >= -1) return 3;
+  if (z >= -2) return 4;
+  return 5;
 }
 
 export function normLevelTextFromZ(z) {
   const l = normLevelFromZ(z);
-  if (l === 1) return "İyi Performans";
-  if (l === 2) return "Standart Performans";
-  if (l === 3) return "Düşük Performans";
-  return "Performansta Zorluk";
+  if (l === 1) return "Çok iyi performans";
+  if (l === 2) return "Standart performans";
+  if (l === 3) return "Düşük performans";
+  if (l === 4) return "Performansta zorluk";
+  return "Belirgin zorluk";
 }
 
 export function normBand(profileKey, phaseKey, indexKey) {
