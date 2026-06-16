@@ -256,7 +256,7 @@ export function buildDocDefinition({
   const indexChartNotes = {
     attention:
       "Dikkat endeksi; hedef uyaranlara doğru yanıt ve kaçırma oranlarını yansıtır. Gri bant norm aralığı (±1 SS), kesikli çizgi normatif referanstır.",
-    timing: "Zamanlama endeksi; tepki süresi tutarlılığı ve geç yanıtları ölçer.",
+    timing: "Zamanlama endeksi; hedefe doğru zamanda tepki verme becerisini ölçer. Doğru nesneye basılsa bile geç veya acele yanıtlar zamanlama problemi sayılır.",
     impulsivity: "Dürtüsellik endeksi; hedef dışı uyaranlara yanlış basışları yansıtır.",
     hyperactivity: "Hiper-reaktivite endeksi; çoklu basma ve aşırı tepkiselliği ölçer."
   };

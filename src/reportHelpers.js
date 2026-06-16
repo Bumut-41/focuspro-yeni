@@ -402,7 +402,7 @@ export function buildNarrativeComment(scores, zGlobal) {
     lines.push("Dikkat alanında belirgin zorluk gözlenmiştir.");
   }
   if (scores.timing < 70 || zGlobal.timing < -1) {
-    lines.push("Zamanlama alanında normlara göre yavaşlama gözlenmiştir.");
+    lines.push("Zamanlama alanında geç tepki, acele yanıt veya yavaşlama gözlenmiştir.");
   } else {
     lines.push("Zamanlama performansı kabul edilebilir düzeydedir.");
   }
@@ -663,7 +663,7 @@ export const INDEX_DEFINITIONS = [
   ],
   [
     "T — Zamanlama",
-    "referans_RT / ortalama_RT × 100 (max 100). Referans: 7–9 yaş 950 ms, 10–12 850, 13–17 750, 18+ 650 ms"
+    "Hedefe doğru zamanda tepki: zamanında isabet oranı + RT kalitesi − geç yanıt cezası − acele basış cezası. Doğru nesneye basılsa bile gecikme veya acele zamanlama problemidir."
   ],
   ["I — Dürtüsellik", "100 − (yanlış/hedef_dışı×100) × 5"],
   ["H — Hiper-reaktivite", "100 − (fazladan_tıklama / toplam_tepki × 100) × 4"],

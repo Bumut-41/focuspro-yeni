@@ -91,6 +91,42 @@ export function countHyperPressStats(logs, pressTimeline = []) {
   };
 }
 
+/** Acele (zamanlama) eşiği — hedefe doğru ama aşırı hızlı basış. */
+export const TIMING_RUSH_MS = 150;
+
+/** Hedef denemelerinde zamanlama: geç + acele + RT kalitesi. */
+export function computeTimingScore(behaviors, onTimeRts, refRt) {
+  const { hits, late, targets } = behaviors;
+  if (!targets) return 0;
+
+  const targetResponses = hits + late;
+  if (targetResponses === 0) return 0;
+
+  const lateRate = safeDiv(late, targets);
+  const onTimeRate = safeDiv(hits, targets);
+  const rushedHits = onTimeRts.filter((rt) => rt < TIMING_RUSH_MS).length;
+  const rushRate = safeDiv(rushedHits, targets);
+
+  let rtQuality = 0;
+  if (onTimeRts.length > 0) {
+    const rtMean = mean(onTimeRts);
+    if (rtMean < TIMING_RUSH_MS) {
+      rtQuality = 30;
+    } else {
+      rtQuality = clamp((refRt / rtMean) * 100);
+    }
+  }
+
+  // Doğru nesneye basılsa bile geç veya acele → zamanlama düşer
+  let timing = clamp(onTimeRate * 50 + rtQuality * 0.4 - lateRate * 45 - rushRate * 30);
+
+  if (hits === 0 && late > 0) {
+    timing = Math.min(timing, 30);
+  }
+
+  return Math.round(timing);
+}
+
 /** A/T/I/H — kullanıcı spec formülleri. */
 export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimeline = []) {
   if (!behaviors.totalTrials) {
@@ -114,9 +150,8 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
   // Geç yanıtlar da kaçırma sayılır — aksi halde basmama/geç basma iyi skor üretir.
   const attention = clamp(100 - missRatio * 70 - falseOnTotalRatio * 30);
 
-  const rtMean = mean(rts);
   const refRt = referenceRtMs(age);
-  const timing = rtMean > 0 ? clamp((refRt / rtMean) * 100) : 0;
+  const timing = computeTimingScore(behaviors, rts, refRt);
 
   const impulsivityRate = safeDiv(behaviors.falseAlarms, behaviors.nonTargets) * 100;
   const hyper = countHyperPressStats(logs, pressTimeline);
@@ -207,6 +242,8 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   else if (indices.attention < 70) flags.push(m.flagAttentionLow);
   if (indices.timing < 70) flags.push(m.flagTiming);
   if (lateR >= 25) flags.push(m.flagLate);
+  const rushedHits = rts.filter((rt) => rt < TIMING_RUSH_MS).length;
+  if (behaviors.hits > 0 && rushedHits / behaviors.hits >= 0.25) flags.push(m.flagRush);
   if (indices.impulsivity < 60) flags.push(m.flagImpulseMarked);
   else if (indices.impulsivity < 75) flags.push(m.flagImpulseMild);
   if (indices.hyperactivity < 60) flags.push(m.flagHyper);
