@@ -169,6 +169,7 @@ export const en = {
     newTest: "Start new test",
     adminPanel: "Admin panel",
     historyTitle: "Your past tests",
+    myTestsTitle: "Tests you administered",
     historyDesc: "Participant test report PDF — view from the dashboard.",
     noTests: "No saved tests yet.",
     noTestsDesc: "Start your first assessment.",
@@ -180,6 +181,57 @@ export const en = {
     openReport: "Open report",
     pdfPreparing: "Preparing PDF…",
     pdfOpenFailed: "Could not open PDF."
+  },
+  share: {
+    linkCardTitle: "Your psychologist",
+    linkCardDesc:
+      "To share test results, enter your psychologist's registered email or the share code they gave you.",
+    psychEmail: "Psychologist email",
+    psychEmailHint: "Email registered as psychologist on FocusPro",
+    psychCode: "Share code",
+    psychCodeHint: "8-character code shown on your psychologist's dashboard",
+    linkButton: "Link psychologist",
+    linkNeedInput: "Enter an email or share code.",
+    linkSuccess: "{{name}} was added to your links.",
+    unlink: "Remove",
+    unlinkConfirm: "Remove link with {{name}}?",
+    unlinkSuccess: "Link removed.",
+    panelTitle: "Share with my psychologist",
+    panelDesc:
+      "Allow your psychologist to view this test result. Late or rushed responses are included in the report.",
+    selectLinked: "Linked psychologist",
+    selectPlaceholder: "Select from list (optional)",
+    orEmail: "or psychologist email",
+    orCode: "or share code",
+    consentLabel:
+      "I consent to my selected psychologist viewing this test result.",
+    consentRequired: "Please check the consent box to share.",
+    shareNeedTarget: "Select a linked psychologist or enter email / code.",
+    shareButton: "Share with psychologist",
+    closeShare: "Close",
+    shareSuccess: "Result shared with {{name}}.",
+    alreadyShared: "Shared with: {{names}}",
+    sharedWith: "Shared with {{names}}",
+    columnShare: "Share",
+    psychCodeCardTitle: "Your share code",
+    psychCodeCardDesc: "Clients can share results with you using this code or your registered email.",
+    copyCode: "Copy code",
+    copied: "Copied",
+    copyCodeManual: "Your share code:",
+    sharedListTitle: "Client shares",
+    sharedListDesc: "Test results clients have shared with you.",
+    noShared: "No shared results yet.",
+    noSharedDesc: "Clients can share after a test or from their dashboard.",
+    clientAccount: "Client account",
+    errors: {
+      notFound: "Psychologist not found. Check the email or code.",
+      psychCannotLink: "Psychologist accounts cannot add other psychologists.",
+      cannotLinkSelf: "You cannot add yourself as a psychologist.",
+      sessionNotFound: "Test record not found.",
+      notPsychologist: "This action is for psychologist accounts only.",
+      notAuth: "You need to sign in.",
+      generic: "Action failed. Please try again."
+    }
   },
   test: {
     participantTitle: "Participant information",
@@ -328,7 +380,7 @@ export const en = {
       super_admin:
         "ALL admin powers (panel, all tests, add credits, assign roles, press reports) + manual credits, delete users, assign Super Admin.",
       admin: "Admin panel, all tests and users, add credits, assign roles, press reports.",
-      psychologist: "Runs tests; sees own test records and reports in the dashboard.",
+      psychologist: "Runs tests; sees client shares and own test records in the dashboard.",
       individual: "Runs tests; sees only own test records in the dashboard."
     },
     errors: {

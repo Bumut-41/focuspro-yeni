@@ -3,7 +3,11 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
+import { fetchMySessionShares } from "../services/psychologistShare.js";
 import { fetchMySessions, getReportPdfSignedUrl } from "../services/sessions.js";
+import { PsychologistLinkCard } from "../components/PsychologistLinkCard.jsx";
+import { PsychologistSharedSessionsCard } from "../components/PsychologistSharedSessionsCard.jsx";
+import { ShareSessionPanel } from "../components/ShareSessionPanel.jsx";
 import {
   Alert,
   Badge,
@@ -17,11 +21,14 @@ import {
 } from "../components/ui.jsx";
 
 export default function DashboardPage() {
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, isPsychologist } = useAuth();
   const { t, locale, dateLocale } = useLocale();
+  const isIndividual = profile?.role === "individual";
   const [sessions, setSessions] = useState([]);
+  const [shareMap, setShareMap] = useState({});
   const [msg, setMsg] = useState("");
   const [pdfBusy, setPdfBusy] = useState(null);
+  const [shareOpenId, setShareOpenId] = useState(null);
 
   async function openPdf(session) {
     if (!session.pdf_path) return;
@@ -39,11 +46,21 @@ export default function DashboardPage() {
 
   const load = useCallback(async () => {
     try {
-      setSessions(await fetchMySessions());
+      const rows = await fetchMySessions();
+      setSessions(rows);
+      if (isIndividual) {
+        const shares = await fetchMySessionShares();
+        const map = {};
+        for (const s of shares) {
+          if (!map[s.session_id]) map[s.session_id] = [];
+          map[s.session_id].push(s.psychologist_name);
+        }
+        setShareMap(map);
+      }
     } catch (e) {
       setMsg(e.message);
     }
-  }, []);
+  }, [isIndividual]);
 
   useEffect(() => {
     load();
@@ -75,47 +92,90 @@ export default function DashboardPage() {
         )}
       </Card>
 
+      {isPsychologist && <PsychologistSharedSessionsCard />}
+
+      {isIndividual && <PsychologistLinkCard />}
+
       <Card>
-        <CardHeader title={t("dashboard.historyTitle")} description={t("dashboard.historyDesc")} />
-        {!sessions.length && (
-          <EmptyState title={t("dashboard.noTests")} description={t("dashboard.noTestsDesc")} />
-        )}
-        {sessions.length > 0 && (
-          <DataTable
-            columns={[
-              {
-                label: t("dashboard.date"),
-                render: (s) => new Date(s.created_at).toLocaleString(dateLocale)
-              },
-              { key: "participant_name", label: t("dashboard.participant") },
-              {
-                key: "profile_key",
-                label: t("dashboard.profile"),
-                render: (s) => profileLabel(s.profile_key, locale)
-              },
-              {
-                label: t("dashboard.overallScore"),
-                render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
-              },
-              {
-                label: t("dashboard.testReport"),
-                render: (s) =>
-                  s.pdf_path ? (
-                    <Button variant="primary" size="sm" disabled={pdfBusy === s.id} onClick={() => openPdf(s)}>
-                      {pdfBusy === s.id ? "…" : t("dashboard.openReport")}
-                    </Button>
-                  ) : (
-                    <span style={{ color: "var(--fp-text-muted)", fontSize: "0.875rem" }}>
-                      {t("dashboard.pdfPreparing")}
-                    </span>
-                  )
-              }
-            ]}
-            rows={sessions}
-            rowKey={(s) => s.id}
-          />
-        )}
-      </Card>
+        <CardHeader
+          title={isPsychologist ? t("dashboard.myTestsTitle") : t("dashboard.historyTitle")}
+          description={t("dashboard.historyDesc")}
+        />
+          {!sessions.length && (
+            <EmptyState title={t("dashboard.noTests")} description={t("dashboard.noTestsDesc")} />
+          )}
+          {sessions.length > 0 && (
+            <DataTable
+              columns={[
+                {
+                  label: t("dashboard.date"),
+                  render: (s) => new Date(s.created_at).toLocaleString(dateLocale)
+                },
+                { key: "participant_name", label: t("dashboard.participant") },
+                {
+                  key: "profile_key",
+                  label: t("dashboard.profile"),
+                  render: (s) => profileLabel(s.profile_key, locale)
+                },
+                {
+                  label: t("dashboard.overallScore"),
+                  render: (s) => (s.metrics?.overallScore != null ? Math.round(s.metrics.overallScore) : "—")
+                },
+                {
+                  label: t("dashboard.testReport"),
+                  render: (s) =>
+                    s.pdf_path ? (
+                      <Button variant="primary" size="sm" disabled={pdfBusy === s.id} onClick={() => openPdf(s)}>
+                        {pdfBusy === s.id ? "…" : t("dashboard.openReport")}
+                      </Button>
+                    ) : (
+                      <span style={{ color: "var(--fp-text-muted)", fontSize: "0.875rem" }}>
+                        {t("dashboard.pdfPreparing")}
+                      </span>
+                    )
+                },
+                ...(isIndividual
+                  ? [
+                      {
+                        label: t("share.columnShare"),
+                        render: (s) => {
+                          const names = shareMap[s.id];
+                          if (names?.length) {
+                            return (
+                              <span style={{ fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
+                                {t("share.sharedWith", { names: names.join(", ") })}
+                              </span>
+                            );
+                          }
+                          return (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShareOpenId(shareOpenId === s.id ? null : s.id)}
+                            >
+                              {shareOpenId === s.id ? t("share.closeShare") : t("share.shareButton")}
+                            </Button>
+                          );
+                        }
+                      }
+                    ]
+                  : [])
+              ]}
+              rows={sessions}
+              rowKey={(s) => s.id}
+            />
+          )}
+          {isIndividual && shareOpenId && (
+            <ShareSessionPanel
+              sessionId={shareOpenId}
+              compact
+              onShared={() => {
+                load();
+                setShareOpenId(null);
+              }}
+            />
+          )}
+        </Card>
     </Page>
   );
 }

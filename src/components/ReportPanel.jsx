@@ -5,6 +5,7 @@ import { profileLabel } from "../i18n/index.js";
 import { computeReportMetrics, getScores } from "../reportHelpers.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { createPdfBlob } from "../pdfReport.js";
+import { ShareSessionPanel } from "./ShareSessionPanel.jsx";
 import { Alert, Button, CardHeader, Stack } from "./ui.jsx";
 
 export function ReportPanel({
@@ -16,7 +17,9 @@ export function ReportPanel({
   chartRef,
   savedHint,
   extraActions,
-  persistPdf
+  persistPdf,
+  sessionId,
+  showSharePanel = false
 }) {
   const { t, locale } = useLocale();
   const profileDisplay = profileLabel(profile.key ?? profile.profileKey, locale) || profile.label;
@@ -121,6 +124,7 @@ export function ReportPanel({
         </Button>
         {extraActions}
       </Stack>
+      {showSharePanel && sessionId && <ShareSessionPanel sessionId={sessionId} />}
     </div>
   );
 }
