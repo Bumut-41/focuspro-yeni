@@ -169,7 +169,6 @@ export const tr = {
     newTest: "Yeni test başlat",
     adminPanel: "Yönetim paneli",
     historyTitle: "Geçmiş testleriniz",
-    myTestsTitle: "Uyguladığınız testler",
     historyDesc: "Katılımcı test raporu PDF — dashboard üzerinden görüntülenir.",
     noTests: "Henüz kayıtlı test yok.",
     noTestsDesc: "İlk değerlendirmenizi başlatın.",
@@ -181,57 +180,6 @@ export const tr = {
     openReport: "Raporu aç",
     pdfPreparing: "PDF hazırlanıyor…",
     pdfOpenFailed: "PDF açılamadı."
-  },
-  share: {
-    linkCardTitle: "Psikoloğunuz",
-    linkCardDesc:
-      "Test sonuçlarınızı paylaşmak için psikoloğunuzun kayıtlı e-posta adresini veya size verdiği paylaşım kodunu girin.",
-    psychEmail: "Psikolog e-postası",
-    psychEmailHint: "FocusPro'da psikolog olarak kayıtlı e-posta",
-    psychCode: "Paylaşım kodu",
-    psychCodeHint: "Psikoloğunuzun panelinde görünen 8 haneli kod",
-    linkButton: "Psikoloğu bağla",
-    linkNeedInput: "E-posta veya paylaşım kodundan birini girin.",
-    linkSuccess: "{{name}} bağlantınıza eklendi.",
-    unlink: "Kaldır",
-    unlinkConfirm: "{{name}} bağlantısını kaldırmak istiyor musunuz?",
-    unlinkSuccess: "Bağlantı kaldırıldı.",
-    panelTitle: "Psikoloğumla paylaş",
-    panelDesc:
-      "Bu test sonucunu psikoloğunuzun görmesine izin verin. Doğru nesneye basılsa bile geç veya acele yanıtlar raporda yer alır.",
-    selectLinked: "Bağlı psikolog",
-    selectPlaceholder: "Listeden seçin (isteğe bağlı)",
-    orEmail: "veya psikolog e-postası",
-    orCode: "veya paylaşım kodu",
-    consentLabel:
-      "Test sonucumun seçtiğim psikolog tarafından görüntülenmesine açık rızamla izin veriyorum.",
-    consentRequired: "Paylaşım için onay kutusunu işaretleyin.",
-    shareNeedTarget: "Bağlı psikolog seçin veya e-posta / kod girin.",
-    shareButton: "Psikoloğumla paylaş",
-    closeShare: "Kapat",
-    shareSuccess: "Sonuç {{name}} ile paylaşıldı.",
-    alreadyShared: "Paylaşıldı: {{names}}",
-    sharedWith: "{{names}} ile paylaşıldı",
-    columnShare: "Paylaşım",
-    psychCodeCardTitle: "Paylaşım kodunuz",
-    psychCodeCardDesc: "Danışanlarınız bu kodu veya kayıtlı e-postanızı kullanarak sonuçlarını sizinle paylaşabilir.",
-    copyCode: "Kodu kopyala",
-    copied: "Kopyalandı",
-    copyCodeManual: "Paylaşım kodunuz:",
-    sharedListTitle: "Danışan paylaşımları",
-    sharedListDesc: "Danışanların sizinle paylaştığı test sonuçları.",
-    noShared: "Henüz paylaşılan sonuç yok.",
-    noSharedDesc: "Danışanlar test sonrası veya panelden sonuçlarını sizinle paylaşabilir.",
-    clientAccount: "Danışan hesabı",
-    errors: {
-      notFound: "Psikolog bulunamadı. E-posta veya kodu kontrol edin.",
-      psychCannotLink: "Psikolog hesapları başka psikolog ekleyemez.",
-      cannotLinkSelf: "Kendinizi psikolog olarak ekleyemezsiniz.",
-      sessionNotFound: "Test kaydı bulunamadı.",
-      notPsychologist: "Bu işlem yalnızca psikolog hesapları içindir.",
-      notAuth: "Oturum açmanız gerekiyor.",
-      generic: "İşlem başarısız. Lütfen tekrar deneyin."
-    }
   },
   test: {
     participantTitle: "Katılımcı bilgileri",
@@ -383,7 +331,7 @@ export const tr = {
       super_admin:
         "Yöneticinin TÜM yetkileri (panel, tüm testler, kredi ekleme, rol atama, basış raporları) + manuel kredi, kullanıcı silme, Super Admin atama.",
       admin: "Yönetim paneli, tüm testler ve kullanıcılar, kredi ekleme, rol atama, basış raporları.",
-      psychologist: "Test uygular; danışan paylaşımlarını ve kendi test kayıtlarını panelde görür.",
+      psychologist: "Test uygular, kendi panelinde kendi test kayıtlarını ve raporlarını görür.",
       individual: "Test uygular, kendi panelinde yalnızca kendi test kayıtlarını görür."
     },
     errors: {

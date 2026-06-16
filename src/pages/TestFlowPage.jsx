@@ -25,7 +25,7 @@ import {
 } from "../copy/testInstructions.js";
 
 export default function TestFlowPage() {
-  const { refreshProfile, user, profile: authProfile } = useAuth();
+  const { refreshProfile, user } = useAuth();
   const { t, strings, locale } = useLocale();
   const instr = strings.test.instructions;
   const [step, setStep] = useState("form");
@@ -555,8 +555,6 @@ export default function TestFlowPage() {
             pressTimeline={pressTimeline}
             chartRef={chartRef}
             savedHint={savedHint}
-            sessionId={sessionId}
-            showSharePanel={authProfile?.role === "individual" && Boolean(sessionId)}
             persistPdf={
               sessionId && user?.id
                 ? async () => {
