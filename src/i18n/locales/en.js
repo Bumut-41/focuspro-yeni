@@ -388,11 +388,11 @@ export const en = {
     validityTooFast: "Excessively fast responses (possible random pressing)",
     validityFewTrials: "Fewer trials than expected (test may have ended early)",
     validityScattered: "Scattered response pattern (high omission + false alarms)",
-    validityNoOnTimeHits: "No on-time target hits — results may be unreliable",
+    validityNoOnTimeHits: "No response to targets — results may be unreliable",
     validityLowEngagement: "Low engagement (hit rate below 15%)",
-    validityHighLate: "High late-response rate — attention score reduced",
+    validityHighLate: "High late-response rate — timing (T) index affected",
     flagNoEngagement: "No responses (no test engagement)",
-    flagLate: "High late-response rate",
-    flagNoHits: "No on-time target hits"
+    flagLate: "High late-response rate (timing)",
+    flagNoHits: "No target response (omission)"
   }
 };

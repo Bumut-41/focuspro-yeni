@@ -92,7 +92,7 @@ export function computeDetailedMetrics(logs, lateMs, metricOptions = null, age =
   const fa = nonT.filter((t) => t.responded);
   const correctRej = nonT.filter((t) => !t.responded);
   const multi = logs.filter((t) => t.responseCount > 1);
-  const hitRateRaw = targets.length ? hits.length / targets.length : 0;
+  const hitRateRaw = targets.length ? allTargetResp.length / targets.length : 0;
   const faRateRaw = nonT.length ? fa.length / nonT.length : 0;
   const targetRespRate = targets.length ? allTargetResp.length / targets.length : 0;
   const zHit = inverseNormalCDF(correctedRate(hitRateRaw, targets.length));
@@ -204,7 +204,7 @@ export function computeValidityFlags(logs, metrics, profile, locale = "tr") {
     flags.push(vm.validityScattered);
   }
 
-  if (metrics.correctHits === 0 && metrics.targets >= 15) {
+  if (metrics.correctHits + metrics.lateResponses === 0 && metrics.targets >= 15) {
     flags.push(vm.validityNoOnTimeHits);
   }
   if (metrics.hitRate < 15 && metrics.targets >= 15) {
@@ -659,7 +659,7 @@ export function buildSmartComment(scores, metrics, profile) {
 export const INDEX_DEFINITIONS = [
   [
     "A — Dikkat",
-    "100 − ((kaçırma+geç)/hedef×70) − (yanlış/toplam_uyaran×30). Geç yanıt kaçırma sayılır. 90+ Çok iyi, 80–89 İyi, 70–79 Ortalama, 60–69 Düşük, <60 Belirgin güçlük"
+    "100 − (ihmal/hedef×70) − (yanlış/toplam_uyaran×30). İhmal = hedefe hiç basmama. Geç yanıt dikkate değil zamanlamaya (T) yazılır. 90+ Çok iyi, 80–89 İyi, 70–79 Ortalama, 60–69 Düşük, <60 Belirgin güçlük"
   ],
   [
     "T — Zamanlama",

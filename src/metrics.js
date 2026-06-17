@@ -143,12 +143,11 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
   }
 
   const omissionRatio = safeDiv(behaviors.omissions, behaviors.targets);
-  const lateRatio = safeDiv(behaviors.late, behaviors.targets);
-  const missRatio = safeDiv(behaviors.omissions + behaviors.late, behaviors.targets);
   const falseOnTotalRatio = safeDiv(behaviors.falseAlarms, behaviors.totalTrials);
-  const attentionRaw = safeDiv(behaviors.hits, behaviors.targets) * 100;
-  // Geç yanıtlar da kaçırma sayılır — aksi halde basmama/geç basma iyi skor üretir.
-  const attention = clamp(100 - missRatio * 70 - falseOnTotalRatio * 30);
+  const targetDetections = behaviors.hits + behaviors.late;
+  const attentionRaw = safeDiv(targetDetections, behaviors.targets) * 100;
+  // İhmal = hiç basmama. Geç yanıt yalnızca zamanlama (T) endeksini etkiler.
+  const attention = clamp(100 - omissionRatio * 70 - falseOnTotalRatio * 30);
 
   const refRt = referenceRtMs(age);
   const timing = computeTimingScore(behaviors, rts, refRt);
@@ -168,7 +167,7 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
   let overall = clamp(attention * 0.35 + timing * 0.3 + impulsivity * 0.2 + hyperactivity * 0.15);
   if (!engaged && behaviors.targets >= 5) {
     overall = Math.min(overall, 25);
-  } else if (behaviors.targets > 0 && behaviors.hits === 0) {
+  } else if (behaviors.targets > 0 && targetDetections === 0) {
     overall = Math.min(overall, 35);
   } else if (attentionRaw < 25) {
     overall = Math.min(overall, 45);
@@ -233,7 +232,8 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   const lateR = safeDiv(behaviors.late, behaviors.targets) * 100;
   const multiR = safeDiv(behaviors.multiPress, behaviors.totalTrials) * 100;
   const acc = Math.round(
-    safeDiv(behaviors.hits, behaviors.targets) * 80 + safeDiv(behaviors.correctRejects, behaviors.nonTargets) * 20
+    safeDiv(behaviors.hits + behaviors.late, behaviors.targets) * 80 +
+      safeDiv(behaviors.correctRejects, behaviors.nonTargets) * 20
   );
 
   const flags = [];
@@ -248,7 +248,7 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   else if (indices.impulsivity < 75) flags.push(m.flagImpulseMild);
   if (indices.hyperactivity < 60) flags.push(m.flagHyper);
   if (omissionR >= 25) flags.push(m.flagOmission);
-  if (behaviors.hits === 0 && behaviors.targets >= 10) flags.push(m.flagNoHits);
+  if (behaviors.hits + behaviors.late === 0 && behaviors.targets >= 10) flags.push(m.flagNoHits);
   if (faR >= 20) flags.push(m.flagFalseAlarm);
   if (multiR >= 10) flags.push(m.flagMulti);
   if (idlePresses >= 6) flags.push(m.flagIdle);

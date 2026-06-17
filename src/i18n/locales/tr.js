@@ -391,11 +391,11 @@ export const tr = {
     validityTooFast: "Aşırı hızlı tepkiler (olası rastgele basış)",
     validityFewTrials: "Beklenenden az deneme (test erken bitmiş olabilir)",
     validityScattered: "Dağınık yanıt paterni (yüksek kaçırma + yanlış basış)",
-    validityNoOnTimeHits: "Zamanında hedef isabeti yok — sonuçlar güvenilir olmayabilir",
+    validityNoOnTimeHits: "Hedefe hiç yanıt yok — sonuçlar güvenilir olmayabilir",
     validityLowEngagement: "Düşük katılım (hit oranı %15 altında)",
-    validityHighLate: "Yüksek geç yanıt oranı — dikkat skoru düşürüldü",
+    validityHighLate: "Yüksek geç yanıt oranı — zamanlama (T) endeksi etkilenir",
     flagNoEngagement: "Yanıt verilmedi (teste katılım yok)",
-    flagLate: "Yüksek geç yanıt oranı",
-    flagNoHits: "Zamanında hedef isabeti yok"
+    flagLate: "Yüksek geç yanıt oranı (zamanlama)",
+    flagNoHits: "Hedefe yanıt yok (ihmal)"
   }
 };

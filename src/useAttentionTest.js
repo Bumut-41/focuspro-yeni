@@ -365,20 +365,24 @@ export function useAttentionTest(profile, { onFinished } = {}) {
       const t = trialRef.current;
       if (t) {
         t.offsetMs = elapsedMs();
-        logRef.current.push(trialToLog(t));
       }
-      trialRef.current = null;
       scheduleMsRef.current += stim;
       if (scheduleMsRef.current >= profile.durationMs) {
+        flushTrial();
         endTest();
         return;
       }
       timerRef.current = setTimeout(() => {
+        flushTrial();
         scheduleMsRef.current += gap;
+        if (scheduleMsRef.current >= profile.durationMs) {
+          endTest();
+          return;
+        }
         nextTrialRef.current();
       }, gap);
     }, stim);
-  }, [elapsedMs, endTest, nonTarget, profile.durationMs, profile.phases, profile.targetProbability, trialToLog]);
+  }, [elapsedMs, endTest, flushTrial, nonTarget, profile.durationMs, profile.phases, profile.targetProbability, trialToLog]);
 
   nextTrialRef.current = nextTrial;
 
@@ -395,10 +399,24 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     let reactionMs = null;
     let pressInTrial = null;
 
-    if (!onScreen) {
+    if (!t) {
       errorType = "idle";
-    } else if (!t) {
-      errorType = "idle";
+    } else if (!onScreen) {
+      // Boşluk anı: hedef denemesine gecikmeli de olsa doğru tepki sayılır (dikkat); süre T'de değerlendirilir.
+      pressInTrial = t.trialPresses.length + 1;
+      reactionMs = atMs - t.onsetMs;
+      if (t.isTarget) {
+        const isFirst = t.trialPresses.length === 0;
+        if (isFirst) {
+          isCorrectHit = true;
+          errorType = reactionMs > lateMs ? "late" : "none";
+        } else {
+          errorType = "multi";
+        }
+        t.trialPresses.push({ atMs, reactionMs });
+      } else {
+        errorType = "idle";
+      }
     } else {
       pressInTrial = t.trialPresses.length + 1;
       reactionMs = atMs - t.onsetMs;
