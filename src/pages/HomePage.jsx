@@ -27,7 +27,10 @@ export default function HomePage() {
 
   return (
     <div className="fp-landing">
-      <section className="fp-hero" aria-label="Intro">
+      <section
+        className={`fp-hero${home.heroSlides[slide]?.rich ? " fp-hero--expanded" : ""}`}
+        aria-label="Intro"
+      >
         {home.heroSlides.map((s, i) => (
           <div
             key={s.title}
