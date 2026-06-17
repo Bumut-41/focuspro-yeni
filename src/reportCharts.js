@@ -41,7 +41,7 @@ const INDEX_META = {
     borderDash: [4, 4]
   },
   hyperactivity: {
-    title: "Hiper-reaktivite / aşırı tepkisellik",
+    title: "Hiperaktivite (motor)",
     field: "hyperactivity",
     color: "#d97706",
     pointStyle: "triangle",

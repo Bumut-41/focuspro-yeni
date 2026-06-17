@@ -257,8 +257,9 @@ export function buildDocDefinition({
     attention:
       "Dikkat endeksi; hedef uyaranı fark edip yanıt verme (ihmal ve yanlış basış) ile ölçülür. Geç yanıtlar zamanlama (T) endeksindedir.",
     timing: "Zamanlama endeksi; hedefe doğru zamanda tepki verme becerisini ölçer. Doğru nesneye basılsa bile geç veya acele yanıtlar zamanlama problemi sayılır.",
-    impulsivity: "Dürtüsellik endeksi; hedef dışı uyaranlara yanlış basışları yansıtır.",
-    hyperactivity: "Hiper-reaktivite endeksi; çoklu basma ve aşırı tepkiselliği ölçer."
+    impulsivity: "Dürtüsellik (I): bilişsel acelecilik — hedef dışı uyaranlara ilk basış (yanlış simge). Mükerrer basış bu endekste değildir.",
+    hyperactivity:
+      "Hiperaktivite (H): motorik durduramazlık — aynı denemede mükerrer basış veya yönerge dışı (boş ekran) tuş kullanımı. Doğru/yanlış simge fark etmez.",
   };
   const chartBlocks = [];
   const indexCharts = [

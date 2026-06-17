@@ -63,14 +63,26 @@ export function countIdlePresses(pressTimeline = []) {
   return pressTimeline.filter((p) => p.errorType === "idle").length;
 }
 
-/** fazladan_tiklama ve toplam_tepki (H endeksi). */
-export function countHyperPressStats(logs, pressTimeline = []) {
+/** Motor hiperaktivite: mükerrer basış + yönerge dışı (boş ekran) basış. Yanlış simgeye ilk basış dürtüselliktir (I). */
+export function countHyperMotorStats(logs, pressTimeline = []) {
+  const totalTrials = logs.length;
+  const multiTrials = logs.filter((t) => (t.responseCount ?? 0) > 1).length;
+
   if (pressTimeline.length) {
-    const fazladan = pressTimeline.filter((p) => p.errorType === "multi" || p.errorType === "idle").length;
+    const multiPresses = pressTimeline.filter((p) => p.errorType === "multi").length;
+    const idlePresses = pressTimeline.filter((p) => p.errorType === "idle").length;
+    const motorEvents = multiPresses + idlePresses;
+    const totalPresses = pressTimeline.length;
     return {
-      extraPresses: fazladan,
-      totalPresses: pressTimeline.length,
-      hyperRate: safeDiv(fazladan, pressTimeline.length) * 100
+      multiPresses,
+      idlePresses,
+      motorEvents,
+      multiTrials,
+      totalPresses,
+      extraPresses: motorEvents,
+      multiTrialRate: safeDiv(multiTrials, totalTrials) * 100,
+      idleRate: safeDiv(idlePresses, totalPresses) * 100,
+      motorEventRate: safeDiv(motorEvents, totalPresses) * 100
     };
   }
 
@@ -81,14 +93,41 @@ export function countHyperPressStats(logs, pressTimeline = []) {
     totalFromTrials += rc;
     if (rc > 1) extraFromTrials += rc - 1;
   }
-  const idle = countIdlePresses(pressTimeline);
-  const extraPresses = extraFromTrials + idle;
-  const totalPresses = totalFromTrials + idle;
   return {
-    extraPresses,
-    totalPresses,
-    hyperRate: safeDiv(extraPresses, totalPresses) * 100
+    multiPresses: extraFromTrials,
+    idlePresses: 0,
+    motorEvents: extraFromTrials,
+    multiTrials,
+    totalPresses: totalFromTrials,
+    extraPresses: extraFromTrials,
+    multiTrialRate: safeDiv(multiTrials, totalTrials) * 100,
+    idleRate: 0,
+    motorEventRate: safeDiv(extraFromTrials, totalFromTrials) * 100
   };
+}
+
+/** @deprecated countHyperMotorStats kullanın */
+export function countHyperPressStats(logs, pressTimeline = []) {
+  const s = countHyperMotorStats(logs, pressTimeline);
+  return {
+    extraPresses: s.extraPresses,
+    totalPresses: s.totalPresses,
+    hyperRate: s.motorEventRate
+  };
+}
+
+/** H endeksi — motorik durduramazlık (mükerrer + yönerge dışı basış). */
+export function computeHyperactivityScore(behaviors, logs, pressTimeline = []) {
+  const stats = countHyperMotorStats(logs, pressTimeline);
+  if (!behaviors.totalTrials) return 0;
+
+  const multiTrialRate = safeDiv(stats.multiTrials, behaviors.totalTrials);
+  const idlePerTrial = safeDiv(stats.idlePresses, behaviors.totalTrials);
+  const motorPressRate = safeDiv(stats.motorEvents, Math.max(stats.totalPresses, 1));
+
+  return Math.round(
+    clamp(100 - multiTrialRate * 50 - idlePerTrial * 30 - motorPressRate * 25)
+  );
 }
 
 /** Acele (zamanlama) eşiği — hedefe doğru ama aşırı hızlı basış. */
@@ -153,12 +192,12 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
   const timing = computeTimingScore(behaviors, rts, refRt);
 
   const impulsivityRate = safeDiv(behaviors.falseAlarms, behaviors.nonTargets) * 100;
-  const hyper = countHyperPressStats(logs, pressTimeline);
+  const hyperMotor = countHyperMotorStats(logs, pressTimeline);
   const totalResponses = behaviors.hits + behaviors.late + behaviors.falseAlarms;
-  const engaged = totalResponses > 0 || hyper.totalPresses > 0;
+  const engaged = totalResponses > 0 || hyperMotor.totalPresses > 0;
 
   let impulsivity = clamp(100 - impulsivityRate * 5);
-  let hyperactivity = clamp(100 - hyper.hyperRate * 4);
+  let hyperactivity = computeHyperactivityScore(behaviors, logs, pressTimeline);
   if (!engaged && behaviors.targets >= 5) {
     impulsivity = 0;
     hyperactivity = 0;
@@ -180,7 +219,8 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
     impulsivity: Math.round(impulsivity),
     impulsivityRate: Number(impulsivityRate.toFixed(1)),
     hyperactivity: Math.round(hyperactivity),
-    hyperRate: Number(hyper.hyperRate.toFixed(1)),
+    hyperRate: Number(hyperMotor.motorEventRate.toFixed(1)),
+    multiTrialRate: Number(hyperMotor.multiTrialRate.toFixed(1)),
     overall: Math.round(overall)
   };
 }
@@ -222,15 +262,15 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
     .map((t) => t.reactionTime);
 
   const indices = computeIndexScoresFromData(behaviors, rts, age, logs, pressTimeline);
-  const hyper = countHyperPressStats(logs, pressTimeline);
+  const hyperMotor = countHyperMotorStats(logs, pressTimeline);
   const idlePresses = countIdlePresses(pressTimeline);
   const engaged =
-    behaviors.hits + behaviors.late + behaviors.falseAlarms > 0 || hyper.totalPresses > 0;
+    behaviors.hits + behaviors.late + behaviors.falseAlarms > 0 || hyperMotor.totalPresses > 0;
 
   const omissionR = safeDiv(behaviors.omissions, behaviors.targets) * 100;
   const faR = safeDiv(behaviors.falseAlarms, behaviors.nonTargets) * 100;
   const lateR = safeDiv(behaviors.late, behaviors.targets) * 100;
-  const multiR = safeDiv(behaviors.multiPress, behaviors.totalTrials) * 100;
+  const multiR = hyperMotor.multiTrialRate;
   const acc = Math.round(
     safeDiv(behaviors.hits + behaviors.late, behaviors.targets) * 80 +
       safeDiv(behaviors.correctRejects, behaviors.nonTargets) * 20
@@ -247,11 +287,12 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   if (indices.impulsivity < 60) flags.push(m.flagImpulseMarked);
   else if (indices.impulsivity < 75) flags.push(m.flagImpulseMild);
   if (indices.hyperactivity < 60) flags.push(m.flagHyper);
+  else if (hyperMotor.multiTrialRate >= 15 || idlePresses >= 6) flags.push(m.flagHyperMild);
   if (omissionR >= 25) flags.push(m.flagOmission);
   if (behaviors.hits + behaviors.late === 0 && behaviors.targets >= 10) flags.push(m.flagNoHits);
   if (faR >= 20) flags.push(m.flagFalseAlarm);
   if (multiR >= 10) flags.push(m.flagMulti);
-  if (idlePresses >= 6) flags.push(m.flagIdle);
+  if (idlePresses >= 4) flags.push(m.flagIdle);
 
   return {
     totalTrials: behaviors.totalTrials,
@@ -265,8 +306,9 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
     multiPressRate: multiR,
     idlePresses,
     idlePressRate: safeDiv(idlePresses, behaviors.totalTrials) * 100,
-    extraPresses: hyper.extraPresses,
-    totalPresses: hyper.totalPresses,
+    extraPresses: hyperMotor.extraPresses,
+    totalPresses: hyperMotor.totalPresses,
+    multiTrialRate: hyperMotor.multiTrialRate,
     attentionRaw: indices.attentionRaw,
     impulsivityRate: indices.impulsivityRate,
     hyperRate: indices.hyperRate,

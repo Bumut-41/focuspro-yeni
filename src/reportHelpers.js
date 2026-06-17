@@ -407,16 +407,18 @@ export function buildNarrativeComment(scores, zGlobal) {
     lines.push("Zamanlama performansı kabul edilebilir düzeydedir.");
   }
   if (scores.impulsivity >= 75) {
-    lines.push("Dürtüsellik göstergeleri belirgin değildir.");
+    lines.push("Bilişsel dürtüsellik (yanlış simgeye basış) belirgin değildir.");
   } else if (scores.impulsivity >= 60) {
-    lines.push("Hafif dürtüsellik göstergeleri izlenmiştir.");
+    lines.push("Hafif bilişsel dürtüsellik göstergeleri izlenmiştir.");
   } else {
-    lines.push("Dürtüsellik alanında belirgin zorluk gözlenmiştir.");
+    lines.push("Bilişsel dürtüsellik alanında belirgin zorluk gözlenmiştir.");
   }
   if (scores.hyperactivity >= 75) {
-    lines.push("Hiperaktivite göstergeleri belirgin değildir.");
+    lines.push("Motor hiperaktivite (mükerrer veya yönerge dışı basış) belirgin değildir.");
+  } else if (scores.hyperactivity >= 60) {
+    lines.push("Hafif motor hiperaktivite göstergeleri izlenmiştir.");
   } else {
-    lines.push("Hiperaktivite / fazla motor tepki göstergeleri dikkat çekmektedir.");
+    lines.push("Motor hiperaktivite: mükerrer basış veya yönerge dışı tuş kullanımı dikkat çekmektedir.");
   }
   return lines.join(" ");
 }
@@ -665,8 +667,8 @@ export const INDEX_DEFINITIONS = [
     "T — Zamanlama",
     "Hedefe doğru zamanda tepki: zamanında isabet oranı + RT kalitesi − geç yanıt cezası − acele basış cezası. Doğru nesneye basılsa bile gecikme veya acele zamanlama problemidir."
   ],
-  ["I — Dürtüsellik", "100 − (yanlış/hedef_dışı×100) × 5"],
-  ["H — Hiper-reaktivite", "100 − (fazladan_tıklama / toplam_tepki × 100) × 4"],
+  ["I — Dürtüsellik", "100 − (yanlış/hedef_dışı×100) × 5. Bilişsel acelecilik: hedef dışı uyaranlara ilk basış (commission). Mükerrer basış bu endekste değil."],
+  ["H — Hiperaktivite", "Motorik durduramazlık: mükerrer basış + yönerge dışı (boş ekran) basış. Doğru/yanlış simge fark etmez; fazla tuş H'yi düşürür."],
   ["Genel skor", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
 ];
 
