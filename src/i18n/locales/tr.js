@@ -1,3 +1,5 @@
+import { homeTr } from "./homeTr.js";
+
 export const tr = {
   meta: {
     lang: "tr",
@@ -77,91 +79,7 @@ export const tr = {
     pageDesc:
       "Uygulama beklenmeyen bir hatayla durdu. Sayfayı yenileyin; sorun sürerse geliştiriciye bu metni iletin."
   },
-  home: {
-    eyebrow: "FocusProLab · Sürekli performans testi",
-    goToPanel: "Panele git",
-    freeRegister: "Ücretsiz kayıt ol",
-    loginBtn: "Giriş yap",
-    trust: "Çok aşamalı çeldirici · FocusProLab ile güvenle uygulanır",
-    liveMetric: "Canlı metrik",
-    liveMetricValue: "Dikkat · Tepki · Çeldirici",
-    statsTitle: "Sayılarla FocusProLab",
-    statsLead: "Ölçüm kapasitesi ve raporlama özellikleri tek bakışta.",
-    testimonialsTitle: "Uzmanlardan geri bildirimler",
-    ctaTitle: "Hemen değerlendirmeye başlayın",
-    ctaSub: "Üye olun, 30 saniyelik deneme ile arayüzü tanıyın veya tam teste geçin.",
-    footerTag: "Sürekli performans ve dikkat değerlendirmesi",
-    prevSlide: "Önceki slayt",
-    nextSlide: "Sonraki slayt",
-    slideSelect: "Slayt seçimi",
-    slideN: "Slayt {{n}}",
-    heroSlides: [
-      {
-        title: "Dikkat ve Sürekli Performansta Yeni Nesil Değerlendirme",
-        text: "FocusProLab, dikkat ve yürütücü işlevleri çok aşamalı senaryolarla ölçer; klinik ve bireysel kullanım için objektif veri sunar."
-      },
-      {
-        title: "Gerçek Hayatı Simüle Eden Çeldiriciler",
-        text: "Sessiz görsel, yalnızca işitsel ve kombine çeldirici bölümleriyle performansın hangi koşullarda değiştiğini ayrıntılı raporlar."
-      },
-      {
-        title: "Çocuk, Ergen ve Yetişkin Profilleri",
-        text: "6–12 yaş çocuk, 13–17 ergen ve 18+ yetişkin için ayrı test süreleri, hız kademeleri ve normatif karşılaştırmalar."
-      },
-      {
-        title: "Anında PDF Rapor ve Yönetim Paneli",
-        text: "Test bitince otomatik rapor; psikolog ve yöneticiler için panel, basış çizelgesi ve merkezi kullanıcı yönetimi."
-      },
-      {
-        title: "DEHB Sürecinde Objektif Destek",
-        text: "Tanı ve takip süreçlerinde uzmanlara yardımcı ölçüm; danışan ve aileyle paylaşılabilir görsel raporlar."
-      }
-    ],
-    features: [
-      {
-        title: "Çocuklar için dikkat değerlendirmesi",
-        text: "13 dakikalık yaş uyumlu senaryo; görsel ve işitsel çeldiricilerle dikkat profili."
-      },
-      {
-        title: "Yetişkinler ve ergenler",
-        text: "15 dakikalık test; hız rampası ve çoklu çeldirici bloklarıyla ayrıntılı performans analizi."
-      },
-      {
-        title: "Uzman ve yönetici paneli",
-        text: "Tüm testler, basış raporları, rol yönetimi ve Super Admin araçları tek merkezden."
-      },
-      {
-        title: "Hızlı ve güvenilir sonuç",
-        text: "Oturum sonunda metrikler, faz grafikleri ve indirilebilir PDF — ek işlem gerekmez."
-      }
-    ],
-    stats: [
-      { value: "3", label: "Yaş profili", suffix: "" },
-      { value: "5", label: "Çeldirici senaryo bloğu", suffix: "+" },
-      { value: "20", label: "Dakikaya kadar test", suffix: "+" },
-      { value: "1", label: "Tıkla PDF rapor", suffix: "" }
-    ],
-    testimonials: [
-      {
-        quote:
-          "Görsel ve işitsel çeldiriciler altında performansın nasıl değiştiğini tek raporda görmek seans planlamasını kolaylaştırıyor.",
-        role: "Klinik psikolog"
-      },
-      {
-        quote:
-          "Danışanımla grafiği ilk görüşmede paylaşmak güven ilişkisini güçlendiriyor; aileler somut veriyi daha iyi anlıyor.",
-        role: "Psikolojik danışman"
-      },
-      {
-        quote: "Basış zaman çizelgesi ve faz metrikleri, gözlemden çıkan ipuçlarını sayısallaştırmamı sağlıyor.",
-        role: "Nöropsikolog"
-      },
-      {
-        quote: "Çevrimiçi uygulama sayesinde merkez içi bekleme olmadan testi tamamlayıp arşive alabiliyoruz.",
-        role: "Uygulayıcı uzman"
-      }
-    ]
-  },
+  home: homeTr,
   dashboard: {
     welcome: "Hoş geldiniz, {{name}}",
     description: "Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin.",

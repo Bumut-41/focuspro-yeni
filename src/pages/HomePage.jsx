@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { BrandLogo } from "../components/BrandLogo.jsx";
+import { HomeSlideContent } from "../components/HomeSlideContent.jsx";
 import { Button } from "../components/ui.jsx";
 
 export default function HomePage() {
@@ -16,9 +17,10 @@ export default function HomePage() {
   }, [home.heroSlides.length]);
 
   useEffect(() => {
-    const id = setInterval(nextSlide, 6000);
+    const ms = home.heroSlides[slide]?.rich ? 14000 : 6000;
+    const id = setInterval(nextSlide, ms);
     return () => clearInterval(id);
-  }, [nextSlide]);
+  }, [nextSlide, slide, home.heroSlides]);
 
   const primaryTo = user ? "/panel" : "/kayit";
   const primaryLabel = user ? t("home.goToPanel") : t("home.freeRegister");
@@ -29,14 +31,18 @@ export default function HomePage() {
         {home.heroSlides.map((s, i) => (
           <div
             key={s.title}
-            className={`fp-hero-slide fp-hero-slide--hero-${String.fromCharCode(97 + (i % 5))}${i === slide ? " is-active" : ""}`}
+            className={`fp-hero-slide fp-hero-slide--hero-${String.fromCharCode(97 + (i % 5))}${i === slide ? " is-active" : ""}${s.rich ? " fp-hero-slide--rich" : ""}`}
             aria-hidden={i !== slide}
           >
-            <div className="fp-hero-inner">
+            <div className={`fp-hero-inner${s.rich ? " fp-hero-inner--rich" : ""}`}>
               <div className="fp-hero-copy">
                 <p className="fp-hero-eyebrow">{t("home.eyebrow")}</p>
                 <h1 className="fp-hero-title">{s.title}</h1>
-                <p className="fp-hero-text">{s.text}</p>
+                {s.rich ? (
+                  <HomeSlideContent slide={s} />
+                ) : (
+                  <p className="fp-hero-text">{s.text}</p>
+                )}
                 <div className="fp-hero-actions">
                   <Button asLink to={primaryTo} variant="primary" size="sm" className="fp-hero-cta">
                     {primaryLabel}
@@ -49,13 +55,15 @@ export default function HomePage() {
                 </div>
                 <p className="fp-hero-trust">{t("home.trust")}</p>
               </div>
-              <div className="fp-hero-visual" aria-hidden>
-                <div className="fp-hero-orb" />
-                <div className="fp-hero-card-preview">
-                  <span className="fp-hero-card-label">{t("home.liveMetric")}</span>
-                  <span className="fp-hero-card-value">{t("home.liveMetricValue")}</span>
+              {!s.rich && (
+                <div className="fp-hero-visual" aria-hidden>
+                  <div className="fp-hero-orb" />
+                  <div className="fp-hero-card-preview">
+                    <span className="fp-hero-card-label">{t("home.liveMetric")}</span>
+                    <span className="fp-hero-card-value">{t("home.liveMetricValue")}</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         ))}
@@ -94,7 +102,7 @@ export default function HomePage() {
             {home.features.map((f) => (
               <article key={f.title} className="fp-feature-card">
                 <span className="fp-feature-icon" aria-hidden>
-                  {["👧", "🧑", "📊", "⚡"][home.features.indexOf(f)]}
+                  {f.icon ?? "✦"}
                 </span>
                 <h3>{f.title}</h3>
                 <p>{f.text}</p>

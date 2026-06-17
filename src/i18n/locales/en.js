@@ -1,3 +1,5 @@
+import { homeEn } from "./homeEn.js";
+
 export const en = {
   meta: {
     lang: "en",
@@ -77,91 +79,7 @@ export const en = {
     pageDesc:
       "The app stopped due to an unexpected error. Refresh the page; if the problem persists, send this message to the developer."
   },
-  home: {
-    eyebrow: "FocusProLab · Continuous performance test",
-    goToPanel: "Go to dashboard",
-    freeRegister: "Sign up free",
-    loginBtn: "Log in",
-    trust: "Multi-stage distractors · Delivered with FocusProLab",
-    liveMetric: "Live metrics",
-    liveMetricValue: "Attention · Response · Distractor",
-    statsTitle: "FocusProLab at a glance",
-    statsLead: "Assessment capacity and reporting features in one view.",
-    testimonialsTitle: "Feedback from professionals",
-    ctaTitle: "Start assessing today",
-    ctaSub: "Sign up, try the 30-second practice, or go straight to the full test.",
-    footerTag: "Continuous performance and attention assessment",
-    prevSlide: "Previous slide",
-    nextSlide: "Next slide",
-    slideSelect: "Slide selection",
-    slideN: "Slide {{n}}",
-    heroSlides: [
-      {
-        title: "Next-Generation Attention and Sustained Performance Assessment",
-        text: "FocusProLab measures attention and executive function through multi-stage scenarios, providing objective data for clinical and personal use."
-      },
-      {
-        title: "Distractors That Simulate Real Life",
-        text: "Silent visual, audio-only, and combined distractor blocks show in detail how performance changes under different conditions."
-      },
-      {
-        title: "Child, Teen, and Adult Profiles",
-        text: "Separate test durations, speed ramps, and normative comparisons for ages 6–12, 13–17, and 18+."
-      },
-      {
-        title: "Instant PDF Reports and Admin Panel",
-        text: "Automatic reports after each test; dashboard, press timeline, and centralized user management for psychologists and admins."
-      },
-      {
-        title: "Objective Support in ADHD Care",
-        text: "Measurement that supports diagnosis and follow-up; visual reports you can share with clients and families."
-      }
-    ],
-    features: [
-      {
-        title: "Attention assessment for children",
-        text: "13-minute age-appropriate scenario with visual and auditory distractors for an attention profile."
-      },
-      {
-        title: "Adults and teens",
-        text: "15-minute test with speed ramp and multiple distractor blocks for detailed performance analysis."
-      },
-      {
-        title: "Professional and admin dashboard",
-        text: "All tests, press reports, role management, and Super Admin tools from one place."
-      },
-      {
-        title: "Fast, reliable results",
-        text: "Metrics, phase charts, and downloadable PDF at session end — no extra steps."
-      }
-    ],
-    stats: [
-      { value: "3", label: "Age profiles", suffix: "" },
-      { value: "5", label: "Distractor scenario blocks", suffix: "+" },
-      { value: "20", label: "Minutes of testing", suffix: "+" },
-      { value: "1", label: "Click for PDF report", suffix: "" }
-    ],
-    testimonials: [
-      {
-        quote:
-          "Seeing how performance shifts under visual and auditory distractors in one report makes session planning much easier.",
-        role: "Clinical psychologist"
-      },
-      {
-        quote:
-          "Sharing the chart in the first session strengthens trust; families understand concrete data better.",
-        role: "Counseling psychologist"
-      },
-      {
-        quote: "The press timeline and phase metrics help me quantify observations from the room.",
-        role: "Neuropsychologist"
-      },
-      {
-        quote: "With the online app we finish the test and archive results without in-clinic waiting.",
-        role: "Practicing specialist"
-      }
-    ]
-  },
+  home: homeEn,
   dashboard: {
     welcome: "Welcome, {{name}}",
     description: "Manage your attention and continuous performance assessments here.",

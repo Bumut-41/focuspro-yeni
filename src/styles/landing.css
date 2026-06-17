@@ -48,6 +48,113 @@
   background: #0f172a;
 }
 
+.fp-hero-slide--rich,
+.fp-hero-slide.is-active.fp-hero-slide--rich {
+  align-items: stretch;
+}
+
+.fp-hero-slide--rich.is-active {
+  overflow-y: auto;
+}
+
+.fp-hero-inner--rich {
+  grid-template-columns: 1fr;
+  max-width: 920px;
+  padding-top: var(--fp-space-8);
+  padding-bottom: var(--fp-space-12);
+}
+
+.fp-hero-body {
+  margin-bottom: var(--fp-space-4);
+}
+
+.fp-hero-body--rich {
+  max-height: min(52vh, 520px);
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  margin-bottom: var(--fp-space-5);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+.fp-hero-lead {
+  margin: 0 0 var(--fp-space-4);
+  font-size: clamp(1rem, 2vw, 1.0625rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 820px;
+}
+
+.fp-hero-block {
+  margin: 0 0 var(--fp-space-5);
+  padding: var(--fp-space-4) 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fp-hero-block-title {
+  margin: 0 0 var(--fp-space-3);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+}
+
+.fp-hero-block-text,
+.fp-hero-body .fp-hero-text {
+  margin: 0 0 var(--fp-space-3);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 820px;
+}
+
+.fp-hero-subblock {
+  margin: 0 0 var(--fp-space-3);
+}
+
+.fp-hero-subblock-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.fp-hero-list-label {
+  margin: var(--fp-space-2) 0 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.fp-hero-list {
+  margin: 0 0 var(--fp-space-3);
+  padding-left: 1.15rem;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.fp-hero-list li + li {
+  margin-top: 0.25rem;
+}
+
+.fp-hero-list--checks {
+  list-style: none;
+  padding-left: 0;
+}
+
+.fp-hero-list--checks li::before {
+  content: "✓ ";
+  color: #6ee7b7;
+  font-weight: 700;
+}
+
+.fp-hero-closing {
+  margin-top: var(--fp-space-2);
+  padding-top: var(--fp-space-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .fp-hero-slide {
   position: absolute;
   inset: 0;
