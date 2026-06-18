@@ -305,21 +305,6 @@ export default function TestFlowPage() {
   }, [step, spaceCelebrating, completeSpaceCheck]);
 
   useEffect(() => {
-    if (step !== "brief") return undefined;
-    const kd = (e) => {
-      if (e.code !== "Space") return;
-      const el = document.activeElement;
-      const typing =
-        el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
-      if (typing) return;
-      e.preventDefault();
-      beginTest();
-    };
-    window.addEventListener("keydown", kd);
-    return () => window.removeEventListener("keydown", kd);
-  }, [step, beginTest]);
-
-  useEffect(() => {
     if (step === "spaceCheck") {
       spaceDoneLock.current = false;
       setSpaceCelebrating(false);
