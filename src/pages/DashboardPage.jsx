@@ -38,12 +38,16 @@ export default function DashboardPage() {
   }
 
   const load = useCallback(async () => {
+    if (!isAdmin) {
+      setSessions([]);
+      return;
+    }
     try {
       setSessions(await fetchMySessions());
     } catch (e) {
       setMsg(e.message);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     load();
@@ -57,7 +61,9 @@ export default function DashboardPage() {
           description={t("dashboard.description")}
           action={<Badge variant="primary">{roleLabel(profile?.role, locale)}</Badge>}
         />
-        <Alert variant="success">{t("dashboard.pdfAutoSave")}</Alert>
+        <Alert variant={isAdmin ? "success" : "info"}>
+          {isAdmin ? t("dashboard.pdfAutoSave") : t("dashboard.resultsPrivate")}
+        </Alert>
         <Stack gap={12} style={{ marginTop: 20 }}>
           <Button asLink to="/test" variant="primary">
             {t("dashboard.newTest")}
@@ -75,6 +81,7 @@ export default function DashboardPage() {
         )}
       </Card>
 
+      {isAdmin && (
       <Card>
         <CardHeader title={t("dashboard.historyTitle")} description={t("dashboard.historyDesc")} />
         {!sessions.length && (
@@ -116,6 +123,7 @@ export default function DashboardPage() {
           />
         )}
       </Card>
+      )}
     </Page>
   );
 }

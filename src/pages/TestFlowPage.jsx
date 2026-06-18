@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import {
   ageFromBirthDate,
   getPracticeProfile,
   getProfile,
-  PRACTICE_DURATION_MS,
   profileKeyFromAge,
   DISTRACTOR_GIF_SECTIONS_QA
 } from "../profiles.js";
@@ -14,8 +13,6 @@ import { computeReportMetrics } from "../reportHelpers.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
-import { TestDevTimer } from "../components/TestDevTimer.jsx";
-import { ReportPanel } from "../components/ReportPanel.jsx";
 import { formatPersistResult, persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
 import { saveTestSession } from "../services/sessions.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
@@ -27,6 +24,7 @@ import {
 export default function TestFlowPage() {
   const { refreshProfile, user } = useAuth();
   const { t, strings, locale } = useLocale();
+  const navigate = useNavigate();
   const instr = strings.test.instructions;
   const [step, setStep] = useState("form");
   const [name, setName] = useState("");
@@ -43,7 +41,7 @@ export default function TestFlowPage() {
   const [audioVerified, setAudioVerified] = useState(false);
   const [audioCelebrating, setAudioCelebrating] = useState(false);
   const [audioPlayError, setAudioPlayError] = useState("");
-  const [savedHint, setSavedHint] = useState("");
+  const [saveError, setSaveError] = useState("");
   const [sessionId, setSessionId] = useState(null);
   const [practiceCompleted, setPracticeCompleted] = useState(false);
   const [activeTestProfile, setActiveTestProfile] = useState(() => getProfile(pkey));
@@ -53,7 +51,6 @@ export default function TestFlowPage() {
   const pendingMainStart = useRef(false);
   const audioDoneLock = useRef(false);
   const audioRef = useRef(null);
-  const chartRef = useRef(null);
   const pdfSavedRef = useRef(false);
   const profile = getProfile(pkey);
   const { setImmersive } = useTestChrome();
@@ -70,7 +67,8 @@ export default function TestFlowPage() {
     step === "audioCheck" ||
     step === "brief" ||
     step === "practiceRun" ||
-    step === "run";
+    step === "run" ||
+    step === "thanks";
 
   useEffect(() => {
     setImmersive(isImmersiveStep);
@@ -81,8 +79,8 @@ export default function TestFlowPage() {
     async (snapshot, targetSnap, timeline) => {
       setLogs(snapshot);
       setPressTimeline(timeline ?? []);
-      setStep("report");
-      setSavedHint("");
+      setSaveError("");
+      setStep("thanks");
       try {
         const metrics = {
           ...computeReportMetrics(snapshot, profile.lateResponseMs, {
@@ -102,12 +100,11 @@ export default function TestFlowPage() {
         });
         setSessionId(id);
         pdfSavedRef.current = false;
-        setSavedHint(t("test.saved"));
         await refreshProfile();
       } catch (e) {
         const m = e?.message || "";
-        if (m.includes("no_credits")) setSavedHint(t("test.noCredits"));
-        else setSavedHint(t("test.saveError", { msg: m }));
+        if (m.includes("no_credits")) setSaveError(t("test.noCredits"));
+        else setSaveError(t("test.saveError", { msg: m }));
       }
     },
     [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile, t, locale]
@@ -126,8 +123,7 @@ export default function TestFlowPage() {
     [activeTestProfile.isPractice, pkey, onDone]
   );
 
-  const { target, scene, gifs, running, testElapsedMs, testDurationMs, start, register, resetAfterReport } =
-    useAttentionTest(activeTestProfile, {
+  const { target, scene, gifs, running, start, register } = useAttentionTest(activeTestProfile, {
       onFinished: handleTestFinished
     });
 
@@ -248,9 +244,9 @@ export default function TestFlowPage() {
     }
   }, [step, start, activeTestProfile]);
 
-  // Test bitince rapor ekranında PDF'i otomatik üret ve sisteme kaydet.
+  // Test bitince PDF'leri arka planda kaydet (kullanıcıya gösterilmez).
   useEffect(() => {
-    if (step !== "report" || !sessionId || !user?.id || !logs.length || !target || pdfSavedRef.current) {
+    if (step !== "thanks" || !sessionId || !user?.id || !logs.length || !target || pdfSavedRef.current) {
       return undefined;
     }
 
@@ -267,19 +263,14 @@ export default function TestFlowPage() {
           pressTimeline,
           locale
         });
-        if (!cancelled) {
-          if (result.testSaved) pdfSavedRef.current = true;
-          setSavedHint(formatPersistResult(result, pressTimeline.length > 0, locale));
+        if (!cancelled && result.testSaved) {
+          pdfSavedRef.current = true;
+        }
+        if (!cancelled && result.errors?.length) {
+          console.warn(formatPersistResult(result, pressTimeline.length > 0, locale));
         }
       } catch (e) {
         console.warn(e);
-        if (!cancelled) {
-          setSavedHint((prev) =>
-            prev.includes("PDF")
-              ? prev
-              : `${prev} ${t("test.pdfSaveFailed")}`
-          );
-        }
       }
     }, 900);
 
@@ -287,7 +278,13 @@ export default function TestFlowPage() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [step, sessionId, user?.id, logs, target, profile, participant, pressTimeline, name, age, pkey]);
+  }, [step, sessionId, user?.id, logs, target, profile, participant, pressTimeline, locale]);
+
+  useEffect(() => {
+    if (step !== "thanks") return undefined;
+    const id = window.setTimeout(() => navigate("/", { replace: true }), 30_000);
+    return () => window.clearTimeout(id);
+  }, [step, navigate]);
 
   useEffect(() => {
     if (step !== "spaceCheck" || spaceCelebrating) return undefined;
@@ -331,13 +328,6 @@ export default function TestFlowPage() {
       className={isImmersiveStep ? "test-flow test-flow--immersive" : "test-flow"}
       style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
     >
-      {isImmersiveStep && (
-        <TestDevTimer
-          elapsedMs={(step === "run" || step === "practiceRun") && running ? testElapsedMs : 0}
-          durationMs={step === "practiceRun" ? PRACTICE_DURATION_MS : profile.durationMs}
-        />
-      )}
-
       {!isImmersiveStep && (
         <Page narrow>
           <Link to="/panel" className="fp-back-link">
@@ -529,58 +519,23 @@ export default function TestFlowPage() {
         </div>
       )}
 
-      {step === "report" && target && logs.length > 0 && (
-        <Page wide>
-          <Card style={{ maxWidth: 900 }}>
-          <ReportPanel
-            logs={logs}
-            profile={profile}
-            participant={participant}
-            target={target}
-            pressTimeline={pressTimeline}
-            chartRef={chartRef}
-            savedHint={savedHint}
-            persistPdf={
-              sessionId && user?.id
-                ? async () => {
-                    const result = await persistAllSessionPdfs({
-                      userId: user.id,
-                      sessionId,
-                      participant,
-                      profile,
-                      logs,
-                      target,
-                      pressTimeline,
-                      locale
-                    });
-                    if (result.testSaved) pdfSavedRef.current = true;
-                    setSavedHint(formatPersistResult(result, pressTimeline.length > 0, locale));
-                    return result.testBlob;
-                  }
-                : undefined
-            }
-            extraActions={
-              <>
-                <Button asLink to="/panel" variant="secondary">
-                  {t("common.panelBack")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    resetAfterReport();
-                    setLogs([]);
-                    setPressTimeline([]);
-                    setStep("form");
-                  }}
-                >
-                  {t("test.newTest")}
-                </Button>
-              </>
-            }
-          />
-          </Card>
-        </Page>
+      {step === "thanks" && (
+        <div className="space-screen">
+          <div className="space-screen-bg" aria-hidden />
+          <div className="space-screen-bg space-screen-bg--2" aria-hidden />
+          <div className="space-screen-inner">
+            <div className="space-screen-win">
+              <span className="space-screen-win-check">✓</span>
+              <h2 className="space-screen-win-title">{t("test.thankYouTitle")}</h2>
+              <p className="space-screen-win-sub">{t("test.thankYouRedirect")}</p>
+              {saveError && (
+                <p className="space-screen-error" role="alert">
+                  {saveError}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

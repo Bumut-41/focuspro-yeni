@@ -84,6 +84,8 @@ export const tr = {
     welcome: "Hoş geldiniz, {{name}}",
     description: "Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin.",
     pdfAutoSave: "Test bittiğinde rapor PDF otomatik kaydedilir ve aşağıdaki listeden açılabilir.",
+    resultsPrivate:
+      "Test tamamlandığında katılımınız kaydedilir. Sonuç raporları yalnızca yetkili yöneticiler tarafından görüntülenir.",
     newTest: "Yeni test başlat",
     adminPanel: "Yönetim paneli",
     historyTitle: "Geçmiş testleriniz",
@@ -134,6 +136,8 @@ export const tr = {
       "Ses duyulamadıysa sesi açın veya kulaklığı kontrol edin. Test sesi tekrar çalınıyor…",
     practiceBanner: "Deneme — 30 sn (tüm bölümler, kayıt yok)",
     startTest: "Teste başla",
+    thankYouTitle: "Katılımınız için teşekkürler",
+    thankYouRedirect: "30 saniye içinde ana sayfaya yönlendirileceksiniz.",
     qaHint:
       "Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses, temel ve kapanış kapalı.",
     instructions: {

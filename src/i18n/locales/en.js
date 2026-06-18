@@ -84,6 +84,8 @@ export const en = {
     welcome: "Welcome, {{name}}",
     description: "Manage your attention and continuous performance assessments here.",
     pdfAutoSave: "When a test ends, the report PDF is saved automatically and can be opened from the list below.",
+    resultsPrivate:
+      "When you complete a test, your participation is recorded. Result reports can only be viewed by authorized administrators.",
     newTest: "Start new test",
     adminPanel: "Admin panel",
     historyTitle: "Your past tests",
@@ -133,6 +135,8 @@ export const en = {
     audioRetry: "If you did not hear it, turn up volume or check headphones. Playing test sound again…",
     practiceBanner: "Practice — 30 sec (all sections, not recorded)",
     startTest: "Start test",
+    thankYouTitle: "Thank you for your participation",
+    thankYouRedirect: "You will be redirected to the home page in 30 seconds.",
     qaHint:
       "Temporary mode: silent GIF and silent+audio GIF sections only (~6 min). Audio-only, baseline, and closing disabled.",
     instructions: {
