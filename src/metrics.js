@@ -9,6 +9,17 @@ function safeDiv(n, d) {
 function mean(a) {
   return a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
 }
+function median(a) {
+  if (!a.length) return 0;
+  const s = [...a].sort((x, y) => x - y);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+function stdDev(a) {
+  if (a.length < 2) return 0;
+  const m = mean(a);
+  return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / a.length);
+}
 
 /** Yaşa göre T referans tepki süresi (ms). */
 export function referenceRtMs(age) {
@@ -133,7 +144,7 @@ export function computeHyperactivityScore(behaviors, logs, pressTimeline = []) {
 /** Acele (zamanlama) eşiği — hedefe doğru ama aşırı hızlı basış. */
 export const TIMING_RUSH_MS = 150;
 
-/** Hedef denemelerinde zamanlama: geç + acele + RT kalitesi. */
+/** Hedef denemelerinde zamanlama: RT + geç + acele + varyabilite. */
 export function computeTimingScore(behaviors, onTimeRts, refRt) {
   const { hits, late, targets } = behaviors;
   if (!targets) return 0;
@@ -156,8 +167,14 @@ export function computeTimingScore(behaviors, onTimeRts, refRt) {
     }
   }
 
-  // Doğru nesneye basılsa bile geç veya acele → zamanlama düşer
-  let timing = clamp(onTimeRate * 50 + rtQuality * 0.4 - lateRate * 45 - rushRate * 30);
+  const rtStd = stdDev(onTimeRts);
+  const variabilityRatio = refRt > 0 ? rtStd / refRt : 0;
+  const variabilityPenalty = clamp(variabilityRatio * 80, 0, 35);
+
+  // Geç ve acele yanıtlar yalnızca T'yi etkiler; ihmal A'ya, commission I'ye yazılır.
+  let timing = clamp(
+    onTimeRate * 45 + rtQuality * 0.35 - lateRate * 40 - rushRate * 35 - variabilityPenalty
+  );
 
   if (hits === 0 && late > 0) {
     timing = Math.min(timing, 30);
@@ -182,11 +199,10 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
   }
 
   const omissionRatio = safeDiv(behaviors.omissions, behaviors.targets);
-  const falseOnTotalRatio = safeDiv(behaviors.falseAlarms, behaviors.totalTrials);
   const targetDetections = behaviors.hits + behaviors.late;
   const attentionRaw = safeDiv(targetDetections, behaviors.targets) * 100;
-  // İhmal = hiç basmama. Geç yanıt yalnızca zamanlama (T) endeksini etkiler.
-  const attention = clamp(100 - omissionRatio * 70 - falseOnTotalRatio * 30);
+  // A = yalnızca ihmal (hedef varken basmama). Yanlış basış I'ye, geç tepki T'ye yazılır.
+  const attention = clamp(100 - omissionRatio * 100);
 
   const refRt = referenceRtMs(age);
   const timing = computeTimingScore(behaviors, rts, refRt);
@@ -260,6 +276,8 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   const rts = logs
     .filter((t) => t.isTarget && t.responded && t.reactionTime > 0 && t.reactionTime <= lateMs)
     .map((t) => t.reactionTime);
+  const rtStd = stdDev(rts);
+  const refRt = referenceRtMs(age);
 
   const indices = computeIndexScoresFromData(behaviors, rts, age, logs, pressTimeline);
   const hyperMotor = countHyperMotorStats(logs, pressTimeline);
@@ -284,6 +302,7 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   if (lateR >= 25) flags.push(m.flagLate);
   const rushedHits = rts.filter((rt) => rt < TIMING_RUSH_MS).length;
   if (behaviors.hits > 0 && rushedHits / behaviors.hits >= 0.25) flags.push(m.flagRush);
+  if (rts.length >= 5 && refRt > 0 && rtStd / refRt >= 0.45) flags.push(m.flagVariability);
   if (indices.impulsivity < 60) flags.push(m.flagImpulseMarked);
   else if (indices.impulsivity < 75) flags.push(m.flagImpulseMild);
   if (indices.hyperactivity < 60) flags.push(m.flagHyper);
@@ -298,8 +317,8 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
     totalTrials: behaviors.totalTrials,
     accuracy: Math.round(acc),
     avgReaction: Math.round(mean(rts)),
-    medianReaction: Math.round(mean(rts)),
-    rtStd: 0,
+    medianReaction: Math.round(median(rts)),
+    rtStd: Math.round(rtStd),
     omissionRate: omissionR,
     falseAlarmRate: faR,
     lateRate: lateR,

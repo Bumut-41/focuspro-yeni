@@ -86,6 +86,7 @@ export const en = {
     pdfAutoSave: "When a test ends, the report PDF is saved automatically and can be opened from the list below.",
     resultsPrivate:
       "When you complete a test, your participation is recorded. Result reports can only be viewed by authorized administrators.",
+    guideHint: "The test flow shows a 3-part guide: using the system, test scenarios, and measured behaviours.",
     newTest: "Start new test",
     adminPanel: "Admin panel",
     historyTitle: "Your past tests",
@@ -118,12 +119,14 @@ export const en = {
     pdfSaveFailed: "PDF save failed; try again with «Download PDF».",
     newTest: "New test",
     devTimer: "Practice timer",
-    stepGuide: "Step 3 / 5 · Instructions",
+    stepGuide: "Step 3 / 5 · Participant guide",
     stepSpace: "Step 1 / 5 · Key check",
     stepAudio: "Step 2 / 5 · Sound check",
     stepMain: "Step 5 / 5 · Main test",
     spaceTitle: "Let's try the SPACE key first",
     spaceSub: "Press or tap the SPACE key once.",
+    spaceNudge: "Press ↓",
+    spaceOk: "OK — SPACE detected",
     spaceTouch: "Tap to continue",
     audioTitle: "Now let's check the sound",
     audioSub:
@@ -139,6 +142,104 @@ export const en = {
     thankYouRedirect: "You will be redirected to the home page in 30 seconds.",
     qaHint:
       "Temporary mode: silent GIF and silent+audio GIF sections only (~6 min). Audio-only, baseline, and closing disabled.",
+    participantGuide: {
+      title: "Participant guide",
+      stepOf: "Section {{current}} / {{total}}",
+      tabs: {
+        usage: "Using the system",
+        scenarios: "Test scenarios",
+        criteria: "What is measured"
+      },
+      usage: {
+        title: "How do you use the system?",
+        lead: "You will complete these steps in order:",
+        steps: [
+          "Log in or register on the site",
+          "Enter participant information",
+          "SPACE key and sound check",
+          "Read this guide",
+          "30-second practice test (not recorded)",
+          "Main test via «Start test» button",
+          "Thank-you screen → redirect to home page"
+        ],
+        ruleTitle: "Your rule throughout the test",
+        rule: "Press SPACE once, quickly, only when you see the blue triangle."
+      },
+      scenarios: {
+        title: "Test scenarios",
+        lead: "Different things appear on screen in each section. Your task stays the same.",
+        happensLabel: "What happens?",
+        actionLabel: "What should you do?",
+        items: [
+          {
+            title: "Practice test (30 sec)",
+            happens: "A shortened version of the main test; all section types appear briefly. Not recorded.",
+            action: "Get familiar with the interface; practice pressing SPACE on the blue triangle."
+          },
+          {
+            title: "No distractors",
+            happens: "Only shapes appear on screen; no GIFs or extra sounds.",
+            action: "Stay calm; press SPACE only on the blue triangle."
+          },
+          {
+            title: "Silent moving images",
+            happens: "Silent GIF animations play at the edge of the screen.",
+            action: "Do not react to GIFs; focus only on the blue triangle."
+          },
+          {
+            title: "Audio only",
+            happens: "You hear short sound cues without images.",
+            action: "Do not react to sounds; watch the triangle on screen."
+          },
+          {
+            title: "Image + sound combined",
+            happens: "Both GIF and sound distractors appear together.",
+            action: "Do not get distracted; still press only for the blue triangle."
+          },
+          {
+            title: "Closing section",
+            happens: "Towards the end, distractors decrease.",
+            action: "Same rule until the very end."
+          }
+        ]
+      },
+      criteria: {
+        title: "Which behaviours are evaluated?",
+        lead: "Every SPACE press is recorded. Four separate areas are calculated; they do not overlap:",
+        measuresLabel: "Measures:",
+        items: [
+          {
+            code: "A",
+            title: "Attention",
+            desc: "How well you stay on target",
+            measures: "Omissions — not pressing when the target (blue triangle) is shown"
+          },
+          {
+            code: "T",
+            title: "Timing",
+            desc: "Whether responses are on time and consistent",
+            measures: "RT, late responses, rushed responses, and reaction-time variability"
+          },
+          {
+            code: "I",
+            title: "Impulsivity",
+            desc: "Tendency to give a first response to non-targets",
+            measures: "Commission errors — first responses to non-target stimuli"
+          },
+          {
+            code: "H",
+            title: "Hyperactivity",
+            desc: "Excess or off-task key use",
+            measures: "Repeated presses + blank-screen presses"
+          }
+        ],
+        privacy:
+          "You will not see a result screen after the test; you will see «Thank you for your participation». Data is stored securely and reviewed only by authorized professionals."
+      },
+      next: "Continue",
+      back: "Back",
+      startPractice: "Start practice test"
+    },
     instructions: {
       title: "FocusProLab Attention Test Instructions",
       practiceBtn: "Click for practice test",
@@ -284,8 +385,9 @@ export const en = {
     riskHigh: "High risk",
     flagAttentionPoor: "Marked attention difficulty",
     flagAttentionLow: "Low attention performance",
-    flagTiming: "Timing issue (late or rushed response)",
+    flagTiming: "Timing issue (late, rushed, or variable response)",
     flagRush: "Rushed response (timing)",
+    flagVariability: "High reaction-time variability (timing)",
     flagImpulseMarked: "Marked cognitive impulsivity (wrong stimulus)",
     flagImpulseMild: "Mild cognitive impulsivity",
     flagHyper: "Marked motor hyperactivity",

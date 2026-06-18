@@ -255,11 +255,13 @@ export function buildDocDefinition({
 
   const indexChartNotes = {
     attention:
-      "Dikkat endeksi; hedef uyaranı fark edip yanıt verme (ihmal ve yanlış basış) ile ölçülür. Geç yanıtlar zamanlama (T) endeksindedir.",
-    timing: "Zamanlama endeksi; hedefe doğru zamanda tepki verme becerisini ölçer. Doğru nesneye basılsa bile geç veya acele yanıtlar zamanlama problemi sayılır.",
-    impulsivity: "Dürtüsellik (I): bilişsel acelecilik — hedef dışı uyaranlara ilk basış (yanlış simge). Mükerrer basış bu endekste değildir.",
+      "Dikkat (A): ihmal — hedef uyaran varken basmama. Yanlış basış I'ye, geç tepki T'ye yazılır.",
+    timing:
+      "Zamanlama (T): RT, geç yanıt, acele yanıt ve tepki süresi varyabilitesi. İhmal A'ya yazılmaz.",
+    impulsivity:
+      "Dürtüsellik (I): commission errors — hedef dışı uyaranlara verilen ilk tepkiler. Mükerrer basış H'ye gider.",
     hyperactivity:
-      "Hiperaktivite (H): motorik durduramazlık — aynı denemede mükerrer basış veya yönerge dışı (boş ekran) tuş kullanımı. Doğru/yanlış simge fark etmez.",
+      "Hiperaktivite (H): mükerrer basış ve boş ekran / yönerge dışı tuş kullanımı."
   };
   const chartBlocks = [];
   const indexCharts = [

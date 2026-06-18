@@ -86,6 +86,7 @@ export const tr = {
     pdfAutoSave: "Test bittiğinde rapor PDF otomatik kaydedilir ve aşağıdaki listeden açılabilir.",
     resultsPrivate:
       "Test tamamlandığında katılımınız kaydedilir. Sonuç raporları yalnızca yetkili yöneticiler tarafından görüntülenir.",
+    guideHint: "Test akışında 3 bölümlü rehber gösterilir: sistemi kullanma, test senaryoları, ölçülen davranışlar.",
     newTest: "Yeni test başlat",
     adminPanel: "Yönetim paneli",
     historyTitle: "Geçmiş testleriniz",
@@ -118,12 +119,14 @@ export const tr = {
     pdfSaveFailed: "PDF kaydı başarısız; «PDF indir» ile tekrar deneyebilirsiniz.",
     newTest: "Yeni test",
     devTimer: "Deneme sayacı",
-    stepGuide: "Adım 3 / 5 · Yönerge",
+    stepGuide: "Adım 3 / 5 · Katılımcı rehberi",
     stepSpace: "Adım 1 / 5 · Tuş kontrolü",
     stepAudio: "Adım 2 / 5 · Ses kontrolü",
     stepMain: "Adım 5 / 5 · Asıl test",
     spaceTitle: "Önce SPACE tuşunu deneyelim",
     spaceSub: "SPACE tuşuna bir kez basın veya dokunun.",
+    spaceNudge: "Basın ↓",
+    spaceOk: "Tamam — SPACE algılandı",
     spaceTouch: "Dokunarak geç",
     audioTitle: "Şimdi sesi kontrol edelim",
     audioSub:
@@ -140,6 +143,104 @@ export const tr = {
     thankYouRedirect: "30 saniye içinde ana sayfaya yönlendirileceksiniz.",
     qaHint:
       "Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses, temel ve kapanış kapalı.",
+    participantGuide: {
+      title: "Katılımcı rehberi",
+      stepOf: "Bölüm {{current}} / {{total}}",
+      tabs: {
+        usage: "Sistemi kullan",
+        scenarios: "Test senaryoları",
+        criteria: "Neler ölçülür?"
+      },
+      usage: {
+        title: "Sistemi nasıl kullanırsın?",
+        lead: "Aşağıdaki adımları sırayla tamamlayacaksın:",
+        steps: [
+          "Siteye giriş yap veya kayıt ol",
+          "Katılımcı bilgilerini gir",
+          "SPACE tuşu ve ses kontrolü",
+          "Bu rehberi oku",
+          "30 saniyelik deneme testi (kayıt yok)",
+          "«Teste başla» butonu ile asıl test",
+          "Teşekkür ekranı → ana sayfaya yönlendirme"
+        ],
+        ruleTitle: "Tüm test boyunca kuralın",
+        rule: "Yalnızca mavi üçgeni gördüğünde SPACE tuşuna bir kez ve hızlıca bas."
+      },
+      scenarios: {
+        title: "Test senaryoları",
+        lead: "Her bölümde ekranda farklı şeyler olur. Görevin her senaryoda aynıdır.",
+        happensLabel: "Ne olur?",
+        actionLabel: "Ne yapmalısın?",
+        items: [
+          {
+            title: "Deneme testi (30 sn)",
+            happens: "Asıl testin kısaltılmış hali; tüm bölüm türleri kısa süre gelir. Kayıt edilmez.",
+            action: "Arayüzü tanı, mavi üçgende SPACE'e basmayı alıştır."
+          },
+          {
+            title: "Çeldirici yok",
+            happens: "Sadece şekiller ekranda gelir; gif veya ek ses yok.",
+            action: "Sakin kal; yalnızca mavi üçgende SPACE'e bas."
+          },
+          {
+            title: "Sessiz hareketli görüntüler",
+            happens: "Ekran kenarında sessiz gif animasyonları oynar.",
+            action: "Giflere tepki verme; sadece mavi üçgene odaklan."
+          },
+          {
+            title: "Yalnızca ses",
+            happens: "Görüntü olmadan kısa ses uyaranları duyarsın.",
+            action: "Seslere tepki verme; ekrandaki üçgene bak."
+          },
+          {
+            title: "Görüntü + ses birlikte",
+            happens: "Hem gif hem ses çeldiricileri birlikte gelir.",
+            action: "Dikkatini dağıtma; yine yalnızca mavi üçgende bas."
+          },
+          {
+            title: "Kapanış bölümü",
+            happens: "Test sonuna doğru çeldiriciler azalır.",
+            action: "Son ana kadar aynı kural geçerli."
+          }
+        ]
+      },
+      criteria: {
+        title: "Hangi davranışlar nasıl değerlendirilir?",
+        lead: "Her SPACE basışın kaydedilir. Sistem bunlardan dört ayrı alan hesaplar; alanlar birbirine karışmaz:",
+        measuresLabel: "Ölçüm:",
+        items: [
+          {
+            code: "A",
+            title: "Dikkat",
+            desc: "Hedefe odaklanıp odaklanamadığın",
+            measures: "İhmal — hedef (mavi üçgen) varken basmama"
+          },
+          {
+            code: "T",
+            title: "Zamanlama",
+            desc: "Tepkinin zamanında ve tutarlı olup olmadığı",
+            measures: "RT, geç tepki, acele tepki ve tepki süresi varyabilitesi"
+          },
+          {
+            code: "I",
+            title: "Dürtüsellik",
+            desc: "Hedef dışına aceleci ilk tepki eğilimin",
+            measures: "Commission errors — hedef dışı uyaranlara verilen ilk tepkiler"
+          },
+          {
+            code: "H",
+            title: "Hiperaktivite",
+            desc: "Fazla veya yönerge dışı tuş kullanımın",
+            measures: "Mükerrer basış + boş ekran basışları"
+          }
+        ],
+        privacy:
+          "Test bitince sonuç ekranı görmezsin; «Katılımınız için teşekkürler» mesajı çıkar. Kayıtlar güvenle saklanır ve yalnızca yetkili uzman tarafından değerlendirilir."
+      },
+      next: "Devam",
+      back: "Geri",
+      startPractice: "Deneme testine başla"
+    },
     instructions: {
       title: "FocusProlab Dikkat Testi Yönergesi",
       practiceBtn: "Deneme testi için tıklayınız",
@@ -163,7 +264,7 @@ export const tr = {
     attention: "A — Dikkat",
     timing: "T — Zamanlama",
     impulsivity: "I — Dürtüsellik",
-    hyperactivity: "H — Hiper-reaktivite",
+    hyperactivity: "H — Hiperaktivite",
     pdfDownload: "PDF indir",
     pdfSaveDownload: "PDF kaydet / indir",
     pdfFailed: "PDF işlemi başarısız. Lütfen tekrar deneyin.",
@@ -287,8 +388,9 @@ export const tr = {
     riskHigh: "Yüksek risk",
     flagAttentionPoor: "Belirgin dikkat güçlüğü",
     flagAttentionLow: "Düşük dikkat performansı",
-    flagTiming: "Zamanlama problemi (geç veya acele tepki)",
+    flagTiming: "Zamanlama problemi (geç, acele veya değişken tepki)",
     flagRush: "Acele tepki (zamanlama)",
+    flagVariability: "Yüksek tepki süresi varyabilitesi (zamanlama)",
     flagImpulseMarked: "Belirgin bilişsel dürtüsellik (yanlış simge)",
     flagImpulseMild: "Hafif bilişsel dürtüsellik",
     flagHyper: "Belirgin motor hiperaktivite",
@@ -299,7 +401,7 @@ export const tr = {
     flagIdle: "Yönerge dışı basış / boş ekran (hiperaktivite)",
     summaryIntro: "Test {{trials}} deneme ile tamamlandı. Profil: {{profile}}.",
     summaryScores:
-      "Genel skor {{overall}}/100 ({{risk}}). A-Dikkat {{attention}} ({{attentionText}}), T-Zamanlama {{timing}}, I-Dürtüsellik {{impulse}} ({{impulseText}}), H-Hiper-reaktivite {{hyper}}.",
+      "Genel skor {{overall}}/100 ({{risk}}). A-Dikkat {{attention}} ({{attentionText}}), T-Zamanlama {{timing}}, I-Dürtüsellik {{impulse}} ({{impulseText}}), H-Hiperaktivite {{hyper}}.",
     summaryBehavior:
       "Davranış özeti: isabet {{hits}}, kaçırma {{omissions}}, geç {{late}}, yanlış basış {{falseAlarms}}, çoklu {{multiPress}}, doğru ret {{correctRejects}}, boş ekran basışı {{idle}}.",
     summaryRt: "Referans RT {{refRt}} ms, ortalama doğru tepki {{avgRt}} ms.",

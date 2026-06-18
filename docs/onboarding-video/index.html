@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1280, height=720" />
+    <title>FocusProLab — Katılımcı Rehberi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 1280px; height: 720px; overflow: hidden; font-family: Inter, system-ui, sans-serif; background: #0f172a; }
+      #stage { position: relative; width: 1280px; height: 720px; overflow: hidden; }
+      .scene { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.55s ease; }
+      .scene.active { opacity: 1; }
+      .part-label { position: absolute; top: 20px; left: 24px; z-index: 50; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 14px; border-radius: 999px; background: rgba(0,136,169,0.2); color: #67e8f9; border: 1px solid rgba(0,180,216,0.35); }
+      .scene-dark { background: linear-gradient(135deg, #0f172a, #1e3a5f 50%, #312e81); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px 64px 100px; }
+      .scene-dark h1 { font-size: 40px; font-weight: 800; margin-bottom: 14px; }
+      .scene-dark h2 { font-size: 30px; font-weight: 800; margin-bottom: 12px; }
+      .scene-dark p { font-size: 18px; color: rgba(255,255,255,0.85); line-height: 1.55; max-width: 800px; }
+      .logo { width: 160px; margin-bottom: 24px; }
+      .app-shell { height: 100%; display: flex; flex-direction: column; background: #f8fafc; }
+      .app-header { height: 56px; background: #fff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; padding: 0 28px; font-weight: 700; color: #0088a9; }
+      .app-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+      .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 28px 32px; width: 440px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); }
+      .card h3 { margin-bottom: 8px; font-size: 20px; }
+      .card p { color: #64748b; font-size: 14px; margin-bottom: 16px; }
+      .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 10px; background: #0088a9; color: #fff; font-weight: 700; font-size: 15px; }
+      .field { margin-bottom: 12px; }
+      .field label { display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; }
+      .field input { width: 100%; padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 8px; }
+      .immersive { width: 100%; height: 100%; background: linear-gradient(135deg, #0f172a, #1e3a5f); display: flex; align-items: center; justify-content: center; color: #e2e8f0; }
+      .immersive-inner { text-align: center; max-width: 480px; padding: 24px; }
+      .immersive-inner h2 { font-size: 26px; margin-bottom: 10px; color: #fff; }
+      .space-key { display: inline-block; margin-top: 16px; padding: 14px 32px; border: 2px solid rgba(255,255,255,0.35); border-radius: 12px; font-weight: 800; }
+      .space-key.hit { background: rgba(110,231,183,0.25); border-color: #6ee7b7; }
+      .flow-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 1000px; margin-top: 20px; }
+      .flow-step { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px 12px; text-align: center; opacity: 0; transform: translateY(12px); transition: opacity 0.4s, transform 0.4s; }
+      .flow-step.show { opacity: 1; transform: translateY(0); }
+      .flow-step .num { width: 28px; height: 28px; border-radius: 50%; background: #0088a9; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; margin: 0 auto 8px; }
+      .flow-step p { font-size: 12px; color: #cbd5e1; line-height: 1.4; }
+      .scenario-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; height: 100%; padding: 56px 48px 100px; align-items: center; background: linear-gradient(160deg, #0f172a, #1e293b); color: #f8fafc; }
+      .scenario-demo { background: rgba(0,0,0,0.35); border-radius: 16px; min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid rgba(255,255,255,0.1); }
+      .scenario-info h2 { font-size: 26px; margin-bottom: 10px; }
+      .scenario-info .badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #67e8f9; margin-bottom: 12px; }
+      .scenario-box { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+      .scenario-box h4 { font-size: 12px; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px; letter-spacing: 0.06em; }
+      .scenario-box p { font-size: 14px; line-height: 1.55; color: #e2e8f0; }
+      .triangle { width: 90px; height: 90px; }
+      .shape-muted { opacity: 0.45; width: 70px; height: 70px; }
+      .distractor-emoji { position: absolute; font-size: 42px; }
+      .d-1 { top: 15%; right: 12%; }
+      .d-2 { bottom: 20%; left: 10%; }
+      .practice-tag { position: absolute; top: 12px; background: #d97706; color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+      .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; max-width: 900px; width: 100%; margin-top: 20px; }
+      .metric-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 18px; display: grid; grid-template-columns: 48px 1fr; gap: 12px; opacity: 0; transform: translateY(10px); transition: opacity 0.45s, transform 0.45s; }
+      .metric-card.show { opacity: 1; transform: translateY(0); }
+      .metric-letter { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; color: #fff; }
+      .m-a { background: #2563eb; } .m-t { background: #0d9488; } .m-i { background: #ea580c; } .m-h { background: #7c3aed; }
+      .metric-card h3 { font-size: 16px; margin-bottom: 4px; }
+      .metric-card p { font-size: 13px; color: #94a3b8; line-height: 1.45; }
+      .rule-banner { margin-top: 20px; padding: 14px 20px; background: rgba(0,136,169,0.2); border: 1px solid rgba(0,180,216,0.35); border-radius: 12px; font-size: 15px; font-weight: 600; color: #a5f3fc; max-width: 900px; }
+      #narration { position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 40px 22px; background: linear-gradient(transparent, rgba(15,23,42,0.95)); color: #f8fafc; font-size: 19px; font-weight: 600; line-height: 1.45; z-index: 100; min-height: 84px; display: flex; align-items: flex-end; }
+      #progress { position: absolute; bottom: 0; left: 0; height: 4px; background: #00b4d8; width: 0; z-index: 101; transition: width 0.25s linear; }
+      #cursor { position: absolute; width: 26px; height: 26px; z-index: 200; pointer-events: none; opacity: 0; transition: opacity 0.3s, left 0.7s ease, top 0.7s ease; }
+      #cursor.visible { opacity: 1; }
+      .highlight { position: absolute; border: 3px solid #00b4d8; border-radius: 10px; box-shadow: 0 0 0 4px rgba(0,180,216,0.25); opacity: 0; transition: opacity 0.35s; z-index: 90; pointer-events: none; }
+      .highlight.show { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <!-- 0 Giriş -->
+      <section class="scene scene-dark active" data-scene="0">
+        <img class="logo" src="../../public/focuspro-logo.png" alt="" onerror="this.style.display='none'" />
+        <h1>FocusProLab Katılımcı Rehberi</h1>
+        <p>3 bölümde anlatıyoruz: sistemi nasıl kullanırsın, test senaryolarında ne olur, sistem neleri ölçer.</p>
+      </section>
+
+      <!-- BÖLÜM 1 başlık -->
+      <section class="scene scene-dark" data-scene="1">
+        <span class="part-label">Bölüm 1 / 3</span>
+        <h2>Sistemi nasıl kullanırsın?</h2>
+        <p>Girişten test bitişine kadar adım adım ilerleyeceksin.</p>
+      </section>
+
+      <!-- 2 Giriş -->
+      <section class="scene" data-scene="2">
+        <span class="part-label">Bölüm 1</span>
+        <div class="app-shell">
+          <header class="app-header">FocusProLab</header>
+          <main class="app-main">
+            <div class="card" id="login-card"><h3>Giriş / Kayıt</h3><p>Ücretsiz hesap oluştur veya giriş yap.</p><button class="btn" id="login-btn">Devam</button></div>
+          </main>
+        </div>
+      </section>
+
+      <!-- 3 Form -->
+      <section class="scene" data-scene="3">
+        <span class="part-label">Bölüm 1</span>
+        <div class="app-shell">
+          <header class="app-header">Katılımcı bilgileri</header>
+          <main class="app-main">
+            <div class="card" id="form-card">
+              <h3>Katılımcı kaydı</h3>
+              <div class="field"><label>Ad Soyad</label><input value="Ayşe Yılmaz" readonly /></div>
+              <div class="field"><label>Doğum tarihi</label><input value="2010-05-15" readonly /></div>
+              <button class="btn" id="continue-btn">Devam</button>
+            </div>
+          </main>
+        </div>
+      </section>
+
+      <!-- 4 Space -->
+      <section class="scene" data-scene="4">
+        <span class="part-label">Bölüm 1</span>
+        <div class="immersive">
+          <div class="immersive-inner">
+            <h2>SPACE tuşu kontrolü</h2>
+            <p>Boşluk tuşuna bir kez bas.</p>
+            <div class="space-key" id="space-key">SPACE</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5 Ses -->
+      <section class="scene" data-scene="5">
+        <span class="part-label">Bölüm 1</span>
+        <div class="immersive">
+          <div class="immersive-inner">
+            <h2>Ses kontrolü</h2>
+            <p>Test sesini duyduysan onayla.</p>
+            <button class="btn" id="audio-btn" style="width:auto;display:inline-block;margin-top:12px">Sesi duydum</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6 Akış özeti -->
+      <section class="scene scene-dark" data-scene="6">
+        <span class="part-label">Bölüm 1</span>
+        <h2>Test akışı özeti</h2>
+        <div class="flow-grid" id="flow-grid">
+          <div class="flow-step" data-f="0"><div class="num">1</div><p>Giriş & bilgi</p></div>
+          <div class="flow-step" data-f="1"><div class="num">2</div><p>Tuş & ses</p></div>
+          <div class="flow-step" data-f="2"><div class="num">3</div><p>Rehber oku</p></div>
+          <div class="flow-step" data-f="3"><div class="num">4</div><p>30 sn deneme</p></div>
+          <div class="flow-step" data-f="4"><div class="num">5</div><p>Teste başla</p></div>
+          <div class="flow-step" data-f="5"><div class="num">6</div><p>Asıl test</p></div>
+          <div class="flow-step" data-f="6"><div class="num">7</div><p>Teşekkür</p></div>
+          <div class="flow-step" data-f="7"><div class="num">✓</div><p>Ana sayfa</p></div>
+        </div>
+      </section>
+
+      <!-- BÖLÜM 2 başlık -->
+      <section class="scene scene-dark" data-scene="7">
+        <span class="part-label">Bölüm 2 / 3</span>
+        <h2>Test senaryoları</h2>
+        <p>Her bölümde ekranda farklı şeyler görürsün — görevin her zaman aynı.</p>
+        <p class="rule-banner" style="margin-top:24px">Yalnızca mavi üçgende SPACE · bir kez · hızlıca</p>
+      </section>
+
+      <!-- 8 Deneme senaryosu -->
+      <section class="scene" data-scene="8">
+        <span class="part-label">Bölüm 2 · Senaryo</span>
+        <div class="scenario-layout">
+          <div class="scenario-demo">
+            <span class="practice-tag">Deneme — 30 sn</span>
+            <svg class="triangle" viewBox="0 0 100 100"><path d="M50 12 L88 88 L12 88 Z" fill="#2563eb"/></svg>
+            <span class="distractor-emoji d-1">🐱</span>
+          </div>
+          <div class="scenario-info">
+            <span class="badge">Senaryo 1 — Deneme</span>
+            <h2>Deneme testi</h2>
+            <div class="scenario-box"><h4>Ne olur?</h4><p>Asıl testin kısaltılmış hali; tüm bölüm türleri kısa süre gelir. <strong>Kayıt edilmez.</strong></p></div>
+            <div class="scenario-box"><h4>Ne yapmalısın?</h4><p>Arayüzü tanı, mavi üçgende SPACE'e basmayı alıştır. Hata yapsan da sorun değil.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9-13 Senaryo kartları (dinamik içerik) -->
+      <section class="scene" data-scene="9">
+        <span class="part-label">Bölüm 2 · Senaryo</span>
+        <div class="scenario-layout" id="scenario-dynamic">
+          <div class="scenario-demo" id="scenario-demo"></div>
+          <div class="scenario-info" id="scenario-text"></div>
+        </div>
+      </section>
+
+      <!-- BÖLÜM 3 başlık -->
+      <section class="scene scene-dark" data-scene="10">
+        <span class="part-label">Bölüm 3 / 3</span>
+        <h2>Sistem neleri ölçer?</h2>
+        <p>Her SPACE basışın kaydedilir; dört alan ve genel skor hesaplanır. Sonucu sen görmezsin.</p>
+      </section>
+
+      <!-- 11 Metrikler -->
+      <section class="scene scene-dark" data-scene="11">
+        <span class="part-label">Bölüm 3</span>
+        <h2 style="font-size:26px;margin-bottom:8px">Ölçülen davranışlar</h2>
+        <div class="metrics-grid" id="metrics-grid">
+          <article class="metric-card" data-m="0"><span class="metric-letter m-a">A</span><div><h3>Dikkat</h3><p>Mavi üçgene basma, ihmal, yanlış şekilde basma</p></div></article>
+          <article class="metric-card" data-m="1"><span class="metric-letter m-t">T</span><div><h3>Zamanlama</h3><p>Zamanında, geç veya acele tepki (ms)</p></div></article>
+          <article class="metric-card" data-m="2"><span class="metric-letter m-i">I</span><div><h3>Dürtüsellik</h3><p>Hedef dışı şekle ilk basış</p></div></article>
+          <article class="metric-card" data-m="3"><span class="metric-letter m-h">H</span><div><h3>Hiper-reaktivite</h3><p>Mükerrer basış, boş ekranda basış</p></div></article>
+        </div>
+      </section>
+
+      <!-- 12 Kapanış -->
+      <section class="scene scene-dark" data-scene="12">
+        <span class="part-label">Bitti</span>
+        <h2>Katılımınız için teşekkürler</h2>
+        <p>Test bitince sonuç ekranı görmezsin. Veriler güvenle kaydedilir; uzman değerlendirmesi yapar.</p>
+      </section>
+
+      <div class="highlight" id="highlight"></div>
+      <div id="cursor" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24"><path d="M5 3L5 18L9.5 14.5L13 21L16 19.5L12.5 13L18 13L5 3Z" fill="#fff" stroke="#0f172a" stroke-width="1.2"/></svg>
+      </div>
+      <div id="narration"></div>
+      <div id="progress"></div>
+    </div>
+
+    <script>
+      const TOTAL_MS = 125000;
+      const scenarios = [
+        { title: "Çeldirici yok", badge: "Senaryo 2", happens: "Sadece şekiller ekranda gelir; gif veya ek ses yok. Alışma ve temel performans bölümü.", action: "Sakin kal, yalnızca mavi üçgende SPACE'e bas.", demo: '<svg class="triangle" viewBox="0 0 100 100"><path d="M50 12 L88 88 L12 88 Z" fill="#2563eb"/></svg><svg class="shape-muted" style="position:absolute;left:18%;top:30%" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#dc2626"/></svg>' },
+        { title: "Sessiz hareketli görüntüler", badge: "Senaryo 3", happens: "Ekranın kenarında sessiz gif animasyonları (kedi, araba vb.) oynar.", action: "Giflere bakma veya tepki verme — görevin değişmez: sadece mavi üçgen.", demo: '<svg class="triangle" viewBox="0 0 100 100"><path d="M50 12 L88 88 L12 88 Z" fill="#2563eb"/></svg><span class="distractor-emoji d-1">🐱</span><span class="distractor-emoji d-2">🚗</span>' },
+        { title: "Yalnızca ses", badge: "Senaryo 4", happens: "Görüntü olmadan kısa ses uyaranları duyarsın (kapı, korna vb.).", action: "Seslere tepki verme; ekrandaki mavi üçgene odaklan.", demo: '<div style="font-size:64px">🔊</div><svg class="triangle" style="position:absolute" viewBox="0 0 100 100"><path d="M50 12 L88 88 L12 88 Z" fill="#2563eb"/></svg>' },
+        { title: "Görüntü + ses birlikte", badge: "Senaryo 5", happens: "Hem gif hem ses çeldiricileri aynı anda gelir — en yoğun bölüm.", action: "Dikkatini dağıtma; yine yalnızca mavi üçgende bas.", demo: '<span class="distractor-emoji d-1">🐱</span><span class="distractor-emoji d-2">🔊</span><svg class="triangle" viewBox="0 0 100 100"><path d="M50 12 L88 88 L12 88 Z" fill="#2563eb"/></svg>' },
+        { title: "Kapanış bölümü", badge: "Senaryo 6", happens: "Test sonuna doğru çeldiriciler azalır; son performans ölçülür.", action: "Son ana kadar aynı kural — mavi üçgen, bir kez SPACE.", demo: '<svg class="triangle" viewBox="0 0 100 100"><path d="M50 12 L88 88 L12 88 Z" fill="#2563eb"/></svg>' }
+      ];
+
+      const scenes = document.querySelectorAll(".scene");
+      const narration = document.getElementById("narration");
+      const progress = document.getElementById("progress");
+      const cursor = document.getElementById("cursor");
+      const highlight = document.getElementById("highlight");
+      let scenarioIdx = 0;
+      let scenarioTimer = null;
+
+      const timeline = [
+        { at: 0, scene: 0, text: "FocusProLab katılımcı rehberine hoş geldin. Üç bölümde sistemi, test senaryolarını ve ölçülen davranışları anlatacağız." },
+        { at: 5000, scene: 1, text: "Bölüm bir: Sistemi nasıl kullanırsın? Girişten test bitişine kadar adımları göreceksin." },
+        { at: 10000, scene: 2, text: "Siteye giriş yap veya ücretsiz kayıt ol.", cursor: [820, 400], click: true, target: "#login-btn" },
+        { at: 15000, scene: 3, text: "Katılımcı bilgilerini gir ve Devam'a tıkla.", cursor: [640, 430], click: true, target: "#continue-btn" },
+        { at: 20000, scene: 4, text: "SPACE tuşunu dene — test boyunca bu tuşu kullanacaksın.", cursor: [640, 380], click: true, target: "#space-key", onEnter: () => setTimeout(() => document.getElementById("space-key")?.classList.add("hit"), 1000) },
+        { at: 25500, scene: 5, text: "Ses kontrolü: kulaklığını tak, test sesini duyduysan onayla.", cursor: [640, 400], click: true, target: "#audio-btn" },
+        { at: 31000, scene: 6, text: "Özet akış: bilgi → tuş ve ses → rehber → 30 saniye deneme → Teste başla → asıl test → teşekkür ekranı.", onEnter: showFlowSteps },
+        { at: 38000, scene: 7, text: "Bölüm iki: Test senaryoları. Her bölümde ekranda farklı şeyler olur; görevin her zaman aynı kalır." },
+        { at: 43000, scene: 8, text: "Senaryo bir — Deneme: 30 saniye, kayıt yok. Arayüzü tanı; mavi üçgende SPACE'e alış." },
+        { at: 49000, scene: 9, text: "Asıl testte sırayla şu senaryolar gelir:", onEnter: startScenarioRotation },
+        { at: 50000, scene: 9, text: "Çeldirici yok: sadece şekiller. Yalnızca mavi üçgende bas." },
+        { at: 56000, scene: 9, text: "Sessiz gif: kenarda animasyonlar var — onlara tepki verme, üçgene odaklan." },
+        { at: 62000, scene: 9, text: "Sadece ses: ses duyarsın ama görev değişmez; ekrandaki üçgene bak." },
+        { at: 68000, scene: 9, text: "Kombine: gif ve ses birlikte — en zor bölüm, kural aynı." },
+        { at: 74000, scene: 9, text: "Kapanış: çeldiriciler azalır, son performans ölçülür." },
+        { at: 80000, scene: 10, text: "Bölüm üç: Sistem neleri ölçer? Her basışın kaydedilir; sonucu sen görmezsin." },
+        { at: 85000, scene: 11, text: "Dört alan ölçülür: A Dikkat, T Zamanlama, I Dürtüsellik, H Hiper-reaktivite.", onEnter: showMetrics },
+        { at: 95000, scene: 11, text: "A: üçgene basma ve ihmal. T: tepki zamanı. I: yanlış şekle basma. H: fazla veya boş ekranda basma." },
+        { at: 105000, scene: 12, text: "Test bitince «Katılımınız için teşekkürler» görürsün; 30 saniye sonra ana sayfaya yönlendirilirsin. Teşekkürler!" }
+      ];
+
+      let startTime = null;
+      let currentScene = -1;
+
+      function showScene(n) {
+        if (n === currentScene) return;
+        if (n !== 9 && scenarioTimer) { clearInterval(scenarioTimer); scenarioTimer = null; }
+        currentScene = n;
+        scenes.forEach((s) => s.classList.toggle("active", Number(s.dataset.scene) === n));
+      }
+
+      function moveCursor(x, y, click, targetSel) {
+        cursor.classList.add("visible");
+        cursor.style.left = x + "px";
+        cursor.style.top = y + "px";
+        if (targetSel) {
+          const el = document.querySelector(targetSel);
+          const stage = document.getElementById("stage").getBoundingClientRect();
+          if (el) {
+            const r = el.getBoundingClientRect();
+            highlight.style.left = r.left - stage.left - 6 + "px";
+            highlight.style.top = r.top - stage.top - 6 + "px";
+            highlight.style.width = r.width + 12 + "px";
+            highlight.style.height = r.height + 12 + "px";
+            highlight.classList.add("show");
+          }
+        } else highlight.classList.remove("show");
+        if (click) setTimeout(() => cursor.classList.add("click"), 600);
+      }
+
+      function showFlowSteps() {
+        document.querySelectorAll(".flow-step").forEach((el, i) => setTimeout(() => el.classList.add("show"), i * 180));
+      }
+
+      function renderScenario(i) {
+        const s = scenarios[i];
+        document.getElementById("scenario-demo").innerHTML = s.demo;
+        document.getElementById("scenario-text").innerHTML = `
+          <span class="badge">${s.badge}</span>
+          <h2>${s.title}</h2>
+          <div class="scenario-box"><h4>Ne olur?</h4><p>${s.happens}</p></div>
+          <div class="scenario-box"><h4>Ne yapmalısın?</h4><p>${s.action}</p></div>`;
+      }
+
+      function startScenarioRotation() {
+        scenarioIdx = 0;
+        renderScenario(0);
+        scenarioTimer = setInterval(() => {
+          if (currentScene !== 9) return;
+          scenarioIdx = (scenarioIdx + 1) % scenarios.length;
+          renderScenario(scenarioIdx);
+        }, 5500);
+      }
+
+      function showMetrics() {
+        document.querySelectorAll(".metric-card").forEach((el, i) => setTimeout(() => el.classList.add("show"), i * 220));
+      }
+
+      function tick(now) {
+        if (!startTime) startTime = now;
+        const elapsed = now - startTime;
+        progress.style.width = Math.min(100, (elapsed / TOTAL_MS) * 100) + "%";
+        let active = timeline[0];
+        for (const item of timeline) { if (elapsed >= item.at) active = item; }
+        narration.textContent = active.text;
+        const prev = currentScene;
+        showScene(active.scene);
+        if (active.scene !== prev && active.onEnter) active.onEnter();
+        if (active.cursor) moveCursor(active.cursor[0], active.cursor[1], active.click, active.target);
+        if (elapsed < TOTAL_MS) requestAnimationFrame(tick);
+      }
+
+      window.__VIDEO_READY__ = false;
+      window.__VIDEO_DURATION__ = TOTAL_MS;
+      requestAnimationFrame(() => requestAnimationFrame(() => { window.__VIDEO_READY__ = true; requestAnimationFrame(tick); }));
+    </script>
+  </body>
+</html>

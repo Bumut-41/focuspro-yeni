@@ -64,6 +64,11 @@ export default function DashboardPage() {
         <Alert variant={isAdmin ? "success" : "info"}>
           {isAdmin ? t("dashboard.pdfAutoSave") : t("dashboard.resultsPrivate")}
         </Alert>
+        {!isAdmin && (
+          <p style={{ margin: "12px 0 0", fontSize: "0.875rem", color: "var(--fp-text-secondary)", lineHeight: 1.55 }}>
+            {t("dashboard.guideHint")}
+          </p>
+        )}
         <Stack gap={12} style={{ marginTop: 20 }}>
           <Button asLink to="/test" variant="primary">
             {t("dashboard.newTest")}

@@ -395,11 +395,11 @@ export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTime
 export function buildNarrativeComment(scores, zGlobal) {
   const lines = [];
   if (scores.attention >= 70) {
-    lines.push("Dikkat performansı genel olarak yeterlidir.");
+    lines.push("Dikkat performansı genel olarak yeterlidir (ihmal düşük).");
   } else if (scores.attention >= 60) {
-    lines.push("Dikkat performansı orta düzeydedir.");
+    lines.push("Dikkat performansı orta düzeydedir (ihmal artmış olabilir).");
   } else {
-    lines.push("Dikkat alanında belirgin zorluk gözlenmiştir.");
+    lines.push("Dikkat alanında belirgin ihmal (kaçırma) gözlenmiştir.");
   }
   if (scores.timing < 70 || zGlobal.timing < -1) {
     lines.push("Zamanlama alanında geç tepki, acele yanıt veya yavaşlama gözlenmiştir.");
@@ -407,11 +407,11 @@ export function buildNarrativeComment(scores, zGlobal) {
     lines.push("Zamanlama performansı kabul edilebilir düzeydedir.");
   }
   if (scores.impulsivity >= 75) {
-    lines.push("Bilişsel dürtüsellik (yanlış simgeye basış) belirgin değildir.");
+    lines.push("Dürtüsellik (commission / hedef dışı ilk tepki) belirgin değildir.");
   } else if (scores.impulsivity >= 60) {
-    lines.push("Hafif bilişsel dürtüsellik göstergeleri izlenmiştir.");
+    lines.push("Hafif dürtüsellik (commission) göstergeleri izlenmiştir.");
   } else {
-    lines.push("Bilişsel dürtüsellik alanında belirgin zorluk gözlenmiştir.");
+    lines.push("Dürtüsellik alanında belirgin commission hataları gözlenmiştir.");
   }
   if (scores.hyperactivity >= 75) {
     lines.push("Motor hiperaktivite (mükerrer veya yönerge dışı basış) belirgin değildir.");
@@ -661,14 +661,20 @@ export function buildSmartComment(scores, metrics, profile) {
 export const INDEX_DEFINITIONS = [
   [
     "A — Dikkat",
-    "100 − (ihmal/hedef×70) − (yanlış/toplam_uyaran×30). İhmal = hedefe hiç basmama. Geç yanıt dikkate değil zamanlamaya (T) yazılır. 90+ Çok iyi, 80–89 İyi, 70–79 Ortalama, 60–69 Düşük, <60 Belirgin güçlük"
+    "İhmal (hedef varken basmama). Yanlış basış I'ye, geç tepki T'ye yazılır; A ile karışmaz."
   ],
   [
     "T — Zamanlama",
-    "Hedefe doğru zamanda tepki: zamanında isabet oranı + RT kalitesi − geç yanıt cezası − acele basış cezası. Doğru nesneye basılsa bile gecikme veya acele zamanlama problemidir."
+    "RT + geç yanıt + erken/acele yanıt + tepki süresi varyabilitesi. Hedefe doğru basılsa bile zamanlama sorunu T'dedir."
   ],
-  ["I — Dürtüsellik", "100 − (yanlış/hedef_dışı×100) × 5. Bilişsel acelecilik: hedef dışı uyaranlara ilk basış (commission). Mükerrer basış bu endekste değil."],
-  ["H — Hiperaktivite", "Motorik durduramazlık: mükerrer basış + yönerge dışı (boş ekran) basış. Doğru/yanlış simge fark etmez; fazla tuş H'yi düşürür."],
+  [
+    "I — Dürtüsellik",
+    "Commission errors: hedef dışı uyaranlara verilen ilk tepkiler. Mükerrer basış bu endekste değildir (H'ye gider)."
+  ],
+  [
+    "H — Hiperaktivite",
+    "Mükerrer basış + boş ekran / yönerge dışı basış. Doğru veya yanlış simge fark etmez."
+  ],
   ["Genel skor", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
 ];
 

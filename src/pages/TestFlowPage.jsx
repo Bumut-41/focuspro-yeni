@@ -13,6 +13,7 @@ import { computeReportMetrics } from "../reportHelpers.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
+import { TestParticipantGuide } from "../components/TestParticipantGuide.jsx";
 import { formatPersistResult, persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
 import { saveTestSession } from "../services/sessions.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
@@ -47,6 +48,9 @@ export default function TestFlowPage() {
   const [activeTestProfile, setActiveTestProfile] = useState(() => getProfile(pkey));
 
   const spaceDoneLock = useRef(false);
+  const spaceScreenRef = useRef(null);
+  const completeSpaceCheckRef = useRef(() => {});
+  const [spaceKeyLit, setSpaceKeyLit] = useState(false);
   const pendingPracticeStart = useRef(false);
   const pendingMainStart = useRef(false);
   const audioDoneLock = useRef(false);
@@ -144,6 +148,7 @@ export default function TestFlowPage() {
   const completeSpaceCheck = useCallback(() => {
     if (spaceCelebrating || spaceDoneLock.current) return;
     spaceDoneLock.current = true;
+    setSpaceKeyLit(true);
     setAudioPlayError("");
     playAudioSample().catch(() => {});
     setSpaceCelebrating(true);
@@ -151,9 +156,24 @@ export default function TestFlowPage() {
       setSpaceVerified(true);
       setStep("audioCheck");
       setSpaceCelebrating(false);
+      setSpaceKeyLit(false);
       spaceDoneLock.current = false;
     }, 950);
   }, [spaceCelebrating, playAudioSample]);
+
+  completeSpaceCheckRef.current = completeSpaceCheck;
+
+  const handleSpaceProbeKey = useCallback((e) => {
+    const isSpace = e.code === "Space" || e.key === " " || e.key === "Spacebar";
+    if (!isSpace || e.repeat) return;
+    const el = document.activeElement;
+    const typing =
+      el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
+    if (typing) return;
+    e.preventDefault();
+    e.stopPropagation();
+    completeSpaceCheckRef.current();
+  }, []);
 
   const handleAudioNotHeard = useCallback(() => {
     setAudioPlayError(t("test.audioRetry"));
@@ -204,6 +224,7 @@ export default function TestFlowPage() {
     spaceDoneLock.current = false;
     audioDoneLock.current = false;
     setSpaceCelebrating(false);
+    setSpaceKeyLit(false);
     setAudioCelebrating(false);
     setAudioPlayError("");
     if (audioRef.current) {
@@ -288,23 +309,19 @@ export default function TestFlowPage() {
 
   useEffect(() => {
     if (step !== "spaceCheck" || spaceCelebrating) return undefined;
-    const kd = (e) => {
-      if (e.code !== "Space") return;
-      const el = document.activeElement;
-      const typing =
-        el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
-      if (typing) return;
-      e.preventDefault();
-      completeSpaceCheck();
-    };
-    window.addEventListener("keydown", kd);
-    return () => window.removeEventListener("keydown", kd);
-  }, [step, spaceCelebrating, completeSpaceCheck]);
+    document.addEventListener("keydown", handleSpaceProbeKey, true);
+    return () => document.removeEventListener("keydown", handleSpaceProbeKey, true);
+  }, [step, spaceCelebrating, handleSpaceProbeKey]);
 
   useEffect(() => {
     if (step === "spaceCheck") {
       spaceDoneLock.current = false;
       setSpaceCelebrating(false);
+      setSpaceKeyLit(false);
+      const focusTimer = window.setTimeout(() => {
+        spaceScreenRef.current?.focus({ preventScroll: true });
+      }, 0);
+      return () => window.clearTimeout(focusTimer);
     }
     if (step === "audioCheck") {
       audioDoneLock.current = false;
@@ -379,24 +396,17 @@ export default function TestFlowPage() {
       )}
 
       {step === "guide" && (
-        <div className="test-guide-card">
-          <p className="test-guide-kicker">{t("test.stepGuide")}</p>
-          <h2 className="test-guide-title">{instr.title}</h2>
-          <div className="test-guide-body">
-            {instr.paragraphs.map((text) => (
-              <p key={text} className="test-guide-p">
-                {text}
-              </p>
-            ))}
-          </div>
-          <button type="button" onClick={startPractice} className="test-guide-continue">
-            {instr.practiceBtn}
-          </button>
-        </div>
+        <TestParticipantGuide onStartPractice={startPractice} targetShape={target?.shape ?? "triangle"} />
       )}
 
       {step === "spaceCheck" && (
-        <div className="space-screen">
+        <div
+          className="space-screen"
+          ref={spaceScreenRef}
+          tabIndex={-1}
+          onKeyDown={handleSpaceProbeKey}
+          aria-label={t("test.spaceTitle")}
+        >
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
@@ -405,14 +415,26 @@ export default function TestFlowPage() {
               <>
                 <h2 className="space-screen-head">{t("test.spaceTitle")}</h2>
                 <p className="space-screen-sub">{t("test.spaceSub")}</p>
+                <div className="space-screen-visual" aria-hidden>
+                  <div className="space-screen-ring space-screen-ring--r1" />
+                  <div className="space-screen-ring space-screen-ring--r2" />
+                  <div className="space-screen-ring space-screen-ring--r3" />
+                  <div className="space-screen-key-wrap">
+                    <div className={`space-screen-key${spaceKeyLit ? " is-pressed" : " space-screen-key--pulse"}`}>
+                      <span className="space-screen-key-label">SPACE</span>
+                    </div>
+                    <p className="space-screen-nudge">{t("test.spaceNudge")}</p>
+                  </div>
+                </div>
                 <button type="button" className="space-screen-touch" onClick={() => completeSpaceCheck()}>
                   {t("test.spaceTouch")}
                 </button>
               </>
             ) : (
               <div className="space-screen-win">
+                <span className="space-screen-win-burst" aria-hidden />
                 <span className="space-screen-win-check">✓</span>
-                <p className="space-screen-win-title">{t("common.ok")}</p>
+                <p className="space-screen-win-title">{t("test.spaceOk")}</p>
               </div>
             )}
           </div>
