@@ -219,7 +219,7 @@ export const tr = {
             code: "T",
             title: "Zamanlama",
             desc: "Tepkinin zamanında ve tutarlı olup olmadığı",
-            measures: "RT, geç tepki, acele tepki ve tepki süresi varyabilitesi"
+            measures: "Zamanında isabet, RT hızı, geç yanıt ve RT stabilitesi (ağırlıklı T formülü)"
           },
           {
             code: "I",

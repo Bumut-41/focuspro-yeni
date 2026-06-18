@@ -218,7 +218,7 @@ export const en = {
             code: "T",
             title: "Timing",
             desc: "Whether responses are on time and consistent",
-            measures: "RT, late responses, rushed responses, and reaction-time variability"
+            measures: "On-time hit, RT speed, late response, and RT stability (weighted T formula)"
           },
           {
             code: "I",

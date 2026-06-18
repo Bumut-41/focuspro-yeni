@@ -665,7 +665,7 @@ export const INDEX_DEFINITIONS = [
   ],
   [
     "T — Zamanlama",
-    "RT + geç yanıt + erken/acele yanıt + tepki süresi varyabilitesi. Hedefe doğru basılsa bile zamanlama sorunu T'dedir."
+    "T = (Zamanında İsabet×0.40) + (RT Hızı×0.25) + (Geç Yanıt×0.20) + (RT Stabilitesi×0.15). İhmal A'ya yazılır."
   ],
   [
     "I — Dürtüsellik",

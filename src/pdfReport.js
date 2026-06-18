@@ -257,7 +257,7 @@ export function buildDocDefinition({
     attention:
       "Dikkat (A): ihmal — hedef uyaran varken basmama. Yanlış basış I'ye, geç tepki T'ye yazılır.",
     timing:
-      "Zamanlama (T): RT, geç yanıt, acele yanıt ve tepki süresi varyabilitesi. İhmal A'ya yazılmaz.",
+      "Zamanlama (T) = Zamanında İsabet×0.40 + RT Hızı×0.25 + Geç Yanıt×0.20 + RT Stabilitesi×0.15. İhmal A'ya yazılmaz.",
     impulsivity:
       "Dürtüsellik (I): commission errors — hedef dışı uyaranlara verilen ilk tepkiler. Mükerrer basış H'ye gider.",
     hyperactivity:
@@ -388,6 +388,12 @@ export function buildDocDefinition({
           scoreBox("H — Hiper-reaktivite", scores.hyperactivity)
         ],
         columnGap: 2,
+        margin: [0, 0, 0, 6]
+      },
+      {
+        text: `T = (Zamanında İsabet ${metrics.timingOnTimeHit ?? "—"}×0.40) + (RT Hızı ${metrics.timingRtSpeed ?? "—"}×0.25) + (Geç Yanıt ${metrics.timingLateResponse ?? "—"}×0.20) + (RT Stabilitesi ${metrics.timingRtStability ?? "—"}×0.15) = ${scores.timing}`,
+        fontSize: 8,
+        color: "#64748b",
         margin: [0, 0, 0, 18]
       },
       {

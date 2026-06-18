@@ -144,43 +144,59 @@ export function computeHyperactivityScore(behaviors, logs, pressTimeline = []) {
 /** Acele (zamanlama) eşiği — hedefe doğru ama aşırı hızlı basış. */
 export const TIMING_RUSH_MS = 150;
 
-/** Hedef denemelerinde zamanlama: RT + geç + acele + varyabilite. */
-export function computeTimingScore(behaviors, onTimeRts, refRt) {
+/** T alt bileşenleri (0–100) ve ağırlıklı toplam. */
+export function computeTimingComponents(behaviors, onTimeRts, refRt) {
   const { hits, late, targets } = behaviors;
-  if (!targets) return 0;
+  const empty = {
+    score: 0,
+    onTimeHit: 0,
+    rtSpeed: 0,
+    lateResponse: 0,
+    rtStability: 0
+  };
+  if (!targets) return empty;
 
-  const targetResponses = hits + late;
-  if (targetResponses === 0) return 0;
+  const responded = hits + late;
+  if (!responded) return empty;
 
-  const lateRate = safeDiv(late, targets);
-  const onTimeRate = safeDiv(hits, targets);
-  const rushedHits = onTimeRts.filter((rt) => rt < TIMING_RUSH_MS).length;
-  const rushRate = safeDiv(rushedHits, targets);
+  const onTimeHit = clamp(safeDiv(hits, targets) * 100);
 
-  let rtQuality = 0;
+  let rtSpeed = 0;
   if (onTimeRts.length > 0) {
     const rtMean = mean(onTimeRts);
     if (rtMean < TIMING_RUSH_MS) {
-      rtQuality = 30;
+      rtSpeed = 30;
     } else {
-      rtQuality = clamp((refRt / rtMean) * 100);
+      rtSpeed = clamp((refRt / rtMean) * 100);
     }
   }
 
-  const rtStd = stdDev(onTimeRts);
-  const variabilityRatio = refRt > 0 ? rtStd / refRt : 0;
-  const variabilityPenalty = clamp(variabilityRatio * 80, 0, 35);
+  const lateResponse = clamp(100 - safeDiv(late, targets) * 100);
 
-  // Geç ve acele yanıtlar yalnızca T'yi etkiler; ihmal A'ya, commission I'ye yazılır.
-  let timing = clamp(
-    onTimeRate * 45 + rtQuality * 0.35 - lateRate * 40 - rushRate * 35 - variabilityPenalty
+  const rtStd = stdDev(onTimeRts);
+  const cv = refRt > 0 ? rtStd / refRt : 0;
+  const rtStability = onTimeRts.length >= 2 ? clamp(100 - cv * 80) : 50;
+
+  let score = clamp(
+    onTimeHit * 0.4 + rtSpeed * 0.25 + lateResponse * 0.2 + rtStability * 0.15
   );
 
   if (hits === 0 && late > 0) {
-    timing = Math.min(timing, 30);
+    score = Math.min(score, 30);
   }
 
-  return Math.round(timing);
+  return {
+    score: Math.round(score),
+    onTimeHit: Math.round(onTimeHit),
+    rtSpeed: Math.round(rtSpeed),
+    lateResponse: Math.round(lateResponse),
+    rtStability: Math.round(rtStability)
+  };
+}
+
+/** @deprecated computeTimingComponents kullanın */
+export function computeTimingScore(behaviors, onTimeRts, refRt) {
+  return computeTimingComponents(behaviors, onTimeRts, refRt).score;
 }
 
 /** A/T/I/H — kullanıcı spec formülleri. */
@@ -190,6 +206,10 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
       attention: 0,
       attentionRaw: 0,
       timing: 0,
+      timingOnTimeHit: 0,
+      timingRtSpeed: 0,
+      timingLateResponse: 0,
+      timingRtStability: 0,
       impulsivity: 0,
       impulsivityRate: 0,
       hyperactivity: 0,
@@ -205,7 +225,8 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
   const attention = clamp(100 - omissionRatio * 100);
 
   const refRt = referenceRtMs(age);
-  const timing = computeTimingScore(behaviors, rts, refRt);
+  const timingParts = computeTimingComponents(behaviors, rts, refRt);
+  const timing = timingParts.score;
 
   const impulsivityRate = safeDiv(behaviors.falseAlarms, behaviors.nonTargets) * 100;
   const hyperMotor = countHyperMotorStats(logs, pressTimeline);
@@ -232,6 +253,10 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
     attention: Math.round(attention),
     attentionRaw: Math.round(attentionRaw),
     timing: Math.round(timing),
+    timingOnTimeHit: timingParts.onTimeHit,
+    timingRtSpeed: timingParts.rtSpeed,
+    timingLateResponse: timingParts.lateResponse,
+    timingRtStability: timingParts.rtStability,
     impulsivity: Math.round(impulsivity),
     impulsivityRate: Number(impulsivityRate.toFixed(1)),
     hyperactivity: Math.round(hyperactivity),
@@ -266,6 +291,10 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
       attentionScore: 0,
       impulseScore: 0,
       speedScore: 0,
+      timingOnTimeHit: 0,
+      timingRtSpeed: 0,
+      timingLateResponse: 0,
+      timingRtStability: 0,
       consistencyScore: 0,
       overallScore: 0,
       flags: [m.insufficientData]
@@ -335,6 +364,10 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
     attentionScore: indices.attention,
     impulseScore: indices.impulsivity,
     speedScore: indices.timing,
+    timingOnTimeHit: indices.timingOnTimeHit,
+    timingRtSpeed: indices.timingRtSpeed,
+    timingLateResponse: indices.timingLateResponse,
+    timingRtStability: indices.timingRtStability,
     consistencyScore: indices.hyperactivity,
     overallScore: indices.overall,
     flags,
