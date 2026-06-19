@@ -109,10 +109,13 @@ export const tr = {
     genderFemale: "Kadın",
     genderMale: "Erkek",
     consent: "Veli / yasal temsilci onamı alındı.",
+    dataConsent:
+      "Verilerimin anonimleştirilerek norm çalışmaları, bilimsel yayınlar ve sistem geliştirme faaliyetlerinde kullanılmasını kabul ediyorum.",
     errName: "Ad soyad girin.",
     errBirth: "Geçerli doğum tarihi (6–99 yaş).",
     errGender: "Cinsiyet seçin.",
     errConsent: "Çocuk/ergen için onam kutusunu işaretleyin.",
+    errDataConsent: "Veri kullanım onay kutusunu işaretleyin.",
     saved: "Test kaydedildi. PDF raporu hazırlanıyor…",
     noCredits: "Kayıt yapılamadı: test hakkınız kalmadı.",
     saveError: "Kayıt hatası: {{msg}}",
