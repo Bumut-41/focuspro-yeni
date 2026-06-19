@@ -47,6 +47,27 @@ function sectionTitle(text, pageBreak = false) {
   };
 }
 
+/** Başlık + grafik tek blokta kalsın; sayfa ortasında boşluk oluşmasın. */
+function chartSectionBlock(title, imageSrc, pageBreakBefore = false) {
+  if (!imageSrc) return null;
+  return {
+    unbreakable: true,
+    pageBreak: pageBreakBefore ? "before" : undefined,
+    margin: [0, pageBreakBefore ? 4 : 14, 0, 0],
+    stack: [
+      {
+        columns: [
+          { width: 5, canvas: [{ type: "rect", x: 0, y: 0, w: 5, h: 22, color: HEADER }] },
+          { width: "*", stack: [{ text: title, fontSize: 15, bold: true, color: HEADER, margin: [10, 2, 0, 0] }] }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 8]
+      },
+      { image: imageSrc, width: 515, margin: [0, 0, 0, 12] }
+    ]
+  };
+}
+
 function coverHeader(locale = "tr") {
   const pdf = getReportPdfStrings(locale);
   return {
@@ -402,19 +423,14 @@ export function buildDocDefinition({
   ];
   let chartFirst = true;
   for (const [key, title] of indexCharts) {
-    if (reportCharts[key]) {
-      chartBlocks.push(
-        sectionTitle(title + pdf.chartSuffix, chartFirst),
-        { image: reportCharts[key], width: 515, margin: [0, 0, 0, 12] }
-      );
+    const block = chartSectionBlock(title + pdf.chartSuffix, reportCharts[key], chartFirst);
+    if (block) {
+      chartBlocks.push(block);
       chartFirst = false;
     }
   }
   if (reportCharts.combined) {
-    chartBlocks.push(
-      sectionTitle(pdf.chartCombined, true),
-      { image: reportCharts.combined, width: 515, margin: [0, 0, 0, 14] }
-    );
+    chartBlocks.push(chartSectionBlock(pdf.chartCombined, reportCharts.combined, true));
   }
 
   const durationMin = Math.round(profile.durationMs / 60000);

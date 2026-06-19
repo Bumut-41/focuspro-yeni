@@ -90,6 +90,16 @@ function renderChart(config, width = 520, height = 300) {
   return url;
 }
 
+function shortPhaseChartLabel(row) {
+  const time = String(row.label || "").match(/(\d+[–-]\d+\s*dk)/i);
+  const timeStr = time ? time[1].replace(/\s+/g, " ") : "";
+  if (row.axisLabel && timeStr) return `${row.axisLabel} ${timeStr}`;
+  if (timeStr) return timeStr;
+  if (row.axisLabel) return row.axisLabel;
+  const s = String(row.label || "").replace(/^[^—]+—\s*/, "").trim();
+  return s.length > 16 ? `${s.slice(0, 14)}…` : s;
+}
+
 /** Tek endeks — tüm profil fazları, norm bandı + katılımcı. */
 export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = "tr") {
   const INDEX_META = indexMeta(locale);
@@ -98,10 +108,10 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
   if (!phaseRows.length) return null;
 
   const n = phaseRows.length;
-  const chartW = Math.min(560, 420 + n * 14);
-  const chartH = n > 6 ? 340 : 300;
+  const chartW = Math.min(540, 400 + n * 12);
+  const chartH = 260;
 
-  const labels = phaseRows.map((r) => (r.axisLabel ? `${r.axisLabel}\n${r.label}` : r.label));
+  const labels = phaseRows.map(shortPhaseChartLabel);
   const userData = phaseRows.map((r) => r[meta.field]);
   const normMeans = [];
   const normLows = [];
@@ -162,23 +172,17 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
       ]
     },
     options: {
+      layout: { padding: { top: 4, right: 8, bottom: 4, left: 4 } },
       scales: {
         y: { min: 0, max: 100, ticks: { stepSize: 20 }, grid: { color: "#e2e8f0" } },
         x: {
           grid: { display: false },
-          ticks: { font: { size: n > 6 ? 7 : 9 }, maxRotation: 55, minRotation: n > 6 ? 40 : 25 }
+          ticks: { font: { size: 8 }, maxRotation: 32, minRotation: 28, autoSkip: false }
         }
       },
       plugins: {
         legend: { display: false },
-        title: {
-          display: true,
-          text: meta.title,
-          align: "start",
-          font: { size: 16, weight: "600" },
-          color: "#0f172a",
-          padding: { bottom: 12 }
-        }
+        title: { display: false }
       }
     }
   }, chartW, chartH);
@@ -188,8 +192,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
 export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr") {
   if (!phaseSeries.length) return null;
   const INDEX_META = indexMeta(locale);
-  const pdf = getReportPdfStrings(locale);
-  const labels = phaseSeries.map((p) => (p.axisLabel ? `${p.axisLabel} · ${p.label}` : p.label));
+  const labels = phaseSeries.map(shortPhaseChartLabel);
 
   const datasets = Object.entries(COMBINED_COLORS).map(([key, color]) => {
     const meta = INDEX_META[key];
@@ -212,9 +215,10 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
       type: "line",
       data: { labels, datasets },
       options: {
+        layout: { padding: { top: 4, right: 8, bottom: 4, left: 4 } },
         scales: {
           y: { min: 0, max: 100, ticks: { stepSize: 10 }, grid: { color: "#e2e8f0" } },
-          x: { ticks: { font: { size: 8 }, maxRotation: 55, minRotation: 35 } }
+          x: { ticks: { font: { size: 8 }, maxRotation: 32, minRotation: 28, autoSkip: false } }
         },
         plugins: {
           legend: {
@@ -225,23 +229,16 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
               pointStyle: "circle",
               boxWidth: 10,
               boxHeight: 10,
-              padding: 14,
-              font: { size: 10 }
+              padding: 10,
+              font: { size: 9 }
             }
           },
-          title: {
-            display: true,
-            text: pdf.chartCombinedTitle,
-            align: "start",
-            font: { size: 15, weight: "600" },
-            color: "#4c1d95",
-            padding: { bottom: 8 }
-          }
+          title: { display: false }
         }
       }
     },
     540,
-    320
+    280
   );
 }
 
