@@ -14,40 +14,11 @@ import {
   computeDetailedMetrics,
   getScores
 } from "./reportHelpers.js";
+import { getReportPdfStrings } from "./i18n/reportPdfStrings.js";
+import { getStrings } from "./i18n/index.js";
 import { normBand } from "./reportNorms.js";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, LineController, Legend, Tooltip, Filler);
-
-const INDEX_META = {
-  attention: {
-    title: "Dikkat",
-    field: "attention",
-    color: "#7c3aed",
-    pointStyle: "circle",
-    borderDash: []
-  },
-  timing: {
-    title: "Zamanlama",
-    field: "timing",
-    color: "#4f46e5",
-    pointStyle: "rect",
-    borderDash: [8, 4]
-  },
-  impulsivity: {
-    title: "Dürtüsellik",
-    field: "impulsivity",
-    color: "#dc2626",
-    pointStyle: "rectRot",
-    borderDash: [4, 4]
-  },
-  hyperactivity: {
-    title: "Hiperaktivite (motor)",
-    field: "hyperactivity",
-    color: "#d97706",
-    pointStyle: "triangle",
-    borderDash: [6, 3]
-  }
-};
 
 const COMBINED_COLORS = {
   attention: "#7c3aed",
@@ -55,6 +26,40 @@ const COMBINED_COLORS = {
   impulsivity: "#ef4444",
   hyperactivity: "#d4a574"
 };
+
+function indexMeta(locale = "tr") {
+  const r = getStrings(locale).report;
+  return {
+    attention: {
+      title: r.attention.replace(/^A — /, ""),
+      field: "attention",
+      color: "#7c3aed",
+      pointStyle: "circle",
+      borderDash: []
+    },
+    timing: {
+      title: r.timing.replace(/^T — /, ""),
+      field: "timing",
+      color: "#4f46e5",
+      pointStyle: "rect",
+      borderDash: [8, 4]
+    },
+    impulsivity: {
+      title: r.impulsivity.replace(/^I — /, ""),
+      field: "impulsivity",
+      color: "#dc2626",
+      pointStyle: "rectRot",
+      borderDash: [4, 4]
+    },
+    hyperactivity: {
+      title: r.hyperactivity.replace(/^H — /, ""),
+      field: "hyperactivity",
+      color: "#d97706",
+      pointStyle: "triangle",
+      borderDash: [6, 3]
+    }
+  };
+}
 
 /** 8 nokta — birleşik grafik serisi. */
 export function getProfilePhaseSeries(logs, profile) {
@@ -86,8 +91,10 @@ function renderChart(config, width = 520, height = 300) {
 }
 
 /** Tek endeks — tüm profil fazları, norm bandı + katılımcı. */
-export function renderIndexPhaseChart(phaseRows, profileKey, indexKey) {
+export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = "tr") {
+  const INDEX_META = indexMeta(locale);
   const meta = INDEX_META[indexKey];
+  const CL = getReportPdfStrings(locale).technical?.chartLabels ?? {};
   if (!phaseRows.length) return null;
 
   const n = phaseRows.length;
@@ -114,14 +121,14 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey) {
       labels,
       datasets: [
         {
-          label: "Norm alt",
+          label: CL.normLow ?? "Norm lower",
           data: normLows,
           borderWidth: 0,
           pointRadius: 0,
           tension: 0.35
         },
         {
-          label: "Norm aralığı",
+          label: CL.normBand ?? "Norm band",
           data: normHighs,
           backgroundColor: "rgba(148, 163, 184, 0.28)",
           borderWidth: 0,
@@ -130,7 +137,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey) {
           tension: 0.35
         },
         {
-          label: "Normatif referans",
+          label: CL.normRef ?? "Normative reference",
           data: normMeans,
           borderColor: "#94a3b8",
           borderWidth: 1.5,
@@ -141,7 +148,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey) {
           tension: 0.35
         },
         {
-          label: "Katılımcı",
+          label: CL.participant ?? "Participant",
           data: userData,
           borderColor: meta.color,
           backgroundColor: meta.color,
@@ -178,8 +185,10 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey) {
 }
 
 /** Dört endeks — profil fazları (8–9 nokta). */
-export function renderCombinedPhaseChart(phaseSeries, profileKey) {
+export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr") {
   if (!phaseSeries.length) return null;
+  const INDEX_META = indexMeta(locale);
+  const pdf = getReportPdfStrings(locale);
   const labels = phaseSeries.map((p) => (p.axisLabel ? `${p.axisLabel} · ${p.label}` : p.label));
 
   const datasets = Object.entries(COMBINED_COLORS).map(([key, color]) => {
@@ -222,7 +231,7 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey) {
           },
           title: {
             display: true,
-            text: "Dört İndeks Genelinde Performans",
+            text: pdf.chartCombinedTitle,
             align: "start",
             font: { size: 15, weight: "600" },
             color: "#4c1d95",
@@ -240,16 +249,16 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey) {
  * PDF için tüm rapor grafikleri.
  * @returns {Promise<{ attention, timing, impulsivity, hyperactivity, combined, timeline? }>}
  */
-export async function buildReportChartImages(logs, profile, age = null, pressTimeline = []) {
+export async function buildReportChartImages(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const profileKey = profile.key ?? "adult";
-  const phaseRows = getReportPhaseChartScores(logs, profile, age, pressTimeline);
+  const phaseRows = getReportPhaseChartScores(logs, profile, age, pressTimeline, locale);
   const phaseSeries = phaseRows;
 
   return {
-    attention: renderIndexPhaseChart(phaseRows, profileKey, "attention"),
-    timing: renderIndexPhaseChart(phaseRows, profileKey, "timing"),
-    impulsivity: renderIndexPhaseChart(phaseRows, profileKey, "impulsivity"),
-    hyperactivity: renderIndexPhaseChart(phaseRows, profileKey, "hyperactivity"),
-    combined: renderCombinedPhaseChart(phaseSeries, profileKey)
+    attention: renderIndexPhaseChart(phaseRows, profileKey, "attention", locale),
+    timing: renderIndexPhaseChart(phaseRows, profileKey, "timing", locale),
+    impulsivity: renderIndexPhaseChart(phaseRows, profileKey, "impulsivity", locale),
+    hyperactivity: renderIndexPhaseChart(phaseRows, profileKey, "hyperactivity", locale),
+    combined: renderCombinedPhaseChart(phaseSeries, profileKey, locale)
   };
 }

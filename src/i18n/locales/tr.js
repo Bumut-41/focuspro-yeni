@@ -267,7 +267,7 @@ export const tr = {
     timing: "T — Zamanlama",
     impulsivity: "I — Dürtüsellik",
     hyperactivity: "H — Hiperaktivite",
-    clinicalFlags: "Klinik Bayraklar",
+    validity: "Geçerlilik",
     pdfDownload: "PDF indir",
     pdfSaveDownload: "PDF kaydet / indir",
     pdfFailed: "PDF işlemi başarısız. Lütfen tekrar deneyin.",

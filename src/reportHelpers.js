@@ -4,8 +4,11 @@ import {
   getDistractorMatrixLabels,
   getEffectBandLabels,
   getPhaseComment as getPhaseCommentForLocale,
-  getSustainCellLabels
+  getSustainCellLabels,
+  localizePhaseSectionName
 } from "./i18n/reportPdfStrings.js";
+import { distractorEffectBand } from "./report/scoreTiers.js";
+import { timelineForLogs } from "./report/timelineFilter.js";
 import {
   computeMetrics,
   countTrialBehaviors,
@@ -160,8 +163,8 @@ export function getAllPhaseChartScores(logs, profile) {
   return getReportPhaseChartScores(logs, profile);
 }
 
-export function getReportPhaseChartScores(logs, profile, age = null, pressTimeline = []) {
-  return buildReportPhaseBuckets(profile)
+export function getReportPhaseChartScores(logs, profile, age = null, pressTimeline = [], locale = "tr") {
+  return buildReportPhaseBuckets(profile, locale)
     .map((bucket) => {
       const list = logsForBucket(logs, bucket);
       if (!list.length) return null;
@@ -365,9 +368,9 @@ export function getBehaviorRates(behaviors) {
 }
 
 /** 8 faz × davranış türleri tablosu. */
-export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTimeline = []) {
+export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const late = profile.lateResponseMs;
-  return buildReportPhaseBuckets(profile).map((bucket) => {
+  return buildReportPhaseBuckets(profile, locale).map((bucket) => {
     const list = logsForBucket(logs, bucket);
     const behaviors = countTrialBehaviors(list, late);
     const rates = getBehaviorRates(behaviors);
@@ -474,7 +477,7 @@ export const FULL_PHASE_LEGEND = [
 
 export function getSectionSummaries(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const late = profile.lateResponseMs;
-  return buildReportPhaseBuckets(profile).map((bucket) => {
+  return buildReportPhaseBuckets(profile, locale).map((bucket) => {
     const list = logsForBucket(logs, bucket);
     const tl = timelineForBucket(pressTimeline, bucket);
     const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale });
@@ -530,26 +533,10 @@ function phaseLogs(logs, matcher) {
 }
 
 function distractorEffectCell(temelScore, celdiriciScore, locale = "tr") {
-  const B = getEffectBandLabels(locale);
   if (temelScore == null || celdiriciScore == null) {
     return { text: "—", color: "#64748b" };
   }
-  const drop = temelScore - celdiriciScore;
-  const pts = Math.round(Math.abs(drop));
-
-  if (Math.abs(drop) <= 3) {
-    return { text: `${B.none} (0 ${B.points})`, color: "#64748b" };
-  }
-  if (drop < -3) {
-    return { text: `${B.improve} (+${pts} ${B.points})`, color: "#16a34a" };
-  }
-  if (drop <= 8) {
-    return { text: `${B.mild} (−${pts} ${B.points})`, color: "#64748b" };
-  }
-  if (drop <= 18) {
-    return { text: `${B.moderate} (−${pts} ${B.points})`, color: "#f59e0b" };
-  }
-  return { text: `${B.marked} (−${pts} ${B.points})`, color: "#dc2626" };
+  return distractorEffectBand(temelScore - celdiriciScore, locale, getEffectBandLabels);
 }
 
 function sustainabilityCell(logs, profile, age, pressTimeline, key, locale = "tr") {
@@ -596,7 +583,11 @@ export function getDistractorSummaryMatrix(logs, profile, age = null, pressTimel
   const combined = phaseLogs(logs, (s) => s.includes("sessiz + sesli") || s.includes("sesli gif"));
   const allDistractors = [...visual, ...auditory, ...combined];
 
-  const scoreOf = (list) => (list.length ? getScores(computeDetailedMetrics(list, late, opts)) : null);
+  const scoreOf = (list) => {
+    if (!list.length) return null;
+    const tl = timelineForLogs(pressTimeline, list);
+    return getScores(computeDetailedMetrics(list, late, { ...opts, pressTimeline: tl }));
+  };
 
   const baseSc = scoreOf(baseline);
   const visSc = scoreOf(visual);

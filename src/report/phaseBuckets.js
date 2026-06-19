@@ -2,6 +2,7 @@
  * Katılımcı raporu — 8 grafik noktası (çeldirici blokları bölmeden).
  * Temel 3 dk parça + 3 çeldirici blok + kapanış 2 parça.
  */
+import { getReportPdfStrings, localizePhaseSectionName } from "../i18n/reportPdfStrings.js";
 
 function norm(s) {
   return (s || "").toLowerCase();
@@ -45,19 +46,20 @@ function bucketPhaseKey(kind, index = 0) {
   return "temel1";
 }
 
-function moxoAxisLabel(kind, index) {
-  if (kind === "temel" && index === 0) return "Temel-1";
-  if (kind === "gorsel") return "Görsel";
-  if (kind === "isitsel") return "İşitsel";
-  if (kind === "kombine") return "Kombine";
-  if (kind === "kapanis" && index === 0) return "Temel-2";
+function moxoAxisLabel(kind, index, locale = "tr") {
+  const ax = getReportPdfStrings(locale).technical?.axisLabels ?? {};
+  if (kind === "temel" && index === 0) return ax.temel1 ?? "Temel-1";
+  if (kind === "gorsel") return ax.gorsel ?? "Görsel";
+  if (kind === "isitsel") return ax.isitsel ?? "İşitsel";
+  if (kind === "kombine") return ax.kombine ?? "Kombine";
+  if (kind === "kapanis" && index === 0) return ax.temel2 ?? "Temel-2";
   return "";
 }
 
 /**
  * @returns {Array<{ id: string, label: string, axisLabel: string, phaseKey: string, phaseNames: string[] }>}
  */
-export function buildReportPhaseBuckets(profile) {
+export function buildReportPhaseBuckets(profile, locale = "tr") {
   const phases = profile?.phases ?? [];
   const temel = phases.filter((p) => isTemelMinute(p.name));
   const gorsel = phases.filter((p) => isGorselBlock(p.name));
@@ -70,8 +72,8 @@ export function buildReportPhaseBuckets(profile) {
   temel.slice(0, 3).forEach((phase, i) => {
     buckets.push({
       id: `temel-${i}`,
-      label: shortBucketLabel(phase.name),
-      axisLabel: moxoAxisLabel("temel", i),
+      label: localizePhaseSectionName(phase.name, locale),
+      axisLabel: moxoAxisLabel("temel", i, locale),
       phaseKey: bucketPhaseKey("temel"),
       phaseNames: [phase.name],
       kind: "temel"
@@ -81,8 +83,8 @@ export function buildReportPhaseBuckets(profile) {
   if (gorsel.length) {
     buckets.push({
       id: "gorsel",
-      label: shortBucketLabel(gorsel[0].name),
-      axisLabel: moxoAxisLabel("gorsel"),
+      label: localizePhaseSectionName(gorsel[0].name, locale),
+      axisLabel: moxoAxisLabel("gorsel", 0, locale),
       phaseKey: bucketPhaseKey("gorsel"),
       phaseNames: gorsel.map((p) => p.name),
       kind: "gorsel"
@@ -92,8 +94,8 @@ export function buildReportPhaseBuckets(profile) {
   if (isitsel.length) {
     buckets.push({
       id: "isitsel",
-      label: shortBucketLabel(isitsel[0].name),
-      axisLabel: moxoAxisLabel("isitsel"),
+      label: localizePhaseSectionName(isitsel[0].name, locale),
+      axisLabel: moxoAxisLabel("isitsel", 0, locale),
       phaseKey: bucketPhaseKey("isitsel"),
       phaseNames: isitsel.map((p) => p.name),
       kind: "isitsel"
@@ -103,8 +105,8 @@ export function buildReportPhaseBuckets(profile) {
   if (kombine.length) {
     buckets.push({
       id: "kombine",
-      label: shortBucketLabel(kombine[0].name),
-      axisLabel: moxoAxisLabel("kombine"),
+      label: localizePhaseSectionName(kombine[0].name, locale),
+      axisLabel: moxoAxisLabel("kombine", 0, locale),
       phaseKey: bucketPhaseKey("kombine"),
       phaseNames: kombine.map((p) => p.name),
       kind: "kombine"
@@ -114,8 +116,8 @@ export function buildReportPhaseBuckets(profile) {
   if (closing.length >= 2) {
     buckets.push({
       id: "kapanis-1",
-      label: shortBucketLabel(closing[0].name),
-      axisLabel: moxoAxisLabel("kapanis", 0),
+      label: localizePhaseSectionName(closing[0].name, locale),
+      axisLabel: moxoAxisLabel("kapanis", 0, locale),
       phaseKey: bucketPhaseKey("kapanis"),
       phaseNames: [closing[0].name],
       kind: "kapanis"
@@ -124,8 +126,8 @@ export function buildReportPhaseBuckets(profile) {
       id: "kapanis-2",
       label:
         closing.length > 2
-          ? `${shortBucketLabel(closing[1].name)} + ${shortBucketLabel(closing[closing.length - 1].name)}`
-          : shortBucketLabel(closing[1].name),
+          ? `${localizePhaseSectionName(closing[1].name, locale)} + ${localizePhaseSectionName(closing[closing.length - 1].name, locale)}`
+          : localizePhaseSectionName(closing[1].name, locale),
       axisLabel: "",
       phaseKey: bucketPhaseKey("kapanis"),
       phaseNames: closing.slice(1).map((p) => p.name),
@@ -134,8 +136,8 @@ export function buildReportPhaseBuckets(profile) {
   } else if (closing.length === 1) {
     buckets.push({
       id: "kapanis-1",
-      label: shortBucketLabel(closing[0].name),
-      axisLabel: moxoAxisLabel("kapanis", 0),
+      label: localizePhaseSectionName(closing[0].name, locale),
+      axisLabel: moxoAxisLabel("kapanis", 0, locale),
       phaseKey: bucketPhaseKey("kapanis"),
       phaseNames: [closing[0].name],
       kind: "kapanis"

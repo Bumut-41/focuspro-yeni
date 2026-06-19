@@ -57,6 +57,7 @@ export const reportPdfStrings = {
     chartImpulsivity: "Dürtüsellik (I)",
     chartHyperactivity: "Hiperaktivite (H)",
     chartCombined: "Dört İndeks — Faz Grafiği",
+    chartCombinedTitle: "Dört İndeks Genelinde Performans",
     invalidTitle: "TEST GEÇERSİZ",
     invalidCritical: "Kritik bulgular",
     invalidNoReport: "Bu oturum için performans raporu üretilmemiştir. Sonuçlar klinik yorum için kullanılmamalıdır.",
@@ -86,15 +87,15 @@ export const reportPdfStrings = {
       l2_multi: "Çoklu basış oranı %{{rate}}.",
       l3_attention: "Dikkat (A) fazlar arası düşüş: başlangıç {{start}}, kapanış {{end}} (fark {{delta}} puan).",
       l3_rt: "RT değişimi: başlangıç {{start}} ms, kapanış {{end}} ms (+{{delta}} ms).",
-      check_coopOk: "✓ Göreve katılım yeterli",
-      check_coopLow: "⚠ Göreve katılım sınırlı",
-      check_rtOk: "✓ Tepki süreleri beklenen aralıkta",
-      check_rtBad: "⚠ Tepki süreleri şüpheli veya aşırı değişken",
-      check_patternOk: "✓ Yanıt örüntüsü tutarlı",
-      check_patternBad: "⚠ Yanıt örüntüsü tutarsız",
-      check_clinicalOk: "✓ Sonuçlar klinik yorumlama için uygundur",
-      check_caution: "⚠ Sonuçlar dikkatli yorumlanmalıdır",
-      check_invalid: "✗ Sonuçlar yorumlanmamalıdır",
+      check_coopOk: "Göreve katılım yeterli",
+      check_coopLow: "Göreve katılım sınırlı",
+      check_rtOk: "Tepki süreleri beklenen aralıkta",
+      check_rtBad: "Tepki süreleri şüpheli veya aşırı değişken",
+      check_patternOk: "Yanıt örüntüsü tutarlı",
+      check_patternBad: "Yanıt örüntüsü tutarsız",
+      check_clinicalOk: "Sonuçlar klinik yorumlama için uygundur",
+      check_caution: "Sonuçlar dikkatli yorumlanmalıdır",
+      check_invalid: "Sonuçlar yorumlanmamalıdır",
       summary_invalid: "TEST GEÇERSİZ — Kritik geçersizlik bulguları nedeniyle rapor klinik yorum için uygun değildir.",
       summary_valid: "Test sonuçları geçerli kabul edilmiş ve yorumlamaya uygun bulunmuştur.",
       summary_acceptable: "Test sonuçları kabul edilebilir düzeydedir; bazı faktörler yorumu etkileyebilir.",
@@ -221,11 +222,11 @@ export const reportPdfStrings = {
     },
     metrics: {
       accuracy: "Genel Doğruluk",
-      hitRate: "Hit Rate",
-      omissionRate: "Omission Rate",
-      commissionRate: "Commission Rate",
-      lateRate: "Late Response Rate",
-      multiRate: "Multi Press Rate",
+      hitRate: "Hedef Tepki Oranı",
+      omissionRate: "İhmal Oranı",
+      commissionRate: "Hedef Dışı Tepki Oranı",
+      lateRate: "Geç Yanıt Oranı",
+      multiRate: "Çoklu Basış Oranı",
       avgRt: "Ortalama Tepki Süresi",
       rtSd: "RT Standart Sapma",
       dPrime: "d-prime (d′)",
@@ -234,6 +235,19 @@ export const reportPdfStrings = {
       validityIndex: "Geçerlilik Endeksi"
     },
     technical: {
+      axisLabels: {
+        temel1: "Temel-1",
+        gorsel: "Görsel",
+        isitsel: "İşitsel",
+        kombine: "Kombine",
+        temel2: "Temel-2"
+      },
+      chartLabels: {
+        normLow: "Norm alt",
+        normBand: "Norm aralığı",
+        normRef: "Normatif referans",
+        participant: "Katılımcı"
+      },
       phaseLegend: [
         ["Temel - 1 (Baz)", "Temel bölüm — hedef odaklı sürekli performans"],
         ["Görsel - 2", "Büyük görsel dikkat dağıtıcılar (sessiz gif)"],
@@ -351,6 +365,7 @@ export const reportPdfStrings = {
     chartImpulsivity: "Impulsivity (I)",
     chartHyperactivity: "Hyperactivity (H)",
     chartCombined: "Four Indices — Phase Chart",
+    chartCombinedTitle: "Performance Across Four Indices",
     invalidTitle: "TEST INVALID",
     invalidCritical: "Critical findings",
     invalidNoReport: "No performance report was generated for this session. Results must not be used for clinical interpretation.",
@@ -380,15 +395,15 @@ export const reportPdfStrings = {
       l2_multi: "Multiple-press rate {{rate}}%.",
       l3_attention: "Attention (A) phase decline: start {{start}}, end {{end}} (delta {{delta}} points).",
       l3_rt: "RT change: start {{start}} ms, end {{end}} ms (+{{delta}} ms).",
-      check_coopOk: "✓ Adequate task engagement",
-      check_coopLow: "⚠ Limited task engagement",
-      check_rtOk: "✓ Reaction times within expected range",
-      check_rtBad: "⚠ Suspicious or highly variable reaction times",
-      check_patternOk: "✓ Response pattern consistent",
-      check_patternBad: "⚠ Inconsistent response pattern",
-      check_clinicalOk: "✓ Results suitable for clinical interpretation",
-      check_caution: "⚠ Results should be interpreted with caution",
-      check_invalid: "✗ Results must not be interpreted",
+      check_coopOk: "Adequate task engagement",
+      check_coopLow: "Limited task engagement",
+      check_rtOk: "Reaction times within expected range",
+      check_rtBad: "Suspicious or highly variable reaction times",
+      check_patternOk: "Response pattern consistent",
+      check_patternBad: "Inconsistent response pattern",
+      check_clinicalOk: "Results suitable for clinical interpretation",
+      check_caution: "Results should be interpreted with caution",
+      check_invalid: "Results must not be interpreted",
       summary_invalid: "TEST INVALID — Critical validity findings; the report is not suitable for clinical interpretation.",
       summary_valid: "Test results are considered valid and suitable for interpretation.",
       summary_acceptable: "Test results are acceptable; some factors may affect interpretation.",
@@ -528,6 +543,19 @@ export const reportPdfStrings = {
       validityIndex: "Validity index"
     },
     technical: {
+      axisLabels: {
+        temel1: "Baseline-1",
+        gorsel: "Visual",
+        isitsel: "Auditory",
+        kombine: "Combined",
+        temel2: "Baseline-2"
+      },
+      chartLabels: {
+        normLow: "Norm lower",
+        normBand: "Norm band",
+        normRef: "Normative reference",
+        participant: "Participant"
+      },
       phaseLegend: [
         ["Baseline - 1", "Baseline section — target-focused continuous performance"],
         ["Visual - 2", "Large visual distractors (silent gif)"],
@@ -598,6 +626,22 @@ export function fillTemplate(str, vars = {}) {
   return String(str).replace(/\{\{(\w+)\}\}/g, (_, key) => (vars[key] != null ? String(vars[key]) : ""));
 }
 
+export function localizePhaseSectionName(name, locale = "tr") {
+  const raw = String(name || "").replace(/^[^—]+—\s*/, "").trim();
+  if (locale !== "en") {
+    return raw.length > 28 ? `${raw.slice(0, 26)}…` : raw;
+  }
+  let s = raw
+    .replace(/sessiz \+ sesli gif/gi, "silent + sound gif")
+    .replace(/sessiz gif/gi, "silent gif")
+    .replace(/sadece ses/gi, "sound only")
+    .replace(/\bdk\b/gi, "min")
+    .replace(/Yetişkin/gi, "Adult")
+    .replace(/Ergen/gi, "Teen")
+    .replace(/Çocuk/gi, "Child");
+  return s.length > 32 ? `${s.slice(0, 30)}…` : s;
+}
+
 export function dateLocaleForPdf(locale = "tr") {
   return locale === "en" ? "en-US" : "tr-TR";
 }
@@ -645,10 +689,11 @@ export function getPhaseComment(sectionName, scores, locale = "tr") {
   const attention = typeof scores === "object" ? scores.attention ?? overall : overall;
   const timing = typeof scores === "object" ? scores.timing ?? overall : overall;
   const impulsivity = typeof scores === "object" ? scores.impulsivity ?? overall : overall;
+  const hyperactivity = typeof scores === "object" ? scores.hyperactivity ?? overall : overall;
 
-  if (attention >= 75 && timing >= 70) return P.good;
+  if (attention >= 75 && timing >= 70 && impulsivity >= 60 && hyperactivity >= 60) return P.good;
   if (overall >= 75) return P.good;
-  if (attention >= 65 && timing >= 65 && impulsivity >= 45) return P.average;
+  if (attention >= 65 && timing >= 65 && impulsivity >= 60 && hyperactivity >= 55) return P.average;
 
   const s = sectionName.toLowerCase();
   if (s.includes("sessiz + sesli") || s.includes("sesli gif")) return P.combined;

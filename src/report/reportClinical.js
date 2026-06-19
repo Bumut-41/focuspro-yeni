@@ -7,6 +7,8 @@ import {
 import { buildReportPhaseBuckets, logsForBucket } from "./phaseBuckets.js";
 import { getOverallRiskText, riskLabel } from "../metrics.js";
 import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
+import { CLINICAL_THRESHOLDS, DISTRACTOR_DROP, TIERS, distractorImpactLevel } from "./scoreTiers.js";
+import { timelineForLogs } from "./timelineFilter.js";
 
 function clamp(x, a = 0, b = 100) {
   return Math.max(a, Math.min(b, x));
@@ -22,10 +24,10 @@ function phaseLogs(logs, matcher) {
 
 export function indexLevelLabel(score, locale = "tr") {
   const L = getReportPdfStrings(locale).levels;
-  if (score >= 90) return L.veryGood;
-  if (score >= 80) return L.good;
-  if (score >= 70) return L.average;
-  if (score >= 60) return L.low;
+  if (score >= TIERS.veryGood) return L.veryGood;
+  if (score >= TIERS.good) return L.good;
+  if (score >= TIERS.average) return L.average;
+  if (score >= TIERS.low) return L.low;
   return L.poor;
 }
 
@@ -110,7 +112,7 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     const firstAvg = mean(firstA);
     const lastAvg = mean(lastA);
     const deltaA = lastAvg - firstAvg;
-    if (deltaA <= -50) {
+    if (deltaA <= CLINICAL_THRESHOLDS.validityAttentionDrop) {
       level3Consistency.push(
         fillTemplate(V.l3_attention, {
           start: Math.round(firstAvg),
@@ -150,7 +152,7 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
   if (metrics.avgReaction > 0 && metrics.avgReaction < 150) {
     score -= 40;
     deductions.push("RT < 150 ms (−40)");
-  } else if (targetHits.length >= 5 && fastRate >= 15) {
+  } else if (targetHits.length >= 5 && fastRate >= 25) {
     score -= 40;
     deductions.push(locale === "en" ? "Suspicious fast responses (−40)" : "Şüpheli hızlı tepkiler (−40)");
   }
@@ -177,14 +179,27 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
   const isInvalid = hasCritical || score < 40;
 
   const checklist = [];
-  checklist.push(metrics.omissionRate <= 40 ? V.check_coopOk : V.check_coopLow);
-  checklist.push(
-    metrics.avgReaction >= 150 && metrics.avgReaction <= 1200 && fastRate < 15 ? V.check_rtOk : V.check_rtBad
-  );
-  checklist.push(metrics.rtStd >= 20 && metrics.rtStd <= 350 ? V.check_patternOk : V.check_patternBad);
-  if (!isInvalid && score >= 75) checklist.push(V.check_clinicalOk);
-  else if (!isInvalid) checklist.push(V.check_caution);
-  else checklist.push(V.check_invalid);
+  checklist.push({
+    level: metrics.omissionRate <= 40 ? "green" : "yellow",
+    text: metrics.omissionRate <= 40 ? V.check_coopOk : V.check_coopLow
+  });
+  checklist.push({
+    level:
+      metrics.avgReaction >= 150 && metrics.avgReaction <= 1200 && fastRate < 25 ? "green" : "yellow",
+    text:
+      metrics.avgReaction >= 150 && metrics.avgReaction <= 1200 && fastRate < 25 ? V.check_rtOk : V.check_rtBad
+  });
+  checklist.push({
+    level: metrics.rtStd >= 20 && metrics.rtStd <= 350 ? "green" : "yellow",
+    text: metrics.rtStd >= 20 && metrics.rtStd <= 350 ? V.check_patternOk : V.check_patternBad
+  });
+  if (!isInvalid && score >= 75) {
+    checklist.push({ level: "green", text: V.check_clinicalOk });
+  } else if (!isInvalid) {
+    checklist.push({ level: "yellow", text: V.check_caution });
+  } else {
+    checklist.push({ level: "red", text: V.check_invalid });
+  }
 
   let summary;
   if (isInvalid) summary = V.summary_invalid;
@@ -206,7 +221,7 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     shouldBlockReport: hasCritical,
     cooperationOk: metrics.omissionRate <= 40,
     rtConsistent: metrics.rtStd >= 20 && metrics.rtStd <= 350,
-    patternConsistent: !hasCritical && fastRate < 15
+    patternConsistent: !hasCritical && fastRate < 25
   };
 }
 
@@ -214,7 +229,7 @@ function distractorPhaseScore(logs, profile, age, pressTimeline, matcher, locale
   const list = phaseLogs(logs, matcher);
   if (!list.length) return null;
   const late = profile.lateResponseMs;
-  const tl = pressTimeline ?? [];
+  const tl = timelineForLogs(pressTimeline, list);
   return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }));
 }
 
@@ -253,15 +268,16 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
     const baseOverall = baseline.overall;
     const distOverall = distScores.overall;
     const drop = baseOverall - distOverall;
+    const level = distractorImpactLevel(drop);
 
-    if (drop <= 3) {
+    if (drop <= DISTRACTOR_DROP.none) {
       const comment = key === "visual" ? D.visualOk : key === "auditory" ? D.auditoryOk : D.combinedOk;
       return { title, level: "green", emoji: "🟢", label: D.preserved, comment };
     }
-    if (drop <= 12) {
+    if (level === "yellow") {
       return { title, level: "yellow", emoji: "🟡", label: D.mild, comment: fillTemplate(D.mildComment, { title }) };
     }
-    if (drop <= 22) {
+    if (level === "orange") {
       return { title, level: "orange", emoji: "🟠", label: D.moderate, comment: fillTemplate(D.moderateComment, { title }) };
     }
     return { title, level: "red", emoji: "🔴", label: D.marked, comment: fillTemplate(D.markedComment, { title }) };
@@ -315,12 +331,18 @@ export function buildClinicalFlags(scores, metrics, validity, distractor, sustai
     flags.push({ level: "red", emoji: "🔴", text: F.invalid });
     return flags;
   }
-  if (scores.impulsivity < 75) flags.push({ level: "yellow", emoji: "🟡", text: F.impulse });
+  if (scores.impulsivity < CLINICAL_THRESHOLDS.impulseFlag) flags.push({ level: "yellow", emoji: "🟡", text: F.impulse });
   if (distractor.anyAffected) flags.push({ level: "yellow", emoji: "🟡", text: F.distractor });
-  if (sustainability.delta != null && sustainability.delta <= -15) {
+  if (sustainability.delta != null && sustainability.delta <= CLINICAL_THRESHOLDS.sustainabilityOrange) {
     flags.push({ level: "orange", emoji: "🟠", text: F.sustainability });
   }
-  if (scores.overall < 55 || scores.attention < 60 || scores.timing < 55 || scores.impulsivity < 55) {
+  if (
+    scores.overall < CLINICAL_THRESHOLDS.poorOverall ||
+    scores.attention < CLINICAL_THRESHOLDS.poorAttention ||
+    scores.timing < CLINICAL_THRESHOLDS.poorTiming ||
+    scores.impulsivity < CLINICAL_THRESHOLDS.poorImpulsivity ||
+    scores.hyperactivity < CLINICAL_THRESHOLDS.poorHyperactivity
+  ) {
     flags.push({ level: "red", emoji: "🔴", text: F.poor });
   }
   if (!flags.length) flags.push({ level: "green", emoji: "🟢", text: F.none });
@@ -333,22 +355,22 @@ export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, 
   const risk = getOverallRiskText(scores.overall, locale);
 
   const strengths = [];
-  if (scores.attention >= 80) strengths.push(St.attention);
-  if (scores.timing >= 80) strengths.push(St.timing);
-  if (scores.impulsivity >= 80) strengths.push(St.impulse);
-  if (scores.hyperactivity >= 80) strengths.push(St.motor);
+  if (scores.attention >= CLINICAL_THRESHOLDS.strength) strengths.push(St.attention);
+  if (scores.timing >= CLINICAL_THRESHOLDS.strength) strengths.push(St.timing);
+  if (scores.impulsivity >= CLINICAL_THRESHOLDS.strength) strengths.push(St.impulse);
+  if (scores.hyperactivity >= CLINICAL_THRESHOLDS.strength) strengths.push(St.motor);
 
   const weaknesses = [];
-  if (scores.timing < 75) weaknesses.push(St.timing);
-  if (scores.impulsivity < 75) weaknesses.push(St.impulse);
-  if (scores.attention < 75) weaknesses.push(St.attention);
-  if (scores.hyperactivity < 75) weaknesses.push(St.motor);
+  if (scores.timing < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.timing);
+  if (scores.impulsivity < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.impulse);
+  if (scores.attention < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.attention);
+  if (scores.hyperactivity < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.motor);
 
   const line1 = scores.attention >= 70 ? E.line1ok : E.line1low;
   const line2Parts = [];
-  if (scores.timing < 75) line2Parts.push(E.timingIssue);
-  if (scores.impulsivity < 60) line2Parts.push(E.impulseIssueStrong);
-  else if (scores.impulsivity < 75) line2Parts.push(E.impulseIssue);
+  if (scores.timing < CLINICAL_THRESHOLDS.weakness) line2Parts.push(E.timingIssue);
+  if (scores.impulsivity < CLINICAL_THRESHOLDS.impulseMarked) line2Parts.push(E.impulseIssueStrong);
+  else if (scores.impulsivity < CLINICAL_THRESHOLDS.impulseFlag) line2Parts.push(E.impulseIssue);
   const line2 =
     line2Parts.length > 0
       ? fillTemplate(E.line2mixed, { parts: line2Parts.join(locale === "en" ? " and " : " ve ") })
@@ -383,7 +405,7 @@ export function buildProfessionalNarrative(scores, metrics, validity, distractor
   paras.push(profTier(imp, scores.impulsivity));
   paras.push(profTier(hyp, scores.hyperactivity));
   paras.push(distractor.anyAffected ? P.distLow : P.distOk);
-  if (sustainability.delta != null && sustainability.delta <= -15) {
+  if (sustainability.delta != null && sustainability.delta <= CLINICAL_THRESHOLDS.sustainabilityOrange) {
     paras.push(fillTemplate(P.sustNote, { label: sustainability.label }));
   }
   paras.push(P.disclaimer);

@@ -87,7 +87,7 @@ export function ReportPanel({
       {validity && (
         <Alert variant={validity.isInvalid ? "error" : validity.score < 75 ? "warning" : "success"}>
           <strong>
-            {validity.band.emoji} Geçerlilik: {validity.score}/100 — {validity.band.label}
+            {validity.band.emoji} {t("report.validity")}: {validity.score}/100 — {validity.band.label}
           </strong>
           <p style={{ margin: "8px 0 0", fontSize: "0.875rem" }}>{validity.summary}</p>
         </Alert>

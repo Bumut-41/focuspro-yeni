@@ -267,6 +267,7 @@ export const en = {
     impulsivity: "I — Impulsivity",
     hyperactivity: "H — Hyperactivity",
     clinicalFlags: "Clinical Flags",
+    validity: "Validity",
     pdfDownload: "Download PDF",
     pdfSaveDownload: "Save / download PDF",
     pdfFailed: "PDF operation failed. Please try again.",

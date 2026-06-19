@@ -278,11 +278,16 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
     ];
   });
 
-  const difficulty = indices.filter((ix) => normPlacementFromZ(ix.z) === 4);
+  const difficulty = indices.filter((ix) => {
+    const n = normPlacementFromZ(ix.z);
+    return n === 4 || n === 5;
+  });
   const sevRows = SEVERITY_LEVELS.map((row) => {
     const cells = ["A", "T", "I", "H"].map((key) => {
       const ix = indices.find((i) => i.key === key);
-      if (!ix || normPlacementFromZ(ix.z) !== 4) return "";
+      if (!ix) return "";
+      const n = normPlacementFromZ(ix.z);
+      if (n !== 4 && n !== 5) return "";
       if (severityLevel(ix.score) !== row.level) return "";
       return { text: String(row.level), alignment: "center", bold: true, color: "#fff" };
     });
@@ -497,13 +502,22 @@ export function buildDocDefinition({
                       }
                     ]
                   },
-                  ...validity.checklist.map((c) => ({ text: c, fontSize: 9, margin: [0, 0, 0, 3] })),
+                  ...validity.checklist.map((c) =>
+                    pdfStatusLine(c.level ?? "green", c.text ?? String(c), {
+                      fontSize: 9,
+                      bold: false,
+                      textColor: "#334155",
+                      margin: [0, 0, 0, 3]
+                    })
+                  ),
                   { text: pdf.generalResult + ":", bold: true, fontSize: 10, margin: [0, 8, 0, 4] },
                   { text: validity.summary, fontSize: 9, lineHeight: 1.35 },
                   ...(validity.level2Warnings.length
                     ? [
                         { text: pdf.lowReliabilityWarnings + ":", bold: true, fontSize: 9, color: "#b45309", margin: [0, 8, 0, 4] },
-                        ...validity.level2Warnings.map((w) => ({ text: "⚠ " + w, fontSize: 8, color: "#b45309" }))
+                        ...validity.level2Warnings.map((w) =>
+                          pdfStatusLine("yellow", w, { fontSize: 8, bold: false, textColor: "#b45309", margin: [0, 0, 0, 3] })
+                        )
                       ]
                     : []),
                   ...(validity.level3Consistency.length
@@ -544,10 +558,10 @@ export function buildDocDefinition({
         layout: "noBorders",
         margin: [0, 0, 0, 10]
       },
-      infoBox(pdf.strengths, executive.strengths.length ? executive.strengths.map((s) => "✓ " + s) : [pdf.noStrengths], "#ecfdf5"),
+      infoBox(pdf.strengths, executive.strengths.length ? executive.strengths.map((s) => "• " + s) : [pdf.noStrengths], "#ecfdf5"),
       infoBox(
         pdf.weaknesses,
-        executive.weaknesses.length ? executive.weaknesses.map((s) => "⚠ " + s) : [pdf.noWeaknesses],
+        executive.weaknesses.length ? executive.weaknesses.map((s) => "• " + s) : [pdf.noWeaknesses],
         "#fff7ed"
       ),
       infoBox(pdf.shortComment, executive.lines, "#f8fafc"),
@@ -730,7 +744,8 @@ export function buildDocDefinition({
 export async function createPdfBlob(args) {
   const pdfMake = await getPdfMake();
   const reportCharts =
-    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile, args.participant?.age));
+    args.reportCharts ??
+    (await buildReportChartImages(args.logs, args.profile, args.participant?.age, args.pressTimeline ?? [], args.locale ?? "tr"));
   const doc = buildDocDefinition({ ...args, reportCharts });
   return new Promise((resolve, reject) => {
     try {
@@ -747,7 +762,8 @@ export async function createPdfBlob(args) {
 export async function downloadPdf(args) {
   const pdfMake = await getPdfMake();
   const reportCharts =
-    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile, args.participant?.age));
+    args.reportCharts ??
+    (await buildReportChartImages(args.logs, args.profile, args.participant?.age, args.pressTimeline ?? [], args.locale ?? "tr"));
   const doc = buildDocDefinition({ ...args, reportCharts });
   const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
   const filename = `FocusProLab_${safeName}_${Date.now()}.pdf`;
