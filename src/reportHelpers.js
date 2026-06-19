@@ -337,8 +337,8 @@ export function severityLevel(score) {
   return 4;
 }
 
-export function getPhaseComment(sectionName, score, locale = "tr") {
-  return getPhaseCommentForLocale(sectionName, score, locale);
+export function getPhaseComment(sectionName, scores, locale = "tr") {
+  return getPhaseCommentForLocale(sectionName, scores, locale);
 }
 
 export function getBehaviorRates(behaviors) {
@@ -384,7 +384,7 @@ export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTime
       timing: sc.timing,
       impulsivity: sc.impulsivity,
       hyperactivity: sc.hyperactivity,
-      comment: getPhaseComment(bucket.label, sc.overall)
+      comment: getPhaseComment(bucket.label, sc, locale)
     };
   });
 }
@@ -496,7 +496,7 @@ export function getSectionSummaries(logs, profile, age = null, pressTimeline = [
       omissionRate: rates.omissionRate,
       falseAlarmRate: rates.falseAlarmRate,
       medianReaction: m.medianReaction,
-      comment: getPhaseComment(bucket.label, sc.overall, locale)
+      comment: getPhaseComment(bucket.label, sc, locale)
     };
   });
 }
@@ -531,18 +531,25 @@ function phaseLogs(logs, matcher) {
 
 function distractorEffectCell(temelScore, celdiriciScore, locale = "tr") {
   const B = getEffectBandLabels(locale);
-  if (temelScore == null || celdiriciScore == null || temelScore <= 0) {
+  if (temelScore == null || celdiriciScore == null) {
     return { text: "—", color: "#64748b" };
   }
-  const pct = ((temelScore - celdiriciScore) / temelScore) * 100;
-  let band;
-  if (pct < -5) band = B.improve;
-  else if (pct <= 5) band = B.none;
-  else if (pct <= 15) band = B.mild;
-  else if (pct <= 30) band = B.moderate;
-  else band = B.marked;
-  const color = pct > 30 ? "#dc2626" : pct > 15 ? "#f59e0b" : "#64748b";
-  return { text: `${band} (${pct.toFixed(0)}%)`, color };
+  const drop = temelScore - celdiriciScore;
+  const pts = Math.round(Math.abs(drop));
+
+  if (Math.abs(drop) <= 3) {
+    return { text: `${B.none} (0 ${B.points})`, color: "#64748b" };
+  }
+  if (drop < -3) {
+    return { text: `${B.improve} (+${pts} ${B.points})`, color: "#16a34a" };
+  }
+  if (drop <= 8) {
+    return { text: `${B.mild} (−${pts} ${B.points})`, color: "#64748b" };
+  }
+  if (drop <= 18) {
+    return { text: `${B.moderate} (−${pts} ${B.points})`, color: "#f59e0b" };
+  }
+  return { text: `${B.marked} (−${pts} ${B.points})`, color: "#dc2626" };
 }
 
 function sustainabilityCell(logs, profile, age, pressTimeline, key, locale = "tr") {
@@ -561,11 +568,16 @@ function sustainabilityCell(logs, profile, age, pressTimeline, key, locale = "tr
   const firstAvg = first.reduce((a, b) => a + b, 0) / first.length;
   const lastAvg = last.reduce((a, b) => a + b, 0) / last.length;
   const delta = lastAvg - firstAvg;
+
+  if (firstAvg < 25 && Math.abs(delta) > 30) {
+    return { text: S.partialData, color: "#64748b" };
+  }
+
   let text;
-  if (delta >= 5) text = fillTemplate(S.warmup, { delta: delta.toFixed(0) });
+  if (delta >= 5) text = fillTemplate(S.warmup, { delta: Math.round(delta) });
   else if (delta >= -5) text = S.stable;
-  else if (delta >= -15) text = fillTemplate(S.mildDrop, { delta: delta.toFixed(0) });
-  else text = fillTemplate(S.markedDrop, { delta: delta.toFixed(0) });
+  else if (delta >= -15) text = fillTemplate(S.mildDrop, { delta: Math.round(delta) });
+  else text = fillTemplate(S.markedDrop, { delta: Math.round(delta) });
   const color = delta < -15 ? "#dc2626" : delta < -5 ? "#f59e0b" : "#64748b";
   return { text, color };
 }

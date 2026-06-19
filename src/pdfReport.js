@@ -1,6 +1,7 @@
 import { profileLabel, getStrings } from "./i18n/index.js";
 import { dateLocaleForPdf, fillTemplate, getReportPdfStrings, getFullPhaseLegend, getIndexDefinitions, getNormLevels, getSeverityLevels } from "./i18n/reportPdfStrings.js";
 import { triggerBlobDownload } from "./lib/triggerBlobDownload.js";
+import { pdfFlagRow, pdfStatusLine } from "./lib/pdfStatusMarker.js";
 import { getShapeSvg } from "./shapeUtils.jsx";
 import {
   computeDetailedMetrics,
@@ -178,7 +179,23 @@ function buildInvalidDocDefinition({ participant, profile, validity, locale = "t
               {
                 stack: [
                   { text: `${pdf.validityIndex}: ${validity.score}/100`, bold: true, fontSize: 14, color: "#dc2626" },
-                  { text: `🔴 ${pdf.invalidTitle}`, bold: true, fontSize: 16, color: "#dc2626", margin: [0, 8, 0, 8] },
+                  {
+                    columns: [
+                      {
+                        width: 14,
+                        canvas: [{ type: "ellipse", x: 7, y: 8, r1: 5, r2: 5, color: "#dc2626" }],
+                        margin: [0, 4, 4, 0]
+                      },
+                      {
+                        width: "*",
+                        text: pdf.invalidTitle,
+                        bold: true,
+                        fontSize: 16,
+                        color: "#dc2626",
+                        margin: [0, 8, 0, 8]
+                      }
+                    ]
+                  },
                   { text: validity.summary, fontSize: 10, margin: [0, 0, 0, 10] },
                   { text: pdf.invalidCritical + ":", bold: true, margin: [0, 0, 0, 6] },
                   ...validity.level1Critical.map((c) => ({ text: "• " + c, fontSize: 9, color: "#991b1b", margin: [0, 0, 0, 4] }))
@@ -225,12 +242,9 @@ function clinicalFlagsSection(clinicalFlags, pdf) {
           const st = styles[f.level] ?? styles.yellow;
           return [
             {
-              text: `${f.emoji} ${f.text}`,
-              bold: true,
-              fontSize: 12,
-              color: st.text,
+              stack: [pdfFlagRow(f, { fontSize: 12 })],
               fillColor: st.fill,
-              margin: [14, 10, 14, 10]
+              margin: [10, 8, 10, 8]
             }
           ];
         })
@@ -458,11 +472,30 @@ export function buildDocDefinition({
                     margin: [0, 0, 0, 4]
                   },
                   {
-                    text: `${validity.band.emoji} ${validity.band.label}`,
-                    bold: true,
-                    fontSize: 12,
-                    color: validity.band.color,
-                    margin: [0, 0, 0, 10]
+                    columns: [
+                      {
+                        width: 14,
+                        canvas: [
+                          {
+                            type: "ellipse",
+                            x: 7,
+                            y: 8,
+                            r1: 5,
+                            r2: 5,
+                            color: validity.band.color
+                          }
+                        ],
+                        margin: [0, 2, 4, 0]
+                      },
+                      {
+                        width: "*",
+                        text: validity.band.label,
+                        bold: true,
+                        fontSize: 12,
+                        color: validity.band.color,
+                        margin: [0, 0, 0, 10]
+                      }
+                    ]
                   },
                   ...validity.checklist.map((c) => ({ text: c, fontSize: 9, margin: [0, 0, 0, 3] })),
                   { text: pdf.generalResult + ":", bold: true, fontSize: 10, margin: [0, 8, 0, 4] },
@@ -545,13 +578,7 @@ export function buildDocDefinition({
 
       sectionTitle(pdf.distractorAnalysis, true),
       ...distractor.items.flatMap((item) => [
-        {
-          text: `${item.emoji} ${item.title} — ${item.label}`,
-          bold: true,
-          fontSize: 11,
-          color: HEADER,
-          margin: [0, 0, 0, 4]
-        },
+        pdfStatusLine(item.level ?? "green", `${item.title} — ${item.label}`, { fontSize: 11 }),
         { text: item.comment, fontSize: 9, lineHeight: 1.35, margin: [0, 0, 0, 12] }
       ]),
       infoBox(pdf.distractorGeneral, [distractor.general], HEADER_LIGHT),

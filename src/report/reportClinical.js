@@ -248,27 +248,27 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
 
   const analyze = (title, distScores, key) => {
     if (!distScores || !baseline) {
-      return { title, emoji: "—", label: D.noData, comment: D.noDataComment };
+      return { title, level: "gray", emoji: "—", label: D.noData, comment: D.noDataComment };
     }
     const baseOverall = baseline.overall;
     const distOverall = distScores.overall;
-    const pct = baseOverall > 0 ? ((baseOverall - distOverall) / baseOverall) * 100 : 0;
+    const drop = baseOverall - distOverall;
 
-    if (pct <= 5) {
+    if (drop <= 3) {
       const comment = key === "visual" ? D.visualOk : key === "auditory" ? D.auditoryOk : D.combinedOk;
-      return { title, emoji: "🟢", label: D.preserved, comment };
+      return { title, level: "green", emoji: "🟢", label: D.preserved, comment };
     }
-    if (pct <= 15) {
-      return { title, emoji: "🟡", label: D.mild, comment: fillTemplate(D.mildComment, { title }) };
+    if (drop <= 12) {
+      return { title, level: "yellow", emoji: "🟡", label: D.mild, comment: fillTemplate(D.mildComment, { title }) };
     }
-    if (pct <= 30) {
-      return { title, emoji: "🟠", label: D.moderate, comment: fillTemplate(D.moderateComment, { title }) };
+    if (drop <= 22) {
+      return { title, level: "orange", emoji: "🟠", label: D.moderate, comment: fillTemplate(D.moderateComment, { title }) };
     }
-    return { title, emoji: "🔴", label: D.marked, comment: fillTemplate(D.markedComment, { title }) };
+    return { title, level: "red", emoji: "🔴", label: D.marked, comment: fillTemplate(D.markedComment, { title }) };
   };
 
   const items = types.map((t) => analyze(t.title, t.scores, t.key));
-  const anyAffected = items.some((i) => i.emoji === "🟡" || i.emoji === "🟠" || i.emoji === "🔴");
+  const anyAffected = items.some((i) => i.level === "yellow" || i.level === "orange" || i.level === "red");
   return { items, general: anyAffected ? D.generalAffected : D.generalOk, anyAffected };
 }
 

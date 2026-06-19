@@ -273,16 +273,19 @@ export const reportPdfStrings = {
         none: "Etki yok",
         mild: "Hafif etki",
         moderate: "Orta etki",
-        marked: "Belirgin etki"
+        marked: "Belirgin etki",
+        points: "puan"
       },
       sustainCells: {
         warmup: "Isınma (+{{delta}})",
         stable: "Değişiklik yok",
         mildDrop: "Hafif düşüş ({{delta}})",
-        markedDrop: "Belirgin bozulma ({{delta}})"
+        markedDrop: "Belirgin bozulma ({{delta}})",
+        partialData: "Kısmi veri (erken faz)"
       },
       phaseComments: {
         good: "Performans bu fazda genel olarak korunmuştur.",
+        average: "Bu fazda performans kabul edilebilir düzeydedir.",
         combined: "Birleşik çeldiriciler altında dikkat ve dürtü kontrolü zorlanmış olabilir.",
         visual: "Görsel çeldiriciler altında dikkat performansı etkilenmiş olabilir.",
         auditory: "İşitsel çeldiriciler altında performans etkilenmiş olabilir.",
@@ -564,16 +567,19 @@ export const reportPdfStrings = {
         none: "No effect",
         mild: "Mild effect",
         moderate: "Moderate effect",
-        marked: "Marked effect"
+        marked: "Marked effect",
+        points: "pts"
       },
       sustainCells: {
         warmup: "Warm-up (+{{delta}})",
         stable: "No change",
         mildDrop: "Mild decline ({{delta}})",
-        markedDrop: "Marked decline ({{delta}})"
+        markedDrop: "Marked decline ({{delta}})",
+        partialData: "Partial data (early phase)"
       },
       phaseComments: {
         good: "Performance was generally maintained in this phase.",
+        average: "Performance was at an acceptable level in this phase.",
         combined: "Attention and impulse control may have been strained under combined distractors.",
         visual: "Attention performance may have been affected under visual distractors.",
         auditory: "Performance may have been affected under auditory distractors.",
@@ -633,9 +639,17 @@ export function getSeverityLevels(locale = "tr") {
   }));
 }
 
-export function getPhaseComment(sectionName, score, locale = "tr") {
+export function getPhaseComment(sectionName, scores, locale = "tr") {
   const P = getReportPdfStrings(locale).technical.phaseComments;
-  if (score >= 75) return P.good;
+  const overall = typeof scores === "number" ? scores : scores?.overall ?? 0;
+  const attention = typeof scores === "object" ? scores.attention ?? overall : overall;
+  const timing = typeof scores === "object" ? scores.timing ?? overall : overall;
+  const impulsivity = typeof scores === "object" ? scores.impulsivity ?? overall : overall;
+
+  if (attention >= 75 && timing >= 70) return P.good;
+  if (overall >= 75) return P.good;
+  if (attention >= 65 && timing >= 65 && impulsivity >= 45) return P.average;
+
   const s = sectionName.toLowerCase();
   if (s.includes("sessiz + sesli") || s.includes("sesli gif")) return P.combined;
   if (s.includes("sessiz gif")) return P.visual;
