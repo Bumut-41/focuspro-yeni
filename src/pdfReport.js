@@ -209,6 +209,38 @@ function buildInvalidDocDefinition({ participant, profile, validity, locale = "t
   };
 }
 
+function clinicalFlagsSection(clinicalFlags, pdf) {
+  const styles = {
+    green: { fill: "#ecfdf5", text: "#166534" },
+    yellow: { fill: "#fefce8", text: "#854d0e" },
+    orange: { fill: "#fff7ed", text: "#9a3412" },
+    red: { fill: "#fef2f2", text: "#991b1b" }
+  };
+  return [
+    sectionTitle(pdf.clinicalFlags, true),
+    {
+      table: {
+        widths: ["*"],
+        body: clinicalFlags.map((f) => {
+          const st = styles[f.level] ?? styles.yellow;
+          return [
+            {
+              text: `${f.emoji} ${f.text}`,
+              bold: true,
+              fontSize: 12,
+              color: st.text,
+              fillColor: st.fill,
+              margin: [14, 10, 14, 10]
+            }
+          ];
+        })
+      },
+      layout: "noBorders",
+      margin: [0, 0, 0, 16]
+    }
+  ];
+}
+
 function buildNormComparison(scores, profileKey, locale = "tr") {
   const pdf = getReportPdfStrings(locale);
   const NORM_LEVELS = getNormLevels(locale);
@@ -485,11 +517,6 @@ export function buildDocDefinition({
         executive.weaknesses.length ? executive.weaknesses.map((s) => "⚠ " + s) : [pdf.noWeaknesses],
         "#fff7ed"
       ),
-      infoBox(
-        pdf.clinicalFlags,
-        clinicalFlags.map((f) => `${f.emoji} ${f.text}`),
-        clinicalFlags[0]?.level === "green" ? "#ecfdf5" : "#fefce8"
-      ),
       infoBox(pdf.shortComment, executive.lines, "#f8fafc"),
 
       ...indexSectionBlock("attention", indexComments.attention, pdf, true),
@@ -648,6 +675,8 @@ export function buildDocDefinition({
         margin: [0, 0, 0, 12]
       },
       ...buildNormComparison(scores, profileKey, locale),
+
+      ...clinicalFlagsSection(clinicalFlags, pdf),
 
       {
         table: {

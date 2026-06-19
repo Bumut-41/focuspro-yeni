@@ -266,6 +266,7 @@ export const en = {
     timing: "T — Timing",
     impulsivity: "I — Impulsivity",
     hyperactivity: "H — Hyperactivity",
+    clinicalFlags: "Clinical Flags",
     pdfDownload: "Download PDF",
     pdfSaveDownload: "Save / download PDF",
     pdfFailed: "PDF operation failed. Please try again.",

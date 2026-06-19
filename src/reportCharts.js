@@ -189,8 +189,10 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey) {
       data: phaseSeries.map((p) => p[key]),
       borderColor: color,
       backgroundColor: color,
-      borderWidth: 2,
-      pointRadius: 4,
+      borderWidth: 2.5,
+      pointRadius: 5,
+      pointStyle: "circle",
+      pointHoverRadius: 5,
       tension: 0.3,
       borderDash: key === "timing" ? [6, 4] : key === "impulsivity" ? [3, 3] : []
     };
@@ -206,7 +208,18 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey) {
           x: { ticks: { font: { size: 8 }, maxRotation: 55, minRotation: 35 } }
         },
         plugins: {
-          legend: { display: true, position: "top", labels: { boxWidth: 12, font: { size: 10 } } },
+          legend: {
+            display: true,
+            position: "top",
+            labels: {
+              usePointStyle: true,
+              pointStyle: "circle",
+              boxWidth: 10,
+              boxHeight: 10,
+              padding: 14,
+              font: { size: 10 }
+            }
+          },
           title: {
             display: true,
             text: "Dört İndeks Genelinde Performans",

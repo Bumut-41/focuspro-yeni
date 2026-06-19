@@ -98,9 +98,35 @@ export function ReportPanel({
         </p>
       )}
       {clinicalFlags && (
-        <p style={{ fontSize: "0.875rem", marginBottom: 16 }}>
-          {clinicalFlags.map((f) => `${f.emoji} ${f.text}`).join(" · ")}
-        </p>
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={{ margin: "0 0 10px", color: "var(--fp-primary)" }}>{t("report.clinicalFlags")}</h4>
+          <div style={{ display: "grid", gap: 8 }}>
+            {clinicalFlags.map((f) => {
+              const bg =
+                f.level === "green"
+                  ? "#ecfdf5"
+                  : f.level === "yellow"
+                    ? "#fefce8"
+                    : f.level === "orange"
+                      ? "#fff7ed"
+                      : "#fef2f2";
+              return (
+                <div
+                  key={f.text}
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 8,
+                    background: bg,
+                    fontSize: "0.9375rem",
+                    fontWeight: 600
+                  }}
+                >
+                  {f.emoji} {f.text}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
       {chartData && (
         <div
