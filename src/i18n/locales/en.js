@@ -98,7 +98,9 @@ export const en = {
     profile: "Profile",
     overallScore: "Overall score",
     testReport: "Test report",
-    openReport: "Open report",
+    openReport: "Download report",
+    downloadReport: "Download report",
+    generateReport: "Generate report",
     pdfPreparing: "Preparing PDF…",
     pdfOpenFailed: "Could not open PDF."
   },

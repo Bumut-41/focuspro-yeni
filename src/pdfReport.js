@@ -1,11 +1,8 @@
-import { profileLabel } from "./i18n/index.js";
+import { profileLabel, getStrings } from "./i18n/index.js";
+import { dateLocaleForPdf, fillTemplate, getReportPdfStrings, getFullPhaseLegend, getIndexDefinitions, getNormLevels, getSeverityLevels } from "./i18n/reportPdfStrings.js";
+import { triggerBlobDownload } from "./lib/triggerBlobDownload.js";
 import { getShapeSvg } from "./shapeUtils.jsx";
 import {
-  INDEX_DEFINITIONS,
-  SDT_DEFINITIONS,
-  NORM_LEVELS,
-  SEVERITY_LEVELS,
-  FULL_PHASE_LEGEND,
   computeDetailedMetrics,
   formatDurationSeconds,
   formatRate,
@@ -48,7 +45,8 @@ function sectionTitle(text, pageBreak = false) {
   };
 }
 
-function coverHeader() {
+function coverHeader(locale = "tr") {
+  const pdf = getReportPdfStrings(locale);
   return {
     margin: [-36, -36, 16, 20],
     table: {
@@ -59,7 +57,7 @@ function coverHeader() {
             stack: [
               { text: "FocusProLab", fontSize: 26, bold: true, color: "#fff", margin: [20, 18, 20, 4] },
               {
-                text: "Sürekli Performans ve Dikkat Değerlendirme Raporu",
+                text: pdf.coverSubtitle,
                 fontSize: 13,
                 color: "#e9d5ff",
                 margin: [20, 0, 20, 16]
@@ -128,17 +126,11 @@ function scoreBox(title, value) {
   };
 }
 
-function indexSectionBlock(key, data, isFirst = false) {
-  const titles = {
-    attention: "A — DİKKAT",
-    timing: "T — ZAMANLAMA",
-    impulsivity: "I — DÜRTÜSELLİK",
-    hyperactivity: "H — HİPERAKTİVİTE"
-  };
+function indexSectionBlock(key, data, pdf, isFirst = false) {
   return [
-    ...(isFirst ? [sectionTitle("Ana Performans Endeksleri")] : []),
+    ...(isFirst ? [sectionTitle(pdf.mainIndexes)] : []),
     {
-      text: titles[key],
+      text: data.title,
       bold: true,
       fontSize: 12,
       color: HEADER,
@@ -157,7 +149,7 @@ function indexSectionBlock(key, data, isFirst = false) {
           width: "*",
           stack: [
             { text: data.definition, fontSize: 8, color: SUB, margin: [0, 0, 0, 6] },
-            { text: "Yorum: " + data.comment, fontSize: 9, lineHeight: 1.35, alignment: "justify" }
+            { text: pdf.commentLabel + ": " + data.comment, fontSize: 9, lineHeight: 1.35, alignment: "justify" }
           ]
         }
       ],
@@ -169,13 +161,15 @@ function indexSectionBlock(key, data, isFirst = false) {
 function buildInvalidDocDefinition({ participant, profile, validity, locale = "tr" }) {
   const profileKey = profile.key ?? "adult";
   const profileDisplay = profileLabel(profileKey, locale) || profile.label;
+  const pdf = getReportPdfStrings(locale);
+  const dateLoc = dateLocaleForPdf(locale);
   return {
     pageSize: "A4",
     pageMargins: [36, 36, 36, 48],
     defaultStyle: { font: "Roboto", fontSize: 10 },
     content: [
-      coverHeader(),
-      sectionTitle("TEST GEÇERSİZ"),
+      coverHeader(locale),
+      sectionTitle(pdf.invalidTitle),
       {
         table: {
           widths: ["*"],
@@ -183,10 +177,10 @@ function buildInvalidDocDefinition({ participant, profile, validity, locale = "t
             [
               {
                 stack: [
-                  { text: "Geçerlilik Endeksi: " + validity.score + "/100", bold: true, fontSize: 14, color: "#dc2626" },
-                  { text: "🔴 TEST GEÇERSİZ", bold: true, fontSize: 16, color: "#dc2626", margin: [0, 8, 0, 8] },
+                  { text: `${pdf.validityIndex}: ${validity.score}/100`, bold: true, fontSize: 14, color: "#dc2626" },
+                  { text: `🔴 ${pdf.invalidTitle}`, bold: true, fontSize: 16, color: "#dc2626", margin: [0, 8, 0, 8] },
                   { text: validity.summary, fontSize: 10, margin: [0, 0, 0, 10] },
-                  { text: "Kritik bulgular:", bold: true, margin: [0, 0, 0, 6] },
+                  { text: pdf.invalidCritical + ":", bold: true, margin: [0, 0, 0, 6] },
                   ...validity.level1Critical.map((c) => ({ text: "• " + c, fontSize: 9, color: "#991b1b", margin: [0, 0, 0, 4] }))
                 ],
                 fillColor: "#fef2f2",
@@ -198,14 +192,14 @@ function buildInvalidDocDefinition({ participant, profile, validity, locale = "t
         layout: "noBorders",
         margin: [0, 0, 0, 16]
       },
-      infoBox("Katılımcı", [
-        `Ad Soyad: ${participant.name}`,
-        `Yaş: ${participant.age}`,
-        `Profil: ${profileDisplay}`,
-        `Tarih: ${new Date().toLocaleDateString("tr-TR")}`
+      infoBox(pdf.participantInfo, [
+        `${pdf.fullName}: ${participant.name}`,
+        `${pdf.age}: ${participant.age}`,
+        `${pdf.profile}: ${profileDisplay}`,
+        `${pdf.evalDate}: ${new Date().toLocaleDateString(dateLoc)}`
       ]),
       {
-        text: "Bu oturum için performans raporu üretilmemiştir. Sonuçlar klinik yorum için kullanılmamalıdır.",
+        text: pdf.invalidNoReport,
         fontSize: 10,
         bold: true,
         color: "#475569",
@@ -215,7 +209,10 @@ function buildInvalidDocDefinition({ participant, profile, validity, locale = "t
   };
 }
 
-function buildNormComparison(scores, profileKey) {
+function buildNormComparison(scores, profileKey, locale = "tr") {
+  const pdf = getReportPdfStrings(locale);
+  const NORM_LEVELS = getNormLevels(locale);
+  const SEVERITY_LEVELS = getSeverityLevels(locale);
   const z = getGlobalIndexZScores(scores, profileKey);
   const indices = [
     { key: "A", score: scores.attention, z: z.attention },
@@ -250,9 +247,9 @@ function buildNormComparison(scores, profileKey) {
   });
 
   const blocks = [
-    sectionTitle("Norm Karşılaştırma", true),
+    sectionTitle(pdf.normComparison, true),
     {
-      text: "Normatif referans gruplarına göre standartlaştırılmış performans karşılaştırması.",
+      text: pdf.normIntro,
       fontSize: 9,
       color: SUB,
       margin: [0, 0, 0, 10]
@@ -263,7 +260,7 @@ function buildNormComparison(scores, profileKey) {
         widths: ["*", 40, 40, 40, 40],
         body: [
           [
-            { text: "Performans düzeyi", bold: true, color: "#fff" },
+            { text: pdf.perfLevel, bold: true, color: "#fff" },
             { text: "A", bold: true, color: "#fff", alignment: "center" },
             { text: "T", bold: true, color: "#fff", alignment: "center" },
             { text: "I", bold: true, color: "#fff", alignment: "center" },
@@ -285,7 +282,7 @@ function buildNormComparison(scores, profileKey) {
           widths: ["*", 40, 40, 40, 40],
           body: [
             [
-              { text: "Şiddet", bold: true, color: "#fff" },
+              { text: pdf.severity, bold: true, color: "#fff" },
               { text: "A", bold: true, color: "#fff", alignment: "center" },
               { text: "T", bold: true, color: "#fff", alignment: "center" },
               { text: "I", bold: true, color: "#fff", alignment: "center" },
@@ -301,7 +298,7 @@ function buildNormComparison(scores, profileKey) {
   }
 
   blocks.push({
-    ul: INDEX_DEFINITIONS.map(([t, d]) => ({ text: [{ text: `${t}: `, bold: true }, d], fontSize: 8, margin: [0, 2, 0, 0] }))
+    ul: getIndexDefinitions(locale).map(([t, d]) => ({ text: [{ text: `${t}: `, bold: true }, d], fontSize: 8, margin: [0, 2, 0, 0] }))
   });
 
   return blocks;
@@ -319,38 +316,41 @@ export function buildDocDefinition({
   const profileKey = profile.key ?? "adult";
   const profileDisplay = profileLabel(profileKey, locale) || profile.label;
   const age = participant?.age ?? null;
+  const pdf = getReportPdfStrings(locale);
+  const report = getStrings(locale).report;
+  const dateLoc = dateLocaleForPdf(locale);
   const metricOpts = { pressTimeline, age, locale };
   const metrics = computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
   const scores = getScores(metrics);
-  const validity = computeTestValidity(logs, metrics, profile, pressTimeline, age);
+  const validity = computeTestValidity(logs, metrics, profile, pressTimeline, age, locale);
 
   if (validity.shouldBlockReport) {
     return buildInvalidDocDefinition({ participant, profile, validity, locale });
   }
 
-  const distractor = buildDistractorAnalysisFriendly(logs, profile, age, pressTimeline);
+  const distractor = buildDistractorAnalysisFriendly(logs, profile, age, pressTimeline, locale);
   const sustainability = buildSustainabilityReport(logs, profile, age, pressTimeline, locale);
-  const indexComments = buildIndexClinicalComments(scores);
-  const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability);
-  const executive = buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor);
-  const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability);
-  const sections = getSectionSummaries(logs, profile, age, pressTimeline);
-  const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline);
+  const indexComments = buildIndexClinicalComments(scores, locale);
+  const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale);
+  const executive = buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale);
+  const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale);
+  const sections = getSectionSummaries(logs, profile, age, pressTimeline, locale);
+  const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline, locale);
   const zGlobal = getGlobalIndexZScores(scores, profileKey);
   const betaStr = metrics.beta != null ? metrics.beta.toFixed(2) : "—";
 
   const chartBlocks = [];
   const indexCharts = [
-    ["attention", "Dikkat (A)"],
-    ["timing", "Zamanlama (T)"],
-    ["impulsivity", "Dürtüsellik (I)"],
-    ["hyperactivity", "Hiperaktivite (H)"]
+    ["attention", pdf.chartAttention],
+    ["timing", pdf.chartTiming],
+    ["impulsivity", pdf.chartImpulsivity],
+    ["hyperactivity", pdf.chartHyperactivity]
   ];
   let chartFirst = true;
   for (const [key, title] of indexCharts) {
     if (reportCharts[key]) {
       chartBlocks.push(
-        sectionTitle(title + " — Grafik", chartFirst),
+        sectionTitle(title + pdf.chartSuffix, chartFirst),
         { image: reportCharts[key], width: 515, margin: [0, 0, 0, 12] }
       );
       chartFirst = false;
@@ -358,12 +358,24 @@ export function buildDocDefinition({
   }
   if (reportCharts.combined) {
     chartBlocks.push(
-      sectionTitle("Dört İndeks — Faz Grafiği", true),
+      sectionTitle(pdf.chartCombined, true),
       { image: reportCharts.combined, width: 515, margin: [0, 0, 0, 14] }
     );
   }
 
   const durationMin = Math.round(profile.durationMs / 60000);
+  const m = pdf.metrics;
+  const timingFormula = fillTemplate(pdf.timingFormula, {
+    onTime: metrics.timingOnTimeHit ?? "—",
+    rtSpeed: metrics.timingRtSpeed ?? "—",
+    late: metrics.timingLateResponse ?? "—",
+    stability: metrics.timingRtStability ?? "—",
+    total: scores.timing
+  });
+  const deltaStr =
+    sustainability.delta != null
+      ? (sustainability.delta > 0 ? "+" : "") + sustainability.delta + " " + pdf.points
+      : "—";
 
   return {
     pageSize: "A4",
@@ -377,7 +389,7 @@ export function buildDocDefinition({
           margin: [0, 0, 0, 6]
         },
         {
-          text: `FocusProLab • ${new Date().toLocaleDateString("tr-TR")} • Sayfa ${currentPage}/${pageCount}`,
+          text: `${pdf.footer} • ${new Date().toLocaleDateString(dateLoc)} • ${pdf.pageLabel} ${currentPage}/${pageCount}`,
           fontSize: 7,
           color: "#94a3b8",
           alignment: "center"
@@ -385,20 +397,20 @@ export function buildDocDefinition({
       ]
     }),
     content: [
-      coverHeader(),
+      coverHeader(locale),
 
-      sectionTitle("Katılımcı Bilgileri"),
+      sectionTitle(pdf.participantInfo),
       infoBox("", [
-        `Ad Soyad: ${participant.name}`,
-        `Yaş: ${participant.age}`,
-        `Cinsiyet: ${participant.gender || "—"}`,
-        `Değerlendirme Tarihi: ${new Date().toLocaleDateString("tr-TR")}`,
-        `Profil: ${profileDisplay}`,
-        `Test Süresi: ${durationMin} Dakika`,
-        `Toplam Deneme: ${metrics.totalTrials}`
+        `${pdf.fullName}: ${participant.name}`,
+        `${pdf.age}: ${participant.age}`,
+        `${pdf.gender}: ${participant.gender || "—"}`,
+        `${pdf.evalDate}: ${new Date().toLocaleDateString(dateLoc)}`,
+        `${pdf.profile}: ${profileDisplay}`,
+        `${pdf.testDuration}: ${durationMin} ${pdf.testDurationUnit}`,
+        `${pdf.totalTrials}: ${metrics.totalTrials}`
       ]),
 
-      sectionTitle("Test Geçerliliği"),
+      sectionTitle(pdf.testValidity),
       {
         table: {
           widths: ["*"],
@@ -407,7 +419,7 @@ export function buildDocDefinition({
               {
                 stack: [
                   {
-                    text: `Geçerlilik Endeksi: ${validity.score}/100`,
+                    text: `${pdf.validityIndex}: ${validity.score}/100`,
                     bold: true,
                     fontSize: 14,
                     color: validity.band.color,
@@ -421,17 +433,17 @@ export function buildDocDefinition({
                     margin: [0, 0, 0, 10]
                   },
                   ...validity.checklist.map((c) => ({ text: c, fontSize: 9, margin: [0, 0, 0, 3] })),
-                  { text: "Genel Sonuç:", bold: true, fontSize: 10, margin: [0, 8, 0, 4] },
+                  { text: pdf.generalResult + ":", bold: true, fontSize: 10, margin: [0, 8, 0, 4] },
                   { text: validity.summary, fontSize: 9, lineHeight: 1.35 },
                   ...(validity.level2Warnings.length
                     ? [
-                        { text: "Düşük güvenilirlik uyarıları:", bold: true, fontSize: 9, color: "#b45309", margin: [0, 8, 0, 4] },
+                        { text: pdf.lowReliabilityWarnings + ":", bold: true, fontSize: 9, color: "#b45309", margin: [0, 8, 0, 4] },
                         ...validity.level2Warnings.map((w) => ({ text: "⚠ " + w, fontSize: 8, color: "#b45309" }))
                       ]
                     : []),
                   ...(validity.level3Consistency.length
                     ? [
-                        { text: "Performans tutarlılığı:", bold: true, fontSize: 9, margin: [0, 8, 0, 4] },
+                        { text: pdf.consistencyWarnings + ":", bold: true, fontSize: 9, margin: [0, 8, 0, 4] },
                         ...validity.level3Consistency.map((w) => ({ text: "• " + w, fontSize: 8 }))
                       ]
                     : [])
@@ -446,7 +458,7 @@ export function buildDocDefinition({
         margin: [0, 0, 0, 14]
       },
 
-      sectionTitle("Yönetici Özeti"),
+      sectionTitle(pdf.executiveSummary),
       {
         table: {
           widths: ["*"],
@@ -454,9 +466,9 @@ export function buildDocDefinition({
             [
               {
                 stack: [
-                  { text: "Genel Performans Skoru", bold: true, color: "#fff", fontSize: 11 },
+                  { text: pdf.overallScore, bold: true, color: "#fff", fontSize: 11 },
                   { text: `${scores.overall}/100`, bold: true, color: "#fff", fontSize: 26, margin: [0, 4, 0, 0] },
-                  { text: `Risk Düzeyi: ${executive.risk}`, color: "#fff", fontSize: 10, margin: [0, 2, 0, 0] }
+                  { text: `${pdf.riskLevel}: ${executive.risk}`, color: "#fff", fontSize: 10, margin: [0, 2, 0, 0] }
                 ],
                 fillColor: getScoreColor(scores.overall),
                 margin: [12, 10, 12, 10]
@@ -467,36 +479,36 @@ export function buildDocDefinition({
         layout: "noBorders",
         margin: [0, 0, 0, 10]
       },
-      infoBox("Güçlü Alanlar", executive.strengths.length ? executive.strengths.map((s) => "✓ " + s) : ["—"], "#ecfdf5"),
+      infoBox(pdf.strengths, executive.strengths.length ? executive.strengths.map((s) => "✓ " + s) : [pdf.noStrengths], "#ecfdf5"),
       infoBox(
-        "Gelişim Alanları",
-        executive.weaknesses.length ? executive.weaknesses.map((s) => "⚠ " + s) : ["Belirgin gelişim alanı yok"],
+        pdf.weaknesses,
+        executive.weaknesses.length ? executive.weaknesses.map((s) => "⚠ " + s) : [pdf.noWeaknesses],
         "#fff7ed"
       ),
       infoBox(
-        "Klinik Bayraklar",
+        pdf.clinicalFlags,
         clinicalFlags.map((f) => `${f.emoji} ${f.text}`),
         clinicalFlags[0]?.level === "green" ? "#ecfdf5" : "#fefce8"
       ),
-      infoBox("Kısa Yorum", executive.lines, "#f8fafc"),
+      infoBox(pdf.shortComment, executive.lines, "#f8fafc"),
 
-      ...indexSectionBlock("attention", indexComments.attention, true),
-      ...indexSectionBlock("timing", indexComments.timing),
-      ...indexSectionBlock("impulsivity", indexComments.impulsivity),
-      ...indexSectionBlock("hyperactivity", indexComments.hyperactivity),
+      ...indexSectionBlock("attention", indexComments.attention, pdf, true),
+      ...indexSectionBlock("timing", indexComments.timing, pdf),
+      ...indexSectionBlock("impulsivity", indexComments.impulsivity, pdf),
+      ...indexSectionBlock("hyperactivity", indexComments.hyperactivity, pdf),
 
       {
         columns: [
-          scoreBox("A — Dikkat", scores.attention),
-          scoreBox("T — Zamanlama", scores.timing),
-          scoreBox("I — Dürtüsellik", scores.impulsivity),
-          scoreBox("H — Hiperaktivite", scores.hyperactivity)
+          scoreBox(report.attention, scores.attention),
+          scoreBox(report.timing, scores.timing),
+          scoreBox(report.impulsivity, scores.impulsivity),
+          scoreBox(report.hyperactivity, scores.hyperactivity)
         ],
         columnGap: 2,
         margin: [0, 0, 0, 6]
       },
       {
-        text: `T = (Zİ ${metrics.timingOnTimeHit ?? "—"}×0.40) + (RT ${metrics.timingRtSpeed ?? "—"}×0.25) + (Geç ${metrics.timingLateResponse ?? "—"}×0.20) + (Stab. ${metrics.timingRtStability ?? "—"}×0.15) = ${scores.timing}`,
+        text: timingFormula,
         fontSize: 7,
         color: "#64748b",
         margin: [0, 0, 0, 14]
@@ -504,7 +516,7 @@ export function buildDocDefinition({
 
       ...chartBlocks,
 
-      sectionTitle("Çeldirici Analizi", true),
+      sectionTitle(pdf.distractorAnalysis, true),
       ...distractor.items.flatMap((item) => [
         {
           text: `${item.emoji} ${item.title} — ${item.label}`,
@@ -515,17 +527,17 @@ export function buildDocDefinition({
         },
         { text: item.comment, fontSize: 9, lineHeight: 1.35, margin: [0, 0, 0, 12] }
       ]),
-      infoBox("Genel Sonuç", [distractor.general], HEADER_LIGHT),
+      infoBox(pdf.distractorGeneral, [distractor.general], HEADER_LIGHT),
 
-      sectionTitle("Sürdürülebilir Dikkat Analizi"),
+      sectionTitle(pdf.sustainability),
       infoBox("", [
-        `Başlangıç Performansı: ${sustainability.firstAvg ?? "—"}`,
-        `Kapanış Performansı: ${sustainability.lastAvg ?? "—"}`,
-        `Değişim: ${sustainability.delta != null ? (sustainability.delta > 0 ? "+" : "") + sustainability.delta + " puan" : "—"}`,
-        `Yorum: ${sustainability.comment}`
+        `${pdf.startPerf}: ${sustainability.firstAvg ?? "—"}`,
+        `${pdf.endPerf}: ${sustainability.lastAvg ?? "—"}`,
+        `${pdf.change}: ${deltaStr}`,
+        `${pdf.commentLabel}: ${sustainability.comment}`
       ]),
 
-      sectionTitle("Ham Psikometrik Göstergeler", true),
+      sectionTitle(pdf.rawPsych, true),
       {
         columns: [
           {
@@ -535,15 +547,15 @@ export function buildDocDefinition({
               widths: ["*", "*"],
               body: [
                 [
-                  { text: "Ölçüm", bold: true, color: "#fff", fontSize: 9 },
-                  { text: "Değer", bold: true, color: "#fff", fontSize: 9 }
+                  { text: pdf.measurement, bold: true, color: "#fff", fontSize: 9 },
+                  { text: pdf.value, bold: true, color: "#fff", fontSize: 9 }
                 ],
-                ["Genel Doğruluk", `%${metrics.accuracy}`],
-                ["Hit Rate", formatRate(metrics.hitRate)],
-                ["Omission Rate", formatRate(metrics.omissionRate)],
-                ["Commission Rate", formatRate(metrics.commissionRate)],
-                ["Late Response Rate", formatRate(metrics.lateRate)],
-                ["Multi Press Rate", formatRate(metrics.multiPressRate)]
+                [m.accuracy, `%${metrics.accuracy}`],
+                [m.hitRate, formatRate(metrics.hitRate)],
+                [m.omissionRate, formatRate(metrics.omissionRate)],
+                [m.commissionRate, formatRate(metrics.commissionRate)],
+                [m.lateRate, formatRate(metrics.lateRate)],
+                [m.multiRate, formatRate(metrics.multiPressRate)]
               ]
             },
             layout: tableLayout("#374151")
@@ -555,15 +567,15 @@ export function buildDocDefinition({
               widths: ["*", "*"],
               body: [
                 [
-                  { text: "Ölçüm", bold: true, color: "#fff", fontSize: 9 },
-                  { text: "Değer", bold: true, color: "#fff", fontSize: 9 }
+                  { text: pdf.measurement, bold: true, color: "#fff", fontSize: 9 },
+                  { text: pdf.value, bold: true, color: "#fff", fontSize: 9 }
                 ],
-                ["Ortalama Tepki Süresi", `${metrics.avgReaction} ms`],
-                ["RT Standart Sapma", `${metrics.rtStd} ms`],
-                ["d-prime (d′)", metrics.dPrime.toFixed(2)],
-                ["Beta (β)", betaStr],
-                ["Criterion (c)", metrics.criterionC.toFixed(2)],
-                ["Geçerlilik Endeksi", `${validity.score}/100`]
+                [m.avgRt, `${metrics.avgReaction} ms`],
+                [m.rtSd, `${metrics.rtStd} ms`],
+                [m.dPrime, metrics.dPrime.toFixed(2)],
+                [m.beta, betaStr],
+                [m.criterion, metrics.criterionC.toFixed(2)],
+                [m.validityIndex, `${validity.score}/100`]
               ]
             },
             layout: tableLayout("#1e3a5f")
@@ -573,12 +585,12 @@ export function buildDocDefinition({
         margin: [0, 0, 0, 14]
       },
 
-      sectionTitle("Profesyonel Değerlendirme"),
+      sectionTitle(pdf.professional),
       { text: professional, lineHeight: 1.4, alignment: "justify", margin: [0, 0, 0, 16] },
 
-      sectionTitle("Teknik Ek — Faz ve Norm"),
+      sectionTitle(pdf.technicalAppendix),
       {
-        ul: FULL_PHASE_LEGEND.map(([a, b]) => `${a} — ${b}`),
+        ul: getFullPhaseLegend(locale).map(([a, b]) => `${a} — ${b}`),
         fontSize: 8,
         color: SUB,
         margin: [0, 0, 0, 10]
@@ -589,7 +601,7 @@ export function buildDocDefinition({
           widths: ["*", 80, 80, 80, 80],
           body: [
             [
-              { text: "Çeldirici etkisi (teknik)", bold: true, color: "#fff" },
+              { text: pdf.distractorTechnical, bold: true, color: "#fff" },
               { text: "A", bold: true, alignment: "center", color: "#fff" },
               { text: "T", bold: true, alignment: "center", color: "#fff" },
               { text: "I", bold: true, alignment: "center", color: "#fff" },
@@ -613,13 +625,13 @@ export function buildDocDefinition({
           widths: ["*", "auto", "auto", "auto", "auto", "auto", "*"],
           body: [
             [
-              { text: "Bölüm", bold: true, color: "#fff" },
+              { text: pdf.section, bold: true, color: "#fff" },
               { text: "A", bold: true, color: "#fff" },
               { text: "T", bold: true, color: "#fff" },
               { text: "I", bold: true, color: "#fff" },
               { text: "H", bold: true, color: "#fff" },
               { text: "RT", bold: true, color: "#fff" },
-              { text: "Yorum", bold: true, color: "#fff" }
+              { text: pdf.comment, bold: true, color: "#fff" }
             ],
             ...sections.map((s) => [
               s.shortLabel,
@@ -635,7 +647,7 @@ export function buildDocDefinition({
         layout: tableLayout(),
         margin: [0, 0, 0, 12]
       },
-      ...buildNormComparison(scores, profileKey),
+      ...buildNormComparison(scores, profileKey, locale),
 
       {
         table: {
@@ -643,7 +655,7 @@ export function buildDocDefinition({
           body: [
             [
               {
-                text: "FocusProLab değerlendirmesi tanı koymaz. Sonuçlar yalnızca nitelikli profesyoneller tarafından, klinik görüşme ve diğer verilerle birlikte yorumlanmalıdır.",
+                text: pdf.disclaimer,
                 fontSize: 8,
                 color: "#475569",
                 fillColor: "#f1f5f9",
@@ -667,8 +679,8 @@ export async function createPdfBlob(args) {
   return new Promise((resolve, reject) => {
     try {
       pdfMake.createPdf(doc).getBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error("Test raporu PDF oluşturulamadı."));
+        if (blob && blob.size > 0) resolve(blob);
+        else reject(new Error(args.locale === "en" ? "Could not create test report PDF." : "Test raporu PDF oluşturulamadı."));
       });
     } catch (e) {
       reject(e);
@@ -677,12 +689,28 @@ export async function createPdfBlob(args) {
 }
 
 export async function downloadPdf(args) {
-  const blob = await createPdfBlob(args);
-  const name = `FocusProLab_${args.participant.name.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(url);
+  const pdfMake = await getPdfMake();
+  const reportCharts =
+    args.reportCharts ?? (await buildReportChartImages(args.logs, args.profile, args.participant?.age));
+  const doc = buildDocDefinition({ ...args, reportCharts });
+  const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
+  const filename = `FocusProLab_${safeName}_${Date.now()}.pdf`;
+  return new Promise((resolve, reject) => {
+    try {
+      pdfMake.createPdf(doc).getBlob((blob) => {
+        if (!blob || blob.size === 0) {
+          reject(new Error(args.locale === "en" ? "Could not create test report PDF." : "Test raporu PDF oluşturulamadı."));
+          return;
+        }
+        try {
+          triggerBlobDownload(blob, filename);
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
 }

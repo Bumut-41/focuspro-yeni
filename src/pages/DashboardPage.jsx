@@ -3,7 +3,9 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
-import { fetchMySessions, getReportPdfSignedUrl } from "../services/sessions.js";
+import { fetchMySessions, fetchAdminPressTimeline, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
+import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
+import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import {
   Alert,
   Badge,
@@ -23,13 +25,20 @@ export default function DashboardPage() {
   const [msg, setMsg] = useState("");
   const [pdfBusy, setPdfBusy] = useState(null);
 
-  async function openPdf(session) {
-    if (!session.pdf_path) return;
+  async function downloadTestReport(session) {
     setPdfBusy(session.id);
     setMsg("");
     try {
-      const url = await getReportPdfSignedUrl(session.pdf_path);
-      window.open(url, "_blank", "noopener,noreferrer");
+      if (session.pdf_path) {
+        const url = await getReportPdfSignedUrl(session.pdf_path);
+        await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
+        return;
+      }
+      const [detail, timeline] = await Promise.all([
+        fetchSessionDetail(session.id),
+        fetchAdminPressTimeline(session.id).catch(() => [])
+      ]);
+      await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
     } catch (e) {
       setMsg(e.message || t("dashboard.pdfOpenFailed"));
     } finally {
@@ -111,16 +120,20 @@ export default function DashboardPage() {
               },
               {
                 label: t("dashboard.testReport"),
-                render: (s) =>
-                  s.pdf_path ? (
-                    <Button variant="primary" size="sm" disabled={pdfBusy === s.id} onClick={() => openPdf(s)}>
-                      {pdfBusy === s.id ? "…" : t("dashboard.openReport")}
-                    </Button>
-                  ) : (
-                    <span style={{ color: "var(--fp-text-muted)", fontSize: "0.875rem" }}>
-                      {t("dashboard.pdfPreparing")}
-                    </span>
-                  )
+                render: (s) => (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={pdfBusy === s.id}
+                    onClick={() => downloadTestReport(s)}
+                  >
+                    {pdfBusy === s.id
+                      ? "…"
+                      : s.pdf_path
+                        ? t("dashboard.downloadReport")
+                        : t("dashboard.generateReport")}
+                  </Button>
+                )
               }
             ]}
             rows={sessions}

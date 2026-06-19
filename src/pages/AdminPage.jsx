@@ -8,6 +8,7 @@ import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession
 } from "../lib/adminSessionPdf.js";
+import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import {
   USER_ROLES,
   assignableRoles,
@@ -59,12 +60,12 @@ export default function AdminPage() {
   const [creditBusy, setCreditBusy] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(null);
 
-  async function openStoredPdf(pdfPath, busyKey) {
+  async function openStoredPdf(pdfPath, busyKey, filename = "FocusProLab-report.pdf") {
     if (!pdfPath) return;
     setPdfBusy(busyKey);
     try {
       const url = await getReportPdfSignedUrl(pdfPath);
-      window.open(url, "_blank", "noopener,noreferrer");
+      await downloadPdfFromUrl(url, filename);
     } catch (e) {
       setMsg(e.message || t("admin.storedPdfFailed"));
     } finally {
@@ -95,7 +96,7 @@ export default function AdminPage() {
 
   async function openOrDownloadTestReport(sessionRow) {
     if (sessionRow.pdf_path) {
-      await openStoredPdf(sessionRow.pdf_path, `${sessionRow.id}-test-open`);
+      await openStoredPdf(sessionRow.pdf_path, `${sessionRow.id}-test-open`, `FocusProLab_${sessionRow.participant_name ?? "report"}.pdf`);
       return;
     }
     const busyId = `${sessionRow.id}-test`;
@@ -103,7 +104,7 @@ export default function AdminPage() {
     setMsg("");
     try {
       const { sess, tl } = await loadSessionBundle(sessionRow.id);
-      await downloadParticipantReportFromSession(sess, tl);
+      await downloadParticipantReportFromSession(sess, tl, locale);
     } catch (e) {
       setMsg(e.message || t("admin.testPdfFailed"));
     } finally {
@@ -113,7 +114,11 @@ export default function AdminPage() {
 
   async function downloadPressReportPdf(sessionRow) {
     if (sessionRow.admin_pdf_path) {
-      await openStoredPdf(sessionRow.admin_pdf_path, `${sessionRow.id}-basis-open`);
+      await openStoredPdf(
+        sessionRow.admin_pdf_path,
+        `${sessionRow.id}-basis-open`,
+        `FocusProLab_${sessionRow.participant_name ?? "report"}-press.pdf`
+      );
       return;
     }
     const busyId = `${sessionRow.id}-basis`;
@@ -446,7 +451,7 @@ export default function AdminPage() {
           onDownloadTestPdf={async () => {
             setPdfBusy(`${detail.id}-detail-test`);
             try {
-              await downloadParticipantReportFromSession(detail, timeline ?? []);
+              await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
             } catch (e) {
               setMsg(e.message || t("admin.testPdfFailed"));
             } finally {

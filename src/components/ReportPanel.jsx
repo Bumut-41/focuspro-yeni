@@ -11,7 +11,8 @@ import {
   computeTestValidity
 } from "../report/reportClinical.js";
 import { ShapeView } from "../shapeUtils.jsx";
-import { createPdfBlob } from "../pdfReport.js";
+import { downloadPdf } from "../pdfReport.js";
+import { triggerBlobDownload } from "../lib/triggerBlobDownload.js";
 import { Alert, Button, CardHeader, Stack } from "./ui.jsx";
 
 export function ReportPanel({
@@ -31,16 +32,16 @@ export function ReportPanel({
 
   const metrics = logs.length ? computeReportMetrics(logs, profile.lateResponseMs, metricOpts) : null;
   const scores = metrics ? getScores(metrics) : null;
-  const validity = metrics && logs.length ? computeTestValidity(logs, metrics, profile, pressTimeline, participant.age) : null;
-  const distractor = metrics && logs.length ? buildDistractorAnalysisFriendly(logs, profile, participant.age, pressTimeline) : null;
+  const validity = metrics && logs.length ? computeTestValidity(logs, metrics, profile, pressTimeline, participant.age, locale) : null;
+  const distractor = metrics && logs.length ? buildDistractorAnalysisFriendly(logs, profile, participant.age, pressTimeline, locale) : null;
   const sustainability = metrics && logs.length ? buildSustainabilityReport(logs, profile, participant.age, pressTimeline, locale) : null;
   const clinicalFlags =
     scores && validity && distractor && sustainability
-      ? buildClinicalFlags(scores, metrics, validity, distractor, sustainability)
+      ? buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale)
       : null;
   const executive =
     scores && validity && clinicalFlags && distractor
-      ? buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor)
+      ? buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale)
       : null;
   const series = logs.length ? scoreSeries(logs, profile.lateResponseMs, metricOpts) : null;
 
@@ -134,16 +135,14 @@ export function ReportPanel({
           variant="primary"
           onClick={async () => {
             try {
-              const blob = persistPdf
-                ? await persistPdf()
-                : await createPdfBlob({ participant, profile, logs, target, pressTimeline, locale });
-              if (!blob) throw new Error(t("report.pdfCreateFailed"));
-              const href = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = href;
-              a.download = `FocusProLab_${participant.name.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
-              a.click();
-              URL.revokeObjectURL(href);
+              if (persistPdf) {
+                const blob = await persistPdf();
+                if (!blob) throw new Error(t("report.pdfCreateFailed"));
+                const filename = `FocusProLab_${participant.name.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
+                triggerBlobDownload(blob, filename);
+                return;
+              }
+              await downloadPdf({ participant, profile, logs, target, pressTimeline, locale });
             } catch (e) {
               console.warn(e);
               window.alert(e?.message || t("report.pdfFailed"));

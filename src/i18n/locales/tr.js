@@ -98,7 +98,9 @@ export const tr = {
     profile: "Profil",
     overallScore: "Genel skor",
     testReport: "Test raporu",
-    openReport: "Raporu aç",
+    openReport: "Raporu indir",
+    downloadReport: "Raporu indir",
+    generateReport: "Raporu oluştur",
     pdfPreparing: "PDF hazırlanıyor…",
     pdfOpenFailed: "PDF açılamadı."
   },

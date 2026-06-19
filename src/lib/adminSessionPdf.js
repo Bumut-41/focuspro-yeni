@@ -26,8 +26,8 @@ export function sessionToParticipantReportArgs(session, pressTimeline = []) {
 }
 
 /** Katılımcı test raporu — PDF indir (veritabanından yeniden üretir). */
-export async function downloadParticipantReportFromSession(session, pressTimeline = []) {
-  await downloadPdf(sessionToParticipantReportArgs(session, pressTimeline));
+export async function downloadParticipantReportFromSession(session, pressTimeline = [], locale = "tr") {
+  await downloadPdf({ ...sessionToParticipantReportArgs(session, pressTimeline), locale });
 }
 
 /** Admin basış raporu — PDF indir. */

@@ -5,7 +5,8 @@ import {
   getScores
 } from "../reportHelpers.js";
 import { buildReportPhaseBuckets, logsForBucket } from "./phaseBuckets.js";
-import { getAttentionLevelText, getImpulsivityLevelText, getOverallRiskText, riskLabel } from "../metrics.js";
+import { getOverallRiskText, riskLabel } from "../metrics.js";
+import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
 
 function clamp(x, a = 0, b = 100) {
   return Math.max(a, Math.min(b, x));
@@ -19,32 +20,42 @@ function phaseLogs(logs, matcher) {
   return logs.filter((t) => matcher((t.section || "").toLowerCase()));
 }
 
-function indexLevelLabel(score) {
-  if (score >= 90) return "Çok iyi";
-  if (score >= 80) return "İyi düzey";
-  if (score >= 70) return "Ortalama";
-  if (score >= 60) return "Düşük";
-  return "Belirgin güçlük";
+export function indexLevelLabel(score, locale = "tr") {
+  const L = getReportPdfStrings(locale).levels;
+  if (score >= 90) return L.veryGood;
+  if (score >= 80) return L.good;
+  if (score >= 70) return L.average;
+  if (score >= 60) return L.low;
+  return L.poor;
 }
 
-function validityBand(score, hasCritical) {
+function validityBand(score, hasCritical, locale = "tr") {
+  const B = getReportPdfStrings(locale).validity.bands;
   if (hasCritical || score < 40) {
-    return { key: "invalid", label: "Geçersiz", emoji: "🔴", color: "#dc2626", fill: "#fef2f2" };
+    return { key: "invalid", label: B.invalid, emoji: "🔴", color: "#dc2626", fill: "#fef2f2" };
   }
   if (score < 60) {
-    return { key: "low", label: "Düşük güvenilirlik", emoji: "🟠", color: "#ea580c", fill: "#fff7ed" };
+    return { key: "low", label: B.low, emoji: "🟠", color: "#ea580c", fill: "#fff7ed" };
   }
   if (score < 75) {
-    return { key: "caution", label: "Dikkatli yorumlanmalı", emoji: "🟡", color: "#ca8a04", fill: "#fefce8" };
+    return { key: "caution", label: B.caution, emoji: "🟡", color: "#ca8a04", fill: "#fefce8" };
   }
   if (score < 90) {
-    return { key: "acceptable", label: "Kabul edilebilir", emoji: "🟢", color: "#16a34a", fill: "#ecfdf5" };
+    return { key: "acceptable", label: B.acceptable, emoji: "🟢", color: "#16a34a", fill: "#ecfdf5" };
   }
-  return { key: "valid", label: "Geçerli", emoji: "🟢", color: "#059669", fill: "#ecfdf5" };
+  return { key: "valid", label: B.valid, emoji: "🟢", color: "#059669", fill: "#ecfdf5" };
+}
+
+function indexComment(block, score) {
+  if (score >= 80) return block.c80;
+  if (score >= 70) return block.c70;
+  if (score >= 60) return block.c60;
+  return block.cLow;
 }
 
 /** Seviye 1–3 geçerlilik + Geçerlilik Endeksi (0–100). */
-export function computeTestValidity(logs, metrics, profile, pressTimeline = [], age = null) {
+export function computeTestValidity(logs, metrics, profile, pressTimeline = [], age = null, locale = "tr") {
+  const V = getReportPdfStrings(locale).validity;
   const late = profile.lateResponseMs;
   const level1Critical = [];
   const level2Warnings = [];
@@ -55,34 +66,34 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
   const fastRate = targetHits.length ? (fastHits.length / targetHits.length) * 100 : 0;
 
   if (metrics.avgReaction > 0 && metrics.avgReaction < 150) {
-    level1Critical.push("Ortalama tepki süresi 150 ms altında (fizyolojik olarak şüpheli).");
+    level1Critical.push(V.l1_avgRt);
   } else if (targetHits.length >= 5 && fastRate >= 25) {
-    level1Critical.push(`Tepkilerin %${fastRate.toFixed(0)}'i 150 ms altında (şüpheli hız).`);
+    level1Critical.push(fillTemplate(V.l1_fastRate, { rate: fastRate.toFixed(0) }));
   }
 
   if (metrics.omissionRate > 60) {
-    level1Critical.push(`İhmal oranı %${metrics.omissionRate.toFixed(1)} (göreve katılım çok düşük).`);
+    level1Critical.push(fillTemplate(V.l1_omission, { rate: metrics.omissionRate.toFixed(1) }));
   }
 
   if (metrics.rtStd > 0 && metrics.rtStd < 20 && targetHits.length >= 5) {
-    level1Critical.push(`RT standart sapması ${metrics.rtStd} ms (robotik performans olasılığı).`);
+    level1Critical.push(fillTemplate(V.l1_rtSdLow, { sd: metrics.rtStd }));
   }
 
   if (metrics.multiPressRate > 50) {
-    level1Critical.push(`Çoklu basış oranı %${metrics.multiPressRate.toFixed(1)} (yönergeye uyumsuzluk).`);
+    level1Critical.push(fillTemplate(V.l1_multi, { rate: metrics.multiPressRate.toFixed(1) }));
   }
 
   if (metrics.omissionRate >= 40 && metrics.omissionRate <= 60) {
-    level2Warnings.push(`İhmal oranı %${metrics.omissionRate.toFixed(1)} (düşük güvenilirlik aralığı).`);
+    level2Warnings.push(fillTemplate(V.l2_omission, { rate: metrics.omissionRate.toFixed(1) }));
   }
   if (metrics.commissionRate >= 25) {
-    level2Warnings.push(`Commission oranı %${metrics.commissionRate.toFixed(1)} (yüksek hedef dışı tepki).`);
+    level2Warnings.push(fillTemplate(V.l2_commission, { rate: metrics.commissionRate.toFixed(1) }));
   }
   if (metrics.rtStd > 350) {
-    level2Warnings.push(`RT standart sapması ${metrics.rtStd} ms (aşırı değişkenlik).`);
+    level2Warnings.push(fillTemplate(V.l2_rtSdHigh, { sd: metrics.rtStd }));
   }
   if (metrics.multiPressRate >= 20 && metrics.multiPressRate <= 50) {
-    level2Warnings.push(`Çoklu basış oranı %${metrics.multiPressRate.toFixed(1)}.`);
+    level2Warnings.push(fillTemplate(V.l2_multi, { rate: metrics.multiPressRate.toFixed(1) }));
   }
 
   const buckets = buildReportPhaseBuckets(profile);
@@ -90,7 +101,7 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     const list = logsForBucket(logs, bucket);
     if (!list.length) return null;
     const tl = (pressTimeline ?? []).filter((p) => p.section && bucket.phaseNames?.includes(p.section));
-    return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age }))[key];
+    return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }))[key];
   };
 
   const firstA = buckets.slice(0, 2).map((b) => scoreOfBucket(b, "attention")).filter((v) => v != null);
@@ -101,7 +112,11 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     const deltaA = lastAvg - firstAvg;
     if (deltaA <= -50) {
       level3Consistency.push(
-        `Dikkat (A) fazlar arası düşüş: başlangıç ${Math.round(firstAvg)}, kapanış ${Math.round(lastAvg)} (fark ${Math.round(deltaA)} puan).`
+        fillTemplate(V.l3_attention, {
+          start: Math.round(firstAvg),
+          end: Math.round(lastAvg),
+          delta: Math.round(deltaA)
+        })
       );
     }
   }
@@ -121,7 +136,11 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     const rtDelta = endRt - startRt;
     if (rtDelta >= 450 || (startRt > 0 && endRt / startRt >= 2)) {
       level3Consistency.push(
-        `RT değişimi: başlangıç ${Math.round(startRt)} ms, kapanış ${Math.round(endRt)} ms (+${Math.round(rtDelta)} ms).`
+        fillTemplate(V.l3_rt, {
+          start: Math.round(startRt),
+          end: Math.round(endRt),
+          delta: Math.round(rtDelta)
+        })
       );
     }
   }
@@ -133,66 +152,46 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     deductions.push("RT < 150 ms (−40)");
   } else if (targetHits.length >= 5 && fastRate >= 15) {
     score -= 40;
-    deductions.push("Şüpheli hızlı tepkiler (−40)");
+    deductions.push(locale === "en" ? "Suspicious fast responses (−40)" : "Şüpheli hızlı tepkiler (−40)");
   }
   if (metrics.omissionRate > 40) {
     score -= 20;
-    deductions.push("İhmal > %40 (−20)");
+    deductions.push(locale === "en" ? "Omission > 40% (−20)" : "İhmal > %40 (−20)");
   }
   if (metrics.multiPressRate > 20) {
     score -= 15;
-    deductions.push("Çoklu basış > %20 (−15)");
+    deductions.push(locale === "en" ? "Multi-press > 20% (−15)" : "Çoklu basış > %20 (−15)");
   }
   if (metrics.rtStd > 0 && metrics.rtStd < 20 && targetHits.length >= 5) {
     score -= 15;
-    deductions.push("RT SD < 20 ms (−15)");
+    deductions.push(locale === "en" ? "RT SD < 20 ms (−15)" : "RT SD < 20 ms (−15)");
   }
   if (metrics.commissionRate > 25) {
     score -= 10;
-    deductions.push("Commission > %25 (−10)");
+    deductions.push(locale === "en" ? "Commission > 25% (−10)" : "Commission > %25 (−10)");
   }
   score = clamp(Math.round(score));
 
   const hasCritical = level1Critical.length > 0;
-  const band = validityBand(score, hasCritical);
+  const band = validityBand(score, hasCritical, locale);
   const isInvalid = hasCritical || score < 40;
 
   const checklist = [];
-  if (metrics.omissionRate <= 40) checklist.push("✓ Göreve katılım yeterli");
-  else checklist.push("⚠ Göreve katılım sınırlı");
-
-  if (metrics.avgReaction >= 150 && metrics.avgReaction <= 1200 && fastRate < 15) {
-    checklist.push("✓ Tepki süreleri beklenen aralıkta");
-  } else {
-    checklist.push("⚠ Tepki süreleri şüpheli veya aşırı değişken");
-  }
-
-  if (metrics.rtStd >= 20 && metrics.rtStd <= 350) {
-    checklist.push("✓ Yanıt örüntüsü tutarlı");
-  } else {
-    checklist.push("⚠ Yanıt örüntüsü tutarsız");
-  }
-
-  if (!isInvalid && score >= 75) {
-    checklist.push("✓ Sonuçlar klinik yorumlama için uygundur");
-  } else if (!isInvalid) {
-    checklist.push("⚠ Sonuçlar dikkatli yorumlanmalıdır");
-  } else {
-    checklist.push("✗ Sonuçlar yorumlanmamalıdır");
-  }
+  checklist.push(metrics.omissionRate <= 40 ? V.check_coopOk : V.check_coopLow);
+  checklist.push(
+    metrics.avgReaction >= 150 && metrics.avgReaction <= 1200 && fastRate < 15 ? V.check_rtOk : V.check_rtBad
+  );
+  checklist.push(metrics.rtStd >= 20 && metrics.rtStd <= 350 ? V.check_patternOk : V.check_patternBad);
+  if (!isInvalid && score >= 75) checklist.push(V.check_clinicalOk);
+  else if (!isInvalid) checklist.push(V.check_caution);
+  else checklist.push(V.check_invalid);
 
   let summary;
-  if (isInvalid) {
-    summary = "TEST GEÇERSİZ — Kritik geçersizlik bulguları nedeniyle rapor klinik yorum için uygun değildir.";
-  } else if (score >= 90) {
-    summary = "Test sonuçları geçerli kabul edilmiş ve yorumlamaya uygun bulunmuştur.";
-  } else if (score >= 75) {
-    summary = "Test sonuçları kabul edilebilir düzeydedir; bazı faktörler yorumu etkileyebilir.";
-  } else if (score >= 60) {
-    summary = "Sonuçlar yorumlanabilir ancak test performansını etkileyebilecek faktörler gözlenmiştir.";
-  } else {
-    summary = "Düşük güvenilirlik — sonuçlar dikkatli ve destekleyici verilerle birlikte yorumlanmalıdır.";
-  }
+  if (isInvalid) summary = V.summary_invalid;
+  else if (score >= 90) summary = V.summary_valid;
+  else if (score >= 75) summary = V.summary_acceptable;
+  else if (score >= 60) summary = V.summary_caution;
+  else summary = V.summary_low;
 
   return {
     score,
@@ -211,242 +210,142 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
   };
 }
 
-function distractorPhaseScore(logs, profile, age, pressTimeline, matcher) {
+function distractorPhaseScore(logs, profile, age, pressTimeline, matcher, locale) {
   const list = phaseLogs(logs, matcher);
   if (!list.length) return null;
   const late = profile.lateResponseMs;
   const tl = pressTimeline ?? [];
-  return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age }));
+  return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }));
 }
 
 /** Görsel / işitsel / kombine — anlaşılır çeldirici analizi. */
-export function buildDistractorAnalysisFriendly(logs, profile, age = null, pressTimeline = []) {
+export function buildDistractorAnalysisFriendly(logs, profile, age = null, pressTimeline = [], locale = "tr") {
+  const D = getReportPdfStrings(locale).distractor;
   const baseline = distractorPhaseScore(
     logs,
     profile,
     age,
     pressTimeline,
-    (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses")
+    (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses"),
+    locale
   );
   const types = [
-    {
-      key: "visual",
-      title: "Görsel Çeldiriciler",
-      scores: distractorPhaseScore(logs, profile, age, pressTimeline, (s) => s.includes("sessiz gif") && !s.includes("sesli"))
-    },
-    {
-      key: "auditory",
-      title: "İşitsel Çeldiriciler",
-      scores: distractorPhaseScore(logs, profile, age, pressTimeline, (s) => s.includes("sadece ses"))
-    },
+    { key: "visual", title: D.visual, scores: distractorPhaseScore(logs, profile, age, pressTimeline, (s) => s.includes("sessiz gif") && !s.includes("sesli"), locale) },
+    { key: "auditory", title: D.auditory, scores: distractorPhaseScore(logs, profile, age, pressTimeline, (s) => s.includes("sadece ses"), locale) },
     {
       key: "combined",
-      title: "Kombine Çeldiriciler",
+      title: D.combined,
       scores: distractorPhaseScore(
         logs,
         profile,
         age,
         pressTimeline,
-        (s) => s.includes("sessiz + sesli") || s.includes("sesli gif")
+        (s) => s.includes("sessiz + sesli") || s.includes("sesli gif"),
+        locale
       )
     }
   ];
 
-  const analyze = (title, distScores) => {
+  const analyze = (title, distScores, key) => {
     if (!distScores || !baseline) {
-      return { title, emoji: "—", label: "Veri yok", comment: "Bu koşulda yeterli deneme bulunmamaktadır." };
+      return { title, emoji: "—", label: D.noData, comment: D.noDataComment };
     }
     const baseOverall = baseline.overall;
     const distOverall = distScores.overall;
     const pct = baseOverall > 0 ? ((baseOverall - distOverall) / baseOverall) * 100 : 0;
 
     if (pct <= 5) {
-      return {
-        title,
-        emoji: "🟢",
-        label: "Performans Korundu",
-        comment:
-          title.includes("Görsel")
-            ? "Katılımcının görsel dikkat dağıtıcılardan belirgin şekilde etkilenmediği görülmüştür."
-            : title.includes("İşitsel")
-              ? "İşitsel uyaranlar sırasında performansta anlamlı düşüş gözlenmemiştir."
-              : "Görsel ve işitsel çeldiricilerin birlikte sunulduğu koşullarda performans genel olarak korunmuştur."
-      };
+      const comment = key === "visual" ? D.visualOk : key === "auditory" ? D.auditoryOk : D.combinedOk;
+      return { title, emoji: "🟢", label: D.preserved, comment };
     }
     if (pct <= 15) {
-      return {
-        title,
-        emoji: "🟡",
-        label: "Hafif Etkilenme",
-        comment: `${title} altında performansta hafif düzeyde düşüş izlenmiştir.`
-      };
+      return { title, emoji: "🟡", label: D.mild, comment: fillTemplate(D.mildComment, { title }) };
     }
     if (pct <= 30) {
-      return {
-        title,
-        emoji: "🟠",
-        label: "Orta Düzeyde Etkilenme",
-        comment: `${title} altında dikkat performansında belirgin etkilenme gözlenmiştir.`
-      };
+      return { title, emoji: "🟠", label: D.moderate, comment: fillTemplate(D.moderateComment, { title }) };
     }
-    return {
-      title,
-      emoji: "🔴",
-      label: "Belirgin Etkilenme",
-      comment: `${title} altında performans belirgin şekilde düşmüştür.`
-    };
+    return { title, emoji: "🔴", label: D.marked, comment: fillTemplate(D.markedComment, { title }) };
   };
 
-  const items = types.map((t) => analyze(t.title, t.scores));
+  const items = types.map((t) => analyze(t.title, t.scores, t.key));
   const anyAffected = items.some((i) => i.emoji === "🟡" || i.emoji === "🟠" || i.emoji === "🔴");
-  const general =
-    anyAffected
-      ? "Katılımcı bazı çeldirici koşullarda performans kaybı göstermiştir."
-      : "Katılımcının çevresel dikkat dağıtıcılara karşı performansı korunmuştur.";
-
-  return { items, general, anyAffected };
+  return { items, general: anyAffected ? D.generalAffected : D.generalOk, anyAffected };
 }
 
 export function buildSustainabilityReport(logs, profile, age = null, pressTimeline = [], locale = "tr") {
+  const S = getReportPdfStrings(locale).sustainability;
   const sust = computeSustainabilityIndex(logs, profile, age, pressTimeline, locale);
   let comment;
-  if (sust.delta == null) {
-    comment = "Yeterli faz verisi bulunmamaktadır.";
-  } else if (sust.delta >= -5) {
-    comment =
-      "Test süresince performans büyük ölçüde korunmuştur. Belirgin dikkat yorgunluğu veya performans çöküşü izlenmemiştir.";
-  } else if (sust.delta >= -15) {
-    comment = "Test sonuna doğru hafif düzeyde performans düşüşü gözlenmiştir.";
-  } else {
-    comment = "Test sonuna doğru belirgin performans düşüşü izlenmiştir; sürdürülebilir dikkat alanı değerlendirilmelidir.";
-  }
+  if (sust.delta == null) comment = S.noData;
+  else if (sust.delta >= -5) comment = S.stable;
+  else if (sust.delta >= -15) comment = S.mild;
+  else comment = S.marked;
   return { ...sust, comment };
 }
 
-export function buildIndexClinicalComments(scores) {
-  const a = scores.attention;
-  const t = scores.timing;
-  const i = scores.impulsivity;
-  const h = scores.hyperactivity;
-
+export function buildIndexClinicalComments(scores, locale = "tr") {
+  const I = getReportPdfStrings(locale).indexes;
+  const mk = (key, score) => ({
+    score,
+    title: I[key].title,
+    level: indexLevelLabel(score, locale),
+    definition: I[key].definition,
+    comment: indexComment(I[key], score)
+  });
   return {
-    attention: {
-      score: a,
-      level: indexLevelLabel(a),
-      definition:
-        "Dikkat endeksi, hedef uyaranları fark etme ve görev boyunca dikkati sürdürebilme performansını değerlendirir.",
-      comment:
-        a >= 80
-          ? "Katılımcı dikkat sürdürme alanında yaş normlarına uygun performans göstermiştir. Belirgin dikkat kaybı veya görevden kopma örüntüsü gözlenmemiştir."
-          : a >= 70
-            ? "Dikkat performansı genel olarak yeterli düzeydedir; bazı bölümlerde kısa süreli dikkat dalgalanması izlenebilir."
-            : a >= 60
-              ? "Dikkat sürdürme alanında orta düzeyde zorlanma gözlenmiştir; ihmal oranı dikkatle değerlendirilmelidir."
-              : "Dikkat alanında belirgin güçlük gözlenmiştir; hedef uyaranları kaçırma eğilimi dikkat çekmektedir."
-    },
-    timing: {
-      score: t,
-      level: indexLevelLabel(t),
-      definition:
-        "Zamanlama endeksi, doğru uyaranlara uygun hızda ve tutarlı şekilde tepki verebilme performansını değerlendirir.",
-      comment:
-        t >= 80
-          ? "Tepki zamanlaması genel olarak tutarlı ve yaşa uygun düzeydedir."
-          : t >= 70
-            ? "Tepki hızında hafif düzeyde değişkenlik gözlenmiştir. Görev boyunca zaman zaman gecikmiş yanıtlar oluşmuştur."
-            : t >= 60
-              ? "Zamanlama performansında orta düzeyde dalgalanma izlenmiştir; geç veya acele yanıtlar dikkat alanıdır."
-              : "Tepki zamanlamasında belirgin zorluk gözlenmiştir; geç yanıt veya aşırı değişkenlik dikkat çekmektedir."
-    },
-    impulsivity: {
-      score: i,
-      level: indexLevelLabel(i),
-      definition:
-        "Dürtüsellik endeksi, hedef dışı uyaranlara gereksiz tepki verme eğilimini (commission errors) değerlendirir.",
-      comment:
-        i >= 80
-          ? "Dürtü kontrolü genel olarak yeterlidir. Hedef dışı uyaranlara verilen tepkiler sınırlı düzeyde kalmıştır."
-          : i >= 70
-            ? "Dürtü kontrolü kabul edilebilir düzeydedir. Ancak bazı bölümlerde hedef dışı uyaranlara aceleci tepkiler gözlenmiştir."
-            : i >= 60
-              ? "Hafif dürtüsellik göstergeleri izlenmiştir; commission hataları takip edilmelidir."
-              : "Belirgin dürtüsellik örüntüsü gözlenmiştir; hedef dışı uyaranlara sık tepki verilmiştir."
-    },
-    hyperactivity: {
-      score: h,
-      level: indexLevelLabel(h),
-      definition:
-        "Hiperaktivite endeksi, motor tepkiyi durdurabilme ve gereksiz tuş kullanımını kontrol edebilme becerisini değerlendirir.",
-      comment:
-        h >= 80
-          ? "Motor kontrol performansı güçlü bulunmuştur. Mükerrer veya yönerge dışı yanıt örüntüsü gözlenmemiştir."
-          : h >= 70
-            ? "Motor kontrol genel olarak yeterlidir; ara sıra mükerrer basışlar izlenebilir."
-            : h >= 60
-              ? "Hafif motor hiperaktivite göstergeleri (mükerrer veya boş ekran basışı) gözlenmiştir."
-              : "Motor kontrol alanında belirgin zorluk gözlenmiştir; mükerrer veya yönerge dışı basışlar dikkat çekmektedir."
-    }
+    attention: mk("attention", scores.attention),
+    timing: mk("timing", scores.timing),
+    impulsivity: mk("impulsivity", scores.impulsivity),
+    hyperactivity: mk("hyperactivity", scores.hyperactivity)
   };
 }
 
-export function buildClinicalFlags(scores, metrics, validity, distractor, sustainability) {
+export function buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale = "tr") {
+  const F = getReportPdfStrings(locale).flags;
   const flags = [];
 
   if (validity.isInvalid) {
-    flags.push({ level: "red", emoji: "🔴", text: "Test geçersiz — sonuçlar yorumlanmamalıdır" });
+    flags.push({ level: "red", emoji: "🔴", text: F.invalid });
     return flags;
   }
-
-  if (scores.impulsivity < 75) {
-    flags.push({ level: "yellow", emoji: "🟡", text: "Dürtüsellik eğilimi" });
-  }
-  if (distractor.anyAffected) {
-    flags.push({ level: "yellow", emoji: "🟡", text: "Çeldirici hassasiyeti" });
-  }
+  if (scores.impulsivity < 75) flags.push({ level: "yellow", emoji: "🟡", text: F.impulse });
+  if (distractor.anyAffected) flags.push({ level: "yellow", emoji: "🟡", text: F.distractor });
   if (sustainability.delta != null && sustainability.delta <= -25) {
-    flags.push({ level: "orange", emoji: "🟠", text: "Dikkat sürekliliğinde düşüş" });
+    flags.push({ level: "orange", emoji: "🟠", text: F.sustainability });
   }
   if (scores.overall < 55 || scores.attention < 60 || scores.timing < 55) {
-    flags.push({ level: "red", emoji: "🔴", text: "Belirgin performans güçlüğü" });
+    flags.push({ level: "red", emoji: "🔴", text: F.poor });
   }
-
-  if (!flags.length) {
-    flags.push({ level: "green", emoji: "🟢", text: "Belirgin risk izlenmedi" });
-  }
+  if (!flags.length) flags.push({ level: "green", emoji: "🟢", text: F.none });
   return flags;
 }
 
-export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor) {
-  const risk = getOverallRiskText(scores.overall);
+export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale = "tr") {
+  const E = getReportPdfStrings(locale).executive;
+  const St = getReportPdfStrings(locale).strengths;
+  const risk = getOverallRiskText(scores.overall, locale);
 
   const strengths = [];
-  if (scores.attention >= 80) strengths.push("Dikkat Sürdürme");
-  if (scores.timing >= 80) strengths.push("Zamanlama");
-  if (scores.impulsivity >= 80) strengths.push("Dürtü Kontrolü");
-  if (scores.hyperactivity >= 80) strengths.push("Motor Kontrol");
+  if (scores.attention >= 80) strengths.push(St.attention);
+  if (scores.timing >= 80) strengths.push(St.timing);
+  if (scores.impulsivity >= 80) strengths.push(St.impulse);
+  if (scores.hyperactivity >= 80) strengths.push(St.motor);
 
   const weaknesses = [];
-  if (scores.timing < 75) weaknesses.push("Zamanlama");
-  if (scores.impulsivity < 75) weaknesses.push("Dürtü Kontrolü");
-  if (scores.attention < 75) weaknesses.push("Dikkat");
-  if (scores.hyperactivity < 75) weaknesses.push("Motor Kontrol");
+  if (scores.timing < 75) weaknesses.push(St.timing);
+  if (scores.impulsivity < 75) weaknesses.push(St.impulse);
+  if (scores.attention < 75) weaknesses.push(St.attention);
+  if (scores.hyperactivity < 75) weaknesses.push(St.motor);
 
-  const line1 =
-    scores.attention >= 70
-      ? "Katılımcının dikkat performansı yaş grubuna göre genel olarak yeterli düzeydedir."
-      : "Katılımcının dikkat performansında yaş grubuna göre zorlanma gözlenmiştir.";
-
+  const line1 = scores.attention >= 70 ? E.line1ok : E.line1low;
   const line2Parts = [];
-  if (scores.timing < 75) line2Parts.push("tepki zamanlamasında hafif değişkenlik");
-  if (scores.impulsivity < 75) line2Parts.push("dürtü kontrolünde izlenebilir düzeyde zorlanma");
+  if (scores.timing < 75) line2Parts.push(E.timingIssue);
+  if (scores.impulsivity < 75) line2Parts.push(E.impulseIssue);
   const line2 =
     line2Parts.length > 0
-      ? `Dikkatini görev boyunca sürdürebilmiş olmakla birlikte ${line2Parts.join(" ve ")} gözlenmiştir.`
-      : "Hedef uyaranları büyük ölçüde doğru şekilde ayırt edebilmiş ve görev boyunca dikkatini sürdürebilmiştir.";
-
-  const line3 = distractor.anyAffected
-    ? "Çeldirici koşullarda performansın kısmen etkilendiği görülmektedir."
-    : "Çeldirici koşullarda belirgin performans kaybı izlenmemiştir.";
+      ? fillTemplate(E.line2mixed, { parts: line2Parts.join(locale === "en" ? " and " : " ve ") })
+      : E.line2ok;
+  const line3 = distractor.anyAffected ? E.line3bad : E.line3ok;
 
   return {
     overall: scores.overall,
@@ -459,68 +358,23 @@ export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, 
   };
 }
 
-export function buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability) {
+export function buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale = "tr") {
+  const P = getReportPdfStrings(locale).professional;
   if (validity.isInvalid) {
-    return [
-      "Bu test oturumu geçerlilik kriterlerini karşılamamaktadır.",
-      "Kritik geçersizlik bulguları nedeniyle performans skorları klinik yorum için kullanılmamalıdır.",
-      "Gerekirse test tekrar uygulanmalı ve katılımcının göreve katılım koşulları gözden geçirilmelidir."
-    ].join("\n\n");
+    return [P.invalid1, P.invalid2, P.invalid3].join("\n\n");
   }
 
-  const paras = [];
-
-  paras.push("Katılımcı değerlendirme boyunca yeterli işbirliği göstermiştir.");
-
-  if (scores.attention >= 75) {
-    paras.push(
-      "Dikkat sürdürme performansı yaş normları içerisinde değerlendirilmiştir. Hedef uyaranları ayırt etme ve görevi sürdürme becerilerinde belirgin güçlük gözlenmemiştir."
-    );
-  } else {
-    paras.push(
-      "Dikkat sürdürme performansında yaş normlarının altında kalma eğilimi gözlenmiştir. İhmal örüntüleri dikkatle değerlendirilmelidir."
-    );
-  }
-
-  if (scores.timing >= 75) {
-    paras.push("Zamanlama performansı kabul edilebilir düzeydedir.");
-  } else {
-    paras.push(
-      "Zamanlama performansında hafif düzeyde değişkenlik izlenmiştir. Bu durum bazı görevlerde tepki hızının dalgalanabileceğini düşündürmektedir."
-    );
-  }
-
-  if (scores.impulsivity >= 75) {
-    paras.push(
-      "Dürtüsellik göstergeleri normal sınırlar içerisindedir. Hedef dışı uyaranlara verilen tepkiler sınırlı düzeyde kalmıştır."
-    );
-  } else {
-    paras.push(
-      "Dürtüsellik göstergeleri normal sınırlar içerisinde olmakla birlikte zaman zaman aceleci yanıt örüntüleri gözlenmiştir."
-    );
-  }
-
-  if (scores.hyperactivity >= 75) {
-    paras.push("Motor kontrol performansı güçlü bulunmuştur.");
-  } else {
-    paras.push("Motor kontrol alanında mükerrer veya yönerge dışı basış göstergeleri izlenmiştir.");
-  }
-
-  if (distractor.anyAffected) {
-    paras.push("Çeldiriciler altında performansın kısmen etkilendiği görülmektedir.");
-  } else {
-    paras.push("Çeldirici koşullarda performans genel olarak korunmuştur.");
-  }
-
+  const paras = [P.coop];
+  paras.push(scores.attention >= 75 ? P.attOk : P.attLow);
+  paras.push(scores.timing >= 75 ? P.timOk : P.timLow);
+  paras.push(scores.impulsivity >= 75 ? P.impOk : P.impLow);
+  paras.push(scores.hyperactivity >= 75 ? P.hypOk : P.hypLow);
+  paras.push(distractor.anyAffected ? P.distLow : P.distOk);
   if (sustainability.delta != null && sustainability.delta <= -15) {
-    paras.push(`Test süresince sürdürülebilir dikkat analizi: ${sustainability.label.toLowerCase()}.`);
+    paras.push(fillTemplate(P.sustNote, { label: sustainability.label }));
   }
-
-  paras.push(
-    "Test bulguları tek başına tanısal yorum amacıyla kullanılmamalı; klinik görüşme, gözlem ve diğer değerlendirme araçlarıyla birlikte ele alınmalıdır."
-  );
-
+  paras.push(P.disclaimer);
   return paras.join("\n\n");
 }
 
-export { indexLevelLabel, getAttentionLevelText, getImpulsivityLevelText, riskLabel, formatDurationSeconds };
+export { riskLabel, formatDurationSeconds };

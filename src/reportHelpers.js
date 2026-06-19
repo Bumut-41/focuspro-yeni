@@ -1,5 +1,12 @@
 import { getStrings } from "./i18n/index.js";
 import {
+  fillTemplate,
+  getDistractorMatrixLabels,
+  getEffectBandLabels,
+  getPhaseComment as getPhaseCommentForLocale,
+  getSustainCellLabels
+} from "./i18n/reportPdfStrings.js";
+import {
   computeMetrics,
   countTrialBehaviors,
   getAttentionLevelText,
@@ -330,18 +337,8 @@ export function severityLevel(score) {
   return 4;
 }
 
-export function getPhaseComment(sectionName, score) {
-  if (score >= 75) return "Performans bu fazda genel olarak korunmuştur.";
-  const s = sectionName.toLowerCase();
-  if (s.includes("sessiz + sesli") || s.includes("sesli gif")) {
-    return "Birleşik çeldiriciler altında dikkat ve dürtü kontrolü zorlanmış olabilir.";
-  }
-  if (s.includes("sessiz gif")) return "Görsel çeldiriciler altında dikkat performansı etkilenmiş olabilir.";
-  if (s.includes("sadece ses")) return "İşitsel çeldiriciler altında performans etkilenmiş olabilir.";
-  if (/11–|12–|13–|14–|15–|11-|12-|13-|14-|15-/.test(s)) {
-    return "Testin son bölümünde yorgunluk etkisi görülebilir.";
-  }
-  return "Bu fazda performansta düşüş izlenmiştir.";
+export function getPhaseComment(sectionName, score, locale = "tr") {
+  return getPhaseCommentForLocale(sectionName, score, locale);
 }
 
 export function getBehaviorRates(behaviors) {
@@ -475,12 +472,12 @@ export const FULL_PHASE_LEGEND = [
   ["Temel - 2", "Sürekli performans — test kapanışı"]
 ];
 
-export function getSectionSummaries(logs, profile, age = null, pressTimeline = []) {
+export function getSectionSummaries(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const late = profile.lateResponseMs;
   return buildReportPhaseBuckets(profile).map((bucket) => {
     const list = logsForBucket(logs, bucket);
     const tl = timelineForBucket(pressTimeline, bucket);
-    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age });
+    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale });
     const sc = getScores(m);
     const behaviors = countTrialBehaviors(list, late);
     const rates = getBehaviorRates(behaviors);
@@ -499,7 +496,7 @@ export function getSectionSummaries(logs, profile, age = null, pressTimeline = [
       omissionRate: rates.omissionRate,
       falseAlarmRate: rates.falseAlarmRate,
       medianReaction: m.medianReaction,
-      comment: getPhaseComment(bucket.label, sc.overall)
+      comment: getPhaseComment(bucket.label, sc.overall, locale)
     };
   });
 }
@@ -532,29 +529,31 @@ function phaseLogs(logs, matcher) {
   return logs.filter((t) => matcher((t.section || "").toLowerCase()));
 }
 
-function distractorEffectCell(temelScore, celdiriciScore) {
+function distractorEffectCell(temelScore, celdiriciScore, locale = "tr") {
+  const B = getEffectBandLabels(locale);
   if (temelScore == null || celdiriciScore == null || temelScore <= 0) {
     return { text: "—", color: "#64748b" };
   }
   const pct = ((temelScore - celdiriciScore) / temelScore) * 100;
   let band;
-  if (pct < -5) band = "Düzelme";
-  else if (pct <= 5) band = "Etki yok";
-  else if (pct <= 15) band = "Hafif etki";
-  else if (pct <= 30) band = "Orta etki";
-  else band = "Belirgin etki";
+  if (pct < -5) band = B.improve;
+  else if (pct <= 5) band = B.none;
+  else if (pct <= 15) band = B.mild;
+  else if (pct <= 30) band = B.moderate;
+  else band = B.marked;
   const color = pct > 30 ? "#dc2626" : pct > 15 ? "#f59e0b" : "#64748b";
   return { text: `${band} (${pct.toFixed(0)}%)`, color };
 }
 
-function sustainabilityCell(logs, profile, age, pressTimeline, key) {
+function sustainabilityCell(logs, profile, age, pressTimeline, key, locale = "tr") {
+  const S = getSustainCellLabels(locale);
   const buckets = buildReportPhaseBuckets(profile);
   const late = profile.lateResponseMs;
   const idxOf = (bucket) => {
     const list = logsForBucket(logs, bucket);
     if (!list.length) return null;
     const tl = timelineForBucket(pressTimeline, bucket);
-    return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age }))[key];
+    return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }))[key];
   };
   const first = buckets.slice(0, 2).map(idxOf).filter((v) => v != null);
   const last = buckets.slice(-2).map(idxOf).filter((v) => v != null);
@@ -563,18 +562,19 @@ function sustainabilityCell(logs, profile, age, pressTimeline, key) {
   const lastAvg = last.reduce((a, b) => a + b, 0) / last.length;
   const delta = lastAvg - firstAvg;
   let text;
-  if (delta >= 5) text = `Isınma (+${delta.toFixed(0)})`;
-  else if (delta >= -5) text = "Değişiklik yok";
-  else if (delta >= -15) text = `Hafif düşüş (${delta.toFixed(0)})`;
-  else text = `Belirgin bozulma (${delta.toFixed(0)})`;
+  if (delta >= 5) text = fillTemplate(S.warmup, { delta: delta.toFixed(0) });
+  else if (delta >= -5) text = S.stable;
+  else if (delta >= -15) text = fillTemplate(S.mildDrop, { delta: delta.toFixed(0) });
+  else text = fillTemplate(S.markedDrop, { delta: delta.toFixed(0) });
   const color = delta < -15 ? "#dc2626" : delta < -5 ? "#f59e0b" : "#64748b";
   return { text, color };
 }
 
 /** Dört endeks × çeldirici özeti — yüzde etki bantları. */
-export function getDistractorSummaryMatrix(logs, profile, age = null, pressTimeline = []) {
+export function getDistractorSummaryMatrix(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const late = profile.lateResponseMs;
-  const opts = { pressTimeline, age };
+  const opts = { pressTimeline, age, locale };
+  const R = getDistractorMatrixLabels(locale);
   const baseline = phaseLogs(
     logs,
     (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses")
@@ -592,39 +592,39 @@ export function getDistractorSummaryMatrix(logs, profile, age = null, pressTimel
   const combSc = scoreOf(combined);
   const loadSc = scoreOf(allDistractors);
 
-  const effect = (distSc, key) => distractorEffectCell(baseSc?.[key], distSc?.[key]);
+  const effect = (distSc, key) => distractorEffectCell(baseSc?.[key], distSc?.[key], locale);
 
   return [
     {
-      name: "Sürdürülebilir performans",
-      A: sustainabilityCell(logs, profile, age, pressTimeline, "attention"),
-      T: sustainabilityCell(logs, profile, age, pressTimeline, "timing"),
-      I: sustainabilityCell(logs, profile, age, pressTimeline, "impulsivity"),
-      H: sustainabilityCell(logs, profile, age, pressTimeline, "hyperactivity")
+      name: R.sustainability,
+      A: sustainabilityCell(logs, profile, age, pressTimeline, "attention", locale),
+      T: sustainabilityCell(logs, profile, age, pressTimeline, "timing", locale),
+      I: sustainabilityCell(logs, profile, age, pressTimeline, "impulsivity", locale),
+      H: sustainabilityCell(logs, profile, age, pressTimeline, "hyperactivity", locale)
     },
     {
-      name: "Görsel",
+      name: R.visual,
       A: effect(visSc, "attention"),
       T: effect(visSc, "timing"),
       I: effect(visSc, "impulsivity"),
       H: effect(visSc, "hyperactivity")
     },
     {
-      name: "İşitsel",
+      name: R.auditory,
       A: effect(audSc, "attention"),
       T: effect(audSc, "timing"),
       I: effect(audSc, "impulsivity"),
       H: effect(audSc, "hyperactivity")
     },
     {
-      name: "Kombine",
+      name: R.combined,
       A: effect(combSc, "attention"),
       T: effect(combSc, "timing"),
       I: effect(combSc, "impulsivity"),
       H: effect(combSc, "hyperactivity")
     },
     {
-      name: "Çeldirici yükü",
+      name: R.load,
       A: effect(loadSc, "attention"),
       T: effect(loadSc, "timing"),
       I: effect(loadSc, "impulsivity"),
