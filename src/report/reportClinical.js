@@ -49,10 +49,46 @@ function validityBand(score, hasCritical, locale = "tr") {
 }
 
 function indexComment(block, score) {
-  if (score >= 80) return block.c80;
-  if (score >= 70) return block.c70;
-  if (score >= 60) return block.c60;
+  if (score >= TIERS.veryGood) return block.c90;
+  if (score >= TIERS.good) return block.c80;
+  if (score >= TIERS.average) return block.c70;
+  if (score >= TIERS.low) return block.c60;
   return block.cLow;
+}
+
+export function pickTierComment(block, score) {
+  return indexComment(block, score);
+}
+
+export function buildGeneralShortComment(scores, distractor, locale = "tr") {
+  const G = getReportPdfStrings(locale).generalComments;
+  const { attention: A, timing: T, impulsivity: I, hyperactivity: H } = scores;
+
+  if (A >= 90 && T >= 85 && I >= 80 && H >= 90) return G.profile1;
+  if (A >= 85 && T < 65 && I >= 75 && H >= 90) return G.profile2;
+  if (A >= 85 && T >= 80 && I < 60 && H >= 90) return G.profile3;
+
+  const parts = [];
+  if (A >= 80 && T >= 75 && I >= 75 && H >= 80) {
+    parts.push(G.partStrongCore);
+  } else {
+    if (A < 60) parts.push(G.partAttLow);
+    else if (A < 70) parts.push(G.partAttMid);
+    else parts.push(G.partAttOk);
+
+    if (T < 60) parts.push(G.partTimLow);
+    else if (T < 70) parts.push(G.partTimMid);
+
+    if (I < 60) parts.push(G.partImpLow);
+    else if (I < 75) parts.push(G.partImpMid);
+
+    if (H < 60) parts.push(G.partHypLow);
+  }
+
+  if (distractor?.anyAffected) parts.push(G.partDistractor);
+  else parts.push(G.partDistractorOk);
+
+  return parts.filter(Boolean).join(" ");
 }
 
 /** Seviye 1–3 geçerlilik + Geçerlilik Endeksi (0–100). */
@@ -316,12 +352,6 @@ export function buildIndexClinicalComments(scores, locale = "tr") {
   };
 }
 
-function profTier(block, score) {
-  if (score >= 80) return block.ok;
-  if (score >= 70) return block.c70;
-  if (score >= 60) return block.c60;
-  return block.low;
-}
 
 export function buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale = "tr") {
   const F = getReportPdfStrings(locale).flags;
@@ -350,7 +380,6 @@ export function buildClinicalFlags(scores, metrics, validity, distractor, sustai
 }
 
 export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale = "tr") {
-  const E = getReportPdfStrings(locale).executive;
   const St = getReportPdfStrings(locale).strengths;
   const risk = getOverallRiskText(scores.overall, locale);
 
@@ -366,16 +395,7 @@ export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, 
   if (scores.attention < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.attention);
   if (scores.hyperactivity < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.motor);
 
-  const line1 = scores.attention >= 70 ? E.line1ok : E.line1low;
-  const line2Parts = [];
-  if (scores.timing < CLINICAL_THRESHOLDS.weakness) line2Parts.push(E.timingIssue);
-  if (scores.impulsivity < CLINICAL_THRESHOLDS.impulseMarked) line2Parts.push(E.impulseIssueStrong);
-  else if (scores.impulsivity < CLINICAL_THRESHOLDS.impulseFlag) line2Parts.push(E.impulseIssue);
-  const line2 =
-    line2Parts.length > 0
-      ? fillTemplate(E.line2mixed, { parts: line2Parts.join(locale === "en" ? " and " : " ve ") })
-      : E.line2ok;
-  const line3 = distractor.anyAffected ? E.line3bad : E.line3ok;
+  const shortComment = buildGeneralShortComment(scores, distractor, locale);
 
   return {
     overall: scores.overall,
@@ -383,27 +403,23 @@ export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, 
     strengths,
     weaknesses,
     clinicalFlags,
-    shortComment: [line1, line2, line3].join(" "),
-    lines: [line1, line2, line3]
+    shortComment,
+    lines: [shortComment]
   };
 }
 
 export function buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale = "tr") {
+  const I = getReportPdfStrings(locale).indexes;
   const P = getReportPdfStrings(locale).professional;
   if (validity.isInvalid) {
     return [P.invalid1, P.invalid2, P.invalid3].join("\n\n");
   }
 
-  const att = { ok: P.attOk, c70: P.attC70, c60: P.attC60, low: P.attLow };
-  const tim = { ok: P.timOk, c70: P.timC70, c60: P.timC60, low: P.timLow };
-  const imp = { ok: P.impOk, c70: P.impC70, c60: P.impC60, low: P.impLow };
-  const hyp = { ok: P.hypOk, c70: P.hypC70, c60: P.hypC60, low: P.hypLow };
-
   const paras = [P.coop];
-  paras.push(profTier(att, scores.attention));
-  paras.push(profTier(tim, scores.timing));
-  paras.push(profTier(imp, scores.impulsivity));
-  paras.push(profTier(hyp, scores.hyperactivity));
+  paras.push(pickTierComment(I.attention, scores.attention));
+  paras.push(pickTierComment(I.timing, scores.timing));
+  paras.push(pickTierComment(I.impulsivity, scores.impulsivity));
+  paras.push(pickTierComment(I.hyperactivity, scores.hyperactivity));
   paras.push(distractor.anyAffected ? P.distLow : P.distOk);
   if (sustainability.delta != null && sustainability.delta <= CLINICAL_THRESHOLDS.sustainabilityOrange) {
     paras.push(fillTemplate(P.sustNote, { label: sustainability.label }));

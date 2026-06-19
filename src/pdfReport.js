@@ -14,7 +14,7 @@ import {
   getScores,
   getSectionSummaries,
   normPlacementFromZ,
-  severityLevel
+  difficultySeverityLevel
 } from "./reportHelpers.js";
 import {
   buildClinicalFlags,
@@ -48,7 +48,7 @@ function sectionTitle(text, pageBreak = false) {
 }
 
 /** Başlık + grafik tek blokta kalsın; sayfa ortasında boşluk oluşmasın. */
-function chartSectionBlock(title, imageSrc, pageBreakBefore = false) {
+function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = null) {
   if (!imageSrc) return null;
   return {
     unbreakable: true,
@@ -61,8 +61,9 @@ function chartSectionBlock(title, imageSrc, pageBreakBefore = false) {
           { width: "*", stack: [{ text: title, fontSize: 15, bold: true, color: HEADER, margin: [10, 2, 0, 0] }] }
         ],
         columnGap: 0,
-        margin: [0, 0, 0, 8]
+        margin: [0, 0, 0, subtitle ? 4 : 8]
       },
+      ...(subtitle ? [{ text: subtitle, fontSize: 10, color: SUB, margin: [15, 0, 0, 8] }] : []),
       { image: imageSrc, width: 515, margin: [0, 0, 0, 12] }
     ]
   };
@@ -121,8 +122,19 @@ function infoBox(title, lines, fill = "#f8fafc") {
 function tableLayout(headColor = TABLE_HEAD) {
   return {
     fillColor: (rowIndex) => (rowIndex === 0 ? headColor : rowIndex % 2 === 0 ? "#f8fafc" : null),
-    hLineColor: () => "#cbd5e1",
-    vLineColor: () => "#cbd5e1"
+    hLineWidth: () => 1,
+    hLineColor: () => "#475569",
+    vLineWidth: () => 1,
+    vLineColor: () => "#94a3b8"
+  };
+}
+
+function normTableLayout(headColor = TABLE_HEAD) {
+  return {
+    hLineWidth: () => 1.2,
+    hLineColor: () => "#334155",
+    vLineWidth: () => 1,
+    vLineColor: () => "#64748b"
   };
 }
 
@@ -292,8 +304,14 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
 
   const perfBody = NORM_LEVELS.map((row) => {
     const cells = indices.map((ix) => {
-      if (normPlacementFromZ(ix.z) !== row.level) return "";
-      return { text: ix.z.toFixed(2), alignment: "center", bold: true };
+      if (normPlacementFromZ(ix.z) !== row.level) return { text: "", fillColor: row.color };
+      return {
+        text: ix.z.toFixed(2),
+        alignment: "center",
+        bold: true,
+        color: row.level <= 2 ? "#0f172a" : "#fff",
+        fillColor: row.color
+      };
     });
     return [
       { text: `${row.level} ${row.label}`, fillColor: row.color, color: row.level <= 2 ? "#0f172a" : "#fff", fontSize: 9 },
@@ -308,11 +326,10 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
   const sevRows = SEVERITY_LEVELS.map((row) => {
     const cells = ["A", "T", "I", "H"].map((key) => {
       const ix = indices.find((i) => i.key === key);
-      if (!ix) return "";
-      const n = normPlacementFromZ(ix.z);
-      if (n !== 4 && n !== 5) return "";
-      if (severityLevel(ix.score) !== row.level) return "";
-      return { text: String(row.level), alignment: "center", bold: true, color: "#fff" };
+      if (!ix) return { text: "", fillColor: row.color };
+      const sev = difficultySeverityLevel(ix.score, ix.z);
+      if (sev !== row.level) return { text: "", fillColor: row.color };
+      return { text: String(row.level), alignment: "center", bold: true, color: "#fff", fillColor: row.color };
     });
     return [
       { text: `${row.level} ${row.label}`, fillColor: row.color, color: "#fff", fontSize: 8 },
@@ -343,13 +360,20 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
           ...perfBody
         ]
       },
-      layout: tableLayout(),
+      layout: normTableLayout(),
       margin: [0, 0, 0, 12]
     }
   ];
 
   if (difficulty.length) {
     blocks.push(
+      {
+        text: pdf.severity,
+        fontSize: 12,
+        bold: true,
+        color: HEADER,
+        margin: [0, 4, 0, 8]
+      },
       {
         table: {
           headerRows: 1,
@@ -365,7 +389,7 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
             ...sevRows
           ]
         },
-        layout: tableLayout("#7f1d1d"),
+        layout: normTableLayout("#7f1d1d"),
         margin: [0, 0, 0, 10]
       }
     );
@@ -430,7 +454,7 @@ export function buildDocDefinition({
     }
   }
   if (reportCharts.combined) {
-    chartBlocks.push(chartSectionBlock(pdf.chartCombined, reportCharts.combined, true));
+    chartBlocks.push(chartSectionBlock(pdf.chartCombined, reportCharts.combined, true, pdf.chartCombinedTitle));
   }
 
   const durationMin = Math.round(profile.durationMs / 60000);
@@ -584,6 +608,7 @@ export function buildDocDefinition({
         executive.weaknesses.length ? executive.weaknesses.map((s) => "• " + s) : [pdf.noWeaknesses],
         "#fff7ed"
       ),
+      infoBox(pdf.shortComment, [executive.shortComment], "#f8fafc"),
 
       ...indexSectionBlock("attention", indexComments.attention, pdf, true),
       ...indexSectionBlock("timing", indexComments.timing, pdf),
@@ -672,7 +697,7 @@ export function buildDocDefinition({
         margin: [0, 0, 0, 14]
       },
 
-      sectionTitle(pdf.professional),
+      sectionTitle(pdf.professional, true),
       { text: professional, lineHeight: 1.4, alignment: "justify", margin: [0, 0, 0, 16] },
 
       sectionTitle(pdf.technicalAppendix),

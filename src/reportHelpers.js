@@ -333,6 +333,15 @@ export function getGlobalIndexZScores(scores, profileKey) {
   };
 }
 
+export function difficultySeverityLevel(score, z) {
+  if (normLevelFromZ(z) < 4) return null;
+  if (score < 30) return 4;
+  if (score < 45) return 3;
+  if (score < 55) return 2;
+  return 1;
+}
+
+/** @deprecated difficultySeverityLevel kullanın */
 export function severityLevel(score) {
   if (score >= 45) return 1;
   if (score >= 35) return 2;

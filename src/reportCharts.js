@@ -90,6 +90,27 @@ function renderChart(config, width = 520, height = 300) {
   return url;
 }
 
+function chartYScale(step = 20) {
+  return {
+    min: 0,
+    max: 100,
+    ticks: { stepSize: step },
+    border: { display: true, color: "#334155", width: 2, dash: [] },
+    grid: {
+      color: (ctx) => {
+        const v = ctx.tick?.value;
+        if (v === 0 || v === 100) return "#334155";
+        return "#e2e8f0";
+      },
+      lineWidth: (ctx) => {
+        const v = ctx.tick?.value;
+        if (v === 0 || v === 100) return 2;
+        return 1;
+      }
+    }
+  };
+}
+
 function shortPhaseChartLabel(row) {
   const time = String(row.label || "").match(/(\d+[–-]\d+\s*dk)/i);
   const timeStr = time ? time[1].replace(/\s+/g, " ") : "";
@@ -174,7 +195,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
     options: {
       layout: { padding: { top: 4, right: 8, bottom: 4, left: 4 } },
       scales: {
-        y: { min: 0, max: 100, ticks: { stepSize: 20 }, grid: { color: "#e2e8f0" } },
+        y: chartYScale(20),
         x: {
           grid: { display: false },
           ticks: { font: { size: 8 }, maxRotation: 32, minRotation: 28, autoSkip: false }
@@ -192,6 +213,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
 export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr") {
   if (!phaseSeries.length) return null;
   const INDEX_META = indexMeta(locale);
+  const pdf = getReportPdfStrings(locale);
   const labels = phaseSeries.map(shortPhaseChartLabel);
 
   const datasets = Object.entries(COMBINED_COLORS).map(([key, color]) => {
@@ -217,7 +239,7 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
       options: {
         layout: { padding: { top: 4, right: 8, bottom: 4, left: 4 } },
         scales: {
-          y: { min: 0, max: 100, ticks: { stepSize: 10 }, grid: { color: "#e2e8f0" } },
+          y: chartYScale(10),
           x: { ticks: { font: { size: 8 }, maxRotation: 32, minRotation: 28, autoSkip: false } }
         },
         plugins: {
@@ -233,7 +255,14 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
               font: { size: 9 }
             }
           },
-          title: { display: false }
+          title: {
+            display: true,
+            text: pdf.chartCombinedTitle,
+            align: "start",
+            font: { size: 13, weight: "600" },
+            color: "#4c1d95",
+            padding: { bottom: 6 }
+          }
         }
       }
     },

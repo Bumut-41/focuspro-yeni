@@ -6,6 +6,7 @@ import { computeReportMetrics, getScores } from "../reportHelpers.js";
 import {
   buildClinicalFlags,
   buildDistractorAnalysisFriendly,
+  buildExecutiveSummary,
   buildSustainabilityReport,
   computeTestValidity
 } from "../report/reportClinical.js";
@@ -37,6 +38,10 @@ export function ReportPanel({
   const clinicalFlags =
     scores && validity && distractor && sustainability
       ? buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale)
+      : null;
+  const executive =
+    scores && validity && clinicalFlags && distractor
+      ? buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale)
       : null;
   const series = logs.length ? scoreSeries(logs, profile.lateResponseMs, metricOpts) : null;
 
@@ -86,6 +91,11 @@ export function ReportPanel({
           </strong>
           <p style={{ margin: "8px 0 0", fontSize: "0.875rem" }}>{validity.summary}</p>
         </Alert>
+      )}
+      {executive?.shortComment && (
+        <p style={{ lineHeight: 1.6, color: "var(--fp-text-secondary)", fontSize: "0.9375rem", marginBottom: 16 }}>
+          {executive.shortComment}
+        </p>
       )}
       {clinicalFlags && (
         <div style={{ marginBottom: 16 }}>
