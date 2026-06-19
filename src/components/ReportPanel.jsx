@@ -1,8 +1,15 @@
 import { Line } from "react-chartjs-2";
-import { scoreSeries, summaryText } from "../metrics.js";
+import { scoreSeries } from "../metrics.js";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
 import { computeReportMetrics, getScores } from "../reportHelpers.js";
+import {
+  buildClinicalFlags,
+  buildDistractorAnalysisFriendly,
+  buildExecutiveSummary,
+  buildSustainabilityReport,
+  computeTestValidity
+} from "../report/reportClinical.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { createPdfBlob } from "../pdfReport.js";
 import { Alert, Button, CardHeader, Stack } from "./ui.jsx";
@@ -24,6 +31,17 @@ export function ReportPanel({
 
   const metrics = logs.length ? computeReportMetrics(logs, profile.lateResponseMs, metricOpts) : null;
   const scores = metrics ? getScores(metrics) : null;
+  const validity = metrics && logs.length ? computeTestValidity(logs, metrics, profile, pressTimeline, participant.age) : null;
+  const distractor = metrics && logs.length ? buildDistractorAnalysisFriendly(logs, profile, participant.age, pressTimeline) : null;
+  const sustainability = metrics && logs.length ? buildSustainabilityReport(logs, profile, participant.age, pressTimeline, locale) : null;
+  const clinicalFlags =
+    scores && validity && distractor && sustainability
+      ? buildClinicalFlags(scores, metrics, validity, distractor, sustainability)
+      : null;
+  const executive =
+    scores && validity && clinicalFlags && distractor
+      ? buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor)
+      : null;
   const series = logs.length ? scoreSeries(logs, profile.lateResponseMs, metricOpts) : null;
 
   const chartData = series
@@ -65,9 +83,24 @@ export function ReportPanel({
           </div>
         ))}
       </div>
-      <p style={{ lineHeight: 1.6, color: "var(--fp-text-secondary)", fontSize: "0.9375rem" }}>
-        {summaryText(metrics, profileDisplay, locale)}
-      </p>
+      {validity && (
+        <Alert variant={validity.isInvalid ? "error" : validity.score < 75 ? "warning" : "success"}>
+          <strong>
+            {validity.band.emoji} Geçerlilik: {validity.score}/100 — {validity.band.label}
+          </strong>
+          <p style={{ margin: "8px 0 0", fontSize: "0.875rem" }}>{validity.summary}</p>
+        </Alert>
+      )}
+      {executive && (
+        <p style={{ lineHeight: 1.6, color: "var(--fp-text-secondary)", fontSize: "0.9375rem", marginBottom: 16 }}>
+          {executive.shortComment}
+        </p>
+      )}
+      {clinicalFlags && (
+        <p style={{ fontSize: "0.875rem", marginBottom: 16 }}>
+          {clinicalFlags.map((f) => `${f.emoji} ${f.text}`).join(" · ")}
+        </p>
+      )}
       {chartData && (
         <div
           style={{
