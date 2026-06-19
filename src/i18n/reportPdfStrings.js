@@ -149,8 +149,8 @@ export const reportPdfStrings = {
       marked: "Test sonuna doğru belirgin performans düşüşü izlenmiştir; sürdürülebilir dikkat alanı değerlendirilmelidir."
     },
     executive: {
-      line1ok: "Katılımcının dikkat performansı yaş grubuna göre genel olarak yeterli düzeydedir.",
-      line1low: "Katılımcının dikkat performansında yaş grubuna göre zorlanma gözlenmiştir.",
+      line1ok: "Katılımcının dikkat performansı genel olarak yeterli düzeydedir.",
+      line1low: "Katılımcının dikkat performansında performans zorluğu gözlenmiştir.",
       line2ok: "Hedef uyaranları büyük ölçüde doğru şekilde ayırt edebilmiş ve görev boyunca dikkatini sürdürebilmiştir.",
       line2mixed: "Dikkatini görev boyunca sürdürebilmiş olmakla birlikte {{parts}} gözlenmiştir.",
       timingIssue: "tepki zamanlamasında hafif değişkenlik",
@@ -163,34 +163,34 @@ export const reportPdfStrings = {
       attention: {
         title: "A — DİKKAT",
         definition: "Dikkat endeksi, hedef uyaranları fark etme ve görev boyunca dikkati sürdürebilme performansını değerlendirir.",
-        c80: "Katılımcı dikkat sürdürme alanında yaş normlarına uygun performans göstermiştir. Belirgin dikkat kaybı veya görevden kopma örüntüsü gözlenmemiştir.",
+        c80: "Katılımcı dikkat sürdürme alanında genel olarak yeterli performans göstermiştir. Belirgin dikkat kaybı veya görevden kopma örüntüsü gözlenmemiştir.",
         c70: "Dikkat performansı genel olarak yeterli düzeydedir; bazı bölümlerde kısa süreli dikkat dalgalanması izlenebilir.",
-        c60: "Dikkat sürdürme alanında orta düzeyde zorlanma gözlenmiştir; ihmal oranı dikkatle değerlendirilmelidir.",
-        cLow: "Dikkat alanında belirgin güçlük gözlenmiştir; hedef uyaranları kaçırma eğilimi dikkat çekmektedir."
+        c60: "Dikkat sürdürme alanında orta düzeyde zorlanma gözlenmiştir; ihmal oranı izlenmelidir.",
+        cLow: "Dikkat alanında belirgin performans zorluğu gözlenmiştir; hedef uyaranları kaçırma eğilimi takip edilmelidir."
       },
       timing: {
         title: "T — ZAMANLAMA",
         definition: "Zamanlama endeksi, doğru uyaranlara uygun hızda ve tutarlı şekilde tepki verebilme performansını değerlendirir.",
-        c80: "Tepki zamanlaması genel olarak tutarlı ve yaşa uygun düzeydedir.",
+        c80: "Tepki zamanlaması genel olarak tutarlı ve yeterli düzeydedir.",
         c70: "Tepki hızında hafif düzeyde değişkenlik gözlenmiştir. Görev boyunca zaman zaman gecikmiş yanıtlar oluşmuştur.",
-        c60: "Zamanlama performansında orta düzeyde dalgalanma izlenmiştir; geç veya acele yanıtlar dikkat alanıdır.",
-        cLow: "Tepki zamanlamasında belirgin zorluk gözlenmiştir; geç yanıt veya aşırı değişkenlik dikkat çekmektedir."
+        c60: "Zamanlama performansında orta düzeyde dalgalanma izlenmiştir; geç veya acele yanıtlar izlenmelidir.",
+        cLow: "Tepki zamanlamasında belirgin performans zorluğu gözlenmiştir; geç yanıt veya aşırı değişkenlik takip edilmelidir."
       },
       impulsivity: {
         title: "I — DÜRTÜSELLİK",
         definition: "Dürtüsellik endeksi, hedef dışı uyaranlara gereksiz tepki verme eğilimini (commission errors) değerlendirir.",
         c80: "Dürtü kontrolü genel olarak yeterlidir. Hedef dışı uyaranlara verilen tepkiler sınırlı düzeyde kalmıştır.",
         c70: "Dürtü kontrolü kabul edilebilir düzeydedir. Ancak bazı bölümlerde hedef dışı uyaranlara aceleci tepkiler gözlenmiştir.",
-        c60: "Hafif dürtüsellik göstergeleri izlenmiştir; commission hataları takip edilmelidir.",
-        cLow: "Belirgin dürtüsellik örüntüsü gözlenmiştir; hedef dışı uyaranlara sık tepki verilmiştir."
+        c60: "Hafif dürtüsellik göstergeleri izlenmiştir; commission hataları izlenmelidir.",
+        cLow: "Belirgin dürtüsellik örüntüsü gözlenmiştir; hedef dışı uyaranlara sık tepki verilmiştir. Bu alanın geliştirilmesi gerekir."
       },
       hyperactivity: {
         title: "H — HİPERAKTİVİTE",
         definition: "Hiperaktivite endeksi, motor tepkiyi durdurabilme ve gereksiz tuş kullanımını kontrol edebilme becerisini değerlendirir.",
         c80: "Motor kontrol performansı güçlü bulunmuştur. Mükerrer veya yönerge dışı yanıt örüntüsü gözlenmemiştir.",
         c70: "Motor kontrol genel olarak yeterlidir; ara sıra mükerrer basışlar izlenebilir.",
-        c60: "Hafif motor hiperaktivite göstergeleri (mükerrer veya boş ekran basışı) gözlenmiştir.",
-        cLow: "Motor kontrol alanında belirgin zorluk gözlenmiştir; mükerrer veya yönerge dışı basışlar dikkat çekmektedir."
+        c60: "Hafif motor hiperaktivite göstergeleri (mükerrer veya boş ekran basışı) gözlenmiştir; izlenmelidir.",
+        cLow: "Motor kontrol alanında belirgin performans zorluğu gözlenmiştir; mükerrer veya yönerge dışı basışlar takip edilmelidir."
       }
     },
     professional: {
@@ -198,22 +198,22 @@ export const reportPdfStrings = {
       invalid2: "Kritik geçersizlik bulguları nedeniyle performans skorları klinik yorum için kullanılmamalıdır.",
       invalid3: "Gerekirse test tekrar uygulanmalı ve katılımcının göreve katılım koşulları gözden geçirilmelidir.",
       coop: "Katılımcı değerlendirme boyunca yeterli işbirliği göstermiştir.",
-      attOk: "Dikkat sürdürme performansı yaş normları içerisinde değerlendirilmiştir. Hedef uyaranları ayırt etme ve görevi sürdürme becerilerinde belirgin güçlük gözlenmemiştir.",
+      attOk: "Dikkat sürdürme performansı genel olarak yeterli düzeydedir. Hedef uyaranları ayırt etme ve görevi sürdürme becerilerinde belirgin güçlük gözlenmemiştir.",
       attC70: "Dikkat performansı genel olarak yeterli düzeydedir; bazı bölümlerde kısa süreli dalgalanmalar izlenebilir.",
-      attC60: "Dikkat sürdürme alanında orta düzeyde zorlanma gözlenmiştir; ihmal örüntüleri dikkatle değerlendirilmelidir.",
-      attLow: "Dikkat sürdürme performansında yaş normlarının altında belirgin güçlük gözlenmiştir. İhmal örüntüleri dikkatle değerlendirilmelidir.",
-      timOk: "Zamanlama performansı kabul edilebilir düzeydedir.",
+      attC60: "Dikkat sürdürme alanında orta düzeyde zorlanma gözlenmiştir; ihmal örüntüleri izlenmelidir.",
+      attLow: "Dikkat sürdürme performansında belirgin performans zorluğu gözlenmiştir. İhmal örüntüleri dikkatle değerlendirilmelidir.",
+      timOk: "Zamanlama performansı genel olarak yeterli düzeydedir.",
       timC70: "Tepki hızında hafif düzeyde değişkenlik gözlenmiştir; zaman zaman gecikmiş yanıtlar oluşmuştur.",
-      timC60: "Zamanlama performansında orta düzeyde dalgalanma izlenmiştir; geç veya acele yanıtlar dikkat alanıdır.",
-      timLow: "Tepki zamanlamasında belirgin zorluk gözlenmiştir; geç yanıt veya aşırı değişkenlik dikkat çekmektedir.",
-      impOk: "Dürtüsellik göstergeleri normal sınırlar içerisindedir. Hedef dışı uyaranlara verilen tepkiler sınırlı düzeyde kalmıştır.",
+      timC60: "Zamanlama performansında orta düzeyde dalgalanma izlenmiştir; geç veya acele yanıtlar izlenmelidir.",
+      timLow: "Tepki zamanlamasında belirgin performans zorluğu gözlenmiştir; geç yanıt veya aşırı değişkenlik takip edilmelidir.",
+      impOk: "Dürtüsellik göstergeleri kabul edilebilir düzeydedir. Hedef dışı uyaranlara verilen tepkiler sınırlı düzeyde kalmıştır.",
       impC70: "Dürtü kontrolü kabul edilebilir düzeydedir; bazı bölümlerde hedef dışı uyaranlara aceleci tepkiler gözlenmiştir.",
-      impC60: "Hafif dürtüsellik göstergeleri izlenmiştir; commission hataları takip edilmelidir.",
-      impLow: "Belirgin dürtüsellik örüntüsü gözlenmiştir; hedef dışı uyaranlara sık tepki verilmiştir.",
-      hypOk: "Motor kontrol performansı güçlü bulunmuştur.",
+      impC60: "Hafif dürtüsellik göstergeleri izlenmiştir; commission hataları izlenmelidir.",
+      impLow: "Belirgin dürtüsellik örüntüsü gözlenmiştir; hedef dışı uyaranlara sık tepki verilmiştir. Bu alanın geliştirilmesi gerekir.",
+      hypOk: "Motor kontrol performansı genel olarak yeterli düzeydedir.",
       hypC70: "Motor kontrol genel olarak yeterlidir; ara sıra mükerrer basışlar izlenebilir.",
-      hypC60: "Hafif motor hiperaktivite göstergeleri (mükerrer veya boş ekran basışı) gözlenmiştir.",
-      hypLow: "Motor kontrol alanında belirgin zorluk gözlenmiştir; mükerrer veya yönerge dışı basışlar dikkat çekmektedir.",
+      hypC60: "Hafif motor hiperaktivite göstergeleri (mükerrer veya boş ekran basışı) gözlenmiştir; izlenmelidir.",
+      hypLow: "Motor kontrol alanında belirgin performans zorluğu gözlenmiştir; mükerrer veya yönerge dışı basışlar takip edilmelidir.",
       distOk: "Çeldirici koşullarda performans genel olarak korunmuştur.",
       distLow: "Çeldiriciler altında performansın kısmen etkilendiği görülmektedir.",
       sustNote: "Test süresince sürdürülebilir dikkat analizi: {{label}}.",
@@ -457,8 +457,8 @@ export const reportPdfStrings = {
       marked: "A marked performance decline was observed toward the end; sustained attention should be reviewed."
     },
     executive: {
-      line1ok: "The participant's attention performance was generally adequate for their age group.",
-      line1low: "Attention performance showed strain relative to the age group.",
+      line1ok: "The participant's attention performance was generally at an adequate level.",
+      line1low: "The participant showed performance difficulty in attention.",
       line2ok: "The participant largely discriminated target stimuli correctly and maintained attention throughout the task.",
       line2mixed: "Although attention was maintained during the task, {{parts}} were observed.",
       timingIssue: "mild variability in response timing",
@@ -471,18 +471,18 @@ export const reportPdfStrings = {
       attention: {
         title: "A — ATTENTION",
         definition: "The attention index evaluates detecting target stimuli and sustaining attention throughout the task.",
-        c80: "Sustained attention was within age norms. No marked inattention or disengagement was observed.",
+        c80: "Sustained attention was generally at an adequate level. No marked inattention or disengagement was observed.",
         c70: "Attention performance was generally adequate; brief fluctuations may occur in some sections.",
-        c60: "Moderate difficulty in sustained attention was observed; omission rate should be reviewed.",
-        cLow: "Marked attention difficulty was observed; a tendency to miss targets is notable."
+        c60: "Moderate difficulty in sustained attention was observed; omission rate should be monitored.",
+        cLow: "Marked attention difficulty was observed; a tendency to miss targets should be followed up."
       },
       timing: {
         title: "T — TIMING",
         definition: "The timing index evaluates responding to correct stimuli at an appropriate speed and consistently.",
-        c80: "Response timing was generally consistent and age-appropriate.",
+        c80: "Response timing was generally consistent and at an adequate level.",
         c70: "Mild variability in response speed was observed. Occasional delayed responses occurred during the task.",
-        c60: "Moderate variability in timing was observed; late or rushed responses are areas of note.",
-        cLow: "Marked timing difficulty was observed; late responses or excessive variability are notable."
+        c60: "Moderate variability in timing was observed; late or rushed responses should be monitored.",
+        cLow: "Marked timing difficulty was observed; late responses or excessive variability should be followed up."
       },
       impulsivity: {
         title: "I — IMPULSIVITY",
@@ -490,15 +490,15 @@ export const reportPdfStrings = {
         c80: "Impulse control was generally adequate. Responses to non-target stimuli remained limited.",
         c70: "Impulse control was acceptable, though occasional rushed responses to non-targets were observed.",
         c60: "Mild impulsivity indicators were observed; commission errors should be monitored.",
-        cLow: "A marked impulsivity pattern was observed; frequent responses to non-target stimuli."
+        cLow: "A marked impulsivity pattern was observed; frequent responses to non-target stimuli. This area needs development."
       },
       hyperactivity: {
         title: "H — HYPERACTIVITY",
         definition: "The hyperactivity index evaluates motor inhibition and control of unnecessary key use.",
         c80: "Motor control was strong. No marked repeated or off-task responding was observed.",
         c70: "Motor control was generally adequate; occasional repeated presses may occur.",
-        c60: "Mild hyperactivity indicators (repeated or blank-screen presses) were observed.",
-        cLow: "Marked motor control difficulty was observed; repeated or off-task presses are notable."
+        c60: "Mild hyperactivity indicators (repeated or blank-screen presses) were observed; should be monitored.",
+        cLow: "Marked motor control difficulty was observed; repeated or off-task presses should be followed up."
       }
     },
     professional: {
@@ -506,22 +506,22 @@ export const reportPdfStrings = {
       invalid2: "Due to critical invalidity findings, performance scores must not be used for clinical interpretation.",
       invalid3: "If needed, the test should be repeated and task engagement conditions reviewed.",
       coop: "The participant showed adequate cooperation during the assessment.",
-      attOk: "Sustained attention was within age norms. No marked difficulty was observed in discriminating targets or maintaining the task.",
+      attOk: "Sustained attention was generally at an adequate level. No marked difficulty was observed in discriminating targets or maintaining the task.",
       attC70: "Attention performance was generally adequate; brief fluctuations may occur in some sections.",
-      attC60: "Moderate difficulty in sustained attention was observed; omission patterns should be reviewed.",
-      attLow: "Sustained attention showed marked difficulty below age norms. Omission patterns should be reviewed carefully.",
-      timOk: "Timing performance was at an acceptable level.",
+      attC60: "Moderate difficulty in sustained attention was observed; omission patterns should be monitored.",
+      attLow: "Sustained attention showed marked performance difficulty. Omission patterns should be reviewed carefully.",
+      timOk: "Timing performance was generally at an adequate level.",
       timC70: "Mild variability in response speed was observed; occasional delayed responses occurred.",
-      timC60: "Moderate variability in timing was observed; late or rushed responses are areas of note.",
-      timLow: "Marked timing difficulty was observed; late responses or excessive variability are notable.",
-      impOk: "Impulsivity indicators were within normal limits. Responses to non-target stimuli remained limited.",
+      timC60: "Moderate variability in timing was observed; late or rushed responses should be monitored.",
+      timLow: "Marked timing difficulty was observed; late responses or excessive variability should be followed up.",
+      impOk: "Impulsivity indicators were at an acceptable level. Responses to non-target stimuli remained limited.",
       impC70: "Impulse control was acceptable, though occasional rushed responses to non-targets were observed.",
       impC60: "Mild impulsivity indicators were observed; commission errors should be monitored.",
-      impLow: "A marked impulsivity pattern was observed; frequent responses to non-target stimuli.",
-      hypOk: "Motor control performance was strong.",
+      impLow: "A marked impulsivity pattern was observed; frequent responses to non-target stimuli. This area needs development.",
+      hypOk: "Motor control performance was generally at an adequate level.",
       hypC70: "Motor control was generally adequate; occasional repeated presses may occur.",
-      hypC60: "Mild hyperactivity indicators (repeated or blank-screen presses) were observed.",
-      hypLow: "Marked motor control difficulty was observed; repeated or off-task presses are notable.",
+      hypC60: "Mild hyperactivity indicators (repeated or blank-screen presses) were observed; should be monitored.",
+      hypLow: "Marked motor control difficulty was observed; repeated or off-task presses should be followed up.",
       distOk: "Performance was generally maintained under distractor conditions.",
       distLow: "Performance was partly affected under distractors.",
       sustNote: "Sustained attention analysis during the test: {{label}}.",

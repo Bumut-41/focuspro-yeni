@@ -568,7 +568,6 @@ export function buildDocDefinition({
         executive.weaknesses.length ? executive.weaknesses.map((s) => "• " + s) : [pdf.noWeaknesses],
         "#fff7ed"
       ),
-      infoBox(pdf.shortComment, executive.lines, "#f8fafc"),
 
       ...indexSectionBlock("attention", indexComments.attention, pdf, true),
       ...indexSectionBlock("timing", indexComments.timing, pdf),

@@ -438,7 +438,7 @@ export function buildMoxoSummary(scores, metrics, profile, vigilance) {
   return [
     `MOXO Özeti (FocusPro): A: ${scores.attention}, T: ${scores.timing}, I: ${scores.impulsivity}, H: ${scores.hyperactivity}. ${genelCalc}. ${getOverallRiskText(scores.overall)}.`,
     narrative,
-    `Norma göre en düşük alan: ${weakest.label} (z=${weakest.z.toFixed(2)}, ${normLevelTextFromZ(weakest.z)}).`,
+    `En düşük performans alanı: ${weakest.label} (skor ${weakest.score}).`,
     `Sürdürülebilir performans (ilk 2 / son 2 blok): ${vigilance.label}${vigilance.firstAvg != null ? ` (başlangıç ${vigilance.firstAvg}, bitiş ${vigilance.lastAvg})` : ""}.`,
     metrics.flags.length ? `Ek bulgular: ${metrics.flags.join("; ")}.` : "",
     "Sonuçlar yalnızca nitelikli profesyonel değerlendirme için ön bilgi sağlar."
