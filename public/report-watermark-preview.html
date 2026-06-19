@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FocusProLab — Rapor filigran önizleme</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #e2e8f0;
+      font-family: Roboto, "Segoe UI", system-ui, sans-serif;
+      color: #0f172a;
+      padding: 24px 16px 48px;
+    }
+    .toolbar {
+      max-width: 210mm;
+      margin: 0 auto 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toolbar h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4c1d95;
+    }
+    .toolbar label {
+      font-size: 0.85rem;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      background: #fff;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+      padding: 36px 36px 48px;
+      overflow: hidden;
+    }
+    .watermark {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 78%;
+      height: auto;
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    .cover {
+      margin: -36px -36px 20px;
+      padding: 18px 20px 16px;
+      background: #4c1d95;
+      color: #fff;
+    }
+    .cover h2 {
+      margin: 0 0 4px;
+      font-size: 26px;
+    }
+    .cover p {
+      margin: 0;
+      font-size: 13px;
+      color: #e9d5ff;
+    }
+    .section {
+      border-left: 5px solid #4c1d95;
+      padding-left: 10px;
+      margin: 18px 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #4c1d95;
+    }
+    .box {
+      background: #f8fafc;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-size: 9pt;
+      color: #475569;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .score {
+      background: #7c3aed;
+      color: #fff;
+      border-radius: 4px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .score span {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0.95;
+    }
+    .score strong {
+      font-size: 22px;
+      margin-top: 6px;
+      display: block;
+    }
+    .note {
+      max-width: 210mm;
+      margin: 16px auto 0;
+      font-size: 0.8rem;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <h1>Rapor filigran önizleme (PDF ile aynı oran)</h1>
+    <label>
+      Şeffaflık
+      <input id="opacity" type="range" min="3" max="18" value="8" />
+      <span id="opacityVal">8%</span>
+    </label>
+  </div>
+
+  <div class="page">
+    <img class="watermark" id="wm" src="/focuspro-logo.png" alt="" />
+    <div class="content">
+      <div class="cover">
+        <h2>FocusProLab</h2>
+        <p>Sürekli Performans Testi — Örnek rapor sayfası</p>
+      </div>
+
+      <div class="section">Katılımcı bilgileri</div>
+      <div class="box">
+        Ad Soyad: Örnek Katılımcı<br />
+        Yaş: 28 · Profil: Yetişkin<br />
+        Değerlendirme tarihi: 2 Haziran 2026
+      </div>
+
+      <div class="section">Ana endeksler</div>
+      <div class="scores">
+        <div class="score" style="background:#7c3aed"><span>A — Dikkat</span><strong>82</strong></div>
+        <div class="score" style="background:#4f46e5"><span>T — Zamanlama</span><strong>76</strong></div>
+        <div class="score" style="background:#dc2626"><span>I — Dürtüsellik</span><strong>71</strong></div>
+        <div class="score" style="background:#d97706"><span>H — Hiperaktivite</span><strong>88</strong></div>
+      </div>
+
+      <div class="box">
+        Logo, PDF raporunun <strong>her sayfasında</strong> ortada ve büyük boyutta (%78 genişlik),
+        düşük opaklıkta (varsayılan %8) filigran olarak görünür. Metin ve tablolar üstte kalır.
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    Bu sayfa yalnızca önizlemedir. Gerçek rapor: Yönetim → Basış detayı → Test raporu PDF
+  </p>
+
+  <script>
+    const slider = document.getElementById("opacity");
+    const wm = document.getElementById("wm");
+    const val = document.getElementById("opacityVal");
+    slider.addEventListener("input", () => {
+      const p = Number(slider.value);
+      wm.style.opacity = p / 100;
+      val.textContent = p + "%";
+    });
+  </script>
+</body>
+</html>

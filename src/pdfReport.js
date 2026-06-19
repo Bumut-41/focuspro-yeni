@@ -28,6 +28,7 @@ import {
 import { normLevelTextFromZ } from "./reportNorms.js";
 import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { buildReportChartImages } from "./reportCharts.js";
+import { buildPdfLogoBackground, getPdfLogoDataUrl } from "./lib/pdfLogoWatermark.js";
 
 const HEADER = "#4c1d95";
 const HEADER_LIGHT = "#ede9fe";
@@ -159,7 +160,7 @@ function indexSectionBlock(key, data, pdf, isFirst = false) {
   ];
 }
 
-function buildInvalidDocDefinition({ participant, profile, validity, locale = "tr" }) {
+function buildInvalidDocDefinition({ participant, profile, validity, locale = "tr", logoDataUrl = null }) {
   const profileKey = profile.key ?? "adult";
   const profileDisplay = profileLabel(profileKey, locale) || profile.label;
   const pdf = getReportPdfStrings(locale);
@@ -168,6 +169,7 @@ function buildInvalidDocDefinition({ participant, profile, validity, locale = "t
     pageSize: "A4",
     pageMargins: [36, 36, 36, 48],
     defaultStyle: { font: "Roboto", fontSize: 10 },
+    background: buildPdfLogoBackground(logoDataUrl),
     content: [
       coverHeader(locale),
       sectionTitle(pdf.invalidTitle),
@@ -362,7 +364,8 @@ export function buildDocDefinition({
   target,
   pressTimeline = [],
   reportCharts = {},
-  locale = "tr"
+  locale = "tr",
+  logoDataUrl = null
 }) {
   const profileKey = profile.key ?? "adult";
   const profileDisplay = profileLabel(profileKey, locale) || profile.label;
@@ -376,7 +379,7 @@ export function buildDocDefinition({
   const validity = computeTestValidity(logs, metrics, profile, pressTimeline, age, locale);
 
   if (validity.shouldBlockReport) {
-    return buildInvalidDocDefinition({ participant, profile, validity, locale });
+    return buildInvalidDocDefinition({ participant, profile, validity, locale, logoDataUrl });
   }
 
   const distractor = buildDistractorAnalysisFriendly(logs, profile, age, pressTimeline, locale);
@@ -432,6 +435,7 @@ export function buildDocDefinition({
     pageSize: "A4",
     pageMargins: [36, 36, 36, 48],
     defaultStyle: { font: "Roboto", fontSize: 10 },
+    background: buildPdfLogoBackground(logoDataUrl),
     footer: (currentPage, pageCount) => ({
       margin: [36, 0, 36, 20],
       stack: [
@@ -743,10 +747,18 @@ export function buildDocDefinition({
 
 export async function createPdfBlob(args) {
   const pdfMake = await getPdfMake();
-  const reportCharts =
+  const [reportCharts, logoDataUrl] = await Promise.all([
     args.reportCharts ??
-    (await buildReportChartImages(args.logs, args.profile, args.participant?.age, args.pressTimeline ?? [], args.locale ?? "tr"));
-  const doc = buildDocDefinition({ ...args, reportCharts });
+      buildReportChartImages(
+        args.logs,
+        args.profile,
+        args.participant?.age,
+        args.pressTimeline ?? [],
+        args.locale ?? "tr"
+      ),
+    args.logoDataUrl ?? getPdfLogoDataUrl()
+  ]);
+  const doc = buildDocDefinition({ ...args, reportCharts, logoDataUrl });
   return new Promise((resolve, reject) => {
     try {
       pdfMake.createPdf(doc).getBlob((blob) => {
@@ -761,10 +773,18 @@ export async function createPdfBlob(args) {
 
 export async function downloadPdf(args) {
   const pdfMake = await getPdfMake();
-  const reportCharts =
+  const [reportCharts, logoDataUrl] = await Promise.all([
     args.reportCharts ??
-    (await buildReportChartImages(args.logs, args.profile, args.participant?.age, args.pressTimeline ?? [], args.locale ?? "tr"));
-  const doc = buildDocDefinition({ ...args, reportCharts });
+      buildReportChartImages(
+        args.logs,
+        args.profile,
+        args.participant?.age,
+        args.pressTimeline ?? [],
+        args.locale ?? "tr"
+      ),
+    args.logoDataUrl ?? getPdfLogoDataUrl()
+  ]);
+  const doc = buildDocDefinition({ ...args, reportCharts, logoDataUrl });
   const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
   const filename = `FocusProLab_${safeName}_${Date.now()}.pdf`;
   return new Promise((resolve, reject) => {
