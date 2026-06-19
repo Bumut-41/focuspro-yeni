@@ -32,7 +32,6 @@ export default function TestFlowPage() {
   const [birth, setBirth] = useState("");
   const [gender, setGender] = useState("");
   const [consent, setConsent] = useState(false);
-  const [dataConsent, setDataConsent] = useState(false);
   const [err, setErr] = useState("");
   const [age, setAge] = useState("");
   const [pkey, setPkey] = useState("adult");
@@ -217,10 +216,6 @@ export default function TestFlowPage() {
       setErr(t("test.errConsent"));
       return;
     }
-    if (!dataConsent) {
-      setErr(t("test.errDataConsent"));
-      return;
-    }
     setAge(String(a));
     setPkey(k);
     setSpaceVerified(false);
@@ -392,23 +387,8 @@ export default function TestFlowPage() {
                 <span>{t("test.consent")}</span>
               </label>
             )}
-            <label className="fp-checkbox-row">
-              <input
-                type="checkbox"
-                checked={dataConsent}
-                onChange={(e) => setDataConsent(e.target.checked)}
-                required
-              />
-              <span>{t("test.dataConsent")}</span>
-            </label>
             {err && <Alert variant="error">{err}</Alert>}
-            <Button
-              type="submit"
-              variant="primary"
-              className="fp-btn--block"
-              style={{ marginTop: 20 }}
-              disabled={!dataConsent}
-            >
+            <Button type="submit" variant="primary" className="fp-btn--block" style={{ marginTop: 20 }}>
               {t("common.continue")}
             </Button>
           </Card>

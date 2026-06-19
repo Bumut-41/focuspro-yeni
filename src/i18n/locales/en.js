@@ -109,13 +109,10 @@ export const en = {
     genderFemale: "Female",
     genderMale: "Male",
     consent: "Parent / legal guardian consent obtained.",
-    dataConsent:
-      "I agree that my data may be anonymized and used in norm studies, scientific publications, and system development activities.",
     errName: "Enter full name.",
     errBirth: "Valid date of birth (ages 6–99).",
     errGender: "Select gender.",
     errConsent: "Check the consent box for child/teen participants.",
-    errDataConsent: "Check the data use consent box to continue.",
     saved: "Test saved. Preparing PDF report…",
     noCredits: "Could not save: no test credits remaining.",
     saveError: "Save error: {{msg}}",
