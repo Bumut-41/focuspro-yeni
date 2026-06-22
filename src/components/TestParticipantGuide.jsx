@@ -66,7 +66,7 @@ export function TestParticipantGuide({ onStartPractice, targetShape = "triangle"
                     <strong>{g.scenarios.happensLabel}</strong> {item.happens}
                   </p>
                   <p className="test-participant-scenario-do">
-                    <strong>{g.scenarios.actionLabel}</strong> {item.action}
+                    <strong>{g.scenarios.actionLabel}</strong> {item.action ?? g.scenarios.actionDefault}
                   </p>
                 </article>
               ))}

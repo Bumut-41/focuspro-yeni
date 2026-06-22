@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CompleteProfilePage from "./pages/CompleteProfilePage.jsx";
+import InvitePage from "./pages/InvitePage.jsx";
 
 const TestFlowPage = lazy(() => import("./pages/TestFlowPage.jsx"));
 
@@ -45,6 +46,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/giris" element={<LoginPage />} />
       <Route path="/kayit" element={<RegisterPage />} />
+      <Route path="/davet/:token" element={<InvitePage />} />
       <Route
         path="/profil-tamamla"
         element={

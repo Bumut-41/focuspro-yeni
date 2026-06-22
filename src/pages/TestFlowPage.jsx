@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import {
@@ -15,6 +15,8 @@ import { useAttentionTest } from "../useAttentionTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
 import { TestParticipantGuide } from "../components/TestParticipantGuide.jsx";
 import { formatPersistResult, persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
+import { clearStoredInviteToken, getStoredInviteToken } from "../lib/inviteStorage.js";
+import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../services/invites.js";
 import { saveTestSession } from "../services/sessions.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
@@ -26,6 +28,7 @@ export default function TestFlowPage() {
   const { refreshProfile, user } = useAuth();
   const { t, strings, locale } = useLocale();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const instr = strings.test.instructions;
   const [step, setStep] = useState("form");
   const [name, setName] = useState("");
@@ -44,6 +47,11 @@ export default function TestFlowPage() {
   const [audioPlayError, setAudioPlayError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [sessionId, setSessionId] = useState(null);
+  const [pdfOwnerId, setPdfOwnerId] = useState(null);
+  const [inviteId, setInviteId] = useState(null);
+  const [inviteReady, setInviteReady] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+  const [isInviteFlow, setIsInviteFlow] = useState(false);
   const [practiceCompleted, setPracticeCompleted] = useState(false);
   const [activeTestProfile, setActiveTestProfile] = useState(() => getProfile(pkey));
 
@@ -79,6 +87,37 @@ export default function TestFlowPage() {
     return () => setImmersive(false);
   }, [isImmersiveStep, setImmersive]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const token = searchParams.get("invite") || searchParams.get("davet") || getStoredInviteToken();
+      try {
+        if (token) {
+          try {
+            await acceptTestInvite(token);
+          } catch {
+            /* zaten kabul edilmiş olabilir */
+          }
+        }
+        const active = await getActiveInviteForUser();
+        if (cancelled) return;
+        if (active?.id) {
+          setInviteId(active.id);
+          setIsInviteFlow(true);
+        }
+        setInviteReady(true);
+      } catch (e) {
+        if (!cancelled) {
+          setInviteError(parseRpcError(e, t));
+          setInviteReady(true);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, t]);
+
   const onDone = useCallback(
     async (snapshot, targetSnap, timeline) => {
       setLogs(snapshot);
@@ -94,24 +133,28 @@ export default function TestFlowPage() {
           }),
           lateResponseMs: profile.lateResponseMs
         };
-        const id = await saveTestSession({
+        const { sessionId: id, ownerId } = await saveTestSession({
           participant: { name, age, birthDate: birth, gender },
           profileKey: pkey,
           logs: snapshot,
           metrics,
           target: targetSnap,
-          pressTimeline: timeline ?? []
+          pressTimeline: timeline ?? [],
+          inviteId: inviteId || null
         });
         setSessionId(id);
+        setPdfOwnerId(ownerId || user?.id || null);
         pdfSavedRef.current = false;
+        if (inviteId) clearStoredInviteToken();
         await refreshProfile();
       } catch (e) {
         const m = e?.message || "";
         if (m.includes("no_credits")) setSaveError(t("test.noCredits"));
+        else if (m.includes("invite_")) setSaveError(parseRpcError(e, t));
         else setSaveError(t("test.saveError", { msg: m }));
       }
     },
-    [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile, t, locale]
+    [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile, t, locale, inviteId, user?.id]
   );
 
   const handleTestFinished = useCallback(
@@ -275,7 +318,7 @@ export default function TestFlowPage() {
     const timer = window.setTimeout(async () => {
       try {
         const result = await persistAllSessionPdfs({
-          userId: user.id,
+          userId: pdfOwnerId || user.id,
           sessionId,
           participant,
           profile,
@@ -299,7 +342,7 @@ export default function TestFlowPage() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [step, sessionId, user?.id, logs, target, profile, participant, pressTimeline, locale]);
+  }, [step, sessionId, user?.id, pdfOwnerId, logs, target, profile, participant, pressTimeline, locale]);
 
   useEffect(() => {
     if (step !== "thanks") return undefined;
@@ -340,6 +383,28 @@ export default function TestFlowPage() {
 
   if (!user) return <Navigate to="/giris" replace />;
 
+  if (!inviteReady) {
+    return (
+      <Page narrow>
+        <p className="fp-loading">{t("common.loading")}</p>
+      </Page>
+    );
+  }
+
+  const inviteTokenInUrl = searchParams.get("invite") || searchParams.get("davet") || getStoredInviteToken();
+  if (inviteTokenInUrl && inviteError && !inviteId) {
+    return (
+      <Page narrow>
+        <Card>
+          <Alert variant="error">{inviteError}</Alert>
+          <Button asLink to="/" variant="secondary" style={{ marginTop: 16 }}>
+            {t("invite.backHome")}
+          </Button>
+        </Card>
+      </Page>
+    );
+  }
+
   return (
     <div
       className={isImmersiveStep ? "test-flow test-flow--immersive" : "test-flow"}
@@ -357,7 +422,9 @@ export default function TestFlowPage() {
         <Page narrow>
           <Card as="form" onSubmit={submitForm}>
             <h2 className="fp-card-title">{t("test.participantTitle")}</h2>
-            <p className="fp-card-desc">{t("test.participantDesc")}</p>
+            <p className="fp-card-desc">
+              {isInviteFlow ? t("test.participantDescInvite") : t("test.participantDesc")}
+            </p>
             <Field label={t("auth.fullName")}>
               <Input value={name} onChange={(e) => setName(e.target.value)} required />
             </Field>
@@ -549,7 +616,9 @@ export default function TestFlowPage() {
             <div className="space-screen-win">
               <span className="space-screen-win-check">✓</span>
               <h2 className="space-screen-win-title">{t("test.thankYouTitle")}</h2>
-              <p className="space-screen-win-sub">{t("test.thankYouRedirect")}</p>
+              <p className="space-screen-win-sub">
+                {isInviteFlow ? t("test.thankYouInviteRedirect") : t("test.thankYouRedirect")}
+              </p>
               {saveError && (
                 <p className="space-screen-error" role="alert">
                   {saveError}

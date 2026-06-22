@@ -6,7 +6,8 @@ export async function saveTestSession({
   logs,
   metrics,
   target,
-  pressTimeline = []
+  pressTimeline = [],
+  inviteId = null
 }) {
   const { data, error } = await supabase.rpc("complete_test_session", {
     p_participant_name: participant.name,
@@ -17,10 +18,14 @@ export async function saveTestSession({
     p_logs: logs,
     p_metrics: metrics,
     p_target: target,
-    p_press_timeline: pressTimeline
+    p_press_timeline: pressTimeline,
+    p_invite_id: inviteId || null
   });
   if (error) throw error;
-  return data;
+  if (data && typeof data === "object" && data.id) {
+    return { sessionId: data.id, ownerId: data.owner_id };
+  }
+  return { sessionId: data, ownerId: null };
 }
 
 export async function fetchMySessions(limit = 50) {

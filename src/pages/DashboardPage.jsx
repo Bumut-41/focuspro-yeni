@@ -6,6 +6,7 @@ import { roleLabel } from "../lib/userRoles.js";
 import { fetchMySessions, fetchAdminPressTimeline, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
 import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
+import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
 import {
   Alert,
   Badge,
@@ -19,11 +20,12 @@ import {
 } from "../components/ui.jsx";
 
 export default function DashboardPage() {
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, isPsychologist } = useAuth();
   const { t, locale, dateLocale } = useLocale();
   const [sessions, setSessions] = useState([]);
   const [msg, setMsg] = useState("");
   const [pdfBusy, setPdfBusy] = useState(null);
+  const canViewSessions = isAdmin || isPsychologist;
 
   async function downloadTestReport(session) {
     setPdfBusy(session.id);
@@ -47,7 +49,7 @@ export default function DashboardPage() {
   }
 
   const load = useCallback(async () => {
-    if (!isAdmin) {
+    if (!canViewSessions) {
       setSessions([]);
       return;
     }
@@ -56,7 +58,7 @@ export default function DashboardPage() {
     } catch (e) {
       setMsg(e.message);
     }
-  }, [isAdmin]);
+  }, [canViewSessions]);
 
   useEffect(() => {
     load();
@@ -70,18 +72,20 @@ export default function DashboardPage() {
           description={t("dashboard.description")}
           action={<Badge variant="primary">{roleLabel(profile?.role, locale)}</Badge>}
         />
-        <Alert variant={isAdmin ? "success" : "info"}>
-          {isAdmin ? t("dashboard.pdfAutoSave") : t("dashboard.resultsPrivate")}
+        <Alert variant={canViewSessions ? "success" : "info"}>
+          {canViewSessions ? t("dashboard.pdfAutoSave") : t("dashboard.resultsPrivate")}
         </Alert>
-        {!isAdmin && (
+        {!canViewSessions && (
           <p style={{ margin: "12px 0 0", fontSize: "0.875rem", color: "var(--fp-text-secondary)", lineHeight: 1.55 }}>
             {t("dashboard.guideHint")}
           </p>
         )}
         <Stack gap={12} style={{ marginTop: 20 }}>
-          <Button asLink to="/test" variant="primary">
-            {t("dashboard.newTest")}
-          </Button>
+          {!isPsychologist && (
+            <Button asLink to="/test" variant="primary">
+              {t("dashboard.newTest")}
+            </Button>
+          )}
           {isAdmin && (
             <Button asLink to="/admin" variant="secondary">
               {t("dashboard.adminPanel")}
@@ -95,7 +99,9 @@ export default function DashboardPage() {
         )}
       </Card>
 
-      {isAdmin && (
+      {isPsychologist && <PsychologistInvitesPanel />}
+
+      {canViewSessions && (
       <Card>
         <CardHeader title={t("dashboard.historyTitle")} description={t("dashboard.historyDesc")} />
         {!sessions.length && (

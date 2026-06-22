@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { supabase } from "../lib/supabase.js";
+import { getStoredInviteToken, setStoredInviteToken } from "../lib/inviteStorage.js";
+import { acceptTestInvite, parseRpcError } from "../services/invites.js";
 import { BrandLogo } from "../components/BrandLogo.jsx";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
 import { Alert, Button, Card, Field, Input, Page } from "../components/ui.jsx";
@@ -11,12 +13,23 @@ export default function LoginPage() {
   const { user, isSupabaseReady, needsProfileCompletion } = useAuth();
   const { t } = useLocale();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("davet") || getStoredInviteToken();
+  const isInviteLogin = Boolean(inviteToken);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to={needsProfileCompletion ? "/profil-tamamla" : "/panel"} replace />;
+  useEffect(() => {
+    if (inviteToken) setStoredInviteToken(inviteToken);
+  }, [inviteToken]);
+
+  if (user) {
+    const dest = needsProfileCompletion ? "/profil-tamamla" : isInviteLogin ? "/test" : "/panel";
+    return <Navigate to={dest} replace />;
+  }
 
   if (!isSupabaseReady) {
     return (
@@ -40,11 +53,26 @@ export default function LoginPage() {
       email: email.trim().toLowerCase(),
       password
     });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       setMsg(error.message);
       return;
     }
+
+    if (inviteToken) {
+      try {
+        await acceptTestInvite(inviteToken);
+        setBusy(false);
+        navigate("/test", { replace: true });
+        return;
+      } catch (err) {
+        setBusy(false);
+        setMsg(parseRpcError(err, t));
+        return;
+      }
+    }
+
+    setBusy(false);
     navigate("/panel");
   }
 
@@ -54,8 +82,8 @@ export default function LoginPage() {
         <div className="fp-auth-logo-wrap">
           <BrandLogo variant="auth" />
         </div>
-        <h1 className="fp-auth-title">{t("auth.loginTitle")}</h1>
-        <p className="fp-auth-sub">{t("auth.loginSub")}</p>
+        <h1 className="fp-auth-title">{isInviteLogin ? t("invite.loginTitle") : t("auth.loginTitle")}</h1>
+        <p className="fp-auth-sub">{isInviteLogin ? t("invite.loginSub") : t("auth.loginSub")}</p>
         <Field label={t("auth.email")}>
           <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
         </Field>
@@ -74,7 +102,8 @@ export default function LoginPage() {
         </Button>
         <OAuthButtons />
         <p style={{ marginTop: 16, color: "var(--fp-text-muted)", fontSize: "0.875rem" }}>
-          {t("auth.noAccount")} <Link to="/kayit">{t("auth.registerLink")}</Link>
+          {t("auth.noAccount")}{" "}
+          <Link to={inviteToken ? `/kayit?davet=${inviteToken}` : "/kayit"}>{t("auth.registerLink")}</Link>
         </p>
       </Card>
     </Page>

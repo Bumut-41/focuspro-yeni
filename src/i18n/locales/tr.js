@@ -33,7 +33,8 @@ export const tr = {
     ok: "Tamam",
     yes: "Evet",
     no: "Hayır",
-    dash: "—"
+    dash: "—",
+    error: "Bir hata oluştu."
   },
   auth: {
     setupTitle: "Supabase ayarı gerekli",
@@ -104,9 +105,59 @@ export const tr = {
     pdfPreparing: "PDF hazırlanıyor…",
     pdfOpenFailed: "PDF açılamadı."
   },
+  invite: {
+    pageTitle: "Test daveti",
+    pageDesc: "{{psychologist}} sizi FocusProLab dikkat testine davet etti. Devam etmek için {{email}} adresiyle kayıt olun veya giriş yapın.",
+    expiresAt: "Davet geçerlilik süresi: {{date}}",
+    expired: "Bu davetin süresi dolmuş.",
+    alreadyCompleted: "Bu davet zaten kullanılmış.",
+    registerBtn: "Kayıt ol ve teste başla",
+    loginBtn: "Giriş yap",
+    accepting: "Davet doğrulanıyor…",
+    backHome: "Ana sayfaya dön",
+    registerTitle: "Davetli kayıt",
+    registerSub: "Uzmanınızın gönderdiği davetle bireysel hesap oluşturun. Kayıt sonrası teste yönlendirileceksiniz.",
+    loginTitle: "Davetli giriş",
+    loginSub: "Davet e-postasındaki adresle giriş yapın; ardından teste başlayabilirsiniz.",
+    panelTitle: "Test davetleri",
+    panelDesc: "Demo kredi ile katılımcı davet edin. Her davet 3 gün geçerlidir; sonuçlar yalnızca sizin panelinizde görünür.",
+    creditsLeft: "{{count}} kredi",
+    buyDemoCredits: "Demo: {{count}} test kredisi al",
+    recipientEmail: "Katılımcı e-postası",
+    sendHint: "1 kredi düşülür. Katılımcıya 3 gün geçerli davet bağlantısı gönderilir.",
+    sendBtn: "Davet gönder",
+    sentSuccess: "Davet {{email}} adresine gönderildi.",
+    creditsPurchased: "{{count}} demo kredi eklendi.",
+    listTitle: "Gönderilen davetler",
+    listDesc: "Bekleyen, kabul edilen ve tamamlanan davetler.",
+    noInvites: "Henüz davet yok.",
+    noInvitesDesc: "İlk davetinizi yukarıdan gönderin.",
+    colDate: "Tarih",
+    colEmail: "E-posta",
+    colStatus: "Durum",
+    colExpires: "Son geçerlilik",
+    status: {
+      pending: "Bekliyor",
+      accepted: "Kabul edildi",
+      completed: "Tamamlandı",
+      expired: "Süresi doldu",
+      cancelled: "İptal"
+    },
+    errNotFound: "Davet bulunamadı.",
+    errExpired: "Davetin süresi dolmuş.",
+    errUsed: "Bu davet zaten kullanılmış.",
+    errCancelled: "Davet iptal edilmiş.",
+    errEmailMismatch: "Giriş yaptığınız e-posta davet adresiyle eşleşmiyor.",
+    errIndividualOnly: "Davet yalnızca bireysel hesaplar için geçerlidir.",
+    errTaken: "Bu davet başka bir kullanıcıya atanmış.",
+    errNoCredits: "Yeterli test krediniz yok.",
+    errInvalidEmail: "Geçerli bir e-posta girin.",
+    errForbidden: "Bu işlem için yetkiniz yok."
+  },
   test: {
     participantTitle: "Katılımcı bilgileri",
-    participantDesc: "Değerlendirme oturumu için katılımcı kaydı.",
+    participantDesc: "Değerlendirme oturumu için katılımcı bilgilerini girin.",
+    participantDescInvite: "Uzmanınızın davetiyle teste başlıyorsunuz. Katılımcı bilgilerini girin; sonuçlar yalnızca uzmanınızda görünür.",
     gender: "Cinsiyet",
     genderFemale: "Kadın",
     genderMale: "Erkek",
@@ -143,6 +194,7 @@ export const tr = {
     startTest: "Teste başla",
     thankYouTitle: "Katılımınız için teşekkürler",
     thankYouRedirect: "30 saniye içinde ana sayfaya yönlendirileceksiniz.",
+    thankYouInviteRedirect: "Testiniz tamamlandı. Sonuçlar yalnızca uzmanınızda görüntülenecektir. Kısa süre içinde ana sayfaya yönlendirileceksiniz.",
     qaHint:
       "Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses, temel ve kapanış kapalı.",
     participantGuide: {
@@ -173,36 +225,32 @@ export const tr = {
         lead: "Her bölümde ekranda farklı şeyler olur. Görevin her senaryoda aynıdır.",
         happensLabel: "Ne olur?",
         actionLabel: "Ne yapmalısın?",
+        actionDefault:
+          "Her mavi üçgen gördüğünde space tuşuna basmalısın. Diğer şekillere tepki vermemelisin.",
         items: [
           {
             title: "Deneme testi (30 sn)",
-            happens: "Asıl testin kısaltılmış hali; tüm bölüm türleri kısa süre gelir. Kayıt edilmez.",
-            action: "Arayüzü tanı, mavi üçgende SPACE'e basmayı alıştır."
+            happens: "Asıl testin kısaltılmış hali; tüm bölüm türleri kısa süre gelir. Kayıt edilmez."
           },
           {
             title: "Çeldirici yok",
-            happens: "Sadece şekiller ekranda gelir; gif veya ek ses yok.",
-            action: "Sakin kal; yalnızca mavi üçgende SPACE'e bas."
+            happens: "Sadece şekiller ekranda gelir; gif veya ek ses yok."
           },
           {
             title: "Sessiz hareketli görüntüler",
-            happens: "Ekran kenarında sessiz gif animasyonları oynar.",
-            action: "Giflere tepki verme; sadece mavi üçgene odaklan."
+            happens: "Ekran kenarında sessiz gif animasyonları oynar."
           },
           {
             title: "Yalnızca ses",
-            happens: "Görüntü olmadan kısa ses uyaranları duyarsın.",
-            action: "Yalnızca mavi üçgen gördüğünde bas."
+            happens: "Görüntü olmadan kısa ses uyaranları duyarsın."
           },
           {
             title: "Görüntü + ses birlikte",
-            happens: "Hem gif hem ses çeldiricileri birlikte gelir.",
-            action: "Dikkatini dağıtma; yine yalnızca mavi üçgende bas."
+            happens: "Hem gif hem ses çeldiricileri birlikte gelir."
           },
           {
             title: "Kapanış bölümü",
-            happens: "Test sonuna doğru çeldiriciler azalır.",
-            action: "Son ana kadar aynı kural geçerli."
+            happens: "Test sonuna doğru çeldiriciler azalır."
           }
         ]
       },

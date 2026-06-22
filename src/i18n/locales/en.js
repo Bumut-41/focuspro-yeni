@@ -33,7 +33,8 @@ export const en = {
     ok: "OK",
     yes: "Yes",
     no: "No",
-    dash: "—"
+    dash: "—",
+    error: "An error occurred."
   },
   auth: {
     setupTitle: "Supabase setup required",
@@ -104,9 +105,59 @@ export const en = {
     pdfPreparing: "Preparing PDF…",
     pdfOpenFailed: "Could not open PDF."
   },
+  invite: {
+    pageTitle: "Test invitation",
+    pageDesc: "{{psychologist}} invited you to a FocusProLab attention test. Register or sign in with {{email}} to continue.",
+    expiresAt: "Invitation valid until: {{date}}",
+    expired: "This invitation has expired.",
+    alreadyCompleted: "This invitation has already been used.",
+    registerBtn: "Register and start test",
+    loginBtn: "Sign in",
+    accepting: "Verifying invitation…",
+    backHome: "Back to home",
+    registerTitle: "Invited registration",
+    registerSub: "Create an individual account via your clinician's invitation. You will be redirected to the test after registration.",
+    loginTitle: "Invited sign-in",
+    loginSub: "Sign in with the email address that received the invitation, then start the test.",
+    panelTitle: "Test invitations",
+    panelDesc: "Invite participants with demo credits. Each invite is valid for 3 days; results appear only on your dashboard.",
+    creditsLeft: "{{count}} credits",
+    buyDemoCredits: "Demo: purchase {{count}} test credits",
+    recipientEmail: "Participant email",
+    sendHint: "1 credit is deducted. A 3-day invitation link is emailed to the participant.",
+    sendBtn: "Send invitation",
+    sentSuccess: "Invitation sent to {{email}}.",
+    creditsPurchased: "{{count}} demo credits added.",
+    listTitle: "Sent invitations",
+    listDesc: "Pending, accepted, and completed invitations.",
+    noInvites: "No invitations yet.",
+    noInvitesDesc: "Send your first invitation above.",
+    colDate: "Date",
+    colEmail: "Email",
+    colStatus: "Status",
+    colExpires: "Expires",
+    status: {
+      pending: "Pending",
+      accepted: "Accepted",
+      completed: "Completed",
+      expired: "Expired",
+      cancelled: "Cancelled"
+    },
+    errNotFound: "Invitation not found.",
+    errExpired: "This invitation has expired.",
+    errUsed: "This invitation has already been used.",
+    errCancelled: "Invitation was cancelled.",
+    errEmailMismatch: "Your sign-in email does not match the invitation.",
+    errIndividualOnly: "Invitations are only for individual accounts.",
+    errTaken: "This invitation is assigned to another user.",
+    errNoCredits: "Not enough test credits.",
+    errInvalidEmail: "Enter a valid email address.",
+    errForbidden: "You are not allowed to perform this action."
+  },
   test: {
     participantTitle: "Participant information",
-    participantDesc: "Participant record for this assessment session.",
+    participantDesc: "Enter participant details for this assessment session.",
+    participantDescInvite: "You are starting a test via your clinician's invitation. Enter participant details; results are visible only to your clinician.",
     gender: "Gender",
     genderFemale: "Female",
     genderMale: "Male",
@@ -142,6 +193,7 @@ export const en = {
     startTest: "Start test",
     thankYouTitle: "Thank you for your participation",
     thankYouRedirect: "You will be redirected to the home page in 30 seconds.",
+    thankYouInviteRedirect: "Your test is complete. Results will only be visible to your clinician. You will be redirected to the home page shortly.",
     qaHint:
       "Temporary mode: silent GIF and silent+audio GIF sections only (~6 min). Audio-only, baseline, and closing disabled.",
     participantGuide: {
@@ -172,36 +224,32 @@ export const en = {
         lead: "Different things appear on screen in each section. Your task stays the same.",
         happensLabel: "What happens?",
         actionLabel: "What should you do?",
+        actionDefault:
+          "Every time you see a blue triangle, press the space key. Do not react to other shapes.",
         items: [
           {
             title: "Practice test (30 sec)",
-            happens: "A shortened version of the main test; all section types appear briefly. Not recorded.",
-            action: "Get familiar with the interface; practice pressing SPACE on the blue triangle."
+            happens: "A shortened version of the main test; all section types appear briefly. Not recorded."
           },
           {
             title: "No distractors",
-            happens: "Only shapes appear on screen; no GIFs or extra sounds.",
-            action: "Stay calm; press SPACE only on the blue triangle."
+            happens: "Only shapes appear on screen; no GIFs or extra sounds."
           },
           {
             title: "Silent moving images",
-            happens: "Silent GIF animations play at the edge of the screen.",
-            action: "Do not react to GIFs; focus only on the blue triangle."
+            happens: "Silent GIF animations play at the edge of the screen."
           },
           {
             title: "Audio only",
-            happens: "You hear short sound cues without images.",
-            action: "Press only when you see the blue triangle."
+            happens: "You hear short sound cues without images."
           },
           {
             title: "Image + sound combined",
-            happens: "Both GIF and sound distractors appear together.",
-            action: "Do not get distracted; still press only for the blue triangle."
+            happens: "Both GIF and sound distractors appear together."
           },
           {
             title: "Closing section",
-            happens: "Towards the end, distractors decrease.",
-            action: "Same rule until the very end."
+            happens: "Towards the end, distractors decrease."
           }
         ]
       },
