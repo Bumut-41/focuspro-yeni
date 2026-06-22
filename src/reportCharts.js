@@ -21,8 +21,8 @@ import { normBand } from "./reportNorms.js";
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, LineController, Legend, Tooltip, Filler);
 
 const COMBINED_COLORS = {
-  attention: "#7c3aed",
-  timing: "#6366f1",
+  attention: "#2563eb",
+  timing: "#0d9488",
   impulsivity: "#ef4444",
   hyperactivity: "#d4a574"
 };
@@ -33,14 +33,14 @@ function indexMeta(locale = "tr") {
     attention: {
       title: r.attention.replace(/^A — /, ""),
       field: "attention",
-      color: "#7c3aed",
+      color: "#2563eb",
       pointStyle: "circle",
       borderDash: []
     },
     timing: {
       title: r.timing.replace(/^T — /, ""),
       field: "timing",
-      color: "#4f46e5",
+      color: "#0d9488",
       pointStyle: "rect",
       borderDash: [8, 4]
     },

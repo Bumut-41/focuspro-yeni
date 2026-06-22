@@ -49,8 +49,8 @@ export function ReportPanel({
     ? {
         labels: logs.map((trial) => trial.trialNumber),
         datasets: [
-          { label: t("report.attention"), data: series.att, borderColor: "#7c3aed", tension: 0.2, pointRadius: 0 },
-          { label: t("report.timing"), data: series.spd, borderColor: "#4f46e5", tension: 0.2, pointRadius: 0 },
+          { label: t("report.attention"), data: series.att, borderColor: "#2563eb", tension: 0.2, pointRadius: 0 },
+          { label: t("report.timing"), data: series.spd, borderColor: "#0d9488", tension: 0.2, pointRadius: 0 },
           { label: t("report.impulsivity"), data: series.imp, borderColor: "#dc2626", tension: 0.2, pointRadius: 0 },
           { label: t("report.hyperactivity"), data: series.hyp, borderColor: "#d97706", tension: 0.2, pointRadius: 0 }
         ]
