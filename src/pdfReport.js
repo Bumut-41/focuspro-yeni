@@ -131,6 +131,7 @@ function tableLayout(headColor = TABLE_HEAD) {
 
 function normTableLayout(headColor = TABLE_HEAD) {
   return {
+    fillColor: (rowIndex) => (rowIndex === 0 ? headColor : null),
     hLineWidth: () => 1.2,
     hLineColor: () => "#334155",
     vLineWidth: () => 1,
@@ -351,11 +352,11 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
         widths: ["*", 40, 40, 40, 40],
         body: [
           [
-            { text: pdf.perfLevel, bold: true, color: "#fff" },
-            { text: "A", bold: true, color: "#fff", alignment: "center" },
-            { text: "T", bold: true, color: "#fff", alignment: "center" },
-            { text: "I", bold: true, color: "#fff", alignment: "center" },
-            { text: "H", bold: true, color: "#fff", alignment: "center" }
+            { text: pdf.perfLevel, bold: true, color: "#fff", fillColor: TABLE_HEAD },
+            { text: "A", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+            { text: "T", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+            { text: "I", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+            { text: "H", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD }
           ],
           ...perfBody
         ]
@@ -380,11 +381,11 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
           widths: ["*", 40, 40, 40, 40],
           body: [
             [
-              { text: pdf.severity, bold: true, color: "#fff" },
-              { text: "A", bold: true, color: "#fff", alignment: "center" },
-              { text: "T", bold: true, color: "#fff", alignment: "center" },
-              { text: "I", bold: true, color: "#fff", alignment: "center" },
-              { text: "H", bold: true, color: "#fff", alignment: "center" }
+              { text: pdf.severity, bold: true, color: "#fff", fillColor: "#7f1d1d" },
+              { text: "A", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" },
+              { text: "T", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" },
+              { text: "I", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" },
+              { text: "H", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" }
             ],
             ...sevRows
           ]
