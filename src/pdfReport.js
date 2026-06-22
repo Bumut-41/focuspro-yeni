@@ -741,7 +741,7 @@ export function buildDocDefinition({
         margin: [0, 0, 0, 14]
       },
 
-      sectionTitle(pdf.professional, true),
+      sectionTitle(pdf.professionalTitle, true),
       { text: professional, lineHeight: 1.4, alignment: "justify", margin: [0, 0, 0, 16] },
 
       sectionTitle(pdf.technicalAppendix),
