@@ -191,7 +191,7 @@ export const en = {
           {
             title: "Audio only",
             happens: "You hear short sound cues without images.",
-            action: "Do not react to sounds; watch the triangle on screen."
+            action: "Press only when you see the blue triangle."
           },
           {
             title: "Image + sound combined",

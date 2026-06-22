@@ -192,7 +192,7 @@ export const tr = {
           {
             title: "Yalnızca ses",
             happens: "Görüntü olmadan kısa ses uyaranları duyarsın.",
-            action: "Seslere tepki verme; ekrandaki üçgene bak."
+            action: "Yalnızca mavi üçgen gördüğünde bas."
           },
           {
             title: "Görüntü + ses birlikte",
