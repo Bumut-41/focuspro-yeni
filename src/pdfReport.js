@@ -339,7 +339,7 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
   });
 
   const blocks = [
-    sectionTitle(pdf.normComparison, true),
+    sectionTitle(pdf.normComparison, false),
     {
       text: pdf.normIntro,
       fontSize: 9,
@@ -401,6 +401,49 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
   });
 
   return blocks;
+}
+
+function phaseSectionsTableBlock(sections, pdf) {
+  if (!sections?.length) return null;
+  return {
+    table: {
+      headerRows: 1,
+      widths: ["*", "auto", "auto", "auto", "auto", "auto", "*"],
+      body: [
+        [
+          { text: pdf.section, bold: true, color: "#fff", fillColor: TABLE_HEAD },
+          { text: "A", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: "T", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: "I", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: "H", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: "RT", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: pdf.comment, bold: true, color: "#fff", fillColor: TABLE_HEAD }
+        ],
+        ...sections.map((s) => [
+          s.shortLabel,
+          s.attentionScore,
+          s.timingScore,
+          s.impulsivityScore,
+          s.hyperactivityScore,
+          `${s.medianReaction} ms`,
+          { text: s.comment, fontSize: 8 }
+        ])
+      ]
+    },
+    layout: tableLayout(),
+    margin: [0, 0, 0, 8]
+  };
+}
+
+function normAndPhaseBlock(sections, scores, profileKey, locale) {
+  const phaseTable = phaseSectionsTableBlock(sections, getReportPdfStrings(locale));
+  const normBlocks = buildNormComparison(scores, profileKey, locale);
+  if (!phaseTable && !normBlocks.length) return null;
+  return {
+    unbreakable: true,
+    margin: [0, 0, 0, 12],
+    stack: [phaseTable, ...normBlocks].filter(Boolean)
+  };
 }
 
 export function buildDocDefinition({
@@ -732,35 +775,7 @@ export function buildDocDefinition({
         layout: tableLayout(),
         margin: [0, 0, 0, 10]
       },
-      {
-        table: {
-          headerRows: 1,
-          widths: ["*", "auto", "auto", "auto", "auto", "auto", "*"],
-          body: [
-            [
-              { text: pdf.section, bold: true, color: "#fff" },
-              { text: "A", bold: true, color: "#fff" },
-              { text: "T", bold: true, color: "#fff" },
-              { text: "I", bold: true, color: "#fff" },
-              { text: "H", bold: true, color: "#fff" },
-              { text: "RT", bold: true, color: "#fff" },
-              { text: pdf.comment, bold: true, color: "#fff" }
-            ],
-            ...sections.map((s) => [
-              s.shortLabel,
-              s.attentionScore,
-              s.timingScore,
-              s.impulsivityScore,
-              s.hyperactivityScore,
-              `${s.medianReaction} ms`,
-              { text: s.comment, fontSize: 8 }
-            ])
-          ]
-        },
-        layout: tableLayout(),
-        margin: [0, 0, 0, 12]
-      },
-      ...buildNormComparison(scores, profileKey, locale),
+      normAndPhaseBlock(sections, scores, profileKey, locale),
 
       ...clinicalFlagsSection(clinicalFlags, pdf),
 
