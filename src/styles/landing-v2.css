@@ -3,6 +3,9 @@
 .fp-header--marketing .fp-header-inner {
   max-width: 1200px;
 }
+
+.fp-header--marketing {
+  background: #fff;
   border-bottom: 1px solid #e2e8f0;
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
 }
