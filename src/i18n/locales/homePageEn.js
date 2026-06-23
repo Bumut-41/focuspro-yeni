@@ -19,8 +19,8 @@ export const homePageEn = {
       { label: "Adolescents (13–17)", icon: "🎓" },
       { label: "Adults (18+)", icon: "💼" }
     ],
-    ctaTest: "Start test",
-    ctaExpert: "Find a clinician",
+    ctaTest: "Start individual test",
+    ctaExpert: "Plan test with clinician",
     badges: [
       { icon: "⚡", label: "Instant results" },
       { icon: "📄", label: "PDF report" },

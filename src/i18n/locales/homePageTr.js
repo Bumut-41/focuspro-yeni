@@ -19,8 +19,8 @@ export const homePageTr = {
       { label: "Ergenler (13–17 Yaş)", icon: "🎓" },
       { label: "Yetişkinler (18+)", icon: "💼" }
     ],
-    ctaTest: "Teste Başla",
-    ctaExpert: "Uzman Bul",
+    ctaTest: "Bireysel Teste Başla",
+    ctaExpert: "Uzmanla Test Planla",
     badges: [
       { icon: "⚡", label: "Anlık Sonuç" },
       { icon: "📄", label: "PDF Rapor" },
