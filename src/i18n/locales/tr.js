@@ -1,4 +1,5 @@
 import { homeTr } from "./homeTr.js";
+import { homePageTr } from "./homePageTr.js";
 
 export const tr = {
   meta: {
@@ -80,7 +81,7 @@ export const tr = {
     pageDesc:
       "Uygulama beklenmeyen bir hatayla durdu. Sayfayı yenileyin; sorun sürerse geliştiriciye bu metni iletin."
   },
-  home: homeTr,
+  home: { ...homeTr, marketing: homePageTr },
   dashboard: {
     welcome: "Hoş geldiniz, {{name}}",
     description: "Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin.",

@@ -1,4 +1,5 @@
 import { homeEn } from "./homeEn.js";
+import { homePageEn } from "./homePageEn.js";
 
 export const en = {
   meta: {
@@ -80,7 +81,7 @@ export const en = {
     pageDesc:
       "The app stopped due to an unexpected error. Refresh the page; if the problem persists, send this message to the developer."
   },
-  home: homeEn,
+  home: { ...homeEn, marketing: homePageEn },
   dashboard: {
     welcome: "Welcome, {{name}}",
     description: "Manage your attention and continuous performance assessments here.",
