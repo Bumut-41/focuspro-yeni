@@ -74,10 +74,26 @@ export default function AdminPage() {
   }
 
   const load = useCallback(async () => {
-    const [p, s] = await Promise.all([fetchAllProfiles(), fetchAllSessions(200)]);
-    setProfiles(p);
-    setSessions(s);
-    setCreditDrafts(Object.fromEntries(p.map((row) => [row.id, String(row.test_credits ?? 0)])));
+    const [profilesResult, sessionsResult] = await Promise.allSettled([
+      fetchAllProfiles(),
+      fetchAllSessions(200)
+    ]);
+    if (profilesResult.status === "fulfilled") {
+      const p = profilesResult.value;
+      setProfiles(p);
+      setCreditDrafts(Object.fromEntries(p.map((row) => [row.id, String(row.test_credits ?? 0)])));
+    } else {
+      setProfiles([]);
+      setMsg(profilesResult.reason?.message || String(profilesResult.reason));
+    }
+    if (sessionsResult.status === "fulfilled") {
+      setSessions(sessionsResult.value);
+    } else {
+      setSessions([]);
+      if (profilesResult.status === "fulfilled") {
+        setMsg(sessionsResult.reason?.message || String(sessionsResult.reason));
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -394,7 +410,7 @@ export default function AdminPage() {
         <DataTable
           columns={[
             { label: t("admin.date"), render: (s) => new Date(s.created_at).toLocaleString(dateLocale) },
-            { label: t("admin.operator"), render: (s) => s.profiles?.full_name ?? s.owner_id?.slice(0, 8) },
+            { label: t("admin.operator"), render: (s) => s.owner?.full_name ?? s.profiles?.full_name ?? s.owner_id?.slice(0, 8) },
             { key: "participant_name", label: t("admin.participant") },
             {
               label: t("admin.score"),

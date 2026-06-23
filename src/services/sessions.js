@@ -42,7 +42,7 @@ export async function fetchAllSessions(limit = 100) {
   const { data, error } = await supabase
     .from("test_sessions")
     .select(
-      "id, owner_id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, admin_pdf_path, profiles(full_name, role)"
+      "id, owner_id, taker_id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, admin_pdf_path, owner:profiles!owner_id(full_name, role), taker:profiles!taker_id(full_name, role)"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
