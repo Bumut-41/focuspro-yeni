@@ -1543,6 +1543,50 @@ a:hover {
   font-family: var(--fp-font);
 }
 
+.test-countdown {
+  width: 100%;
+  min-height: min(88dvh, 720px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+}
+
+.test-flow--immersive .test-countdown {
+  min-height: 100dvh;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.test-countdown-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2em;
+  font-size: clamp(6rem, 22vw, 9rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #0088a9;
+  animation: test-countdown-pop 0.85s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes test-countdown-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .test-dev-timer {
   position: fixed;
   top: 12px;

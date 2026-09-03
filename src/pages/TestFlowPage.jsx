@@ -53,6 +53,7 @@ export default function TestFlowPage() {
   const [inviteError, setInviteError] = useState("");
   const [isInviteFlow, setIsInviteFlow] = useState(false);
   const [practiceCompleted, setPracticeCompleted] = useState(false);
+  const [countdown, setCountdown] = useState(null);
   const [activeTestProfile, setActiveTestProfile] = useState(() => getProfile(pkey));
 
   const spaceDoneLock = useRef(false);
@@ -78,6 +79,7 @@ export default function TestFlowPage() {
     step === "spaceCheck" ||
     step === "audioCheck" ||
     step === "brief" ||
+    step === "countdown" ||
     step === "practiceRun" ||
     step === "run" ||
     step === "thanks";
@@ -290,9 +292,23 @@ export default function TestFlowPage() {
     setSessionId(null);
     pdfSavedRef.current = false;
     setActiveTestProfile(getProfile(pkey));
-    pendingMainStart.current = true;
-    setStep("run");
+    setCountdown(1);
+    setStep("countdown");
   }
+
+  useEffect(() => {
+    if (step !== "countdown" || countdown == null) return undefined;
+    const timer = window.setTimeout(() => {
+      if (countdown >= 3) {
+        setCountdown(null);
+        pendingMainStart.current = true;
+        setStep("run");
+        return;
+      }
+      setCountdown((n) => n + 1);
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [step, countdown]);
 
   useEffect(() => {
     if (step === "practiceRun" && pendingPracticeStart.current) {
@@ -585,6 +601,14 @@ export default function TestFlowPage() {
           <button type="button" onClick={beginTest} className="test-brief-start">
             {t("test.startTest")}
           </button>
+        </div>
+      )}
+
+      {step === "countdown" && countdown != null && (
+        <div className="test-countdown" role="status" aria-live="assertive" aria-atomic="true">
+          <span key={countdown} className="test-countdown-num">
+            {countdown}
+          </span>
         </div>
       )}
 
