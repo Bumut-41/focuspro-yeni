@@ -96,7 +96,7 @@ export const homePageEn = {
       "Complete the test",
       "Results are analysed",
       "PDF report is generated",
-      "Visible on the clinician dashboard",
+      "Reports for individual test takers are sent to their email address. Tests taken with a specialist are also shown on the specialist dashboard.",
       "Development programme can be planned",
       "Optional expert consultation"
     ],

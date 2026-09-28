@@ -96,7 +96,7 @@ export const homePageTr = {
       "Testi tamamlayın",
       "Sonuçlar analiz edilir",
       "PDF rapor oluşturulur",
-      "Uzman panelinde görüntülenir",
+      "Bireysel test yapanların raporları mail adresine gönderilir. Uzman ile test yapanların testleri ayrıca uzman panelinde de görüntülenir.",
       "Gelişim programı planlanabilir",
       "İsteğe bağlı uzman görüşmesi"
     ],
