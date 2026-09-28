@@ -11,14 +11,9 @@ export const homePageTr = {
     login: "Giriş Yap"
   },
   hero: {
-    title: "FocusProLab Performans Değerlendirme Sistemi",
-    lead:
-      "Dikkat Performansını Ölçmenin Ötesinde, Anlamaya ve Geliştirmeye Yönelik Yeni Nesil Dijital Değerlendirme Platformu",
-    paragraphs: [
-      "FocusProLab; çocuk, ergen ve yetişkinlerde dikkat performansını çok boyutlu olarak değerlendirmek amacıyla geliştirilen, bilgisayar tabanlı dijital performans değerlendirme platformudur.",
-      "Sistem; standartlaştırılmış dijital görevler aracılığıyla bireyin dikkat performansını oluşturan temel bilişsel süreçleri objektif performans verileriyle analiz eder. Geleneksel değerlendirme yaklaşımlarının aksine, yalnızca doğru ve yanlış cevap sayılarını değil; tepki örüntülerini, zamanlama becerisini, dürtü kontrolünü, motor davranışları ve çeldiriciler karşısındaki performansı birlikte değerlendirerek kişiye özgü ayrıntılı bir performans profili oluşturur.",
-      "Bu yaklaşım sayesinde her bireyin güçlü yönleri ve gelişime açık alanları ayrı ayrı belirlenebilir; böylece değerlendirme süreci yalnızca sonuç odaklı değil, aynı zamanda gelişim odaklı bir yapıya dönüşür."
-    ],
+    title: "Dikkat, Dürtüsellik ve Performansın Objektif Değerlendirilmesi",
+    subtitle:
+      "FocusProLab; dikkat sürdürme, zamanlama, dürtü kontrolü ve motor performansı çok boyutlu ölçen dijital bir performans değerlendirme sistemidir.",
     ages: [
       { label: "Çocuklar (6–12 Yaş)", icon: "👶" },
       { label: "Ergenler (13–17 Yaş)", icon: "🎓" },
@@ -40,46 +35,10 @@ export const homePageTr = {
   metrics: {
     title: "FocusProLab Neleri Ölçer?",
     items: [
-      {
-        code: "A",
-        label: "Dikkat",
-        en: "Attention",
-        color: "a",
-        points: ["Dikkati sürdürme", "Seçici dikkat", "Hedefe odaklanma", "Performans sürekliliği"]
-      },
-      {
-        code: "T",
-        label: "Zamanlama",
-        en: "Timing",
-        color: "t",
-        points: ["Tepki süresi", "Tepki tutarlılığı", "Tempo kontrolü", "Doğru zamanda yanıt verme"]
-      },
-      {
-        code: "I",
-        label: "Dürtüsellik",
-        en: "Impulsivity",
-        color: "i",
-        points: ["Tepki inhibisyonu", "Yanlış uyarana tepki verme eğilimi", "Karar verme kontrolü", "Davranışsal özdenetim"]
-      },
-      {
-        code: "M",
-        label: "Motor Kontrol",
-        en: "Motor Control",
-        color: "m",
-        points: ["Gereksiz motor tepkiler", "Tekrarlayan davranış örüntüleri", "Motor inhibisyon", "Davranış kontrolü"]
-      },
-      {
-        code: "Ç",
-        label: "Çeldirici Direnci",
-        en: "Distractor Resistance",
-        color: "c",
-        points: [
-          "Görsel çeldiriciler altında performans",
-          "İşitsel çeldiriciler altında performans",
-          "Dikkati yeniden odaklayabilme",
-          "Performansın çevresel uyaranlardan etkilenme düzeyi"
-        ]
-      }
+      { code: "A", label: "Dikkat", desc: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme", color: "a" },
+      { code: "T", label: "Zamanlama", desc: "Doğru zamanda ve tutarlı tepki verme", color: "t" },
+      { code: "I", label: "Dürtüsellik", desc: "Hedef dışı uyaranlara gereksiz tepki kontrolü", color: "i" },
+      { code: "H", label: "Hiperaktivite", desc: "Motor kontrol ve gereksiz tepki düzenleme", color: "h" }
     ]
   },
   audience: {
