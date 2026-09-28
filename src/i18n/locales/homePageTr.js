@@ -40,10 +40,46 @@ export const homePageTr = {
   metrics: {
     title: "FocusProLab Neleri Ölçer?",
     items: [
-      { code: "A", label: "Dikkat", desc: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme", color: "a" },
-      { code: "T", label: "Zamanlama", desc: "Doğru zamanda ve tutarlı tepki verme", color: "t" },
-      { code: "I", label: "Dürtüsellik", desc: "Hedef dışı uyaranlara gereksiz tepki kontrolü", color: "i" },
-      { code: "H", label: "Hiperaktivite", desc: "Motor kontrol ve gereksiz tepki düzenleme", color: "h" }
+      {
+        code: "A",
+        label: "Dikkat",
+        en: "Attention",
+        color: "a",
+        points: ["Dikkati sürdürme", "Seçici dikkat", "Hedefe odaklanma", "Performans sürekliliği"]
+      },
+      {
+        code: "T",
+        label: "Zamanlama",
+        en: "Timing",
+        color: "t",
+        points: ["Tepki süresi", "Tepki tutarlılığı", "Tempo kontrolü", "Doğru zamanda yanıt verme"]
+      },
+      {
+        code: "I",
+        label: "Dürtüsellik",
+        en: "Impulsivity",
+        color: "i",
+        points: ["Tepki inhibisyonu", "Yanlış uyarana tepki verme eğilimi", "Karar verme kontrolü", "Davranışsal özdenetim"]
+      },
+      {
+        code: "M",
+        label: "Motor Kontrol",
+        en: "Motor Control",
+        color: "m",
+        points: ["Gereksiz motor tepkiler", "Tekrarlayan davranış örüntüleri", "Motor inhibisyon", "Davranış kontrolü"]
+      },
+      {
+        code: "Ç",
+        label: "Çeldirici Direnci",
+        en: "Distractor Resistance",
+        color: "c",
+        points: [
+          "Görsel çeldiriciler altında performans",
+          "İşitsel çeldiriciler altında performans",
+          "Dikkati yeniden odaklayabilme",
+          "Performansın çevresel uyaranlardan etkilenme düzeyi"
+        ]
+      }
     ]
   },
   audience: {

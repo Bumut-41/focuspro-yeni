@@ -309,20 +309,29 @@
   font-size: 0.95rem;
 }
 
+.fp-mkt-metrics-section {
+  padding-top: 2.5rem;
+}
+
 /* Metrics */
 .fp-mkt-metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .fp-mkt-metric {
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 1.1rem;
-  text-align: center;
+  padding: 1rem 0.85rem;
+  text-align: left;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.fp-mkt-metric-head {
+  text-align: center;
+  margin-bottom: 0.75rem;
 }
 
 .fp-mkt-metric-code {
@@ -342,26 +351,46 @@
   background: #2563eb;
 }
 .fp-mkt-metric--t .fp-mkt-metric-code {
-  background: #0d9488;
+  background: #16a34a;
 }
 .fp-mkt-metric--i .fp-mkt-metric-code {
-  background: #ea580c;
+  background: #eab308;
+  color: #1c1917;
 }
-.fp-mkt-metric--h .fp-mkt-metric-code {
+.fp-mkt-metric--m .fp-mkt-metric-code {
+  background: #dc2626;
+}
+.fp-mkt-metric--c .fp-mkt-metric-code {
   background: #7c3aed;
 }
 
 .fp-mkt-metric h3 {
-  margin: 0 0 0.35rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.15rem;
+  font-size: 0.92rem;
   color: #0f172a;
 }
 
-.fp-mkt-metric p {
+.fp-mkt-metric-en {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: #64748b;
-  line-height: 1.45;
+}
+
+.fp-mkt-metric ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.fp-mkt-metric li {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.fp-mkt-metric li:last-child {
+  margin-bottom: 0;
 }
 
 /* Audience */

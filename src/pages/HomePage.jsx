@@ -68,22 +68,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="fp-mkt-container fp-mkt-body">
-        <div className="fp-mkt-main">
-          <section className="fp-mkt-section" id="nedir">
-            <h2 className="fp-mkt-section-title">{m.metrics.title}</h2>
-            <p className="fp-mkt-section-lead">{m.sections.about}</p>
-            <div className="fp-mkt-metrics">
-              {m.metrics.items.map((item) => (
-                <article key={item.code} className={`fp-mkt-metric fp-mkt-metric--${item.color}`}>
+      <div className="fp-mkt-container">
+        <section className="fp-mkt-section fp-mkt-metrics-section" id="nedir">
+          <h2 className="fp-mkt-section-title">{m.metrics.title}</h2>
+          <p className="fp-mkt-section-lead">{m.sections.about}</p>
+          <div className="fp-mkt-metrics">
+            {m.metrics.items.map((item) => (
+              <article key={item.code} className={`fp-mkt-metric fp-mkt-metric--${item.color}`}>
+                <div className="fp-mkt-metric-head">
                   <span className="fp-mkt-metric-code">{item.code}</span>
                   <h3>{item.label}</h3>
-                  <p>{item.desc}</p>
-                </article>
-              ))}
-            </div>
-          </section>
+                  <p className="fp-mkt-metric-en">{item.en}</p>
+                </div>
+                <ul>
+                  {item.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
 
+      <div className="fp-mkt-container fp-mkt-body">
+        <div className="fp-mkt-main">
           <section className="fp-mkt-section" id="kimler">
             <h2 className="fp-mkt-section-title">{m.audience.title}</h2>
             <div className="fp-mkt-audience">

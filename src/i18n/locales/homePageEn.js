@@ -40,10 +40,46 @@ export const homePageEn = {
   metrics: {
     title: "What does FocusProLab measure?",
     items: [
-      { code: "A", label: "Attention", desc: "Noticing targets and sustaining focus", color: "a" },
-      { code: "T", label: "Timing", desc: "Timely and consistent responses", color: "t" },
-      { code: "I", label: "Impulsivity", desc: "Control over responses to non-targets", color: "i" },
-      { code: "H", label: "Hyperactivity", desc: "Motor control and response regulation", color: "h" }
+      {
+        code: "A",
+        label: "Attention",
+        en: "Dikkat",
+        color: "a",
+        points: ["Sustaining attention", "Selective attention", "Focusing on the target", "Performance continuity"]
+      },
+      {
+        code: "T",
+        label: "Timing",
+        en: "Zamanlama",
+        color: "t",
+        points: ["Reaction time", "Response consistency", "Tempo control", "Responding at the right time"]
+      },
+      {
+        code: "I",
+        label: "Impulsivity",
+        en: "Dürtüsellik",
+        color: "i",
+        points: ["Response inhibition", "Tendency to respond to non-targets", "Decision-making control", "Behavioral self-regulation"]
+      },
+      {
+        code: "M",
+        label: "Motor Control",
+        en: "Motor Kontrol",
+        color: "m",
+        points: ["Unnecessary motor responses", "Repetitive behavior patterns", "Motor inhibition", "Behavior control"]
+      },
+      {
+        code: "Ç",
+        label: "Distractor Resistance",
+        en: "Çeldirici Direnci",
+        color: "c",
+        points: [
+          "Performance under visual distractors",
+          "Performance under auditory distractors",
+          "Ability to refocus attention",
+          "How much environmental stimuli affect performance"
+        ]
+      }
     ]
   },
   audience: {
