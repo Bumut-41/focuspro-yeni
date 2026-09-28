@@ -15,6 +15,7 @@ import ProductProgramPage from "./pages/ProductProgramPage.jsx";
 import ProductCommentaryPage from "./pages/ProductCommentaryPage.jsx";
 import ProductConsultationPage from "./pages/ProductConsultationPage.jsx";
 import CorporateApplyPage from "./pages/CorporateApplyPage.jsx";
+import MetricDetailPage from "./pages/MetricDetailPage.jsx";
 import ProgramTrialPage from "./pages/ProgramTrialPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -26,7 +27,11 @@ const TestFlowPage = lazy(() => import("./pages/TestFlowPage.jsx"));
 function Shell({ children }) {
   const { immersive } = useTestChrome();
   const { pathname } = useLocation();
-  const isLanding = pathname === "/" || pathname.startsWith("/urun/") || pathname.startsWith("/kurumsal-basvuru");
+  const isLanding =
+    pathname === "/" ||
+    pathname.startsWith("/urun/") ||
+    pathname.startsWith("/kurumsal-basvuru") ||
+    pathname.startsWith("/olcum/");
 
   return (
     <div className={immersive ? "app-shell app-shell--immersive" : "app-shell"}>
@@ -69,6 +74,7 @@ function AppRoutes() {
       <Route path="/urun/uzman-yorumu" element={<ProductCommentaryPage />} />
       <Route path="/urun/uzman-gorusmesi" element={<ProductConsultationPage />} />
       <Route path="/kurumsal-basvuru" element={<CorporateApplyPage />} />
+      <Route path="/olcum/:slug" element={<MetricDetailPage />} />
       <Route path="/urun/gelisim-programi/deneme" element={<ProgramTrialPage />} />
       <Route
         path="/panel"

@@ -35,10 +35,10 @@ export const homePageEn = {
   metrics: {
     title: "What does FocusProLab measure?",
     items: [
-      { code: "A", label: "Attention", desc: "Noticing targets and sustaining focus", color: "a" },
-      { code: "T", label: "Timing", desc: "Timely and consistent responses", color: "t" },
-      { code: "I", label: "Impulsivity", desc: "Control over responses to non-targets", color: "i" },
-      { code: "H", label: "Hyperactivity", desc: "Motor control and response regulation", color: "h" }
+      { code: "A", label: "Attention", desc: "Noticing targets and sustaining focus", color: "a", to: "/olcum/dikkat" },
+      { code: "T", label: "Timing", desc: "Timely and consistent responses", color: "t", to: "/olcum/zamanlama" },
+      { code: "I", label: "Impulsivity", desc: "Control over responses to non-targets", color: "i", to: "/olcum/durtusellik" },
+      { code: "H", label: "Hyperactivity", desc: "Motor control and response regulation", color: "h", to: "/olcum/hiperaktivite" }
     ]
   },
   audience: {
@@ -387,6 +387,43 @@ export const homePageEn = {
     required: "Please complete every required field.",
     success: "Your application has been received. We will contact you shortly.",
     saveError: "The application could not be saved. Please try again in a moment."
+  },
+  metricPages: {
+    back: "Back to home",
+    items: {
+      dikkat: {
+        code: "A",
+        color: "a",
+        title: "Attention",
+        en: "Dikkat",
+        desc: "Noticing targets and sustaining focus",
+        points: ["Sustaining attention", "Selective attention", "Focusing on the target", "Performance continuity"]
+      },
+      zamanlama: {
+        code: "T",
+        color: "t",
+        title: "Timing",
+        en: "Zamanlama",
+        desc: "Timely and consistent responses",
+        points: ["Reaction time", "Response consistency", "Tempo control", "Responding at the right time"]
+      },
+      durtusellik: {
+        code: "I",
+        color: "i",
+        title: "Impulsivity",
+        en: "Dürtüsellik",
+        desc: "Control over responses to non-targets",
+        points: ["Response inhibition", "Tendency to respond to non-targets", "Decision-making control", "Behavioral self-regulation"]
+      },
+      hiperaktivite: {
+        code: "H",
+        color: "h",
+        title: "Hyperactivity",
+        en: "Hiperaktivite",
+        desc: "Motor control and response regulation",
+        points: ["Unnecessary motor responses", "Repetitive behavior patterns", "Motor inhibition", "Behavior control"]
+      }
+    }
   },
   sections: {
     about: "FocusProLab objectively measures attention and sustained performance under distractors that simulate real-life conditions.",

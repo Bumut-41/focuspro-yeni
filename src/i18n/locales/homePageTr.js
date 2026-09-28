@@ -35,10 +35,10 @@ export const homePageTr = {
   metrics: {
     title: "FocusProLab Neleri Ölçer?",
     items: [
-      { code: "A", label: "Dikkat", desc: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme", color: "a" },
-      { code: "T", label: "Zamanlama", desc: "Doğru zamanda ve tutarlı tepki verme", color: "t" },
-      { code: "I", label: "Dürtüsellik", desc: "Hedef dışı uyaranlara gereksiz tepki kontrolü", color: "i" },
-      { code: "H", label: "Hiperaktivite", desc: "Motor kontrol ve gereksiz tepki düzenleme", color: "h" }
+      { code: "A", label: "Dikkat", desc: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme", color: "a", to: "/olcum/dikkat" },
+      { code: "T", label: "Zamanlama", desc: "Doğru zamanda ve tutarlı tepki verme", color: "t", to: "/olcum/zamanlama" },
+      { code: "I", label: "Dürtüsellik", desc: "Hedef dışı uyaranlara gereksiz tepki kontrolü", color: "i", to: "/olcum/durtusellik" },
+      { code: "H", label: "Hiperaktivite", desc: "Motor kontrol ve gereksiz tepki düzenleme", color: "h", to: "/olcum/hiperaktivite" }
     ]
   },
   audience: {
@@ -387,6 +387,43 @@ export const homePageTr = {
     required: "Lütfen tüm zorunlu alanları doldurun.",
     success: "Başvurunuz alındı. En kısa sürede sizinle iletişime geçeceğiz.",
     saveError: "Başvuru kaydedilemedi. Lütfen kısa bir süre sonra yeniden deneyin."
+  },
+  metricPages: {
+    back: "Ana sayfaya dön",
+    items: {
+      dikkat: {
+        code: "A",
+        color: "a",
+        title: "Dikkat",
+        en: "Attention",
+        desc: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme",
+        points: ["Dikkati sürdürme", "Seçici dikkat", "Hedefe odaklanma", "Performans sürekliliği"]
+      },
+      zamanlama: {
+        code: "T",
+        color: "t",
+        title: "Zamanlama",
+        en: "Timing",
+        desc: "Doğru zamanda ve tutarlı tepki verme",
+        points: ["Tepki süresi", "Tepki tutarlılığı", "Tempo kontrolü", "Doğru zamanda yanıt verme"]
+      },
+      durtusellik: {
+        code: "I",
+        color: "i",
+        title: "Dürtüsellik",
+        en: "Impulsivity",
+        desc: "Hedef dışı uyaranlara gereksiz tepki kontrolü",
+        points: ["Tepki inhibisyonu", "Yanlış uyarana tepki verme eğilimi", "Karar verme kontrolü", "Davranışsal özdenetim"]
+      },
+      hiperaktivite: {
+        code: "H",
+        color: "h",
+        title: "Hiperaktivite",
+        en: "Hyperactivity",
+        desc: "Motor kontrol ve gereksiz tepki düzenleme",
+        points: ["Gereksiz motor tepkiler", "Tekrarlayan davranış örüntüleri", "Motor inhibisyon", "Davranış kontrolü"]
+      }
+    }
   },
   sections: {
     about: "FocusProLab, gerçek yaşam koşullarını simüle eden çeldiriciler altında dikkat ve sürekli performansı objektif olarak ölçer.",

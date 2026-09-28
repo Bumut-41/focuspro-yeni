@@ -70,11 +70,11 @@ export default function HomePage() {
             <p className="fp-mkt-section-lead">{m.sections.about}</p>
             <div className="fp-mkt-metrics">
               {m.metrics.items.map((item) => (
-                <article key={item.code} className={`fp-mkt-metric fp-mkt-metric--${item.color}`}>
+                <Link key={item.code} to={item.to} className={`fp-mkt-metric fp-mkt-metric--${item.color}`}>
                   <span className="fp-mkt-metric-code">{item.code}</span>
                   <h3>{item.label}</h3>
                   <p>{item.desc}</p>
-                </article>
+                </Link>
               ))}
             </div>
           </section>

@@ -9,7 +9,12 @@ export function AppHeader() {
   const { user, profile, signOut, isSupabaseReady, isAdmin } = useAuth();
   const { strings, t } = useLocale();
   const { pathname } = useLocation();
-  const isMarketingHome = !user && (pathname === "/" || pathname.startsWith("/urun/") || pathname.startsWith("/kurumsal-basvuru"));
+  const isMarketingHome =
+    !user &&
+    (pathname === "/" ||
+      pathname.startsWith("/urun/") ||
+      pathname.startsWith("/kurumsal-basvuru") ||
+      pathname.startsWith("/olcum/"));
   const onHome = pathname === "/";
   const nav = strings.home?.marketing?.nav;
 
