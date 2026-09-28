@@ -155,6 +155,27 @@ export const tr = {
     errInvalidEmail: "Geçerli bir e-posta girin.",
     errForbidden: "Bu işlem için yetkiniz yok."
   },
+  clients: {
+    title: "Danışanlarım",
+    desc: "Danışanı bir kez kaydedin. Testi e-posta ile gönderebilir veya Teste başla ekranında listeden seçebilirsiniz.",
+    name: "Ad soyad",
+    birth: "Doğum tarihi",
+    email: "E-posta",
+    save: "Danışanı kaydet",
+    saved: "Danışan kaydedildi.",
+    sendTest: "Testi e-posta ile gönder",
+    sent: "Test bağlantısı {{email}} adresine gönderildi.",
+    listEmpty: "Henüz danışan yok.",
+    listEmptyDesc: "İlk danışanınızı yukarıdaki formdan kaydedin.",
+    pickTitle: "Kayıtlı danışanınızı seçin",
+    pickDesc: "Yalnızca sizin kaydettiğiniz danışanlar listelenir. Seçtiğiniz kişi için ek bilgi istenmez.",
+    pickEmpty: "Kayıtlı danışan yok. Önce panelden danışan ekleyin.",
+    backToPanel: "Panele dön",
+    startTest: "Teste başla",
+    errPick: "Testi başlatmak için bir danışan seçin.",
+    errDuplicate: "Bu e-posta ile kayıtlı bir danışanınız zaten var.",
+    errSave: "Danışan kaydedilemedi. Supabase'de specialist_clients tablosu yoksa SQL dosyasını bir kez çalıştırın."
+  },
   test: {
     participantTitle: "Katılımcı bilgileri",
     participantDesc: "Değerlendirme oturumu için katılımcı bilgilerini girin.",

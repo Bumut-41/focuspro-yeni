@@ -155,6 +155,27 @@ export const en = {
     errInvalidEmail: "Enter a valid email address.",
     errForbidden: "You are not allowed to perform this action."
   },
+  clients: {
+    title: "My clients",
+    desc: "Register a client once. You can email them the test, or pick them from the list when you start a test.",
+    name: "Full name",
+    birth: "Date of birth",
+    email: "Email",
+    save: "Save client",
+    saved: "Client saved.",
+    sendTest: "Email the test",
+    sent: "The test link was sent to {{email}}.",
+    listEmpty: "No clients yet.",
+    listEmptyDesc: "Register your first client with the form above.",
+    pickTitle: "Choose a registered client",
+    pickDesc: "Only clients you registered are listed. The selected person does not fill in extra details.",
+    pickEmpty: "No registered clients. Add one from your dashboard first.",
+    backToPanel: "Back to dashboard",
+    startTest: "Start test",
+    errPick: "Select a client to start the test.",
+    errDuplicate: "You already have a client with this email.",
+    errSave: "The client could not be saved. Run the specialist_clients SQL once in Supabase if the table is missing."
+  },
   test: {
     participantTitle: "Participant information",
     participantDesc: "Enter participant details for this assessment session.",

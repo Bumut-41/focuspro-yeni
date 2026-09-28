@@ -613,6 +613,33 @@ a:hover {
   font-size: 0.9375rem;
 }
 
+.fp-client-pick {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+}
+
+.fp-client-pick-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--fp-border-strong);
+  border-radius: var(--fp-radius);
+  background: var(--fp-surface);
+  cursor: pointer;
+}
+
+.fp-client-pick-row span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fp-client-pick-row small {
+  color: var(--fp-text-muted);
+}
+
 .fp-checkbox-row {
   display: flex;
   gap: var(--fp-space-3);

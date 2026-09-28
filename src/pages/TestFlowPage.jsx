@@ -17,6 +17,7 @@ import { TestParticipantGuide } from "../components/TestParticipantGuide.jsx";
 import { formatPersistResult, persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
 import { clearStoredInviteToken, getStoredInviteToken } from "../lib/inviteStorage.js";
 import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../services/invites.js";
+import { fetchMyClients } from "../services/clients.js";
 import { saveTestSession } from "../services/sessions.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
@@ -25,7 +26,7 @@ import {
 } from "../copy/testInstructions.js";
 
 export default function TestFlowPage() {
-  const { refreshProfile, user } = useAuth();
+  const { refreshProfile, user, isPsychologist } = useAuth();
   const { t, strings, locale } = useLocale();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -52,6 +53,8 @@ export default function TestFlowPage() {
   const [inviteReady, setInviteReady] = useState(false);
   const [inviteError, setInviteError] = useState("");
   const [isInviteFlow, setIsInviteFlow] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [selectedClientId, setSelectedClientId] = useState("");
   const [practiceCompleted, setPracticeCompleted] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [activeTestProfile, setActiveTestProfile] = useState(() => getProfile(pkey));
@@ -119,6 +122,21 @@ export default function TestFlowPage() {
       cancelled = true;
     };
   }, [searchParams, t]);
+
+  useEffect(() => {
+    if (!isPsychologist) return;
+    let cancelled = false;
+    fetchMyClients()
+      .then((rows) => {
+        if (!cancelled) setClients(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setClients([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isPsychologist]);
 
   const onDone = useCallback(
     async (snapshot, targetSnap, timeline) => {
@@ -240,27 +258,21 @@ export default function TestFlowPage() {
     }, 950);
   }, [audioCelebrating]);
 
-  function submitForm(e) {
-    e.preventDefault();
-    setErr("");
-    if (!name.trim()) {
-      setErr(t("test.errName"));
-      return;
-    }
-    const a = ageFromBirthDate(birth);
+  function beginWithParticipant(nextName, nextBirth, nextGender, nextConsent) {
+    const a = ageFromBirthDate(nextBirth);
     if (a === null || a < 6 || a > 99) {
       setErr(t("test.errBirth"));
       return;
     }
-    if (!gender) {
-      setErr(t("test.errGender"));
-      return;
-    }
     const k = profileKeyFromAge(a);
-    if ((k === "child" || k === "teen") && !consent) {
+    if ((k === "child" || k === "teen") && !nextConsent) {
       setErr(t("test.errConsent"));
       return;
     }
+    setName(nextName);
+    setBirth(nextBirth);
+    setGender(nextGender);
+    setConsent(nextConsent);
     setAge(String(a));
     setPkey(k);
     setSpaceVerified(false);
@@ -277,6 +289,32 @@ export default function TestFlowPage() {
       audioRef.current = null;
     }
     setStep("spaceCheck");
+  }
+
+  function submitForm(e) {
+    e.preventDefault();
+    setErr("");
+    if (isPsychologist && !isInviteFlow) {
+      const client = clients.find((row) => row.id === selectedClientId);
+      if (!client) {
+        setErr(t("clients.errPick"));
+        return;
+      }
+      const clientAge = ageFromBirthDate(client.birth_date);
+      const clientKey = profileKeyFromAge(clientAge);
+      const consented = client.guardian_consent || (clientKey !== "child" && clientKey !== "teen");
+      beginWithParticipant(client.full_name, client.birth_date, client.gender, consented);
+      return;
+    }
+    if (!name.trim()) {
+      setErr(t("test.errName"));
+      return;
+    }
+    if (!gender) {
+      setErr(t("test.errGender"));
+      return;
+    }
+    beginWithParticipant(name.trim(), birth, gender, consent);
   }
 
   function startPractice() {
@@ -437,10 +475,38 @@ export default function TestFlowPage() {
       {step === "form" && (
         <Page narrow>
           <Card as="form" onSubmit={submitForm}>
-            <h2 className="fp-card-title">{t("test.participantTitle")}</h2>
+            <h2 className="fp-card-title">
+              {isPsychologist && !isInviteFlow ? t("clients.pickTitle") : t("test.participantTitle")}
+            </h2>
             <p className="fp-card-desc">
-              {isInviteFlow ? t("test.participantDescInvite") : t("test.participantDesc")}
+              {isPsychologist && !isInviteFlow
+                ? t("clients.pickDesc")
+                : isInviteFlow
+                  ? t("test.participantDescInvite")
+                  : t("test.participantDesc")}
             </p>
+            {isPsychologist && !isInviteFlow ? (
+              clients.length ? (
+                <div className="fp-client-pick">
+                  {clients.map((client) => (
+                    <label key={client.id} className="fp-client-pick-row">
+                      <input
+                        type="checkbox"
+                        checked={selectedClientId === client.id}
+                        onChange={() => setSelectedClientId(selectedClientId === client.id ? "" : client.id)}
+                      />
+                      <span>
+                        <strong>{client.full_name}</strong>
+                        <small>{client.email}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <Alert variant="info">{t("clients.pickEmpty")}</Alert>
+              )
+            ) : (
+            <>
             <Field label={t("auth.fullName")}>
               <Input value={name} onChange={(e) => setName(e.target.value)} required />
             </Field>
@@ -470,9 +536,11 @@ export default function TestFlowPage() {
                 <span>{t("test.consent")}</span>
               </label>
             )}
+            </>
+            )}
             {err && <Alert variant="error">{err}</Alert>}
             <Button type="submit" variant="primary" className="fp-btn--block" style={{ marginTop: 20 }}>
-              {t("common.continue")}
+              {isPsychologist && !isInviteFlow ? t("clients.startTest") : t("common.continue")}
             </Button>
           </Card>
         </Page>

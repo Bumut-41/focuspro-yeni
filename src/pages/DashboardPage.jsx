@@ -7,6 +7,7 @@ import { fetchMySessions, fetchAdminPressTimeline, fetchSessionDetail, getReport
 import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
+import { SpecialistClientsPanel } from "../components/SpecialistClientsPanel.jsx";
 import {
   Alert,
   Badge,
@@ -81,11 +82,9 @@ export default function DashboardPage() {
           </p>
         )}
         <Stack gap={12} style={{ marginTop: 20 }}>
-          {!isPsychologist && (
-            <Button asLink to="/test" variant="primary">
-              {t("dashboard.newTest")}
-            </Button>
-          )}
+          <Button asLink to="/test" variant="primary">
+            {isPsychologist ? t("clients.startTest") : t("dashboard.newTest")}
+          </Button>
           {isAdmin && (
             <Button asLink to="/admin" variant="secondary">
               {t("dashboard.adminPanel")}
@@ -99,6 +98,7 @@ export default function DashboardPage() {
         )}
       </Card>
 
+      {isPsychologist && <SpecialistClientsPanel />}
       {isPsychologist && <PsychologistInvitesPanel />}
 
       {canViewSessions && (
