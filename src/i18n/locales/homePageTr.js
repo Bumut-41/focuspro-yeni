@@ -78,7 +78,7 @@ export const homePageTr = {
     items: [
       { icon: "🧠", title: "FocusProLab Testi", desc: "Çok aşamalı sürekli performans testi", to: "/urun/focusprolab-testi" },
       { icon: "📊", title: "PDF Rapor", desc: "Profesyonel ön değerlendirme raporu", to: "/urun/pdf-rapor" },
-      { icon: "📅", title: "12 Haftalık Gelişim Programı", desc: "Yapılandırılmış takip planı" },
+      { icon: "📅", title: "12 Haftalık Gelişim Programı", desc: "Yapılandırılmış takip planı", to: "/urun/gelisim-programi" },
       { icon: "💬", title: "Uzman Yorumu", desc: "Klinik bağlamda yorum desteği" },
       { icon: "🎥", title: "Uzman Görüşmesi", desc: "Bire bir online değerlendirme" }
     ],
@@ -251,6 +251,28 @@ export const homePageTr = {
         "İnsan kaynakları"
       ],
       cta: "Teste Başla"
+    },
+    program: {
+      back: "Ana sayfaya dön",
+      title: "12 Haftalık Gelişim Programı",
+      lead: "Kişiye Özel Dijital Gelişim Sistemi",
+      notes: ["Her kullanıcı aynı programı almaz.", "Program tamamen test sonuçlarınıza göre oluşturulur."],
+      contentsTitle: "İçerik",
+      contents: [
+        "Günlük dijital egzersizler",
+        "Yaşam görevleri",
+        "Haftalık hedefler",
+        "Gelişim grafikleri",
+        "Tekrar testleri"
+      ],
+      goalTitle: "Amaç",
+      goal: "Performansı düzenli olarak geliştirmek ve değişimi objektif verilerle takip etmek.",
+      durationTitle: "Süre",
+      duration: "12 Hafta",
+      dailyTitle: "Günlük",
+      daily: "20–25 dakika",
+      cta: "12 Haftalık Program",
+      trial: "Program Deneme aşamasındadır."
     }
   },
   sections: {

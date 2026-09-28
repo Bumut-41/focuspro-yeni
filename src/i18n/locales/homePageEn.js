@@ -78,7 +78,7 @@ export const homePageEn = {
     items: [
       { icon: "🧠", title: "FocusProLab test", desc: "Multi-phase continuous performance test", to: "/urun/focusprolab-testi" },
       { icon: "📊", title: "PDF report", desc: "Professional pre-evaluation report", to: "/urun/pdf-rapor" },
-      { icon: "📅", title: "12-week development programme", desc: "Structured follow-up plan" },
+      { icon: "📅", title: "12-week development programme", desc: "Structured follow-up plan", to: "/urun/gelisim-programi" },
       { icon: "💬", title: "Expert commentary", desc: "Clinical interpretation support" },
       { icon: "🎥", title: "Expert consultation", desc: "One-to-one online review" }
     ],
@@ -251,6 +251,28 @@ export const homePageEn = {
         "Human resources"
       ],
       cta: "Start test"
+    },
+    program: {
+      back: "Back to home",
+      title: "12-week development programme",
+      lead: "A personalised digital development system",
+      notes: ["Not every user receives the same programme.", "The programme is built entirely from your test results."],
+      contentsTitle: "Contents",
+      contents: [
+        "Daily digital exercises",
+        "Life tasks",
+        "Weekly goals",
+        "Progress charts",
+        "Repeat tests"
+      ],
+      goalTitle: "Purpose",
+      goal: "To improve performance regularly and track change with objective data.",
+      durationTitle: "Duration",
+      duration: "12 weeks",
+      dailyTitle: "Daily",
+      daily: "20–25 minutes",
+      cta: "12-week programme",
+      trial: "The programme is in a trial phase."
     }
   },
   sections: {
