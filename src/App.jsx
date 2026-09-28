@@ -13,6 +13,7 @@ import ProductTestPage from "./pages/ProductTestPage.jsx";
 import ProductReportPage from "./pages/ProductReportPage.jsx";
 import ProductProgramPage from "./pages/ProductProgramPage.jsx";
 import ProductCommentaryPage from "./pages/ProductCommentaryPage.jsx";
+import ProductConsultationPage from "./pages/ProductConsultationPage.jsx";
 import ProgramTrialPage from "./pages/ProgramTrialPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -65,6 +66,7 @@ function AppRoutes() {
       <Route path="/urun/pdf-rapor" element={<ProductReportPage />} />
       <Route path="/urun/gelisim-programi" element={<ProductProgramPage />} />
       <Route path="/urun/uzman-yorumu" element={<ProductCommentaryPage />} />
+      <Route path="/urun/uzman-gorusmesi" element={<ProductConsultationPage />} />
       <Route path="/urun/gelisim-programi/deneme" element={<ProgramTrialPage />} />
       <Route
         path="/panel"

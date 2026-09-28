@@ -80,7 +80,7 @@ export const homePageTr = {
       { icon: "📊", title: "PDF Rapor", desc: "Profesyonel ön değerlendirme raporu", to: "/urun/pdf-rapor" },
       { icon: "📅", title: "12 Haftalık Gelişim Programı", desc: "Yapılandırılmış takip planı", to: "/urun/gelisim-programi" },
       { icon: "💬", title: "Uzman Yorumu", desc: "Klinik bağlamda yorum desteği", to: "/urun/uzman-yorumu" },
-      { icon: "🎥", title: "Uzman Görüşmesi", desc: "Bire bir online değerlendirme" }
+      { icon: "🎥", title: "Uzman Görüşmesi", desc: "Bire bir online değerlendirme", to: "/urun/uzman-gorusmesi" }
     ],
     cta: "Detaylı Bilgi"
   },
@@ -291,6 +291,27 @@ export const homePageTr = {
       deliveryTitle: "Teslim Şekli",
       delivery: "Yazılı uzman değerlendirme raporu",
       cta: "Uzman Yorumu Talep Et"
+    },
+    consultation: {
+      back: "Ana sayfaya dön",
+      title: "Uzman Görüşmesi",
+      lead: "Sonuçlarınızı Birlikte Değerlendirelim",
+      intro: "Online bire bir görüşmede uzmanınız; test sonuçlarınızı, PDF raporunuzu ve ihtiyaçlarınızı birlikte değerlendirir.",
+      sessionTitle: "Görüşmede",
+      session: [
+        { icon: "🧠", title: "Sonuçların ayrıntılı açıklanması" },
+        { icon: "📊", title: "Performans profiliniz" },
+        { icon: "🎯", title: "Gelişim hedefleri" },
+        { icon: "📅", title: "Size özel çalışma planı" },
+        { icon: "👨‍👩‍👧", title: "Veli bilgilendirmesi (çocuklarda)" }
+      ],
+      durationTitle: "Süre",
+      duration: "50 dakika",
+      formatTitle: "Görüşme",
+      format: "Online (Zoom / Google Meet vb.)",
+      outcomeTitle: "Sonunda",
+      outcomes: ["Yol haritası", "Öneriler", "Sorularınıza cevap"],
+      cta: "Randevu Al"
     }
   },
   sections: {

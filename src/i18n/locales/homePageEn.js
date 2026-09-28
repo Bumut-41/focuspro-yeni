@@ -80,7 +80,7 @@ export const homePageEn = {
       { icon: "📊", title: "PDF report", desc: "Professional pre-evaluation report", to: "/urun/pdf-rapor" },
       { icon: "📅", title: "12-week development programme", desc: "Structured follow-up plan", to: "/urun/gelisim-programi" },
       { icon: "💬", title: "Expert commentary", desc: "Clinical interpretation support", to: "/urun/uzman-yorumu" },
-      { icon: "🎥", title: "Expert consultation", desc: "One-to-one online review" }
+      { icon: "🎥", title: "Expert consultation", desc: "One-to-one online review", to: "/urun/uzman-gorusmesi" }
     ],
     cta: "Learn more"
   },
@@ -291,6 +291,27 @@ export const homePageEn = {
       deliveryTitle: "How it is delivered",
       delivery: "Written expert assessment report",
       cta: "Request expert commentary"
+    },
+    consultation: {
+      back: "Back to home",
+      title: "Expert consultation",
+      lead: "Let's review your results together",
+      intro: "In a one-to-one online meeting, your specialist reviews your test results, PDF report and needs together with you.",
+      sessionTitle: "In the session",
+      session: [
+        { icon: "🧠", title: "Detailed explanation of the results" },
+        { icon: "📊", title: "Your performance profile" },
+        { icon: "🎯", title: "Development goals" },
+        { icon: "📅", title: "A work plan tailored to you" },
+        { icon: "👨‍👩‍👧", title: "Parent briefing (for children)" }
+      ],
+      durationTitle: "Duration",
+      duration: "50 minutes",
+      formatTitle: "Meeting",
+      format: "Online (Zoom / Google Meet and similar)",
+      outcomeTitle: "At the end",
+      outcomes: ["A roadmap", "Recommendations", "Answers to your questions"],
+      cta: "Book an appointment"
     }
   },
   sections: {
