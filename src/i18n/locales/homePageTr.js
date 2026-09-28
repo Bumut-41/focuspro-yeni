@@ -76,7 +76,7 @@ export const homePageTr = {
   products: {
     title: "Ürünlerimiz",
     items: [
-      { icon: "🧠", title: "FocusProLab Testi", desc: "Çok aşamalı sürekli performans testi" },
+      { icon: "🧠", title: "FocusProLab Testi", desc: "Çok aşamalı sürekli performans testi", to: "/urun/focusprolab-testi" },
       { icon: "📊", title: "PDF Rapor", desc: "Profesyonel ön değerlendirme raporu" },
       { icon: "📅", title: "12 Haftalık Gelişim Programı", desc: "Yapılandırılmış takip planı" },
       { icon: "💬", title: "Uzman Yorumu", desc: "Klinik bağlamda yorum desteği" },
@@ -139,6 +139,91 @@ export const homePageTr = {
       { label: "Uzmanlar İçin", href: "#uzmanlar" }
     ],
     copyright: "© {{year}} FocusProLab. Tüm hakları saklıdır."
+  },
+  productPages: {
+    test: {
+      back: "Ana sayfaya dön",
+      title: "FocusProLab Performans Değerlendirme Sistemi",
+      lead: "Dikkat Performansını Ölçmenin Ötesinde, Anlamaya ve Geliştirmeye Yönelik Yeni Nesil Dijital Değerlendirme Platformu",
+      intro: [
+        "FocusProLab; çocuk, ergen ve yetişkinlerde dikkat performansını çok boyutlu olarak değerlendirmek amacıyla geliştirilen, bilgisayar tabanlı dijital performans değerlendirme platformudur.",
+        "Sistem; standartlaştırılmış dijital görevler aracılığıyla bireyin dikkat performansını oluşturan temel bilişsel süreçleri objektif performans verileriyle analiz eder. Geleneksel değerlendirme yaklaşımlarının aksine, yalnızca doğru ve yanlış cevap sayılarını değil; tepki örüntülerini, zamanlama becerisini, dürtü kontrolünü, motor davranışları ve çeldiriciler karşısındaki performansı birlikte değerlendirerek kişiye özgü ayrıntılı bir performans profili oluşturur.",
+        "Bu yaklaşım sayesinde her bireyin güçlü yönleri ve gelişime açık alanları ayrı ayrı belirlenebilir; böylece değerlendirme süreci yalnızca sonuç odaklı değil, aynı zamanda gelişim odaklı bir yapıya dönüşür."
+      ],
+      areasTitle: "Değerlendirilen Performans Alanları",
+      areas: [
+        {
+          code: "A",
+          color: "a",
+          label: "Dikkat",
+          en: "Attention",
+          points: ["Dikkati sürdürme", "Seçici dikkat", "Hedefe odaklanma", "Performans sürekliliği"]
+        },
+        {
+          code: "T",
+          color: "t",
+          label: "Zamanlama",
+          en: "Timing",
+          points: ["Tepki süresi", "Tepki tutarlılığı", "Tempo kontrolü", "Doğru zamanda yanıt verme"]
+        },
+        {
+          code: "I",
+          color: "i",
+          label: "Dürtüsellik",
+          en: "Impulsivity",
+          points: ["Tepki inhibisyonu", "Yanlış uyarana tepki verme eğilimi", "Karar verme kontrolü", "Davranışsal özdenetim"]
+        },
+        {
+          code: "M",
+          color: "m",
+          label: "Motor Kontrol",
+          en: "Motor Control",
+          points: ["Gereksiz motor tepkiler", "Tekrarlayan davranış örüntüleri", "Motor inhibisyon", "Davranış kontrolü"]
+        },
+        {
+          code: "Ç",
+          color: "c",
+          label: "Çeldirici Direnci",
+          en: "Distractor Resistance",
+          points: [
+            "Görsel çeldiriciler altında performans",
+            "İşitsel çeldiriciler altında performans",
+            "Dikkati yeniden odaklayabilme",
+            "Performansın çevresel uyaranlardan etkilenme düzeyi"
+          ]
+        }
+      ],
+      processTitle: "Test Süreci",
+      process: [
+        "Yaklaşık 13–15 dakika",
+        "Tamamen dijital uygulama",
+        "Standartlaştırılmış görev akışı",
+        "Objektif performans analizi",
+        "Güvenli veri altyapısı"
+      ],
+      processIcons: ["⏱️", "💻", "📊", "📈", "🔒"],
+      afterTitle: "Test Sonrasında Sizi Neler Bekliyor?",
+      afterLead: "Test tamamlandıktan sonra performans verileriniz analiz edilerek kişisel performans profiliniz oluşturulur.",
+      afterHint: "İhtiyacınıza göre aşağıdaki hizmetlerden yararlanabilirsiniz:",
+      services: [
+        { icon: "📄", title: "Detaylı PDF Performans Raporu" },
+        { icon: "🧠", title: "Klinik Psikolog Uzman Yorumu" },
+        { icon: "📅", title: "12 Haftalık Kişiselleştirilmiş Gelişim Programı" },
+        { icon: "💻", title: "Online Uzman Görüşmesi" }
+      ],
+      afterNote: "Tüm bu hizmetler isteğe bağlıdır ve kullanıcı kendi ihtiyaçlarına göre değerlendirme sürecini planlayabilir.",
+      approachTitle: "FocusProLab Yaklaşımı",
+      approach: [
+        "FocusProLab, dikkat performansını yalnızca ölçen bir sistem değildir.",
+        "Amacı; bireyin performansını objektif verilerle analiz etmek, güçlü ve gelişime açık yönlerini belirlemek ve gerektiğinde bilimsel temelli müdahale süreçlerine rehberlik etmektir.",
+        "Performans değerlendirmesi, ayrıntılı raporlama, kişiselleştirilmiş gelişim programları ve uzman desteğini aynı platformda bir araya getirerek kullanıcıya bütüncül bir değerlendirme deneyimi sunar."
+      ],
+      noticeTitle: "Önemli Bilgilendirme",
+      notice: [
+        "FocusProLab tanı koyan veya klinik değerlendirme yerine geçen bir sistem değildir.",
+        "Platformdan elde edilen performans verileri; klinik görüşme, psikolojik değerlendirme, gözlem ve diğer ölçme araçlarıyla birlikte ele alınması amacıyla geliştirilmiştir. Sonuçlar, uzmanların karar verme süreçlerini destekleyen objektif performans verileri sunar."
+      ]
+    }
   },
   sections: {
     about: "FocusProLab, gerçek yaşam koşullarını simüle eden çeldiriciler altında dikkat ve sürekli performansı objektif olarak ölçer.",

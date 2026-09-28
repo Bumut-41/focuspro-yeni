@@ -106,18 +106,29 @@ export default function HomePage() {
           <section className="fp-mkt-section">
             <h2 className="fp-mkt-section-title">{m.products.title}</h2>
             <div className="fp-mkt-products">
-              {m.products.items.map((p) => (
-                <article key={p.title} className="fp-mkt-product">
-                  <span className="fp-mkt-product-icon" aria-hidden>
-                    {p.icon}
-                  </span>
-                  <h3>{p.title}</h3>
-                  <p>{p.desc}</p>
-                  <button type="button" className="fp-mkt-product-link">
-                    {m.products.cta}
-                  </button>
-                </article>
-              ))}
+              {m.products.items.map((p) =>
+                p.to ? (
+                  <Link key={p.title} to={p.to} className="fp-mkt-product fp-mkt-product--link">
+                    <span className="fp-mkt-product-icon" aria-hidden>
+                      {p.icon}
+                    </span>
+                    <h3>{p.title}</h3>
+                    <p>{p.desc}</p>
+                    <span className="fp-mkt-product-link">{m.products.cta}</span>
+                  </Link>
+                ) : (
+                  <article key={p.title} className="fp-mkt-product">
+                    <span className="fp-mkt-product-icon" aria-hidden>
+                      {p.icon}
+                    </span>
+                    <h3>{p.title}</h3>
+                    <p>{p.desc}</p>
+                    <button type="button" className="fp-mkt-product-link">
+                      {m.products.cta}
+                    </button>
+                  </article>
+                )
+              )}
             </div>
           </section>
 

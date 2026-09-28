@@ -9,7 +9,8 @@ export function AppHeader() {
   const { user, profile, signOut, isSupabaseReady, isAdmin } = useAuth();
   const { strings, t } = useLocale();
   const { pathname } = useLocation();
-  const isMarketingHome = pathname === "/" && !user;
+  const isMarketingHome = !user && (pathname === "/" || pathname.startsWith("/urun/"));
+  const onHome = pathname === "/";
   const nav = strings.home?.marketing?.nav;
 
   return (
@@ -22,12 +23,12 @@ export function AppHeader() {
         {isMarketingHome && nav && (
           <nav className="fp-mkt-topnav" aria-label="Marketing">
             <a href="/">{nav.home}</a>
-            <a href="#nedir">{nav.about}</a>
-            <a href="#kimler">{nav.who}</a>
-            <a href="#uzmanlar">{nav.pros}</a>
-            <a href="#merkezler">{nav.centers}</a>
-            <a href="#sss">{nav.faq}</a>
-            <a href="#iletisim">{nav.contact}</a>
+            <a href={onHome ? "#nedir" : "/#nedir"}>{nav.about}</a>
+            <a href={onHome ? "#kimler" : "/#kimler"}>{nav.who}</a>
+            <a href={onHome ? "#uzmanlar" : "/#uzmanlar"}>{nav.pros}</a>
+            <a href={onHome ? "#merkezler" : "/#merkezler"}>{nav.centers}</a>
+            <a href={onHome ? "#sss" : "/#sss"}>{nav.faq}</a>
+            <a href={onHome ? "#iletisim" : "/#iletisim"}>{nav.contact}</a>
           </nav>
         )}
 

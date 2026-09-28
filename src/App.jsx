@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
+import ProductTestPage from "./pages/ProductTestPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CompleteProfilePage from "./pages/CompleteProfilePage.jsx";
@@ -19,7 +20,7 @@ const TestFlowPage = lazy(() => import("./pages/TestFlowPage.jsx"));
 function Shell({ children }) {
   const { immersive } = useTestChrome();
   const { pathname } = useLocation();
-  const isLanding = pathname === "/";
+  const isLanding = pathname === "/" || pathname.startsWith("/urun/");
 
   return (
     <div className={immersive ? "app-shell app-shell--immersive" : "app-shell"}>
@@ -56,6 +57,7 @@ function AppRoutes() {
         }
       />
       <Route path="/" element={<HomePage />} />
+      <Route path="/urun/focusprolab-testi" element={<ProductTestPage />} />
       <Route
         path="/panel"
         element={

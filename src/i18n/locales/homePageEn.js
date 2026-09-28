@@ -76,7 +76,7 @@ export const homePageEn = {
   products: {
     title: "Our products",
     items: [
-      { icon: "🧠", title: "FocusProLab test", desc: "Multi-phase continuous performance test" },
+      { icon: "🧠", title: "FocusProLab test", desc: "Multi-phase continuous performance test", to: "/urun/focusprolab-testi" },
       { icon: "📊", title: "PDF report", desc: "Professional pre-evaluation report" },
       { icon: "📅", title: "12-week development programme", desc: "Structured follow-up plan" },
       { icon: "💬", title: "Expert commentary", desc: "Clinical interpretation support" },
@@ -139,6 +139,91 @@ export const homePageEn = {
       { label: "For professionals", href: "#uzmanlar" }
     ],
     copyright: "© {{year}} FocusProLab. All rights reserved."
+  },
+  productPages: {
+    test: {
+      back: "Back to home",
+      title: "FocusProLab Performance Assessment System",
+      lead: "Beyond Measuring Attention Performance — A Next-Generation Digital Assessment Platform for Understanding and Development",
+      intro: [
+        "FocusProLab is a computer-based digital performance assessment platform developed to evaluate attention performance across multiple dimensions in children, adolescents and adults.",
+        "Through standardised digital tasks, the system analyses the core cognitive processes that make up an individual's attention performance using objective performance data. Unlike traditional approaches, it does not look only at the number of correct and incorrect answers; it also evaluates response patterns, timing skill, impulse control, motor behaviour and performance under distractors together, creating a detailed, person-specific performance profile.",
+        "This approach makes it possible to identify each individual's strengths and areas for development separately, so the assessment process becomes development-oriented as well as outcome-oriented."
+      ],
+      areasTitle: "Performance areas assessed",
+      areas: [
+        {
+          code: "A",
+          color: "a",
+          label: "Attention",
+          en: "Dikkat",
+          points: ["Sustaining attention", "Selective attention", "Focusing on the target", "Performance continuity"]
+        },
+        {
+          code: "T",
+          color: "t",
+          label: "Timing",
+          en: "Zamanlama",
+          points: ["Reaction time", "Response consistency", "Tempo control", "Responding at the right time"]
+        },
+        {
+          code: "I",
+          color: "i",
+          label: "Impulsivity",
+          en: "Dürtüsellik",
+          points: ["Response inhibition", "Tendency to respond to non-targets", "Decision-making control", "Behavioral self-regulation"]
+        },
+        {
+          code: "M",
+          color: "m",
+          label: "Motor Control",
+          en: "Motor Kontrol",
+          points: ["Unnecessary motor responses", "Repetitive behavior patterns", "Motor inhibition", "Behavior control"]
+        },
+        {
+          code: "Ç",
+          color: "c",
+          label: "Distractor Resistance",
+          en: "Çeldirici Direnci",
+          points: [
+            "Performance under visual distractors",
+            "Performance under auditory distractors",
+            "Ability to refocus attention",
+            "How much environmental stimuli affect performance"
+          ]
+        }
+      ],
+      processTitle: "Test process",
+      process: [
+        "About 13–15 minutes",
+        "Fully digital",
+        "Standardised task flow",
+        "Objective performance analysis",
+        "Secure data infrastructure"
+      ],
+      processIcons: ["⏱️", "💻", "📊", "📈", "🔒"],
+      afterTitle: "What to expect after the test",
+      afterLead: "After the test, your performance data is analysed and a personal performance profile is created.",
+      afterHint: "You can use the following services according to your needs:",
+      services: [
+        { icon: "📄", title: "Detailed PDF performance report" },
+        { icon: "🧠", title: "Clinical psychologist commentary" },
+        { icon: "📅", title: "12-week personalised development programme" },
+        { icon: "💻", title: "Online expert consultation" }
+      ],
+      afterNote: "All of these services are optional. Users can plan the assessment process according to their own needs.",
+      approachTitle: "The FocusProLab approach",
+      approach: [
+        "FocusProLab is not only a system that measures attention performance.",
+        "Its purpose is to analyse performance with objective data, identify strengths and areas for development, and, when needed, guide scientifically based intervention.",
+        "It brings performance assessment, detailed reporting, personalised development programmes and expert support together on one platform, offering a holistic assessment experience."
+      ],
+      noticeTitle: "Important information",
+      notice: [
+        "FocusProLab does not diagnose and does not replace a clinical assessment.",
+        "Performance data from the platform is intended to be considered together with clinical interview, psychological assessment, observation and other measures. Results provide objective performance data that support professionals' decision-making."
+      ]
+    }
   },
   sections: {
     about: "FocusProLab objectively measures attention and sustained performance under distractors that simulate real-life conditions.",
