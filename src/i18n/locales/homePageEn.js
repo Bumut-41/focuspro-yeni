@@ -77,7 +77,7 @@ export const homePageEn = {
     title: "Our products",
     items: [
       { icon: "🧠", title: "FocusProLab test", desc: "Multi-phase continuous performance test", to: "/urun/focusprolab-testi" },
-      { icon: "📊", title: "PDF report", desc: "Professional pre-evaluation report" },
+      { icon: "📊", title: "PDF report", desc: "Professional pre-evaluation report", to: "/urun/pdf-rapor" },
       { icon: "📅", title: "12-week development programme", desc: "Structured follow-up plan" },
       { icon: "💬", title: "Expert commentary", desc: "Clinical interpretation support" },
       { icon: "🎥", title: "Expert consultation", desc: "One-to-one online review" }
@@ -223,6 +223,34 @@ export const homePageEn = {
         "FocusProLab does not diagnose and does not replace a clinical assessment.",
         "Performance data from the platform is intended to be considered together with clinical interview, psychological assessment, observation and other measures. Results provide objective performance data that support professionals' decision-making."
       ]
+    },
+    report: {
+      back: "Back to home",
+      kicker: "PDF report",
+      title: "Professional performance report",
+      lead: "After the test, the system creates a detailed PDF for you.",
+      contentsTitle: "What is in the report?",
+      contents: [
+        { icon: "📈", title: "Overall performance score" },
+        { icon: "📊", title: "A-T-I-H-C profile" },
+        { icon: "📉", title: "Strengths" },
+        { icon: "⚠️", title: "Areas to develop" },
+        { icon: "📝", title: "Explanations in the style of a clinical commentary" },
+        { icon: "🎯", title: "Personalised recommendations" }
+      ],
+      deliveryTitle: "Delivery",
+      delivery: "Sent to your email address as a PDF.",
+      audienceTitle: "Who is it for?",
+      audience: [
+        "Children and adolescents",
+        "Adult users",
+        "Psychologists",
+        "Psychiatrists",
+        "Hospitals",
+        "Schools",
+        "Human resources"
+      ],
+      cta: "Start test"
     }
   },
   sections: {

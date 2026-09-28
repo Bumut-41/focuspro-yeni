@@ -77,7 +77,7 @@ export const homePageTr = {
     title: "Ürünlerimiz",
     items: [
       { icon: "🧠", title: "FocusProLab Testi", desc: "Çok aşamalı sürekli performans testi", to: "/urun/focusprolab-testi" },
-      { icon: "📊", title: "PDF Rapor", desc: "Profesyonel ön değerlendirme raporu" },
+      { icon: "📊", title: "PDF Rapor", desc: "Profesyonel ön değerlendirme raporu", to: "/urun/pdf-rapor" },
       { icon: "📅", title: "12 Haftalık Gelişim Programı", desc: "Yapılandırılmış takip planı" },
       { icon: "💬", title: "Uzman Yorumu", desc: "Klinik bağlamda yorum desteği" },
       { icon: "🎥", title: "Uzman Görüşmesi", desc: "Bire bir online değerlendirme" }
@@ -223,6 +223,34 @@ export const homePageTr = {
         "FocusProLab tanı koyan veya klinik değerlendirme yerine geçen bir sistem değildir.",
         "Platformdan elde edilen performans verileri; klinik görüşme, psikolojik değerlendirme, gözlem ve diğer ölçme araçlarıyla birlikte ele alınması amacıyla geliştirilmiştir. Sonuçlar, uzmanların karar verme süreçlerini destekleyen objektif performans verileri sunar."
       ]
+    },
+    report: {
+      back: "Ana sayfaya dön",
+      kicker: "PDF Rapor",
+      title: "Profesyonel Performans Raporu",
+      lead: "Test tamamlandıktan sonra sistem sizin için ayrıntılı bir PDF oluşturur.",
+      contentsTitle: "Raporda Neler Var?",
+      contents: [
+        { icon: "📈", title: "Genel Performans Puanı" },
+        { icon: "📊", title: "A-T-I-H-C Profili" },
+        { icon: "📉", title: "Güçlü Yönler" },
+        { icon: "⚠️", title: "Geliştirilmesi Gereken Alanlar" },
+        { icon: "📝", title: "Klinik yorum niteliğinde açıklamalar" },
+        { icon: "🎯", title: "Kişiye özel öneriler" }
+      ],
+      deliveryTitle: "Teslim",
+      delivery: "E-posta adresinize PDF olarak gönderilir.",
+      audienceTitle: "Kimler İçin?",
+      audience: [
+        "Çocuk ve ergenlik dönemindekiler",
+        "Yetişkin kullanıcılar",
+        "Psikologlar",
+        "Psikiyatristler",
+        "Hastaneler",
+        "Okullar",
+        "İnsan kaynakları"
+      ],
+      cta: "Teste Başla"
     }
   },
   sections: {

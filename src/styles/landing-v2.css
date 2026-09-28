@@ -765,6 +765,30 @@
   color: #0f172a;
 }
 
+.fp-detail-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0d9488;
+}
+
+.fp-detail-audience {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.fp-detail-audience li {
+  margin-bottom: 0.4rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.fp-detail-cta {
+  margin-top: 1.75rem;
+}
+
 .fp-detail-lead {
   margin: 0 0 1.25rem;
   font-size: 1.05rem;

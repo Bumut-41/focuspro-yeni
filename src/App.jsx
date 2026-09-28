@@ -10,6 +10,7 @@ import AdminPage from "./pages/AdminPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import ProductTestPage from "./pages/ProductTestPage.jsx";
+import ProductReportPage from "./pages/ProductReportPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CompleteProfilePage from "./pages/CompleteProfilePage.jsx";
@@ -58,6 +59,7 @@ function AppRoutes() {
       />
       <Route path="/" element={<HomePage />} />
       <Route path="/urun/focusprolab-testi" element={<ProductTestPage />} />
+      <Route path="/urun/pdf-rapor" element={<ProductReportPage />} />
       <Route
         path="/panel"
         element={
