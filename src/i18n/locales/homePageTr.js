@@ -79,7 +79,7 @@ export const homePageTr = {
       { icon: "🧠", title: "FocusProLab Testi", desc: "Çok aşamalı sürekli performans testi", to: "/urun/focusprolab-testi" },
       { icon: "📊", title: "PDF Rapor", desc: "Profesyonel ön değerlendirme raporu", to: "/urun/pdf-rapor" },
       { icon: "📅", title: "12 Haftalık Gelişim Programı", desc: "Yapılandırılmış takip planı", to: "/urun/gelisim-programi" },
-      { icon: "💬", title: "Uzman Yorumu", desc: "Klinik bağlamda yorum desteği" },
+      { icon: "💬", title: "Uzman Yorumu", desc: "Klinik bağlamda yorum desteği", to: "/urun/uzman-yorumu" },
       { icon: "🎥", title: "Uzman Görüşmesi", desc: "Bire bir online değerlendirme" }
     ],
     cta: "Detaylı Bilgi"
@@ -273,6 +273,24 @@ export const homePageTr = {
       daily: "20–25 dakika",
       cta: "12 Haftalık Program",
       trial: "Program Deneme aşamasındadır."
+    },
+    commentary: {
+      back: "Ana sayfaya dön",
+      title: "Uzman Yorumu",
+      lead: "Sonuçlarınızı Bir Uzman Değerlendirsin",
+      intro: "PDF raporunuzdaki veriler, alanındaki uzmanlar tarafından klinik açıdan yorumlanır.",
+      includesTitle: "Bu Hizmette",
+      includes: [
+        "Test sonuçlarının açıklanması",
+        "Güçlü yönlerin değerlendirilmesi",
+        "Gelişim alanlarının belirlenmesi",
+        "Günlük yaşama etkilerinin yorumlanması",
+        "Size özel öneriler"
+      ],
+      note: "Bu hizmet tanı koyma amacı taşımaz. Klinik değerlendirmeyi destekleyici profesyonel geri bildirim sunar.",
+      deliveryTitle: "Teslim Şekli",
+      delivery: "Yazılı uzman değerlendirme raporu",
+      cta: "Uzman Yorumu Talep Et"
     }
   },
   sections: {

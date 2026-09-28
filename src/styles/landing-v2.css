@@ -789,6 +789,22 @@
   margin-top: 1.75rem;
 }
 
+.fp-detail-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.fp-detail-note {
+  margin: 1.25rem 0 0;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #7c2d12;
+  line-height: 1.6;
+}
+
 .fp-detail-checks {
   margin: 0;
   padding: 0;

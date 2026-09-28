@@ -79,7 +79,7 @@ export const homePageEn = {
       { icon: "🧠", title: "FocusProLab test", desc: "Multi-phase continuous performance test", to: "/urun/focusprolab-testi" },
       { icon: "📊", title: "PDF report", desc: "Professional pre-evaluation report", to: "/urun/pdf-rapor" },
       { icon: "📅", title: "12-week development programme", desc: "Structured follow-up plan", to: "/urun/gelisim-programi" },
-      { icon: "💬", title: "Expert commentary", desc: "Clinical interpretation support" },
+      { icon: "💬", title: "Expert commentary", desc: "Clinical interpretation support", to: "/urun/uzman-yorumu" },
       { icon: "🎥", title: "Expert consultation", desc: "One-to-one online review" }
     ],
     cta: "Learn more"
@@ -273,6 +273,24 @@ export const homePageEn = {
       daily: "20–25 minutes",
       cta: "12-week programme",
       trial: "The programme is in a trial phase."
+    },
+    commentary: {
+      back: "Back to home",
+      title: "Expert commentary",
+      lead: "Have an expert review your results",
+      intro: "The data in your PDF report is interpreted clinically by specialists in the field.",
+      includesTitle: "This service includes",
+      includes: [
+        "Explanation of test results",
+        "Assessment of strengths",
+        "Identification of areas for development",
+        "Interpretation of effects on daily life",
+        "Recommendations tailored to you"
+      ],
+      note: "This service is not intended to make a diagnosis. It provides professional feedback that supports clinical assessment.",
+      deliveryTitle: "How it is delivered",
+      delivery: "Written expert assessment report",
+      cta: "Request expert commentary"
     }
   },
   sections: {

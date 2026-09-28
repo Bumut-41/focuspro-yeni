@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage.jsx";
 import ProductTestPage from "./pages/ProductTestPage.jsx";
 import ProductReportPage from "./pages/ProductReportPage.jsx";
 import ProductProgramPage from "./pages/ProductProgramPage.jsx";
+import ProductCommentaryPage from "./pages/ProductCommentaryPage.jsx";
 import ProgramTrialPage from "./pages/ProgramTrialPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Route path="/urun/focusprolab-testi" element={<ProductTestPage />} />
       <Route path="/urun/pdf-rapor" element={<ProductReportPage />} />
       <Route path="/urun/gelisim-programi" element={<ProductProgramPage />} />
+      <Route path="/urun/uzman-yorumu" element={<ProductCommentaryPage />} />
       <Route path="/urun/gelisim-programi/deneme" element={<ProgramTrialPage />} />
       <Route
         path="/panel"
