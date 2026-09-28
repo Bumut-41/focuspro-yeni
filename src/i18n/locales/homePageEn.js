@@ -87,7 +87,8 @@ export const homePageEn = {
   professionals: {
     title: "For professionals",
     items: ["Psychologists", "Psychiatrists", "School counsellors", "Special education centres", "Hospitals", "Schools"],
-    cta: "Institutional enquiry"
+    cta: "Institutional enquiry",
+    to: "/kurumsal-basvuru"
   },
   afterTest: {
     title: "What happens after the test?",
@@ -313,6 +314,79 @@ export const homePageEn = {
       outcomes: ["A roadmap", "Recommendations", "Answers to your questions"],
       cta: "Book an appointment"
     }
+  },
+  corporate: {
+    back: "Back to home",
+    title: "Institutional application",
+    lead: "FocusProLab Partnership Programme",
+    intro: [
+      "FocusProLab offers its attention, impulsivity and cognitive performance assessment system to organisations through tailored solutions.",
+      "Apply to use a science-based digital assessment and reporting system in your organisation."
+    ],
+    whoTitle: "Who can apply?",
+    who: [
+      "Psychology centres",
+      "Psychiatry clinics",
+      "School counselling centres",
+      "Special education and rehabilitation centres",
+      "Hospitals",
+      "Medical centres",
+      "Schools",
+      "Universities",
+      "Municipalities",
+      "Corporate organisations"
+    ],
+    processTitle: "What happens after you apply",
+    process: [
+      { title: "Initial review", text: "Your organisation’s needs are analysed." },
+      { title: "Online introduction meeting", text: "Every feature of the system is explained in detail." },
+      { title: "Demo account", text: "Your specialists can try the system on real cases." },
+      { title: "Training and setup", text: "Every specialist receives hands-on training." },
+      { title: "Institutional activation", text: "A management panel is opened for your organisation. Specialist accounts are created. Test use begins." }
+    ],
+    benefitsTitle: "What organisations receive",
+    benefits: [
+      "Science-based digital attention assessment",
+      "Automatic PDF reports",
+      "Specialist management panel",
+      "Patient and client history",
+      "Organisation-specific statistics",
+      "Support for multiple specialists",
+      "Secure cloud system",
+      "Ongoing technical support",
+      "Training and update support"
+    ],
+    formTitle: "Application form",
+    fields: {
+      org: "Organisation name",
+      contact: "Authorised contact",
+      role: "Role",
+      phone: "Phone",
+      email: "Email",
+      country: "Country",
+      city: "City",
+      cityPlaceholder: "Select a city",
+      type: "Organisation type",
+      typePlaceholder: "Select an organisation type",
+      experts: "Number of specialists",
+      clients: "Estimated clients per month",
+      message: "Your message"
+    },
+    types: [
+      "Psychological counselling centres",
+      "Psychiatry clinic",
+      "Private allied health service units",
+      "Hospital",
+      "School",
+      "Special education centre",
+      "University",
+      "Corporate organisation",
+      "Other"
+    ],
+    submit: "Send application",
+    required: "Please complete every required field.",
+    success: "Your application has been received. We will contact you shortly.",
+    saveError: "The application could not be saved. Please try again in a moment."
   },
   sections: {
     about: "FocusProLab objectively measures attention and sustained performance under distractors that simulate real-life conditions.",

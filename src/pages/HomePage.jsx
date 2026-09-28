@@ -143,7 +143,7 @@ export default function HomePage() {
               ))}
             </div>
             <div className="fp-mkt-pro-cta-wrap">
-              <Button asLink to="/kayit" variant="primary" className="fp-mkt-btn-navy">
+              <Button asLink to={m.professionals.to || "/kurumsal-basvuru"} variant="primary" className="fp-mkt-btn-navy">
                 {m.professionals.cta}
               </Button>
             </div>

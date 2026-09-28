@@ -87,7 +87,8 @@ export const homePageTr = {
   professionals: {
     title: "Uzmanlar İçin",
     items: ["Psikologlar", "Psikiyatristler", "PDR Uzmanları", "Özel Eğitim Merkezleri", "Hastaneler", "Okullar"],
-    cta: "Kurumsal Başvuru"
+    cta: "Kurumsal Başvuru",
+    to: "/kurumsal-basvuru"
   },
   afterTest: {
     title: "Test Sonrası Neler Olur?",
@@ -313,6 +314,79 @@ export const homePageTr = {
       outcomes: ["Yol haritası", "Öneriler", "Sorularınıza cevap"],
       cta: "Randevu Al"
     }
+  },
+  corporate: {
+    back: "Ana sayfaya dön",
+    title: "Kurumsal Başvuru",
+    lead: "FocusProLab İş Ortaklığı Programı",
+    intro: [
+      "FocusProLab, dikkat, dürtüsellik ve bilişsel performans değerlendirme sistemini kurumlara özel çözümlerle sunmaktadır.",
+      "Kurumunuzda bilimsel temelli dijital değerlendirme ve raporlama sistemini kullanmak için başvurabilirsiniz."
+    ],
+    whoTitle: "Kimler Başvurabilir?",
+    who: [
+      "Psikoloji Merkezleri",
+      "Psikiyatri Klinikleri",
+      "PDR Merkezleri",
+      "Özel Eğitim ve Rehabilitasyon Merkezleri",
+      "Hastaneler",
+      "Tıp Merkezleri",
+      "Okullar",
+      "Üniversiteler",
+      "Belediyeler",
+      "Kurumsal Firmalar"
+    ],
+    processTitle: "Başvuru Sonrası Süreç",
+    process: [
+      { title: "Ön Değerlendirme", text: "Kurumunuzun ihtiyaçları analiz edilir." },
+      { title: "Online Tanıtım Toplantısı", text: "Sistemin tüm özellikleri detaylı olarak anlatılır." },
+      { title: "Demo Hesabı", text: "Uzmanlarınız sistemi gerçek vakalar üzerinde deneyimleyebilir." },
+      { title: "Eğitim ve Kurulum", text: "Tüm uzmanlara kullanım eğitimi verilir." },
+      { title: "Kurumsal Aktivasyon", text: "Kurumunuza özel yönetim paneli açılır. Uzman hesapları oluşturulur. Test kullanımları başlatılır." }
+    ],
+    benefitsTitle: "Kurumlara Sağlanan Avantajlar",
+    benefits: [
+      "Bilimsel temelli dijital dikkat değerlendirmesi",
+      "Otomatik PDF raporları",
+      "Uzman yönetim paneli",
+      "Hasta/danışan geçmişi",
+      "Kuruma özel istatistikler",
+      "Çoklu uzman desteği",
+      "Bulut tabanlı güvenli sistem",
+      "Sürekli teknik destek",
+      "Eğitim ve güncelleme desteği"
+    ],
+    formTitle: "Başvuru Formu",
+    fields: {
+      org: "Kurum Adı",
+      contact: "Yetkili Ad Soyad",
+      role: "Görevi",
+      phone: "Telefon",
+      email: "E-posta",
+      country: "Ülke",
+      city: "Şehir",
+      cityPlaceholder: "Şehir seçin",
+      type: "Kurum Türü",
+      typePlaceholder: "Kurum türü seçin",
+      experts: "Uzman Sayısı",
+      clients: "Aylık Tahmini Danışan Sayısı",
+      message: "Mesajınız"
+    },
+    types: [
+      "Psikolojik Danışmanlık Merkezleri",
+      "Psikiyatri Kliniği",
+      "Özel Sağlık Meslek Hizmet Birimleri",
+      "Hastane",
+      "Okul",
+      "Özel Eğitim Merkezi",
+      "Üniversite",
+      "Kurumsal Firma",
+      "Diğer"
+    ],
+    submit: "Başvuruyu Gönder",
+    required: "Lütfen tüm zorunlu alanları doldurun.",
+    success: "Başvurunuz alındı. En kısa sürede sizinle iletişime geçeceğiz.",
+    saveError: "Başvuru kaydedilemedi. Lütfen kısa bir süre sonra yeniden deneyin."
   },
   sections: {
     about: "FocusProLab, gerçek yaşam koşullarını simüle eden çeldiriciler altında dikkat ve sürekli performansı objektif olarak ölçer.",

@@ -1024,9 +1024,133 @@
   margin-bottom: 0;
 }
 
+.fp-corp-who {
+  grid-template-columns: 1fr 1fr;
+}
+
+.fp-corp-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.fp-corp-steps li {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+}
+
+.fp-corp-steps li > span {
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #0d9488;
+  color: #fff;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fp-corp-steps h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.fp-corp-steps p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.fp-corp-form-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.35rem 1.25rem 1.5rem;
+}
+
+.fp-corp-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1rem;
+}
+
+.fp-corp-form .fp-field {
+  margin-top: 0;
+}
+
+.fp-corp-span,
+.fp-corp-error,
+.fp-corp-form .fp-detail-cta {
+  grid-column: 1 / -1;
+}
+
+.fp-corp-form .fp-detail-cta {
+  margin-top: 0.25rem;
+  justify-self: start;
+}
+
+.fp-phone {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fp-phone-prefix {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--fp-border-strong);
+  border-radius: var(--fp-radius);
+  background: #f8fafc;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.fp-corp-message {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.fp-corp-error {
+  margin: 0;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.fp-corp-success {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 @media (max-width: 900px) {
   .fp-detail-areas,
   .fp-detail-process {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .fp-corp-form,
+  .fp-corp-who {
+    grid-template-columns: 1fr;
   }
 }
