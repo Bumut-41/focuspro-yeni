@@ -58,23 +58,40 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2.5rem;
-  align-items: center;
+  align-items: start;
 }
 
 .fp-mkt-hero-title {
-  margin: 0 0 1rem;
-  font-size: clamp(1.75rem, 3.2vw, 2.35rem);
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.55rem, 2.6vw, 2rem);
   font-weight: 800;
   line-height: 1.2;
   color: #0f172a;
 }
 
-.fp-mkt-hero-sub {
-  margin: 0 0 1.25rem;
-  font-size: 1rem;
-  line-height: 1.65;
+.fp-mkt-hero-lead {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #0f766e;
+  max-width: 38rem;
+}
+
+.fp-mkt-hero-body {
+  margin: 0 0 1.15rem;
+  max-width: 40rem;
+}
+
+.fp-mkt-hero-body p {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
   color: #475569;
-  max-width: 34rem;
+}
+
+.fp-mkt-hero-body p:last-child {
+  margin-bottom: 0;
 }
 
 .fp-mkt-age-pills {

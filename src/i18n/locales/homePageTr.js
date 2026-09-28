@@ -11,9 +11,14 @@ export const homePageTr = {
     login: "Giriş Yap"
   },
   hero: {
-    title: "Dikkat, Dürtüsellik ve Performansın Objektif Değerlendirilmesi",
-    subtitle:
-      "FocusProLab; dikkat sürdürme, zamanlama, dürtü kontrolü ve motor performansı çok boyutlu ölçen dijital bir performans değerlendirme sistemidir.",
+    title: "FocusProLab Performans Değerlendirme Sistemi",
+    lead:
+      "Dikkat Performansını Ölçmenin Ötesinde, Anlamaya ve Geliştirmeye Yönelik Yeni Nesil Dijital Değerlendirme Platformu",
+    paragraphs: [
+      "FocusProLab; çocuk, ergen ve yetişkinlerde dikkat performansını çok boyutlu olarak değerlendirmek amacıyla geliştirilen, bilgisayar tabanlı dijital performans değerlendirme platformudur.",
+      "Sistem; standartlaştırılmış dijital görevler aracılığıyla bireyin dikkat performansını oluşturan temel bilişsel süreçleri objektif performans verileriyle analiz eder. Geleneksel değerlendirme yaklaşımlarının aksine, yalnızca doğru ve yanlış cevap sayılarını değil; tepki örüntülerini, zamanlama becerisini, dürtü kontrolünü, motor davranışları ve çeldiriciler karşısındaki performansı birlikte değerlendirerek kişiye özgü ayrıntılı bir performans profili oluşturur.",
+      "Bu yaklaşım sayesinde her bireyin güçlü yönleri ve gelişime açık alanları ayrı ayrı belirlenebilir; böylece değerlendirme süreci yalnızca sonuç odaklı değil, aynı zamanda gelişim odaklı bir yapıya dönüşür."
+    ],
     ages: [
       { label: "Çocuklar (6–12 Yaş)", icon: "👶" },
       { label: "Ergenler (13–17 Yaş)", icon: "🎓" },

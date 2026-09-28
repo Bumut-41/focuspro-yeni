@@ -35,7 +35,12 @@ export default function HomePage() {
         <div className="fp-mkt-container fp-mkt-hero-grid">
           <div className="fp-mkt-hero-copy">
             <h1 className="fp-mkt-hero-title">{m.hero.title}</h1>
-            <p className="fp-mkt-hero-sub">{m.hero.subtitle}</p>
+            <p className="fp-mkt-hero-lead">{m.hero.lead}</p>
+            <div className="fp-mkt-hero-body">
+              {m.hero.paragraphs.map((p) => (
+                <p key={p}>{p}</p>
+              ))}
+            </div>
             <div className="fp-mkt-age-pills">
               {m.hero.ages.map((a) => (
                 <span key={a.label} className="fp-mkt-age-pill">

@@ -11,9 +11,14 @@ export const homePageEn = {
     login: "Sign in"
   },
   hero: {
-    title: "Objective Assessment of Attention, Impulsivity and Performance",
-    subtitle:
-      "FocusProLab is a digital performance assessment system that measures sustained attention, timing, impulse control and motor performance across multiple dimensions.",
+    title: "FocusProLab Performance Assessment System",
+    lead:
+      "Beyond Measuring Attention Performance — A Next-Generation Digital Assessment Platform for Understanding and Development",
+    paragraphs: [
+      "FocusProLab is a computer-based digital performance assessment platform developed to evaluate attention performance across multiple dimensions in children, adolescents and adults.",
+      "Through standardised digital tasks, the system analyses the core cognitive processes that make up an individual's attention performance using objective performance data. Unlike traditional approaches, it does not look only at correct and incorrect answers; it also evaluates response patterns, timing skill, impulse control, motor behaviour and performance under distractors together, creating a detailed, person-specific performance profile.",
+      "This approach makes it possible to identify each individual's strengths and areas for development separately, so the assessment process becomes development-oriented as well as outcome-oriented."
+    ],
     ages: [
       { label: "Children (6–12)", icon: "👶" },
       { label: "Adolescents (13–17)", icon: "🎓" },
