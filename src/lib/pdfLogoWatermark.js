@@ -1,5 +1,5 @@
 const LOGO_PATH = "/focuspro-logo.png";
-const LOGO_ASPECT = 463 / 664;
+const LOGO_ASPECT = 511 / 831;
 const WIDTH_RATIO = 0.78;
 const OPACITY = 0.08;
 

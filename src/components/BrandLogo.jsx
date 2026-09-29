@@ -7,8 +7,8 @@ export function BrandLogo({ variant = "header", className = "" }) {
       src={LOGO_SRC}
       alt="Focus Pro Lab"
       className={`fp-brand-logo fp-brand-logo--${variant}${className ? ` ${className}` : ""}`}
-      width={variant === "header" ? 280 : variant === "auth" ? 260 : 200}
-      height={variant === "header" ? 76 : variant === "auth" ? 120 : 56}
+      width={variant === "header" ? 168 : variant === "auth" ? 240 : 180}
+      height={variant === "header" ? 104 : variant === "auth" ? 148 : 111}
       decoding="async"
     />
   );

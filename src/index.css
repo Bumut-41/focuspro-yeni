@@ -97,22 +97,22 @@ a:hover {
 }
 
 .fp-brand-logo--header {
-  height: 76px;
+  height: 104px;
   width: auto;
-  max-width: min(280px, 52vw);
+  max-width: min(220px, 46vw);
 }
 
 .fp-brand-logo--auth {
   height: auto;
-  max-height: 128px;
+  max-height: 168px;
   max-width: min(280px, 88vw);
   margin: 0 auto var(--fp-space-5);
 }
 
 .fp-brand-logo--footer {
   height: auto;
-  max-height: 72px;
-  max-width: 200px;
+  max-height: 112px;
+  max-width: 220px;
   margin-bottom: var(--fp-space-2);
   border-radius: var(--fp-radius-sm);
 }
@@ -679,8 +679,8 @@ a:hover {
   }
 
   .fp-brand-logo--header {
-    height: 58px;
-    max-width: min(220px, 58vw);
+    height: 84px;
+    max-width: min(180px, 52vw);
   }
 
   .fp-nav-user-name {
