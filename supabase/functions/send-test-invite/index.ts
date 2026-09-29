@@ -18,10 +18,13 @@ function emailContent(
   inviteUrl: string,
   expiresAt: string
 ) {
-  const expires = new Date(expiresAt).toLocaleString(locale === "en" ? "en-US" : "tr-TR", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  });
+  const expires = new Date(expiresAt).toLocaleString(
+    locale === "en" ? "en-US" : locale === "it" ? "it-IT" : "tr-TR",
+    {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }
+  );
 
   if (locale === "en") {
     return {
@@ -32,6 +35,20 @@ function emailContent(
         <p><a href="${inviteUrl}" style="display:inline-block;padding:12px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Open invitation</a></p>
         <p style="font-size:14px;color:#64748b">This link is valid until <strong>${expires}</strong> (3 days). Please register or sign in with the email address this invitation was sent to.</p>
         <p style="color:#64748b;font-size:13px">Test results are shared only with your clinician. This assessment is for screening purposes only and does not constitute a diagnosis.</p>
+        <p>— FocusProLab</p>
+      </div>`
+    };
+  }
+
+  if (locale === "it") {
+    return {
+      subject: "FocusProLab — Invito al test di attenzione",
+      html: `<div style="font-family:Inter,Arial,sans-serif;line-height:1.6;color:#1e293b">
+        <p>Buongiorno,</p>
+        <p><strong>${psychologistName}</strong> ti ha invitato a completare una valutazione dell'attenzione FocusProLab.</p>
+        <p><a href="${inviteUrl}" style="display:inline-block;padding:12px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Apri l'invito</a></p>
+        <p style="font-size:14px;color:#64748b">Questo link è valido fino al <strong>${expires}</strong> (3 giorni). Registrati o accedi con l'indirizzo e-mail a cui è stato inviato l'invito.</p>
+        <p style="color:#64748b;font-size:13px">I risultati del test sono condivisi solo con il tuo specialista. Questa valutazione serve solo allo screening e non costituisce una diagnosi.</p>
         <p>— FocusProLab</p>
       </div>`
     };
@@ -120,7 +137,7 @@ Deno.serve(async (req) => {
     }
 
     const inviteUrl = `${siteUrl.replace(/\/$/, "")}/davet/${invite.token}`;
-    const psychologistName = psych.full_name || "Uzmanınız";
+    const psychologistName = psych.full_name || (locale === "it" ? "Il tuo specialista" : "Uzmanınız");
     const { subject, html } = emailContent(locale, psychologistName, inviteUrl, invite.expires_at);
 
     const mailRes = await fetch("https://api.resend.com/emails", {

@@ -805,6 +805,12 @@ export function buildDocDefinition({
   };
 }
 
+function pdfCreateErrorMessage(locale) {
+  if (locale === "en") return "Could not create test report PDF.";
+  if (locale === "it") return "Impossibile creare il PDF.";
+  return "Test raporu PDF oluşturulamadı.";
+}
+
 export async function createPdfBlob(args) {
   const pdfMake = await getPdfMake();
   const [reportCharts, logoDataUrl] = await Promise.all([
@@ -823,7 +829,7 @@ export async function createPdfBlob(args) {
     try {
       pdfMake.createPdf(doc).getBlob((blob) => {
         if (blob && blob.size > 0) resolve(blob);
-        else reject(new Error(args.locale === "en" ? "Could not create test report PDF." : "Test raporu PDF oluşturulamadı."));
+        else reject(new Error(pdfCreateErrorMessage(args.locale)));
       });
     } catch (e) {
       reject(e);
@@ -851,7 +857,7 @@ export async function downloadPdf(args) {
     try {
       pdfMake.createPdf(doc).getBlob((blob) => {
         if (!blob || blob.size === 0) {
-          reject(new Error(args.locale === "en" ? "Could not create test report PDF." : "Test raporu PDF oluşturulamadı."));
+          reject(new Error(pdfCreateErrorMessage(args.locale)));
           return;
         }
         try {

@@ -125,6 +125,13 @@ const RADAR_AXES = {
     { code: "I", lines: ["IMPULSIVITY"], color: "#f97316", key: "impulsivity" },
     { code: "H", lines: ["MOTOR", "CONTROL"], color: "#ef4444", key: "hyperactivity" },
     { code: "C", lines: ["DISTRACTOR", "RESISTANCE"], color: "#7c3aed", key: "distractor" }
+  ],
+  it: [
+    { code: "A", lines: ["ATTENZIONE"], color: "#2563eb", key: "attention" },
+    { code: "T", lines: ["TEMPISMO"], color: "#16a34a", key: "timing" },
+    { code: "I", lines: ["IMPULSIVITÀ"], color: "#f97316", key: "impulsivity" },
+    { code: "H", lines: ["MOTORIO", "CONTROLLO"], color: "#ef4444", key: "hyperactivity" },
+    { code: "C", lines: ["DISTRATTORI", "RESISTENZA"], color: "#7c3aed", key: "distractor" }
   ]
 };
 

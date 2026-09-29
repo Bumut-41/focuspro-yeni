@@ -1,11 +1,12 @@
 import { tr } from "./locales/tr.js";
 import { en } from "./locales/en.js";
+import { it } from "./locales/it.js";
 
 export const DEFAULT_LOCALE = "tr";
-export const SUPPORTED_LOCALES = ["tr", "en"];
+export const SUPPORTED_LOCALES = ["tr", "en", "it"];
 export const LOCALE_STORAGE_KEY = "focuspro-locale";
 
-const CATALOG = { tr, en };
+const CATALOG = { tr, en, it };
 
 export function getStrings(locale = DEFAULT_LOCALE) {
   return CATALOG[locale] ?? tr;

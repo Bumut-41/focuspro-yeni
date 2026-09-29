@@ -1,0 +1,336 @@
+/** Test raporu PDF metinleri (IT). EN ağacıyla aynı yapı. */
+export const reportPdfIt = {
+  coverSubtitle: "Report di valutazione della prestazione continua e dell'attenzione",
+  footer: "FocusProLab",
+  pageLabel: "Pagina",
+  chartSuffix: " — Grafico",
+  perfLevel: "Livello di prestazione",
+  severity: "Gravità",
+  participantInfo: "Dati del partecipante",
+  fullName: "Nome e cognome",
+  age: "Età",
+  gender: "Sesso",
+  evalDate: "Data della valutazione",
+  profile: "Profilo",
+  testDuration: "Durata del test",
+  testDurationUnit: "Minuti",
+  totalTrials: "Prove totali",
+  testValidity: "Validità del test",
+  validityIndex: "Indice di validità",
+  generalResult: "Risultato complessivo",
+  lowReliabilityWarnings: "Avvisi di bassa affidabilità",
+  consistencyWarnings: "Coerenza della prestazione",
+  executiveSummary: "Sintesi esecutiva",
+  overallScore: "Punteggio complessivo di prestazione",
+  riskLevel: "Livello di rischio",
+  strengths: "Punti di forza",
+  weaknesses: "Aree da monitorare",
+  noStrengths: "—",
+  noWeaknesses: "Nessuna area di sviluppo rilevante",
+  clinicalFlags: "Segnalazioni cliniche",
+  shortComment: "Commento breve",
+  mainIndexes: "Indici principali di prestazione",
+  commentLabel: "Commento",
+  distractorAnalysis: "Analisi dei distrattori",
+  distractorGeneral: "Risultato complessivo",
+  sustainability: "Analisi dell'attenzione sostenuta",
+  startPerf: "Prestazione iniziale",
+  endPerf: "Prestazione finale",
+  change: "Variazione",
+  points: "punti",
+  rawPsych: "Indicatori psicometrici grezzi",
+  professionalTitle: "Prevalutazione professionale",
+  technicalAppendix: "Appendice tecnica — Fasi e norme",
+  distractorTechnical: "Effetto dei distrattori (tecnico)",
+  phasePerformance: "Prestazione per fase",
+  section: "Sezione",
+  comment: "Commento",
+  measurement: "Misura",
+  value: "Valore",
+  disclaimer:
+    "FocusProLab non formula diagnosi. I risultati devono essere interpretati solo da professionisti qualificati, insieme al colloquio clinico e ad altri dati.",
+  timingFormula:
+    "T = (In tempo {{onTime}}×0.40) + (TR {{rtSpeed}}×0.25) + (Tardive {{late}}×0.20) + (Stab. {{stability}}×0.15) = {{total}}",
+  chartAttention: "Attenzione (A)",
+  chartTiming: "Tempismo (T)",
+  chartImpulsivity: "Impulsività (I)",
+  chartHyperactivity: "Iperattività (H)",
+  chartRadar: "Profilo di prestazione",
+  chartRadarSubtitle: "Lo stesso punteggio totale può indicare un profilo diverso a seconda di come sono distribuite le aree.",
+  chartCombined: "Quattro indici — Grafico per fase",
+  chartCombinedTitle: "Prestazione sui quattro indici",
+  invalidTitle: "TEST NON VALIDO",
+  invalidCritical: "Risultati critici",
+  invalidNoReport:
+    "Per questa sessione non è stato generato un report di prestazione. I risultati non devono essere usati per l'interpretazione clinica.",
+  normComparison: "Confronto con le norme",
+  normIntro: "Confronto standardizzato della prestazione rispetto ai gruppi normativi di riferimento.",
+  indexCol: "Indice",
+  scoreCol: "Punteggio",
+  normLevelCol: "Livello normativo",
+  interpretationCol: "Interpretazione",
+  targetObject: "Stimolo target",
+  validity: {
+    bands: {
+      invalid: "Non valido",
+      low: "Bassa affidabilità",
+      caution: "Da interpretare con cautela",
+      acceptable: "Accettabile",
+      valid: "Valido"
+    },
+    l1_avgRt: "Tempo di reazione medio sotto 150 ms (fisiologicamente sospetto).",
+    l1_fastRate: "Il {{rate}}% delle risposte è sotto 150 ms (velocità sospetta).",
+    l1_omission: "Tasso di omissioni {{rate}}% (partecipazione al compito molto bassa).",
+    l1_rtSdLow: "Deviazione standard del TR {{sd}} ms (possibile risposta robotica).",
+    l1_multi: "Tasso di pressioni multiple {{rate}}% (mancato rispetto delle istruzioni).",
+    l2_omission: "Tasso di omissioni {{rate}}% (fascia di bassa affidabilità).",
+    l2_commission: "Tasso di commissioni {{rate}}% (risposte elevate a stimoli non target).",
+    l2_rtSdHigh: "Deviazione standard del TR {{sd}} ms (variabilità eccessiva).",
+    l2_multi: "Tasso di pressioni multiple {{rate}}%.",
+    l3_attention: "Calo dell'attenzione (A) tra le fasi: inizio {{start}}, fine {{end}} (differenza {{delta}} punti).",
+    l3_rt: "Variazione del TR: inizio {{start}} ms, fine {{end}} ms (+{{delta}} ms).",
+    check_coopOk: "Partecipazione al compito adeguata",
+    check_coopLow: "Partecipazione al compito limitata",
+    check_rtOk: "Tempi di reazione nell'intervallo atteso",
+    check_rtBad: "Tempi di reazione sospetti o molto variabili",
+    check_patternOk: "Schema di risposta coerente",
+    check_patternBad: "Schema di risposta incoerente",
+    check_clinicalOk: "Risultati adatti all'interpretazione clinica",
+    check_caution: "I risultati vanno interpretati con cautela",
+    check_invalid: "I risultati non devono essere interpretati",
+    summary_invalid: "TEST NON VALIDO — Risultati critici di validità; il report non è adatto all'interpretazione clinica.",
+    summary_valid: "I risultati del test sono considerati validi e adatti all'interpretazione.",
+    summary_acceptable: "I risultati del test sono accettabili; alcuni fattori possono influire sull'interpretazione.",
+    summary_caution: "I risultati possono essere interpretati, ma sono stati osservati fattori che influiscono sulla prestazione.",
+    summary_low: "Bassa affidabilità — interpretare i risultati con attenzione e con dati di supporto."
+  },
+  levels: {
+    veryGood: "Molto solida",
+    good: "Solida",
+    average: "Nella media",
+    low: "Bassa",
+    poor: "Difficoltà marcata"
+  },
+  strengths: {
+    attention: "Attenzione sostenuta",
+    timing: "Tempismo",
+    impulse: "Controllo degli impulsi",
+    motor: "Controllo motorio"
+  },
+  flags: {
+    invalid: "Test non valido — i risultati non devono essere interpretati",
+    impulse: "Tendenza all'impulsività",
+    distractor: "Sensibilità ai distrattori",
+    sustainability: "Calo dell'attenzione sostenuta",
+    poor: "Difficoltà di prestazione marcata",
+    none: "Nessuna segnalazione"
+  },
+  distractor: {
+    visual: "Distrattori visivi",
+    auditory: "Distrattori uditivi",
+    combined: "Distrattori combinati",
+    noData: "Nessun dato",
+    noDataComment: "Prove insufficienti in questa condizione.",
+    preserved: "Prestazione mantenuta",
+    mild: "Impatto lieve",
+    moderate: "Impatto moderato",
+    marked: "Impatto marcato",
+    visualOk: "Il partecipante non è apparso marcatamente influenzato dai distrattori visivi.",
+    auditoryOk: "Non è stato osservato un calo significativo della prestazione durante i distrattori uditivi.",
+    combinedOk: "La prestazione è stata in genere mantenuta quando i distrattori visivi e uditivi erano presentati insieme.",
+    mildComment: "È stato osservato un lieve calo della prestazione con {{title}}.",
+    moderateComment: "È stato osservato un impatto evidente sulla prestazione attentiva con {{title}}.",
+    markedComment: "La prestazione è calata in modo marcato con {{title}}.",
+    generalAffected: "Il partecipante ha mostrato una perdita di prestazione in alcune condizioni con distrattori.",
+    generalOk: "Il partecipante ha mantenuto la prestazione rispetto ai distrattori ambientali."
+  },
+  sustainability: {
+    noData: "Dati di fase insufficienti.",
+    stable: "La prestazione è stata in gran parte mantenuta per tutta la durata del test. Non sono stati osservati affaticamento o crollo marcati.",
+    mild: "Verso la fine del test è stato osservato un lieve calo della prestazione.",
+    marked: "Verso la fine è stato osservato un calo marcato della prestazione; l'attenzione sostenuta va riesaminata."
+  },
+  executive: {
+    line1ok: "La prestazione attentiva del partecipante era in genere a un livello adeguato.",
+    line1low: "Il partecipante ha mostrato difficoltà di prestazione nell'attenzione.",
+    line2ok: "Il partecipante ha in gran parte discriminato correttamente gli stimoli target e ha mantenuto l'attenzione per tutto il compito.",
+    line2mixed: "Sebbene l'attenzione sia stata mantenuta durante il compito, sono stati osservati {{parts}}.",
+    timingIssue: "una lieve variabilità nel tempismo delle risposte",
+    impulseIssue: "una difficoltà monitorabile nel controllo degli impulsi",
+    impulseIssueStrong: "una difficoltà marcata nel controllo degli impulsi",
+    line3ok: "Non è stata osservata una perdita di prestazione marcata nelle condizioni con distrattori.",
+    line3bad: "La prestazione è stata in parte influenzata nelle condizioni con distrattori."
+  },
+  indexes: {
+    attention: {
+      title: "A — ATTENZIONE",
+      definition: "L'indice di attenzione valuta il rilevamento degli stimoli target e il mantenimento dell'attenzione per tutto il compito.",
+      c90: "Il partecipante ha mostrato una prestazione solida nel rilevare i target e nel mantenere la concentrazione per tutto il compito. La prestazione attentiva è stata in genere mantenuta.",
+      c80: "Il partecipante ha discriminato correttamente la maggior parte degli stimoli target e ha mantenuto l'attenzione per tutto il compito. Non è stata osservata una difficoltà attentiva marcata.",
+      c70: "Il partecipante ha in genere mantenuto l'attenzione durante il compito, anche se in alcune sezioni alcuni target sono stati mancati.",
+      c60: "È stata osservata difficoltà nel rilevare i target e nel sostenere l'attenzione. Sono stati notati cali periodici della prestazione.",
+      cLow: "Durante il test è stata mancata una quota consistente di target, il che suggerisce una difficoltà marcata nell'attenzione sostenuta."
+    },
+    timing: {
+      title: "T — TEMPISMO",
+      definition: "L'indice di tempismo valuta la risposta agli stimoli corretti a una velocità adeguata e in modo costante.",
+      c90: "Il partecipante ha risposto ai target in modo rapido, costante e nei tempi appropriati. Non è stata osservata una variabilità marcata nella velocità di risposta.",
+      c80: "Le risposte ai target sono state in genere tempestive e costanti.",
+      c70: "È stata osservata una certa variabilità nella velocità di risposta, anche se la prestazione complessiva è stata mantenuta.",
+      c60: "Nelle risposte ai target sono stati osservati ritardi e incoerenze di tempismo.",
+      cLow: "Per tutto il compito sono state osservate irregolarità e ritardi marcati nel tempismo delle risposte."
+    },
+    impulsivity: {
+      title: "I — IMPULSIVITÀ",
+      definition: "L'indice di impulsività valuta le risposte non necessarie agli stimoli non target (errori di commissione).",
+      c90: "Il partecipante ha mantenuto in modo efficace il controllo della risposta rispetto agli stimoli non target.",
+      c80: "Le risposte non necessarie sono rimaste a un livello basso per tutto il compito.",
+      c70: "Sono state osservate occasionali risposte non necessarie agli stimoli non target.",
+      c60: "Durante il compito è stato osservato un aumento delle risposte non necessarie agli stimoli non target.",
+      cLow: "Le risposte frequenti agli stimoli non target suggeriscono una difficoltà marcata nel controllo degli impulsi."
+    },
+    hyperactivity: {
+      title: "H — IPERATTIVITÀ",
+      definition: "L'indice di iperattività valuta l'inibizione motoria e il controllo dell'uso non necessario del tasto.",
+      c90: "Il partecipante ha mantenuto risposte motorie controllate, senza uso non necessario del tasto.",
+      c80: "La prestazione di controllo motorio è stata in genere mantenuta.",
+      c70: "Sono state osservate occasionali risposte non necessarie o ripetute.",
+      c60: "Durante il compito è stato osservato un aumento delle risposte ripetute e non necessarie.",
+      cLow: "È stata osservata una difficoltà marcata nel regolare le risposte motorie, con pressioni ripetute e fuori compito frequenti."
+    }
+  },
+  generalComments: {
+    profile1:
+      "Il partecipante ha mostrato una prestazione solida nell'attenzione sostenuta, nel tempismo delle risposte e nel controllo motorio. Le risposte agli stimoli non target sono rimaste limitate. La prestazione complessiva è apparsa mantenuta per tutto il compito.",
+    profile2:
+      "La prestazione attentiva è stata in genere mantenuta, anche se è stata osservata variabilità nel tempismo delle risposte. I risultati suggeriscono che la difficoltà possa riguardare più la risposta tempestiva che il rilevamento dei target.",
+    profile3:
+      "Il partecipante ha mostrato un'attenzione sostenuta e risposte tempestive adeguate, anche se un aumento delle risposte non necessarie agli stimoli non target suggerisce una possibile difficoltà nel controllo degli impulsi.",
+    partStrongCore:
+      "Il partecipante ha mostrato una prestazione solida nell'attenzione sostenuta, nel tempismo delle risposte e nel controllo motorio.",
+    partAttOk: "La prestazione attentiva era in genere a un livello adeguato.",
+    partAttMid: "A tratti sono state osservate oscillazioni nella prestazione attentiva.",
+    partAttLow: "È stata osservata una difficoltà marcata nell'attenzione sostenuta.",
+    partTimMid: "È stata osservata variabilità nel tempismo delle risposte.",
+    partTimLow: "È stata osservata una difficoltà marcata nel tempismo delle risposte.",
+    partImpMid: "Sono stati osservati aumenti occasionali delle risposte non necessarie agli stimoli non target.",
+    partImpLow: "I risultati suggeriscono una possibile difficoltà nel controllo degli impulsi.",
+    partHypLow: "È stata osservata difficoltà nel controllo motorio.",
+    partDistractorOk: "La prestazione è stata in genere mantenuta nelle condizioni con distrattori.",
+    partDistractor: "La prestazione è stata in parte influenzata nelle condizioni con distrattori."
+  },
+  professional: {
+    invalid1: "Questa sessione di test non soddisfa i criteri di validità.",
+    invalid2: "A causa di risultati critici di non validità, i punteggi di prestazione non devono essere usati per l'interpretazione clinica.",
+    invalid3: "Se necessario, il test va ripetuto e vanno riesaminate le condizioni di partecipazione al compito.",
+    coop: "Il partecipante ha mostrato una collaborazione adeguata durante la valutazione.",
+    attOk: "L'attenzione sostenuta era in genere a un livello adeguato. Non è stata osservata una difficoltà marcata nel discriminare i target o nel mantenere il compito.",
+    attC70: "La prestazione attentiva era in genere adeguata; in alcune sezioni possono comparire brevi oscillazioni.",
+    attC60: "È stata osservata una difficoltà moderata nell'attenzione sostenuta; gli schemi di omissione vanno monitorati.",
+    attLow: "L'attenzione sostenuta ha mostrato una difficoltà di prestazione marcata. Gli schemi di omissione vanno esaminati con attenzione.",
+    timOk: "La prestazione di tempismo era in genere a un livello adeguato.",
+    timC70: "È stata osservata una lieve variabilità nella velocità di risposta; si sono verificate occasionali risposte tardive.",
+    timC60: "È stata osservata una variabilità moderata nel tempismo; le risposte tardive o affrettate vanno monitorate.",
+    timLow: "È stata osservata una difficoltà di tempismo marcata; le risposte tardive o la variabilità eccessiva vanno seguite.",
+    impOk: "Gli indicatori di impulsività erano a un livello accettabile. Le risposte agli stimoli non target sono rimaste limitate.",
+    impC70: "Il controllo degli impulsi era accettabile, anche se sono state osservate occasionali risposte affrettate ai non target.",
+    impC60: "Sono stati osservati lievi indicatori di impulsività; gli errori di commissione vanno monitorati.",
+    impLow: "È stato osservato un pattern di impulsività marcato, con risposte frequenti agli stimoli non target. Quest'area richiede sviluppo.",
+    hypOk: "La prestazione di controllo motorio era in genere a un livello adeguato.",
+    hypC70: "Il controllo motorio era in genere adeguato; possono comparire occasionali pressioni ripetute.",
+    hypC60: "Sono stati osservati lievi indicatori di iperattività (pressioni ripetute o a schermo vuoto); vanno monitorati.",
+    hypLow: "È stata osservata una difficoltà marcata nel controllo motorio; le pressioni ripetute o fuori compito vanno seguite.",
+    distOk: "La prestazione è stata in genere mantenuta nelle condizioni con distrattori.",
+    distLow: "La prestazione è stata in parte influenzata dai distrattori.",
+    sustNote: "Analisi dell'attenzione sostenuta durante il test: {{label}}.",
+    disclaimer:
+      "I risultati del test non devono essere usati da soli per un'interpretazione diagnostica; vanno considerati insieme al colloquio clinico, all'osservazione e ad altri strumenti di valutazione."
+  },
+  metrics: {
+    accuracy: "Accuratezza complessiva",
+    hitRate: "Tasso di centri",
+    omissionRate: "Tasso di omissioni",
+    commissionRate: "Tasso di commissioni",
+    lateRate: "Tasso di risposte tardive",
+    multiRate: "Tasso di pressioni multiple",
+    avgRt: "Tempo di reazione medio",
+    rtSd: "Deviazione standard del TR",
+    dPrime: "d-prime (d′)",
+    beta: "Beta (β)",
+    criterion: "Criterio (c)",
+    validityIndex: "Indice di validità"
+  },
+  technical: {
+    axisLabels: {
+      temel1: "Base-1",
+      gorsel: "Visivo",
+      isitsel: "Uditivo",
+      kombine: "Combinato",
+      temel2: "Base-2"
+    },
+    chartLabels: {
+      normLow: "Norma inferiore",
+      normBand: "Fascia normativa",
+      normRef: "Riferimento normativo",
+      participant: "Partecipante"
+    },
+    phaseLegend: [
+      ["Linea di base - 1", "Sezione di base — prestazione continua centrata sul target"],
+      ["Visivo - 2", "Distrattori visivi ampi (gif silenziosa)"],
+      ["Uditivo - 2", "Distrattori uditivi ampi"],
+      ["Combinato - 2", "Distrattori ampi combinati visivi + uditivi"],
+      ["Linea di base - 2", "Prestazione continua — chiusura del test"]
+    ],
+    indexDefinitions: [
+      ["A — Attenzione", "Omissioni (non premere quando il target è presente). I falsi allarmi vanno in I; le risposte tardive in T; non si mescolano con A."],
+      ["T — Tempismo", "T = (Centro in tempo×0.40) + (Velocità TR×0.25) + (Risposta tardiva×0.20) + (Stabilità TR×0.15). Le omissioni sono conteggiate in A."],
+      ["I — Impulsività", "Errori di commissione: prime risposte a stimoli non target. Le pressioni ripetute non rientrano in questo indice (vanno in H)."],
+      ["H — Iperattività", "Pressioni ripetute + pressioni a schermo vuoto / fuori compito. Non conta se il simbolo è corretto o errato."],
+      ["Punteggio complessivo", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
+    ],
+    normLevels: [
+      { level: 1, label: "Prestazione molto buona (Z ≥ 1.0)" },
+      { level: 2, label: "Prestazione standard (0 – 0.99)" },
+      { level: 3, label: "Prestazione bassa (−1 – −0.01)" },
+      { level: 4, label: "Difficoltà di prestazione (Z < −1)" },
+      { level: 5, label: "Difficoltà marcata (Z < −2)" }
+    ],
+    severityLevels: [
+      { level: 4, label: "Molto grave" },
+      { level: 3, label: "Gravità alta" },
+      { level: 2, label: "Gravità moderata" },
+      { level: 1, label: "Gravità bassa" }
+    ],
+    matrixRows: {
+      sustainability: "Prestazione sostenuta",
+      visual: "Visivo",
+      auditory: "Uditivo",
+      combined: "Combinato",
+      load: "Carico dei distrattori"
+    },
+    effectBands: {
+      improve: "Miglioramento",
+      none: "Nessun effetto",
+      mild: "Effetto lieve",
+      moderate: "Effetto moderato",
+      marked: "Effetto marcato",
+      points: "pti"
+    },
+    sustainCells: {
+      warmup: "Riscaldamento (+{{delta}})",
+      stable: "Nessun cambiamento",
+      mildDrop: "Calo lieve ({{delta}})",
+      markedDrop: "Calo marcato ({{delta}})",
+      partialData: "Dati parziali (fase iniziale)"
+    },
+    phaseComments: {
+      good: "In questa fase la prestazione è stata in genere mantenuta.",
+      average: "In questa fase la prestazione era a un livello accettabile.",
+      combined: "Sotto distrattori combinati, attenzione e controllo degli impulsi possono essere stati messi alla prova.",
+      visual: "Sotto distrattori visivi la prestazione attentiva può essere stata influenzata.",
+      auditory: "Sotto distrattori uditivi la prestazione può essere stata influenzata.",
+      fatigue: "Nell'ultima sezione del test può comparire un effetto di affaticamento.",
+      default: "In questa fase è stato osservato un calo della prestazione."
+    }
+  }
+};

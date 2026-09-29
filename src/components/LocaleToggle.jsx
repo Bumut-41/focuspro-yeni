@@ -26,6 +26,16 @@ function FlagGb({ className }) {
   );
 }
 
+function FlagIt({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 16" aria-hidden="true">
+      <rect width="8" height="16" fill="#009246" />
+      <rect x="8" width="8" height="16" fill="#fff" />
+      <rect x="16" width="8" height="16" fill="#CE2B37" />
+    </svg>
+  );
+}
+
 export function LocaleToggle() {
   const { locale, setLocale } = useLocale();
 
@@ -50,6 +60,16 @@ export function LocaleToggle() {
         title="English"
       >
         <FlagGb className="fp-locale-flag" />
+      </button>
+      <button
+        type="button"
+        className={`fp-locale-btn${locale === "it" ? " is-active" : ""}`}
+        onClick={() => setLocale("it")}
+        aria-pressed={locale === "it"}
+        aria-label="Italiano"
+        title="Italiano"
+      >
+        <FlagIt className="fp-locale-flag" />
       </button>
     </div>
   );

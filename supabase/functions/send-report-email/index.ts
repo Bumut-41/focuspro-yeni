@@ -30,6 +30,18 @@ function emailContent(locale: string, participantName: string) {
       </div>`
     };
   }
+  if (locale === "it") {
+    return {
+      subject: `FocusProLab — Report del test: ${participantName}`,
+      html: `<div style="font-family:Inter,Arial,sans-serif;line-height:1.6;color:#1e293b">
+        <p>Buongiorno,</p>
+        <p>Il test di attenzione FocusProLab per <strong>${participantName}</strong> è completato.</p>
+        <p>Il PDF del report del partecipante è allegato a questa e-mail. Puoi aprirlo anche dal pannello.</p>
+        <p style="color:#64748b;font-size:13px">Questo messaggio è stato inviato automaticamente. Il report serve solo allo screening e non costituisce una diagnosi.</p>
+        <p>— FocusProLab</p>
+      </div>`
+    };
+  }
   return {
     subject: `FocusProLab — Test raporu: ${participantName}`,
     html: `<div style="font-family:Inter,Arial,sans-serif;line-height:1.6;color:#1e293b">

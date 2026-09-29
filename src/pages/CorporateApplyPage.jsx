@@ -24,7 +24,15 @@ function digitsOnly(value) {
 }
 
 export default function CorporateApplyPage() {
-  const { strings } = useLocale();
+  const { strings, locale } = useLocale();
+  const regionNames = useMemo(() => {
+    const tag = locale === "en" ? "en" : locale === "it" ? "it" : "tr";
+    try {
+      return new Intl.DisplayNames([tag], { type: "region" });
+    } catch {
+      return null;
+    }
+  }, [locale]);
   const page = strings.home.marketing.corporate;
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -193,7 +201,7 @@ export default function CorporateApplyPage() {
                 <Select value={form.country} onChange={(event) => onCountry(event.target.value)}>
                   {CORPORATE_COUNTRIES.map((country) => (
                     <option key={country.code} value={country.code}>
-                      {country.name}
+                      {regionNames?.of(country.code) || country.name}
                     </option>
                   ))}
                 </Select>

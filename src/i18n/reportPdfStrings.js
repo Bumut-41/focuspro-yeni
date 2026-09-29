@@ -1,4 +1,6 @@
-/** PDF raporu ve klinik anlatım metinleri (TR / EN). */
+import { reportPdfIt } from "./reportPdfIt.js";
+
+/** PDF raporu ve klinik anlatım metinleri (TR / EN / IT). */
 export const reportPdfStrings = {
   tr: {
     coverSubtitle: "Sürekli Performans ve Dikkat Değerlendirme Raporu",
@@ -667,7 +669,8 @@ export const reportPdfStrings = {
         default: "A performance decline was observed in this phase."
       }
     }
-  }
+  },
+  it: reportPdfIt
 };
 
 export function getReportPdfStrings(locale = "tr") {
@@ -680,22 +683,32 @@ export function fillTemplate(str, vars = {}) {
 
 export function localizePhaseSectionName(name, locale = "tr") {
   const raw = String(name || "").replace(/^[^—]+—\s*/, "").trim();
-  if (locale !== "en") {
+  if (locale !== "en" && locale !== "it") {
     return raw.length > 28 ? `${raw.slice(0, 26)}…` : raw;
   }
-  let s = raw
-    .replace(/sessiz \+ sesli gif/gi, "silent + sound gif")
-    .replace(/sessiz gif/gi, "silent gif")
-    .replace(/sadece ses/gi, "sound only")
-    .replace(/\bdk\b/gi, "min")
-    .replace(/Yetişkin/gi, "Adult")
-    .replace(/Ergen/gi, "Teen")
-    .replace(/Çocuk/gi, "Child");
+  const s =
+    locale === "it"
+      ? raw
+          .replace(/sessiz \+ sesli gif/gi, "gif silenziosa + audio")
+          .replace(/sessiz gif/gi, "gif silenziosa")
+          .replace(/sadece ses/gi, "solo audio")
+          .replace(/\bdk\b/gi, "min")
+          .replace(/Yetişkin/gi, "Adulto")
+          .replace(/Ergen/gi, "Adolescente")
+          .replace(/Çocuk/gi, "Bambino")
+      : raw
+          .replace(/sessiz \+ sesli gif/gi, "silent + sound gif")
+          .replace(/sessiz gif/gi, "silent gif")
+          .replace(/sadece ses/gi, "sound only")
+          .replace(/\bdk\b/gi, "min")
+          .replace(/Yetişkin/gi, "Adult")
+          .replace(/Ergen/gi, "Teen")
+          .replace(/Çocuk/gi, "Child");
   return s.length > 32 ? `${s.slice(0, 30)}…` : s;
 }
 
 export function dateLocaleForPdf(locale = "tr") {
-  return locale === "en" ? "en-US" : "tr-TR";
+  return locale === "en" ? "en-US" : locale === "it" ? "it-IT" : "tr-TR";
 }
 
 const NORM_LEVEL_COLORS = {

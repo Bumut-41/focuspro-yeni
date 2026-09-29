@@ -190,23 +190,41 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     deductions.push("RT < 150 ms (−40)");
   } else if (targetHits.length >= 5 && fastRate >= 25) {
     score -= 40;
-    deductions.push(locale === "en" ? "Suspicious fast responses (−40)" : "Şüpheli hızlı tepkiler (−40)");
+    deductions.push(
+      locale === "en"
+        ? "Suspicious fast responses (−40)"
+        : locale === "it"
+          ? "Risposte sospette troppo rapide (−40)"
+          : "Şüpheli hızlı tepkiler (−40)"
+    );
   }
   if (metrics.omissionRate > 40) {
     score -= 20;
-    deductions.push(locale === "en" ? "Omission > 40% (−20)" : "İhmal > %40 (−20)");
+    deductions.push(
+      locale === "en" ? "Omission > 40% (−20)" : locale === "it" ? "Omissioni > 40% (−20)" : "İhmal > %40 (−20)"
+    );
   }
   if (metrics.multiPressRate > 20) {
     score -= 15;
-    deductions.push(locale === "en" ? "Multi-press > 20% (−15)" : "Çoklu basış > %20 (−15)");
+    deductions.push(
+      locale === "en"
+        ? "Multi-press > 20% (−15)"
+        : locale === "it"
+          ? "Pressioni multiple > 20% (−15)"
+          : "Çoklu basış > %20 (−15)"
+    );
   }
   if (metrics.rtStd > 0 && metrics.rtStd < 20 && targetHits.length >= 5) {
     score -= 15;
-    deductions.push(locale === "en" ? "RT SD < 20 ms (−15)" : "RT SD < 20 ms (−15)");
+    deductions.push(
+      locale === "en" ? "RT SD < 20 ms (−15)" : locale === "it" ? "DS TR < 20 ms (−15)" : "RT SD < 20 ms (−15)"
+    );
   }
   if (metrics.commissionRate > 25) {
     score -= 10;
-    deductions.push(locale === "en" ? "Commission > 25% (−10)" : "Commission > %25 (−10)");
+    deductions.push(
+      locale === "en" ? "Commission > 25% (−10)" : locale === "it" ? "Commissioni > 25% (−10)" : "Commission > %25 (−10)"
+    );
   }
   score = clamp(Math.round(score));
 
