@@ -111,6 +111,126 @@ function chartYScale(step = 20) {
   };
 }
 
+const RADAR_AXES = {
+  tr: [
+    { code: "A", lines: ["DİKKAT"], color: "#2563eb", key: "attention" },
+    { code: "T", lines: ["ZAMANLAMA"], color: "#16a34a", key: "timing" },
+    { code: "I", lines: ["DÜRTÜSELLİK"], color: "#f97316", key: "impulsivity" },
+    { code: "H", lines: ["MOTOR", "KONTROL"], color: "#ef4444", key: "hyperactivity" },
+    { code: "C", lines: ["ÇELDİRİCİ", "DİRENCİ"], color: "#7c3aed", key: "distractor" }
+  ],
+  en: [
+    { code: "A", lines: ["ATTENTION"], color: "#2563eb", key: "attention" },
+    { code: "T", lines: ["TIMING"], color: "#16a34a", key: "timing" },
+    { code: "I", lines: ["IMPULSIVITY"], color: "#f97316", key: "impulsivity" },
+    { code: "H", lines: ["MOTOR", "CONTROL"], color: "#ef4444", key: "hyperactivity" },
+    { code: "C", lines: ["DISTRACTOR", "RESISTANCE"], color: "#7c3aed", key: "distractor" }
+  ]
+};
+
+function clampScore(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(100, n));
+}
+
+function distractorResistanceScore(phaseRows, scores) {
+  const distractorKeys = new Set(["gorsel2", "isitsel2", "kombine2"]);
+  const rows = phaseRows.filter((row) => distractorKeys.has(row.phaseKey));
+  const source = rows.length ? rows : phaseRows;
+  if (!source.length) {
+    return Math.round((scores.attention + scores.timing + scores.impulsivity + scores.hyperactivity) / 4);
+  }
+  const values = source.flatMap((row) => [row.attention, row.timing, row.impulsivity, row.hyperactivity]);
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function radarPoint(cx, cy, index, radius) {
+  const angle = -Math.PI / 2 + (index * 2 * Math.PI) / 5;
+  return { x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius };
+}
+
+/** Beş boyutlu performans radarı — PDF görseli. */
+export function renderProfileRadar(scores, locale = "tr") {
+  if (typeof document === "undefined") return null;
+  const axes = (RADAR_AXES[locale] ?? RADAR_AXES.tr).map((axis) => ({
+    ...axis,
+    value: clampScore(scores[axis.key])
+  }));
+  const width = 920;
+  const height = 760;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(0, 0, width, height);
+
+  const cx = width / 2;
+  const cy = height / 2 + 8;
+  const radius = 210;
+
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 5; i += 1) {
+    const outer = radarPoint(cx, cy, i, radius);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(outer.x, outer.y);
+    ctx.stroke();
+  }
+
+  for (const step of [0.25, 0.5, 0.75, 1]) {
+    ctx.beginPath();
+    for (let i = 0; i < 5; i += 1) {
+      const point = radarPoint(cx, cy, i, radius * step);
+      if (i === 0) ctx.moveTo(point.x, point.y);
+      else ctx.lineTo(point.x, point.y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = step === 1 ? "#94a3b8" : "#e2e8f0";
+    ctx.lineWidth = step === 1 ? 2 : 1.25;
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  axes.forEach((axis, index) => {
+    const point = radarPoint(cx, cy, index, radius * (axis.value / 100));
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.lineTo(point.x, point.y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = "rgba(37, 99, 235, 0.62)";
+  ctx.fill();
+  ctx.strokeStyle = "#1d4ed8";
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+
+  axes.forEach((axis, index) => {
+    const point = radarPoint(cx, cy, index, radius * (axis.value / 100));
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = "#1e3a8a";
+    ctx.fill();
+  });
+
+  axes.forEach((axis, index) => {
+    const point = radarPoint(cx, cy, index, radius + 54);
+    const align = index === 0 ? "center" : index === 1 || index === 2 ? "left" : "right";
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = axis.color;
+    ctx.font = "800 28px sans-serif";
+    ctx.fillText(axis.code, point.x, point.y - 16);
+    ctx.font = "700 15px sans-serif";
+    axis.lines.forEach((line, lineIndex) => {
+      ctx.fillText(line, point.x, point.y + 12 + lineIndex * 18);
+    });
+  });
+
+  return canvas.toDataURL("image/png");
+}
+
 function shortPhaseChartLabel(row) {
   const time = String(row.label || "").match(/(\d+[–-]\d+\s*dk)/i);
   const timeStr = time ? time[1].replace(/\s+/g, " ") : "";
@@ -279,8 +399,15 @@ export async function buildReportChartImages(logs, profile, age = null, pressTim
   const profileKey = profile.key ?? "adult";
   const phaseRows = getReportPhaseChartScores(logs, profile, age, pressTimeline, locale);
   const phaseSeries = phaseRows;
+  const metrics = computeDetailedMetrics(logs, profile.lateResponseMs, { pressTimeline, age, locale });
+  const scores = getScores(metrics);
+  const radarScores = {
+    ...scores,
+    distractor: distractorResistanceScore(phaseRows, scores)
+  };
 
   return {
+    radar: renderProfileRadar(radarScores, locale),
     attention: renderIndexPhaseChart(phaseRows, profileKey, "attention", locale),
     timing: renderIndexPhaseChart(phaseRows, profileKey, "timing", locale),
     impulsivity: renderIndexPhaseChart(phaseRows, profileKey, "impulsivity", locale),

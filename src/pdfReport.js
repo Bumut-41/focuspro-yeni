@@ -48,7 +48,7 @@ function sectionTitle(text, pageBreak = false) {
 }
 
 /** Başlık + grafik tek blokta kalsın; sayfa ortasında boşluk oluşmasın. */
-function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = null) {
+function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = null, imageWidth = 515) {
   if (!imageSrc) return null;
   return {
     unbreakable: true,
@@ -64,7 +64,7 @@ function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = 
         margin: [0, 0, 0, subtitle ? 4 : 8]
       },
       ...(subtitle ? [{ text: subtitle, fontSize: 10, color: SUB, margin: [15, 0, 0, 8] }] : []),
-      { image: imageSrc, width: 515, margin: [0, 0, 0, 12] }
+      { image: imageSrc, width: imageWidth, alignment: "center", margin: [0, 0, 0, 12] }
     ]
   };
 }
@@ -483,13 +483,17 @@ export function buildDocDefinition({
   const betaStr = metrics.beta != null ? metrics.beta.toFixed(2) : "—";
 
   const chartBlocks = [];
+  let chartFirst = true;
+  if (reportCharts.radar) {
+    chartBlocks.push(chartSectionBlock(pdf.chartRadar, reportCharts.radar, true, pdf.chartRadarSubtitle, 420));
+    chartFirst = false;
+  }
   const indexCharts = [
     ["attention", pdf.chartAttention],
     ["timing", pdf.chartTiming],
     ["impulsivity", pdf.chartImpulsivity],
     ["hyperactivity", pdf.chartHyperactivity]
   ];
-  let chartFirst = true;
   for (const [key, title] of indexCharts) {
     const block = chartSectionBlock(title + pdf.chartSuffix, reportCharts[key], chartFirst);
     if (block) {
