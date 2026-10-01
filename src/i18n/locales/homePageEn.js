@@ -429,14 +429,12 @@ export const homePageEn = {
     back: "Back to home",
     title: "FocusProLab Centres",
     lead: "FocusProLab assessments are available at the centres below.",
-    category: "A psychologist in Istanbul",
     address: "Address",
     phone: "Phone",
     hours: "Opening hours",
     opensAt: "Opens at: {{time}}",
-    reviewOne: "1 review",
-    reviews: "{{count}} reviews",
     directions: "Directions",
+    openMap: "Open location in maps",
     view: "View centres"
   },
   sections: {

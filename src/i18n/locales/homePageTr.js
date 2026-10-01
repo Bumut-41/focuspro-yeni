@@ -429,14 +429,12 @@ export const homePageTr = {
     back: "Ana sayfaya dön",
     title: "FocusProLab Merkezleri",
     lead: "Aşağıdaki merkezlerde FocusProLab değerlendirmesi yapılmaktadır.",
-    category: "İstanbul'da bir psikolog",
     address: "Adres",
     phone: "Telefon",
     hours: "Çalışma saatleri",
     opensAt: "Açılış saati: {{time}}",
-    reviewOne: "1 yorum",
-    reviews: "{{count}} yorum",
     directions: "Yol tarifi",
+    openMap: "Haritada konumu aç",
     view: "Merkezleri görüntüle"
   },
   sections: {

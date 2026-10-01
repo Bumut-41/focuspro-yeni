@@ -14,7 +14,7 @@ function project(lat, lng) {
   return { x, y };
 }
 
-function CenterMap({ center }) {
+function CenterMap({ center, label }) {
   const { x, y } = project(center.lat, center.lng);
   const tileX = Math.floor(x);
   const tileY = Math.floor(y);
@@ -28,10 +28,10 @@ function CenterMap({ center }) {
       tiles.push({ col, row, tx: originX + col, ty: originY + row });
     }
   }
-  const osmHref = `https://www.openstreetmap.org/?mlat=${center.lat}&mlon=${center.lng}#map=${ZOOM}/${center.lat}/${center.lng}`;
+  const placeHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${center.name}, ${center.address}`)}`;
 
   return (
-    <div className="fp-center-map">
+    <a className="fp-center-map" href={placeHref} target="_blank" rel="noreferrer" aria-label={label}>
       <div className="fp-center-tiles" style={{ left: `calc(50% - ${pinLeft}px)`, top: `calc(50% - ${pinTop}px)` }}>
         {tiles.map((tile) => (
           <img
@@ -45,10 +45,7 @@ function CenterMap({ center }) {
         ))}
         <span className="fp-center-pin" style={{ left: pinLeft, top: pinTop }} />
       </div>
-      <a className="fp-center-map-credit" href={osmHref} target="_blank" rel="noreferrer">
-        © OpenStreetMap
-      </a>
-    </div>
+    </a>
   );
 }
 
@@ -57,7 +54,7 @@ function directionsHref(center) {
 }
 
 export default function CentersPage() {
-  const { strings, t, dateLocale } = useLocale();
+  const { strings, t } = useLocale();
   const page = strings.home.marketing.centersPage;
 
   useEffect(() => {
@@ -79,23 +76,6 @@ export default function CentersPage() {
               <div className="fp-center-info">
                 <h2>{center.name}</h2>
                 {center.subtitle ? <p className="fp-center-sub">{center.subtitle}</p> : null}
-                <p className="fp-center-rating">
-                  <span className="fp-center-score">
-                    {center.rating.toLocaleString(dateLocale, {
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 1
-                    })}
-                  </span>
-                  <span className="fp-center-stars" aria-hidden>
-                    ★★★★★
-                  </span>
-                  <span className="fp-center-reviews">
-                    {center.reviews === 1
-                      ? page.reviewOne
-                      : t("home.marketing.centersPage.reviews", { count: center.reviews })}
-                  </span>
-                </p>
-                <p className="fp-center-category">{page.category}</p>
                 <dl className="fp-center-facts">
                   <div>
                     <dt>{page.address}</dt>
@@ -118,7 +98,7 @@ export default function CentersPage() {
                   {page.directions}
                 </a>
               </div>
-              <CenterMap center={center} />
+              <CenterMap center={center} label={`${page.openMap}: ${center.name}`} />
             </article>
           ))}
         </div>

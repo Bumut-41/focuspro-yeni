@@ -429,14 +429,12 @@ export const homePageIt = {
     back: "Torna alla home",
     title: "Centri FocusProLab",
     lead: "La valutazione FocusProLab è disponibile nei centri qui sotto.",
-    category: "Uno psicologo a Istanbul",
     address: "Indirizzo",
     phone: "Telefono",
     hours: "Orari",
     opensAt: "Apertura: {{time}}",
-    reviewOne: "1 recensione",
-    reviews: "{{count}} recensioni",
     directions: "Indicazioni",
+    openMap: "Apri la posizione sulla mappa",
     view: "Vedi i centri"
   },
   sections: {
