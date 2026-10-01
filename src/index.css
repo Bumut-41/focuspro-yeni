@@ -81,6 +81,9 @@ a:hover {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  height: 100%;
+  padding: 10px 0;
+  box-sizing: border-box;
   text-decoration: none;
   color: inherit;
 }
@@ -97,9 +100,10 @@ a:hover {
 }
 
 .fp-brand-logo--header {
-  height: 104px;
+  height: 100%;
   width: auto;
-  max-width: min(220px, 46vw);
+  max-height: 100%;
+  max-width: min(200px, 42vw);
 }
 
 .fp-brand-logo--auth {
@@ -679,8 +683,7 @@ a:hover {
   }
 
   .fp-brand-logo--header {
-    height: 84px;
-    max-width: min(180px, 52vw);
+    max-width: min(156px, 46vw);
   }
 
   .fp-nav-user-name {
