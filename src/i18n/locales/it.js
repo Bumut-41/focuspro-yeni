@@ -416,7 +416,13 @@ export const it = {
     institutionType: "Tipo di istituzione",
     experts: "Specialisti",
     monthlyClients: "Clienti al mese",
-    message: "Messaggio"
+    message: "Messaggio",
+    contactMessagesTitle: "Messaggi di contatto ({{count}})",
+    contactMessagesDesc: "Risposte del modulo di contatto. Clicca una riga per leggere il messaggio. Visibili solo agli amministratori.",
+    contactMessagesEmpty: "Nessun messaggio.",
+    contactMessagesFailed: "Impossibile leggere i messaggi. Esegui contact-messages.sql nell'editor SQL di Supabase.",
+    subject: "Oggetto",
+    location: "Città / paese"
   },
   pressTimeline: {
     title: "Cronologia delle pressioni",

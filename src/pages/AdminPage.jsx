@@ -31,6 +31,7 @@ import {
 } from "../services/sessions.js";
 import { fetchCorporateApplications } from "../services/corporateApplications.js";
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
+import { fetchContactMessages } from "../services/contactMessages.js";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
   Alert,
@@ -76,6 +77,9 @@ export default function AdminPage() {
   const [specialistApplications, setSpecialistApplications] = useState([]);
   const [specialistApplicationsError, setSpecialistApplicationsError] = useState("");
   const [specialistId, setSpecialistId] = useState(null);
+  const [contactMessages, setContactMessages] = useState([]);
+  const [contactMessagesError, setContactMessagesError] = useState("");
+  const [contactId, setContactId] = useState(null);
 
   async function openStoredPdf(pdfPath, busyKey, filename = "FocusProLab-report.pdf") {
     if (!pdfPath) return;
@@ -91,11 +95,12 @@ export default function AdminPage() {
   }
 
   const load = useCallback(async () => {
-    const [profilesResult, sessionsResult, applicationsResult, specialistResult] = await Promise.allSettled([
+    const [profilesResult, sessionsResult, applicationsResult, specialistResult, contactResult] = await Promise.allSettled([
       fetchAllProfiles(),
       fetchAllSessions(200),
       fetchCorporateApplications(),
-      fetchSpecialistApplications()
+      fetchSpecialistApplications(),
+      fetchContactMessages()
     ]);
     if (profilesResult.status === "fulfilled") {
       const p = profilesResult.value;
@@ -126,6 +131,13 @@ export default function AdminPage() {
     } else {
       setSpecialistApplications([]);
       setSpecialistApplicationsError(t("admin.specialistApplicationsFailed"));
+    }
+    if (contactResult.status === "fulfilled") {
+      setContactMessages(contactResult.value);
+      setContactMessagesError("");
+    } else {
+      setContactMessages([]);
+      setContactMessagesError(t("admin.contactMessagesFailed"));
     }
   }, [t]);
 
@@ -419,6 +431,71 @@ export default function AdminPage() {
             }
           }}
         />
+      </Card>
+
+      <Card>
+        <CardHeader
+          title={t("admin.contactMessagesTitle", { count: contactMessages.length })}
+          description={t("admin.contactMessagesDesc")}
+        />
+        {contactMessagesError && <Alert variant="error">{contactMessagesError}</Alert>}
+        {!contactMessagesError && !contactMessages.length && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("admin.contactMessagesEmpty")}</p>
+        )}
+        {contactMessages.length > 0 && (
+          <DataTable
+            columns={[
+              {
+                label: t("admin.date"),
+                render: (row) => new Date(row.created_at).toLocaleString(dateLocale)
+              },
+              { key: "full_name", label: t("admin.name") },
+              { key: "email", label: t("admin.email") },
+              {
+                label: t("admin.phone"),
+                render: (row) => row.phone || "—"
+              },
+              {
+                label: t("admin.subject"),
+                render: (row) =>
+                  strings.home.marketing.contactPage.subjects.find((item) => item.key === row.subject)?.label || row.subject
+              }
+            ]}
+            rows={contactMessages}
+            rowKey={(row) => row.id}
+            onRowClick={(row) => setContactId(row.id)}
+            activeKey={contactId}
+          />
+        )}
+        {contactMessages.find((row) => row.id === contactId) && (
+          <div className="fp-spec-detail">
+            {(() => {
+              const row = contactMessages.find((item) => item.id === contactId);
+              const subject =
+                strings.home.marketing.contactPage.subjects.find((item) => item.key === row.subject)?.label || row.subject;
+              const lines = [
+                [t("admin.name"), row.full_name],
+                [t("admin.email"), row.email],
+                [t("admin.phone"), row.phone],
+                [t("admin.profession"), row.profession],
+                [t("admin.organization"), row.organization],
+                [t("admin.location"), row.location],
+                [t("admin.subject"), subject],
+                [t("admin.message"), row.message]
+              ];
+              return (
+                <dl>
+                  {lines.map(([label, value]) => (
+                    <div key={label} className="fp-spec-detail-row">
+                      <dt>{label}</dt>
+                      <dd>{value || "—"}</dd>
+                    </div>
+                  ))}
+                </dl>
+              );
+            })()}
+          </div>
+        )}
       </Card>
 
       <Card>

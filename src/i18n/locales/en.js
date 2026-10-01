@@ -416,7 +416,13 @@ export const en = {
     institutionType: "Institution type",
     experts: "Specialists",
     monthlyClients: "Monthly clients",
-    message: "Message"
+    message: "Message",
+    contactMessagesTitle: "Contact messages ({{count}})",
+    contactMessagesDesc: "Responses from the contact form. Click a row to read the full message. Visible to administrators only.",
+    contactMessagesEmpty: "No contact messages yet.",
+    contactMessagesFailed: "Could not load contact messages. Run contact-messages.sql in the Supabase SQL Editor.",
+    subject: "Subject",
+    location: "City / country"
   },
   pressTimeline: {
     title: "Press timeline",

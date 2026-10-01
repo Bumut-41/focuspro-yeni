@@ -16,6 +16,7 @@ export function AppHeader() {
       pathname.startsWith("/kurumsal-basvuru") ||
       pathname.startsWith("/uzman-basvuru") ||
       pathname.startsWith("/merkezler") ||
+      pathname.startsWith("/iletisim") ||
       pathname.startsWith("/olcum/"));
   const onHome = pathname === "/";
   const nav = strings.home?.marketing?.nav;
@@ -35,7 +36,7 @@ export function AppHeader() {
             <Link to="/uzman-basvuru">{nav.pros}</Link>
             <Link to="/merkezler">{nav.centers}</Link>
             <a href={onHome ? "#sss" : "/#sss"}>{nav.faq}</a>
-            <a href={onHome ? "#iletisim" : "/#iletisim"}>{nav.contact}</a>
+            <Link to="/iletisim">{nav.contact}</Link>
           </nav>
         )}
 

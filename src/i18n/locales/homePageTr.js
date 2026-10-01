@@ -521,9 +521,57 @@ export const homePageTr = {
     openMap: "Google Haritalar'da aç",
     view: "Merkezleri görüntüle"
   },
+  contactPage: {
+    back: "Ana sayfaya dön",
+    kicker: "İletişim",
+    title: "FocusProLab ile iletişime geçin",
+    intro: [
+      "FocusProLab, dijital psikoloji, bilişsel değerlendirme ve gelişim teknolojileri alanında profesyoneller, kurumlar ve teknoloji sağlayıcılarıyla iş birlikleri geliştirmeyi hedeflemektedir.",
+      "Ürünlerimiz, uzman kullanımı, kurumsal çözümler, yaşadığınız sorunlar veya iş birlikleri hakkında bilgi almak için aşağıdaki formu doldurabilirsiniz."
+    ],
+    formTitle: "İletişim Formu",
+    fields: {
+      name: "Ad Soyad *",
+      namePlaceholder: "Adınızı ve soyadınızı yazınız",
+      email: "E-posta Adresi *",
+      emailPlaceholder: "ornek@email.com",
+      phone: "Telefon Numarası",
+      phonePlaceholder: "+90 5XX XXX XX XX",
+      profession: "Meslek / Unvan",
+      professionPlaceholder: "Örn. Klinik Psikolog, Psikolog, Psikiyatrist, Akademisyen",
+      organization: "Kurum / Şirket",
+      organizationPlaceholder: "Varsa çalıştığınız kurum veya şirket",
+      location: "Şehir / Ülke",
+      locationPlaceholder: "İstanbul / Türkiye",
+      subject: "İletişim Konusu *",
+      subjectPlaceholder: "Konu seçin",
+      message: "Mesajınız *",
+      messagePlaceholder: "Size nasıl yardımcı olabiliriz? Talebiniz veya iş birliği öneriniz hakkında kısaca bilgi verebilirsiniz."
+    },
+    subjects: [
+      { key: "products", label: "Ürünler ve Sistemler Hakkında Bilgi" },
+      { key: "specialist", label: "Uzman Kullanımı / Uzman Başvurusu" },
+      { key: "program12", label: "12 Haftalık Dikkat ve Odak Geliştirme Sistemi" },
+      { key: "corporate", label: "Kurumsal İş Birliği" },
+      { key: "hospital", label: "Hastane / Klinik İş Birliği" },
+      { key: "university", label: "Üniversite / Akademik Araştırma" },
+      { key: "school", label: "Okul / Eğitim Kurumu" },
+      { key: "technology", label: "Teknoloji / Entegrasyon" },
+      { key: "international", label: "Uluslararası Partnerlik / İş Geliştirme" },
+      { key: "support", label: "Teknik Destek" },
+      { key: "press", label: "Basın / Etkinlik / Eğitim" },
+      { key: "other", label: "Diğer" }
+    ],
+    submit: "MESAJINIZI GÖNDERİN",
+    required: "Lütfen ad soyad, e-posta, konu ve mesaj alanlarını doldurun.",
+    thanksTitle: "Teşekkür ederiz.",
+    thanksBody: "Mesajınız FocusProLab ekibine ulaştı. Talebiniz incelendikten sonra sizinle iletişime geçilecektir.",
+    saveError: "Mesaj gönderilemedi. Lütfen kısa bir süre sonra yeniden deneyin."
+  },
   sections: {
     about: "FocusProLab, gerçek yaşam koşullarını simüle eden çeldiriciler altında dikkat ve sürekli performansı objektif olarak ölçer.",
     centers: "İstanbul’daki FocusProLab merkezlerinin adres, telefon ve konum bilgilerine bu sayfadan ulaşabilirsiniz.",
-    contactLead: "Kurumsal başvuru ve iş birliği için bizimle iletişime geçin."
+    contactLead: "Kurumsal başvuru ve iş birliği için bizimle iletişime geçin.",
+    contactCta: "İletişim formu"
   }
 };

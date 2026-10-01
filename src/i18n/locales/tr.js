@@ -418,7 +418,13 @@ export const tr = {
     institutionType: "Kurum türü",
     experts: "Uzman sayısı",
     monthlyClients: "Aylık danışan",
-    message: "Mesaj"
+    message: "Mesaj",
+    contactMessagesTitle: "İletişim mesajları ({{count}})",
+    contactMessagesDesc: "İletişim formunun yanıtları. Satıra tıklayınca mesajın tamamı açılır. Yalnızca yöneticiler görür.",
+    contactMessagesEmpty: "Henüz iletişim mesajı yok.",
+    contactMessagesFailed: "İletişim mesajları okunamadı. Supabase SQL Editor'da contact-messages.sql dosyasını çalıştırın.",
+    subject: "Konu",
+    location: "Şehir / ülke"
   },
   pressTimeline: {
     title: "Basış zaman çizelgesi",

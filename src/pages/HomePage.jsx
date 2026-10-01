@@ -168,7 +168,7 @@ export default function HomePage() {
           <section className="fp-mkt-section" id="iletisim">
             <h2 className="fp-mkt-section-title">{m.nav.contact}</h2>
             <p className="fp-mkt-section-lead">{m.sections.contactLead}</p>
-            <div className="fp-mkt-contact-cards">
+            <div className="fp-mkt-contact-cards" style={{ marginBottom: "1rem" }}>
               <a href={`mailto:${m.footer.email}`} className="fp-mkt-contact-card">
                 ✉️ {m.footer.email}
               </a>
@@ -177,6 +177,9 @@ export default function HomePage() {
               </a>
               <span className="fp-mkt-contact-card">📍 {m.footer.address}</span>
             </div>
+            <Button asLink to="/iletisim" variant="primary" className="fp-mkt-btn-teal">
+              {m.sections.contactCta}
+            </Button>
           </section>
         </div>
 

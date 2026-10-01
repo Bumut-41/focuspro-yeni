@@ -521,9 +521,57 @@ export const homePageEn = {
     openMap: "Open in Google Maps",
     view: "View centres"
   },
+  contactPage: {
+    back: "Back to home",
+    kicker: "Contact",
+    title: "Get in touch with FocusProLab",
+    intro: [
+      "FocusProLab aims to build partnerships with professionals, organisations and technology providers in digital psychology, cognitive assessment and development technologies.",
+      "Fill in the form below to ask about our products, specialist use, organisational solutions, a problem you are having, or a partnership."
+    ],
+    formTitle: "Contact form",
+    fields: {
+      name: "Full name *",
+      namePlaceholder: "Enter your name and surname",
+      email: "Email address *",
+      emailPlaceholder: "name@email.com",
+      phone: "Phone number",
+      phonePlaceholder: "+90 5XX XXX XX XX",
+      profession: "Profession / title",
+      professionPlaceholder: "e.g. Clinical psychologist, psychologist, psychiatrist, academic",
+      organization: "Organisation / company",
+      organizationPlaceholder: "Your organisation or company, if any",
+      location: "City / country",
+      locationPlaceholder: "Istanbul / Türkiye",
+      subject: "Subject *",
+      subjectPlaceholder: "Select a subject",
+      message: "Your message *",
+      messagePlaceholder: "How can we help? Briefly describe your request or partnership idea."
+    },
+    subjects: [
+      { key: "products", label: "Information about products and systems" },
+      { key: "specialist", label: "Specialist use / specialist application" },
+      { key: "program12", label: "12-week attention and focus development system" },
+      { key: "corporate", label: "Organisational partnership" },
+      { key: "hospital", label: "Hospital / clinic partnership" },
+      { key: "university", label: "University / academic research" },
+      { key: "school", label: "School / education provider" },
+      { key: "technology", label: "Technology / integration" },
+      { key: "international", label: "International partnership / business development" },
+      { key: "support", label: "Technical support" },
+      { key: "press", label: "Press / events / training" },
+      { key: "other", label: "Other" }
+    ],
+    submit: "SEND YOUR MESSAGE",
+    required: "Please complete your name, email, subject and message.",
+    thanksTitle: "Thank you.",
+    thanksBody: "Your message has reached the FocusProLab team. We will contact you after reviewing your request.",
+    saveError: "The message could not be sent. Please try again in a moment."
+  },
   sections: {
     about: "FocusProLab objectively measures attention and sustained performance under distractors that simulate real-life conditions.",
     centers: "Find the address, phone number and map location of FocusProLab centres in Istanbul.",
-    contactLead: "Contact us for institutional applications and partnerships."
+    contactLead: "Contact us for institutional applications and partnerships.",
+    contactCta: "Contact form"
   }
 };
