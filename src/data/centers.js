@@ -2,7 +2,7 @@
 export const CENTERS = [
   {
     id: "bayatli",
-    name: "Uzm. Kl. Psk. Mehmet Enver Bayatlı",
+    name: "Klinik Psikolog Mehmet Enver Bayatlı",
     subtitle: "Psikolojik Danışma ve Rehberlik",
     address: "Kozyatağı, Şht. İlknur Keleş Sk. No:14, 34736 Kadıköy/İstanbul",
     phone: "0850 333 8344",
@@ -12,7 +12,7 @@ export const CENTERS = [
   },
   {
     id: "turkmen",
-    name: "Uzman Klinik Psikolog Tarık Türkmen",
+    name: "Klinik Psikolog Tarık Türkmen",
     subtitle: "",
     address: "Barış Mah. Bestekar Sk. Piramit Evleri C1 Blok No: 11 Kat: 1 D:6, 34520 Beylikdüzü/İstanbul",
     phone: "0534 799 38 36",
