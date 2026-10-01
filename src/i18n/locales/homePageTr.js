@@ -4,7 +4,7 @@ export const homePageTr = {
     home: "Ana Sayfa",
     about: "FocusProLab Nedir?",
     who: "Kimler İçin?",
-    pros: "Uzmanlar İçin",
+    pros: "Uzman Başvuru",
     centers: "FocusProLab Merkezleri",
     faq: "Sık Sorulan Sorular",
     contact: "İletişim",
@@ -141,7 +141,7 @@ export const homePageTr = {
       { label: "Ana Sayfa", href: "/" },
       { label: "FocusProLab Nedir?", href: "#nedir" },
       { label: "Kimler İçin?", href: "#kimler" },
-      { label: "Uzmanlar İçin", href: "#uzmanlar" }
+      { label: "Uzman Başvuru", href: "/uzman-basvuru" }
     ],
     copyright: "© {{year}} FocusProLab. Tüm hakları saklıdır."
   },

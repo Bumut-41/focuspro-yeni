@@ -4,7 +4,7 @@ export const homePageIt = {
     home: "Home",
     about: "Cos'è FocusProLab?",
     who: "A chi è rivolto?",
-    pros: "Per i professionisti",
+    pros: "Domanda da specialista",
     centers: "Centri FocusProLab",
     faq: "Domande frequenti",
     contact: "Contatti",
@@ -141,7 +141,7 @@ export const homePageIt = {
       { label: "Home", href: "/" },
       { label: "Cos'è FocusProLab?", href: "#nedir" },
       { label: "A chi è rivolto?", href: "#kimler" },
-      { label: "Per i professionisti", href: "#uzmanlar" }
+      { label: "Domanda da specialista", href: "/uzman-basvuru" }
     ],
     copyright: "© {{year}} FocusProLab. Tutti i diritti riservati."
   },

@@ -4,7 +4,7 @@ export const homePageEn = {
     home: "Home",
     about: "What is FocusProLab?",
     who: "Who is it for?",
-    pros: "For Professionals",
+    pros: "Specialist application",
     centers: "FocusProLab Centres",
     faq: "FAQ",
     contact: "Contact",
@@ -141,7 +141,7 @@ export const homePageEn = {
       { label: "Home", href: "/" },
       { label: "What is FocusProLab?", href: "#nedir" },
       { label: "Who is it for?", href: "#kimler" },
-      { label: "For professionals", href: "#uzmanlar" }
+      { label: "Specialist application", href: "/uzman-basvuru" }
     ],
     copyright: "© {{year}} FocusProLab. All rights reserved."
   },
