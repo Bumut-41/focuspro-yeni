@@ -87,12 +87,16 @@ export const it = {
     description: "Gestisci qui le valutazioni di attenzione e prestazione continua.",
     pdfAutoSave: "Al termine del test il PDF del report viene salvato automaticamente e si apre dall'elenco qui sotto.",
     resultsPrivate:
-      "Quando completi un test, la partecipazione viene registrata. I report dei risultati sono visibili solo agli amministratori autorizzati.",
+      "Al termine del test il risultato non compare sullo schermo. Il report viene inviato all'indirizzo e-mail registrato.",
+    clientResultsHint:
+      "Qui compaiono solo i report dei clienti che hai aggiunto. Il report delle pressioni non è disponibile in questo pannello.",
     guideHint: "Il flusso del test mostra una guida in 3 parti: uso del sistema, scenari del test e comportamenti misurati.",
     newTest: "Avvia un nuovo test",
     adminPanel: "Pannello admin",
     historyTitle: "I tuoi test precedenti",
+    historyTitleClients: "Test dei clienti",
     historyDesc: "Report PDF del partecipante — visibile dal pannello.",
+    historyDescClients: "Report dei clienti che hai aggiunto. Il report delle pressioni resta agli amministratori.",
     noTests: "Nessun test salvato.",
     noTestsDesc: "Avvia la prima valutazione.",
     date: "Data",
@@ -221,8 +225,8 @@ export const it = {
       ]
     },
     thankYouTitle: "Grazie per la partecipazione",
-    thankYouRedirect: "Tra 30 secondi verrai riportato alla home.",
-    thankYouInviteRedirect: "Il test è completato. I risultati saranno visibili solo al tuo specialista. Tra poco verrai riportato alla home.",
+    thankYouBody:
+      "I dati sono conservati in modo sicuro e, al termine del test, il report viene inviato al tuo indirizzo e-mail. I test svolti con uno specialista sono visibili anche nella sua schermata.",
     qaHint:
       "Modalità temporanea: solo sezioni GIF silenziose e GIF silenziose+audio (~6 min). Solo audio, baseline e chiusura disattivate.",
     participantGuide: {

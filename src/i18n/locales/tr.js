@@ -87,12 +87,16 @@ export const tr = {
     description: "Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin.",
     pdfAutoSave: "Test bittiğinde rapor PDF otomatik kaydedilir ve aşağıdaki listeden açılabilir.",
     resultsPrivate:
-      "Test tamamlandığında katılımınız kaydedilir. Sonuç raporları yalnızca yetkili yöneticiler tarafından görüntülenir.",
+      "Test bitince sonuç ekranda görünmez. Rapor, kayıtlı e-posta adresinize gönderilir.",
+    clientResultsHint:
+      "Yalnızca sizin eklediğiniz danışanların test raporları burada görünür. Basış raporuna bu panelden erişilmez.",
     guideHint: "Test akışında 3 bölümlü rehber gösterilir: sistemi kullanma, test senaryoları, ölçülen davranışlar.",
     newTest: "Yeni test başlat",
     adminPanel: "Yönetim paneli",
     historyTitle: "Geçmiş testleriniz",
-    historyDesc: "Katılımcı test raporu PDF — dashboard üzerinden görüntülenir.",
+    historyTitleClients: "Danışan testleri",
+    historyDesc: "Katılımcı test raporu PDF — panel üzerinden görüntülenir.",
+    historyDescClients: "Eklediğiniz danışanların test raporları. Basış raporu yalnızca yöneticidedir.",
     noTests: "Henüz kayıtlı test yok.",
     noTestsDesc: "İlk değerlendirmenizi başlatın.",
     date: "Tarih",
@@ -222,8 +226,8 @@ export const tr = {
       ]
     },
     thankYouTitle: "Katılımınız için teşekkürler",
-    thankYouRedirect: "30 saniye içinde ana sayfaya yönlendirileceksiniz.",
-    thankYouInviteRedirect: "Testiniz tamamlandı. Sonuçlar yalnızca uzmanınızda görüntülenecektir. Kısa süre içinde ana sayfaya yönlendirileceksiniz.",
+    thankYouBody:
+      "Kayıtlar güvenle saklanır ve test bittiğinde mail adresinize test raporu gönderilir. Uzman ile birlikte yaptığınız testler ayrıca uzman ekranında da görüntülenebilir.",
     qaHint:
       "Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses, temel ve kapanış kapalı.",
     participantGuide: {

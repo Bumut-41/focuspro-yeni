@@ -31,7 +31,7 @@ export async function saveTestSession({
 export async function fetchMySessions(limit = 50) {
   const { data, error } = await supabase
     .from("test_sessions")
-    .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, admin_pdf_path")
+    .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, invite_id")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;

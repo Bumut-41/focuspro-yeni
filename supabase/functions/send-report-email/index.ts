@@ -24,7 +24,7 @@ function emailContent(locale: string, participantName: string) {
       html: `<div style="font-family:Inter,Arial,sans-serif;line-height:1.6;color:#1e293b">
         <p>Hello,</p>
         <p>Your FocusProLab attention test for <strong>${participantName}</strong> is complete.</p>
-        <p>The participant report PDF is attached to this email. You can also open it from your dashboard.</p>
+        <p>The test report PDF is attached. Results are not shown on screen after the test.</p>
         <p style="color:#64748b;font-size:13px">This message was sent automatically. This report is for screening only and does not constitute a diagnosis.</p>
         <p>— FocusProLab</p>
       </div>`
@@ -36,7 +36,7 @@ function emailContent(locale: string, participantName: string) {
       html: `<div style="font-family:Inter,Arial,sans-serif;line-height:1.6;color:#1e293b">
         <p>Buongiorno,</p>
         <p>Il test di attenzione FocusProLab per <strong>${participantName}</strong> è completato.</p>
-        <p>Il PDF del report del partecipante è allegato a questa e-mail. Puoi aprirlo anche dal pannello.</p>
+        <p>Il PDF del report è allegato. Dopo il test il risultato non compare sullo schermo.</p>
         <p style="color:#64748b;font-size:13px">Questo messaggio è stato inviato automaticamente. Il report serve solo allo screening e non costituisce una diagnosi.</p>
         <p>— FocusProLab</p>
       </div>`
@@ -47,7 +47,7 @@ function emailContent(locale: string, participantName: string) {
     html: `<div style="font-family:Inter,Arial,sans-serif;line-height:1.6;color:#1e293b">
       <p>Merhaba,</p>
       <p><strong>${participantName}</strong> için FocusProLab dikkat testiniz tamamlandı.</p>
-      <p>Katılımcı test raporu PDF dosyası bu e-postanın ekinde yer almaktadır. Panele girerek de raporu açabilirsiniz.</p>
+      <p>Test raporu PDF dosyası bu e-postanın ekinde yer almaktadır. Test bitince sonuç ekranda gösterilmez.</p>
       <p style="color:#64748b;font-size:13px">Bu mesaj otomatik gönderilmiştir. Rapor yalnızca ön değerlendirme amaçlıdır; tanı koymaz.</p>
       <p>— FocusProLab</p>
     </div>`
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       return json({ error: "unauthorized" }, 401);
     }
 
-    const { sessionId, locale = "tr" } = await req.json();
+    const { sessionId, locale = "tr", clientId = null } = await req.json();
     if (!sessionId) {
       return json({ error: "sessionId required" }, 400);
     }
@@ -91,21 +91,52 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
     const { data: session, error: sessErr } = await admin
       .from("test_sessions")
-      .select("id, owner_id, participant_name, pdf_path, report_email_sent_at")
+      .select("id, owner_id, taker_id, participant_name, pdf_path, report_email_sent_at")
       .eq("id", sessionId)
       .maybeSingle();
 
     if (sessErr || !session) {
       return json({ error: "session_not_found" }, 404);
     }
-    if (session.owner_id !== user.id) {
+
+    const isOwner = session.owner_id === user.id;
+    const isTaker = session.taker_id === user.id;
+    if (!isOwner && !isTaker) {
       return json({ error: "forbidden" }, 403);
     }
     if (!session.pdf_path) {
       return json({ error: "pdf_not_ready" }, 400);
     }
+
+    let toEmail = user.email;
+    if (isTaker) {
+      toEmail = user.email;
+    } else if (clientId) {
+      const { data: client, error: clientErr } = await admin
+        .from("specialist_clients")
+        .select("email, full_name, specialist_id")
+        .eq("id", clientId)
+        .maybeSingle();
+      if (clientErr || !client || client.specialist_id !== user.id) {
+        return json({ error: "forbidden" }, 403);
+      }
+      const sameName =
+        client.full_name.trim().toLocaleLowerCase("tr-TR") ===
+        (session.participant_name || "").trim().toLocaleLowerCase("tr-TR");
+      if (!sameName) {
+        return json({ error: "forbidden" }, 403);
+      }
+      toEmail = client.email;
+    } else {
+      const { data: profile } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      if (profile?.role === "psychologist") {
+        return json({ error: "recipient_required" }, 400);
+      }
+      toEmail = user.email;
+    }
+
     if (session.report_email_sent_at) {
-      return json({ ok: true, alreadySent: true, email: user.email });
+      return json({ ok: true, alreadySent: true, email: toEmail });
     }
 
     const resendKey = Deno.env.get("RESEND_API_KEY");
@@ -133,7 +164,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [user.email],
+        to: [toEmail],
         subject,
         html,
         attachments: [{ filename, content: base64 }]
@@ -148,10 +179,9 @@ Deno.serve(async (req) => {
     await admin
       .from("test_sessions")
       .update({ report_email_sent_at: new Date().toISOString() })
-      .eq("id", sessionId)
-      .eq("owner_id", user.id);
+      .eq("id", sessionId);
 
-    return json({ ok: true, email: user.email });
+    return json({ ok: true, email: toEmail });
   } catch (e) {
     return json({ error: "unexpected", detail: String(e) }, 500);
   }

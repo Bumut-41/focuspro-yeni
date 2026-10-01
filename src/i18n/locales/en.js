@@ -87,12 +87,16 @@ export const en = {
     description: "Manage your attention and continuous performance assessments here.",
     pdfAutoSave: "When a test ends, the report PDF is saved automatically and can be opened from the list below.",
     resultsPrivate:
-      "When you complete a test, your participation is recorded. Result reports can only be viewed by authorized administrators.",
+      "Results are not shown on screen when the test ends. The report is sent to your registered email address.",
+    clientResultsHint:
+      "Only test reports for clients you added appear here. The press report is not available in this panel.",
     guideHint: "The test flow shows a 3-part guide: using the system, test scenarios, and measured behaviours.",
     newTest: "Start new test",
     adminPanel: "Admin panel",
     historyTitle: "Your past tests",
+    historyTitleClients: "Client tests",
     historyDesc: "Participant test report PDF — view from the dashboard.",
+    historyDescClients: "Test reports for the clients you added. The press report stays with administrators.",
     noTests: "No saved tests yet.",
     noTestsDesc: "Start your first assessment.",
     date: "Date",
@@ -221,8 +225,8 @@ export const en = {
       ]
     },
     thankYouTitle: "Thank you for your participation",
-    thankYouRedirect: "You will be redirected to the home page in 30 seconds.",
-    thankYouInviteRedirect: "Your test is complete. Results will only be visible to your clinician. You will be redirected to the home page shortly.",
+    thankYouBody:
+      "Records are stored securely and the test report is emailed to you when the test ends. Tests taken with a specialist can also be viewed on the specialist's screen.",
     qaHint:
       "Temporary mode: silent GIF and silent+audio GIF sections only (~6 min). Audio-only, baseline, and closing disabled.",
     participantGuide: {

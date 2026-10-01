@@ -3,7 +3,8 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
-import { fetchMySessions, fetchAdminPressTimeline, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
+import { fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
+import { fetchMyClients } from "../services/clients.js";
 import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
@@ -37,11 +38,8 @@ export default function DashboardPage() {
         await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
         return;
       }
-      const [detail, timeline] = await Promise.all([
-        fetchSessionDetail(session.id),
-        fetchAdminPressTimeline(session.id).catch(() => [])
-      ]);
-      await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
+      const detail = await fetchSessionDetail(session.id);
+      await downloadParticipantReportFromSession(detail, [], locale);
     } catch (e) {
       setMsg(e.message || t("dashboard.pdfOpenFailed"));
     } finally {
@@ -55,11 +53,23 @@ export default function DashboardPage() {
       return;
     }
     try {
-      setSessions(await fetchMySessions());
+      const rows = await fetchMySessions();
+      if (!isPsychologist) {
+        setSessions(rows);
+        return;
+      }
+      const clients = await fetchMyClients().catch(() => []);
+      const names = new Set(clients.map((client) => client.full_name.trim().toLocaleLowerCase("tr")));
+      setSessions(
+        rows.filter(
+          (session) =>
+            session.invite_id || names.has((session.participant_name || "").trim().toLocaleLowerCase("tr"))
+        )
+      );
     } catch (e) {
       setMsg(e.message);
     }
-  }, [canViewSessions]);
+  }, [canViewSessions, isPsychologist]);
 
   useEffect(() => {
     load();
@@ -74,7 +84,11 @@ export default function DashboardPage() {
           action={<Badge variant="primary">{roleLabel(profile?.role, locale)}</Badge>}
         />
         <Alert variant={canViewSessions ? "success" : "info"}>
-          {canViewSessions ? t("dashboard.pdfAutoSave") : t("dashboard.resultsPrivate")}
+          {isPsychologist
+            ? t("dashboard.clientResultsHint")
+            : canViewSessions
+              ? t("dashboard.pdfAutoSave")
+              : t("dashboard.resultsPrivate")}
         </Alert>
         {!canViewSessions && (
           <p style={{ margin: "12px 0 0", fontSize: "0.875rem", color: "var(--fp-text-secondary)", lineHeight: 1.55 }}>
@@ -103,7 +117,10 @@ export default function DashboardPage() {
 
       {canViewSessions && (
       <Card>
-        <CardHeader title={t("dashboard.historyTitle")} description={t("dashboard.historyDesc")} />
+        <CardHeader
+          title={isPsychologist ? t("dashboard.historyTitleClients") : t("dashboard.historyTitle")}
+          description={isPsychologist ? t("dashboard.historyDescClients") : t("dashboard.historyDesc")}
+        />
         {!sessions.length && (
           <EmptyState title={t("dashboard.noTests")} description={t("dashboard.noTestsDesc")} />
         )}

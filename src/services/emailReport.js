@@ -4,9 +4,9 @@ import { supabase } from "../lib/supabase.js";
  * Test raporu PDF'ini oturum sahibinin kayıtlı e-postasına gönderir.
  * Supabase Edge Function: send-report-email (Resend gerekir).
  */
-export async function sendSessionReportEmail(sessionId, locale = "tr") {
+export async function sendSessionReportEmail(sessionId, locale = "tr", clientId = null) {
   const { data, error } = await supabase.functions.invoke("send-report-email", {
-    body: { sessionId, locale }
+    body: { sessionId, locale, clientId }
   });
 
   if (error) {

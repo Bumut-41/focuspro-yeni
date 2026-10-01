@@ -19,6 +19,7 @@ import { clearStoredInviteToken, getStoredInviteToken } from "../lib/inviteStora
 import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../services/invites.js";
 import { fetchMyClients } from "../services/clients.js";
 import { saveTestSession } from "../services/sessions.js";
+import { sendSessionReportEmail } from "../services/emailReport.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
@@ -68,6 +69,7 @@ export default function TestFlowPage() {
   const audioDoneLock = useRef(false);
   const audioRef = useRef(null);
   const pdfSavedRef = useRef(false);
+  const reportClientIdRef = useRef(null);
   const profile = getProfile(pkey);
   const { setImmersive } = useTestChrome();
 
@@ -303,9 +305,11 @@ export default function TestFlowPage() {
       const clientAge = ageFromBirthDate(client.birth_date);
       const clientKey = profileKeyFromAge(clientAge);
       const consented = client.guardian_consent || (clientKey !== "child" && clientKey !== "teen");
+      reportClientIdRef.current = client.id;
       beginWithParticipant(client.full_name, client.birth_date, client.gender, consented);
       return;
     }
+    reportClientIdRef.current = null;
     if (!name.trim()) {
       setErr(t("test.errName"));
       return;
@@ -379,10 +383,16 @@ export default function TestFlowPage() {
           logs,
           target,
           pressTimeline,
-          locale
+          locale,
+          saveAdminPdf: false
         });
         if (!cancelled && result.testSaved) {
           pdfSavedRef.current = true;
+          try {
+            await sendSessionReportEmail(sessionId, locale, reportClientIdRef.current);
+          } catch (mailErr) {
+            console.warn(mailErr);
+          }
         }
         if (!cancelled && result.errors?.length) {
           console.warn(formatPersistResult(result, pressTimeline.length > 0, locale));
@@ -721,9 +731,7 @@ export default function TestFlowPage() {
             <div className="space-screen-win">
               <span className="space-screen-win-check">✓</span>
               <h2 className="space-screen-win-title">{t("test.thankYouTitle")}</h2>
-              <p className="space-screen-win-sub">
-                {isInviteFlow ? t("test.thankYouInviteRedirect") : t("test.thankYouRedirect")}
-              </p>
+              <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
               {saveError && (
                 <p className="space-screen-error" role="alert">
                   {saveError}
