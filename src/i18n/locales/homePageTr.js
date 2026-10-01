@@ -5,7 +5,7 @@ export const homePageTr = {
     about: "FocusProLab Nedir?",
     who: "Kimler İçin?",
     pros: "Uzmanlar İçin",
-    centers: "Merkezler",
+    centers: "FocusProLab Merkezleri",
     faq: "Sık Sorulan Sorular",
     contact: "İletişim",
     login: "Giriş Yap"
@@ -425,9 +425,23 @@ export const homePageTr = {
       }
     }
   },
+  centersPage: {
+    back: "Ana sayfaya dön",
+    title: "FocusProLab Merkezleri",
+    lead: "Aşağıdaki merkezlerde FocusProLab değerlendirmesi yapılmaktadır.",
+    category: "İstanbul'da bir psikolog",
+    address: "Adres",
+    phone: "Telefon",
+    hours: "Çalışma saatleri",
+    opensAt: "Açılış saati: {{time}}",
+    reviewOne: "1 yorum",
+    reviews: "{{count}} yorum",
+    directions: "Yol tarifi",
+    view: "Merkezleri görüntüle"
+  },
   sections: {
     about: "FocusProLab, gerçek yaşam koşullarını simüle eden çeldiriciler altında dikkat ve sürekli performansı objektif olarak ölçer.",
-    centers: "Klinik merkezler, okullar ve kurumsal yapılar için toplu değerlendirme ve panel erişimi sunuyoruz.",
+    centers: "İstanbul’daki FocusProLab merkezlerinin adres, telefon ve konum bilgilerine bu sayfadan ulaşabilirsiniz.",
     contactLead: "Kurumsal başvuru ve iş birliği için bizimle iletişime geçin."
   }
 };

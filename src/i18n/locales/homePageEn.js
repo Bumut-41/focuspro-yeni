@@ -5,7 +5,7 @@ export const homePageEn = {
     about: "What is FocusProLab?",
     who: "Who is it for?",
     pros: "For Professionals",
-    centers: "Centres",
+    centers: "FocusProLab Centres",
     faq: "FAQ",
     contact: "Contact",
     login: "Sign in"
@@ -425,9 +425,23 @@ export const homePageEn = {
       }
     }
   },
+  centersPage: {
+    back: "Back to home",
+    title: "FocusProLab Centres",
+    lead: "FocusProLab assessments are available at the centres below.",
+    category: "A psychologist in Istanbul",
+    address: "Address",
+    phone: "Phone",
+    hours: "Opening hours",
+    opensAt: "Opens at: {{time}}",
+    reviewOne: "1 review",
+    reviews: "{{count}} reviews",
+    directions: "Directions",
+    view: "View centres"
+  },
   sections: {
     about: "FocusProLab objectively measures attention and sustained performance under distractors that simulate real-life conditions.",
-    centers: "We offer bulk assessment and panel access for clinics, schools and institutions.",
+    centers: "Find the address, phone number and map location of FocusProLab centres in Istanbul.",
     contactLead: "Contact us for institutional applications and partnerships."
   }
 };

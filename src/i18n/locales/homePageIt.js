@@ -5,7 +5,7 @@ export const homePageIt = {
     about: "Cos'è FocusProLab?",
     who: "A chi è rivolto?",
     pros: "Per i professionisti",
-    centers: "Centri",
+    centers: "Centri FocusProLab",
     faq: "Domande frequenti",
     contact: "Contatti",
     login: "Accedi"
@@ -425,9 +425,23 @@ export const homePageIt = {
       }
     }
   },
+  centersPage: {
+    back: "Torna alla home",
+    title: "Centri FocusProLab",
+    lead: "La valutazione FocusProLab è disponibile nei centri qui sotto.",
+    category: "Uno psicologo a Istanbul",
+    address: "Indirizzo",
+    phone: "Telefono",
+    hours: "Orari",
+    opensAt: "Apertura: {{time}}",
+    reviewOne: "1 recensione",
+    reviews: "{{count}} recensioni",
+    directions: "Indicazioni",
+    view: "Vedi i centri"
+  },
   sections: {
     about: "FocusProLab misura in modo obiettivo attenzione e prestazione continua in presenza di distrattori che simulano la vita reale.",
-    centers: "Offriamo valutazioni di gruppo e accesso al pannello per cliniche, scuole e istituzioni.",
+    centers: "Qui trovi indirizzo, telefono e posizione sulla mappa dei centri FocusProLab a Istanbul.",
     contactLead: "Contattaci per richieste istituzionali e partnership."
   }
 };

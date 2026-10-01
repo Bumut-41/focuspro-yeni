@@ -152,6 +152,9 @@ export default function HomePage() {
           <section className="fp-mkt-section fp-mkt-section--muted" id="merkezler">
             <h2 className="fp-mkt-section-title">{m.nav.centers}</h2>
             <p className="fp-mkt-section-lead">{m.sections.centers}</p>
+            <Button asLink to="/merkezler" variant="primary" className="fp-mkt-btn-navy">
+              {m.centersPage.view}
+            </Button>
           </section>
 
           <section className="fp-mkt-section" id="iletisim">
