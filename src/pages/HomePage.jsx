@@ -50,9 +50,6 @@ export default function HomePage() {
               <Button asLink to={panelTo} variant="secondary" size="lg" className="fp-mkt-btn-outline">
                 {m.hero.ctaExpert}
               </Button>
-              <Button asLink to="/uzman-basvuru" variant="secondary" size="lg" className="fp-mkt-btn-apply">
-                {m.hero.ctaApply}
-              </Button>
             </div>
             <div className="fp-mkt-badges">
               {m.hero.badges.map((b) => (
