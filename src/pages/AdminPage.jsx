@@ -29,6 +29,7 @@ import {
   fetchSessionDetail,
   getReportPdfSignedUrl
 } from "../services/sessions.js";
+import { fetchCorporateApplications } from "../services/corporateApplications.js";
 import {
   Alert,
   Button,
@@ -59,6 +60,8 @@ export default function AdminPage() {
   const [creditDrafts, setCreditDrafts] = useState({});
   const [creditBusy, setCreditBusy] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(null);
+  const [applications, setApplications] = useState([]);
+  const [applicationsError, setApplicationsError] = useState("");
 
   async function openStoredPdf(pdfPath, busyKey, filename = "FocusProLab-report.pdf") {
     if (!pdfPath) return;
@@ -74,9 +77,10 @@ export default function AdminPage() {
   }
 
   const load = useCallback(async () => {
-    const [profilesResult, sessionsResult] = await Promise.allSettled([
+    const [profilesResult, sessionsResult, applicationsResult] = await Promise.allSettled([
       fetchAllProfiles(),
-      fetchAllSessions(200)
+      fetchAllSessions(200),
+      fetchCorporateApplications()
     ]);
     if (profilesResult.status === "fulfilled") {
       const p = profilesResult.value;
@@ -94,7 +98,14 @@ export default function AdminPage() {
         setMsg(sessionsResult.reason?.message || String(sessionsResult.reason));
       }
     }
-  }, []);
+    if (applicationsResult.status === "fulfilled") {
+      setApplications(applicationsResult.value);
+      setApplicationsError("");
+    } else {
+      setApplications([]);
+      setApplicationsError(t("admin.applicationsFailed"));
+    }
+  }, [t]);
 
   useEffect(() => {
     if (isAdmin) load().catch((e) => setMsg(e.message));
@@ -294,6 +305,54 @@ export default function AdminPage() {
           >
             {msg}
           </Alert>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title={t("admin.applicationsTitle", { count: applications.length })}
+          description={t("admin.applicationsDesc")}
+        />
+        {applicationsError && <Alert variant="error">{applicationsError}</Alert>}
+        {!applicationsError && !applications.length && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("admin.applicationsEmpty")}</p>
+        )}
+        {applications.length > 0 && (
+          <DataTable
+            columns={[
+              {
+                label: t("admin.date"),
+                render: (row) => new Date(row.created_at).toLocaleString(dateLocale)
+              },
+              { key: "organization_name", label: t("admin.organization") },
+              { key: "contact_name", label: t("admin.contact") },
+              { key: "role", label: t("admin.jobTitle") },
+              { key: "phone", label: t("admin.phone") },
+              { key: "email", label: t("admin.email") },
+              {
+                label: t("admin.country"),
+                render: (row) => {
+                  try {
+                    return new Intl.DisplayNames([locale], { type: "region" }).of(row.country_code) || row.country_code;
+                  } catch {
+                    return row.country_code;
+                  }
+                }
+              },
+              { key: "city", label: t("admin.city") },
+              { key: "institution_type", label: t("admin.institutionType") },
+              { key: "expert_count", label: t("admin.experts") },
+              { key: "monthly_clients", label: t("admin.monthlyClients") },
+              {
+                label: t("admin.message"),
+                render: (row) => (
+                  <span style={{ display: "block", maxWidth: 280, whiteSpace: "pre-wrap" }}>{row.message || "—"}</span>
+                )
+              }
+            ]}
+            rows={applications}
+            rowKey={(row) => row.id}
+          />
         )}
       </Card>
 

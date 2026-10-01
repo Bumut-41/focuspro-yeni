@@ -395,7 +395,21 @@ export const en = {
     pressDetail: "Press detail",
     storedPdfFailed: "Could not open stored PDF.",
     testPdfFailed: "Could not create test report PDF.",
-    pressPdfFailed: "Could not create press report PDF."
+    pressPdfFailed: "Could not create press report PDF.",
+    applicationsTitle: "Specialist applications ({{count}})",
+    applicationsDesc: "Responses from the corporate application form. Visible to administrators only.",
+    applicationsEmpty: "No applications yet.",
+    applicationsFailed: "Could not load applications. Run corporate-applications.sql again in the Supabase SQL Editor.",
+    organization: "Organisation",
+    contact: "Contact",
+    jobTitle: "Role",
+    phone: "Phone",
+    country: "Country",
+    city: "City",
+    institutionType: "Institution type",
+    experts: "Specialists",
+    monthlyClients: "Monthly clients",
+    message: "Message"
   },
   pressTimeline: {
     title: "Press timeline",

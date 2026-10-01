@@ -25,5 +25,13 @@ create policy "public insert corporate applications"
   to anon, authenticated
   with check (true);
 
+drop policy if exists "admin select corporate applications" on public.corporate_applications;
+create policy "admin select corporate applications"
+  on public.corporate_applications
+  for select
+  to authenticated
+  using (public.is_admin());
+
 revoke all on table public.corporate_applications from anon, authenticated;
 grant insert on table public.corporate_applications to anon, authenticated;
+grant select on table public.corporate_applications to authenticated;

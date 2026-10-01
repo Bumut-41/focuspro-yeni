@@ -397,7 +397,21 @@ export const tr = {
     pressDetail: "Basış detayı",
     storedPdfFailed: "Kayıtlı PDF açılamadı.",
     testPdfFailed: "Test raporu PDF oluşturulamadı.",
-    pressPdfFailed: "Basış raporu PDF oluşturulamadı."
+    pressPdfFailed: "Basış raporu PDF oluşturulamadı.",
+    applicationsTitle: "Uzman başvuruları ({{count}})",
+    applicationsDesc: "Kurumsal başvuru formunu dolduranların yanıtları. Yalnızca yöneticiler görür.",
+    applicationsEmpty: "Henüz başvuru yok.",
+    applicationsFailed: "Başvurular okunamadı. Supabase SQL Editor'da corporate-applications.sql dosyasını yeniden çalıştırın.",
+    organization: "Kurum",
+    contact: "Yetkili",
+    jobTitle: "Görevi",
+    phone: "Telefon",
+    country: "Ülke",
+    city: "Şehir",
+    institutionType: "Kurum türü",
+    experts: "Uzman sayısı",
+    monthlyClients: "Aylık danışan",
+    message: "Mesaj"
   },
   pressTimeline: {
     title: "Basış zaman çizelgesi",

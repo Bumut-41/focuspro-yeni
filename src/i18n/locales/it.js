@@ -395,7 +395,21 @@ export const it = {
     pressDetail: "Dettaglio pressioni",
     storedPdfFailed: "Impossibile aprire il PDF salvato.",
     testPdfFailed: "Impossibile creare il PDF del report del test.",
-    pressPdfFailed: "Impossibile creare il PDF del report pressioni."
+    pressPdfFailed: "Impossibile creare il PDF del report pressioni.",
+    applicationsTitle: "Domande degli specialisti ({{count}})",
+    applicationsDesc: "Risposte del modulo di candidatura istituzionale. Visibili solo agli amministratori.",
+    applicationsEmpty: "Nessuna domanda.",
+    applicationsFailed: "Impossibile leggere le domande. Esegui di nuovo corporate-applications.sql nell'editor SQL di Supabase.",
+    organization: "Istituzione",
+    contact: "Referente",
+    jobTitle: "Ruolo",
+    phone: "Telefono",
+    country: "Paese",
+    city: "Città",
+    institutionType: "Tipo di istituzione",
+    experts: "Specialisti",
+    monthlyClients: "Clienti al mese",
+    message: "Messaggio"
   },
   pressTimeline: {
     title: "Cronologia delle pressioni",
