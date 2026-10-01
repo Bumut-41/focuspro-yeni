@@ -12,10 +12,10 @@ export const CENTERS = [
   {
     id: "turkmen",
     name: "Klinik Psikolog Tarık Türkmen",
-    address: "Barış Mah. Bestekar Sk. Piramit Evleri C1 Blok No: 11 Kat: 1 D:6, 34520 Beylikdüzü/İstanbul",
+    address: "Büyükşehir Mahallesi Cumhuriyet Caddesi Ekinoks Residence No:1 Kat:3 Daire:26 Beylikdüzü /İstanbul",
     phone: "0534 799 38 36",
     phoneHref: "tel:+905347993836",
-    lat: 41.0046285,
-    lng: 28.6572734
+    lat: 41.012817,
+    lng: 28.643778
   }
 ];
