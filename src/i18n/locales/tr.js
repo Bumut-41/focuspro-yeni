@@ -108,7 +108,8 @@ export const tr = {
     downloadReport: "Raporu indir",
     generateReport: "Raporu oluştur",
     pdfPreparing: "PDF hazırlanıyor…",
-    pdfOpenFailed: "PDF açılamadı."
+    pdfOpenFailed: "PDF açılamadı.",
+    pdfChunkFailed: "Rapor dosyası güncellendi. Sayfayı yenileyip raporu tekrar açın."
   },
   invite: {
     pageTitle: "Test daveti",

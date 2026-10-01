@@ -1,3 +1,5 @@
+import { reloadStaleChunk } from "./reloadStaleChunk.js";
+
 let pdfMakePromise;
 
 function resolvePdfVfs(fontsModule) {
@@ -22,7 +24,11 @@ export async function getPdfMake() {
       }
       pdfMake.vfs = vfs;
       return pdfMake;
-    })();
+    })().catch((error) => {
+      pdfMakePromise = null;
+      reloadStaleChunk(error);
+      throw error;
+    });
   }
   return pdfMakePromise;
 }

@@ -108,7 +108,8 @@ export const it = {
     downloadReport: "Scarica il report",
     generateReport: "Genera il report",
     pdfPreparing: "Preparazione del PDF…",
-    pdfOpenFailed: "Impossibile aprire il PDF."
+    pdfOpenFailed: "Impossibile aprire il PDF.",
+    pdfChunkFailed: "Il file del report è stato aggiornato. Aggiorna la pagina e apri di nuovo il report."
   },
   invite: {
     pageTitle: "Invito al test",

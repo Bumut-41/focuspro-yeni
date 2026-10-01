@@ -7,6 +7,7 @@ import { fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../s
 import { fetchMyClients } from "../services/clients.js";
 import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
+import { isStaleChunkError, reloadStaleChunk } from "../lib/reloadStaleChunk.js";
 import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
 import { SpecialistClientsPanel } from "../components/SpecialistClientsPanel.jsx";
 import {
@@ -41,7 +42,8 @@ export default function DashboardPage() {
       const detail = await fetchSessionDetail(session.id);
       await downloadParticipantReportFromSession(detail, [], locale);
     } catch (e) {
-      setMsg(e.message || t("dashboard.pdfOpenFailed"));
+      if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
+      setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
     } finally {
       setPdfBusy(null);
     }

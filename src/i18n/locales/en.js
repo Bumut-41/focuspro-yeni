@@ -108,7 +108,8 @@ export const en = {
     downloadReport: "Download report",
     generateReport: "Generate report",
     pdfPreparing: "Preparing PDF…",
-    pdfOpenFailed: "Could not open PDF."
+    pdfOpenFailed: "Could not open PDF.",
+    pdfChunkFailed: "The report file was updated. Refresh the page and open the report again."
   },
   invite: {
     pageTitle: "Test invitation",
