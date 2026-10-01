@@ -431,8 +431,6 @@ export const homePageTr = {
     lead: "Aşağıdaki merkezlerde FocusProLab değerlendirmesi yapılmaktadır.",
     address: "Adres",
     phone: "Telefon",
-    hours: "Çalışma saatleri",
-    opensAt: "Açılış saati: {{time}}",
     directions: "Yol tarifi",
     openMap: "Google Haritalar'da aç",
     view: "Merkezleri görüntüle"

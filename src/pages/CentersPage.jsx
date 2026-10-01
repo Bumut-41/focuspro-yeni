@@ -27,7 +27,7 @@ function directionsHref(center) {
 }
 
 export default function CentersPage() {
-  const { strings, t, locale } = useLocale();
+  const { strings, locale } = useLocale();
   const page = strings.home.marketing.centersPage;
 
   useEffect(() => {
@@ -60,12 +60,6 @@ export default function CentersPage() {
                       <a href={center.phoneHref}>{center.phone}</a>
                     </dd>
                   </div>
-                  {center.opensAt ? (
-                    <div>
-                      <dt>{page.hours}</dt>
-                      <dd>{t("home.marketing.centersPage.opensAt", { time: center.opensAt })}</dd>
-                    </div>
-                  ) : null}
                 </dl>
                 <a className="fp-center-directions" href={directionsHref(center)} target="_blank" rel="noreferrer">
                   {page.directions}

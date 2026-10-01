@@ -431,8 +431,6 @@ export const homePageEn = {
     lead: "FocusProLab assessments are available at the centres below.",
     address: "Address",
     phone: "Phone",
-    hours: "Opening hours",
-    opensAt: "Opens at: {{time}}",
     directions: "Directions",
     openMap: "Open in Google Maps",
     view: "View centres"

@@ -431,8 +431,6 @@ export const homePageIt = {
     lead: "La valutazione FocusProLab è disponibile nei centri qui sotto.",
     address: "Indirizzo",
     phone: "Telefono",
-    hours: "Orari",
-    opensAt: "Apertura: {{time}}",
     directions: "Indicazioni",
     openMap: "Apri in Google Maps",
     view: "Vedi i centri"

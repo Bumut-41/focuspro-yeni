@@ -15,7 +15,6 @@ export const CENTERS = [
     address: "Barış Mah. Bestekar Sk. Piramit Evleri C1 Blok No: 11 Kat: 1 D:6, 34520 Beylikdüzü/İstanbul",
     phone: "0534 799 38 36",
     phoneHref: "tel:+905347993836",
-    opensAt: "09:00",
     lat: 41.0046285,
     lng: 28.6572734
   }
