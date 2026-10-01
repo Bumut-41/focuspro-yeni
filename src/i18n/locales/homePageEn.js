@@ -119,7 +119,7 @@ export const homePageEn = {
       },
       {
         q: "Who sees the results?",
-        a: "In individual use, results are viewed by authorised clinicians and administrators. In invite flows, participants do not see results."
+        a: "When the test ends you do not see a results screen; the message «Thank you for your participation» appears. Records are stored securely and the test report is emailed to you when the test finishes. Tests taken with a specialist can also be viewed on the specialist’s screen."
       },
       {
         q: "Is it suitable for children?",

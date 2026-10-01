@@ -119,7 +119,7 @@ export const homePageIt = {
       },
       {
         q: "Chi vede i risultati?",
-        a: "Nell'uso individuale i risultati sono visibili a clinici e amministratori autorizzati. Nel flusso su invito il partecipante non vede i risultati."
+        a: "Al termine del test non vedi una schermata dei risultati; compare il messaggio «Grazie per la partecipazione». I dati sono conservati in modo sicuro e al termine del test il report viene inviato alla tua e-mail. I test svolti con uno specialista possono essere visualizzati anche nella schermata dello specialista."
       },
       {
         q: "È adatto ai bambini?",

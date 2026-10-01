@@ -119,7 +119,7 @@ export const homePageTr = {
       },
       {
         q: "Sonuçları kim görür?",
-        a: "Bireysel kullanımda sonuçlar yetkili uzman ve yönetici panelinde görüntülenir. Davet akışında katılımcı sonucu görmez."
+        a: "Test bitince sonuç ekranı görmezsin; «Katılımınız için teşekkürler» mesajı çıkar. Kayıtlar güvenle saklanır ve test bittiğinde mail adresinize test raporu gönderilir. Uzman ile birlikte yaptığınız testler ayrıca uzman ekranında da görüntülenebilir."
       },
       {
         q: "Çocuklar için uygun mu?",
