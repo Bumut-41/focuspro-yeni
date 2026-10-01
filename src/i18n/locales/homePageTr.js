@@ -434,7 +434,7 @@ export const homePageTr = {
     hours: "Çalışma saatleri",
     opensAt: "Açılış saati: {{time}}",
     directions: "Yol tarifi",
-    openMap: "Haritada konumu aç",
+    openMap: "Google Haritalar'da aç",
     view: "Merkezleri görüntüle"
   },
   sections: {

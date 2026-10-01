@@ -3,49 +3,22 @@ import { Link } from "react-router-dom";
 import { CENTERS } from "../data/centers.js";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
-const TILE = 256;
-const ZOOM = 16;
-
-function project(lat, lng) {
-  const n = 2 ** ZOOM;
-  const x = ((lng + 180) / 360) * n;
-  const s = Math.sin((lat * Math.PI) / 180);
-  const y = (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * n;
-  return { x, y };
+function mapTarget(center) {
+  return `${encodeURIComponent(center.name)}@${center.lat},${center.lng}`;
 }
 
-function CenterMap({ center, label }) {
-  const { x, y } = project(center.lat, center.lng);
-  const tileX = Math.floor(x);
-  const tileY = Math.floor(y);
-  const originX = tileX - 1;
-  const originY = tileY - 1;
-  const pinLeft = (x - originX) * TILE;
-  const pinTop = (y - originY) * TILE;
-  const tiles = [];
-  for (let row = 0; row < 3; row += 1) {
-    for (let col = 0; col < 3; col += 1) {
-      tiles.push({ col, row, tx: originX + col, ty: originY + row });
-    }
-  }
-  const placeHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${center.name}, ${center.address}`)}`;
+function CenterMap({ center, label, openLabel, locale }) {
+  const target = mapTarget(center);
+  const placeHref = `https://www.google.com/maps?q=${target}&z=16`;
+  const embedSrc = `https://maps.google.com/maps?q=${target}&z=16&hl=${locale}&output=embed`;
 
   return (
-    <a className="fp-center-map" href={placeHref} target="_blank" rel="noreferrer" aria-label={label}>
-      <div className="fp-center-tiles" style={{ left: `calc(50% - ${pinLeft}px)`, top: `calc(50% - ${pinTop}px)` }}>
-        {tiles.map((tile) => (
-          <img
-            key={`${tile.tx}-${tile.ty}`}
-            alt=""
-            width={TILE}
-            height={TILE}
-            src={`https://tile.openstreetmap.org/${ZOOM}/${tile.tx}/${tile.ty}.png`}
-            style={{ left: tile.col * TILE, top: tile.row * TILE }}
-          />
-        ))}
-        <span className="fp-center-pin" style={{ left: pinLeft, top: pinTop }} />
-      </div>
-    </a>
+    <div className="fp-center-map">
+      <iframe title={label} src={embedSrc} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      <a className="fp-center-map-hit" href={placeHref} target="_blank" rel="noreferrer" aria-label={label}>
+        <span className="fp-center-map-chip">{openLabel}</span>
+      </a>
+    </div>
   );
 }
 
@@ -54,7 +27,7 @@ function directionsHref(center) {
 }
 
 export default function CentersPage() {
-  const { strings, t } = useLocale();
+  const { strings, t, locale } = useLocale();
   const page = strings.home.marketing.centersPage;
 
   useEffect(() => {
@@ -98,7 +71,12 @@ export default function CentersPage() {
                   {page.directions}
                 </a>
               </div>
-              <CenterMap center={center} label={`${page.openMap}: ${center.name}`} />
+              <CenterMap
+                center={center}
+                locale={locale}
+                openLabel={page.openMap}
+                label={`${page.openMap}: ${center.name}`}
+              />
             </article>
           ))}
         </div>

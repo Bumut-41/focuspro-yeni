@@ -434,7 +434,7 @@ export const homePageEn = {
     hours: "Opening hours",
     opensAt: "Opens at: {{time}}",
     directions: "Directions",
-    openMap: "Open location in maps",
+    openMap: "Open in Google Maps",
     view: "View centres"
   },
   sections: {
