@@ -214,6 +214,13 @@ export const tr = {
       "Ses duyulamadıysa sesi açın veya kulaklığı kontrol edin. Test sesi tekrar çalınıyor…",
     practiceBanner: "Deneme — 30 sn (tüm bölümler, kayıt yok)",
     startTest: "Teste başla",
+    prep: {
+      continue: "Devam et",
+      paragraphs: [
+        "Teste başlamadan ekranda yer alan yönergeleri dikkatlice okuyun ve her aşamada belirtilen adımları sırasıyla uygulayın. Test sırasında yönergeye uygun yanıt vermeniz önemlidir.",
+        "Sessiz bir ortamda olduğunuzdan, internet bağlantınızın stabil çalıştığından ve test süresince dikkatinizin bölünmeyeceğinden emin olun. Test başladıktan sonra sayfayı yenilemeyin, geri tuşunu kullanmayın ve uygulamayı yarıda bırakmayın."
+      ]
+    },
     thankYouTitle: "Katılımınız için teşekkürler",
     thankYouRedirect: "30 saniye içinde ana sayfaya yönlendirileceksiniz.",
     thankYouInviteRedirect: "Testiniz tamamlandı. Sonuçlar yalnızca uzmanınızda görüntülenecektir. Kısa süre içinde ana sayfaya yönlendirileceksiniz.",

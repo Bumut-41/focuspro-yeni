@@ -1492,6 +1492,21 @@ a:hover {
   text-align: center;
 }
 
+.test-prep-card {
+  width: min(96vw, 640px);
+}
+
+.test-prep-card .test-brief-instructions {
+  font-size: 1rem;
+  line-height: 1.65;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.test-prep-card .test-brief-start {
+  max-width: none;
+}
+
 .test-brief-instructions {
   margin: 0 0 16px;
   display: flex;

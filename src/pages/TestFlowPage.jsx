@@ -72,7 +72,7 @@ export default function TestFlowPage() {
   const { setImmersive } = useTestChrome();
 
   useEffect(() => {
-    if (["form", "spaceCheck", "audioCheck", "guide"].includes(step)) {
+    if (["form", "prep", "spaceCheck", "audioCheck", "guide"].includes(step)) {
       setActiveTestProfile(getProfile(pkey));
     }
   }, [pkey, step]);
@@ -288,7 +288,7 @@ export default function TestFlowPage() {
       audioRef.current.pause();
       audioRef.current = null;
     }
-    setStep("spaceCheck");
+    setStep("prep");
   }
 
   function submitForm(e) {
@@ -544,6 +544,19 @@ export default function TestFlowPage() {
             </Button>
           </Card>
         </Page>
+      )}
+
+      {step === "prep" && (
+        <div className="test-brief-card test-brief-card--instructions test-prep-card">
+          <div className="test-brief-instructions">
+            {strings.test.prep.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+          <button type="button" className="test-brief-start" onClick={() => setStep("spaceCheck")}>
+            {t("test.prep.continue")}
+          </button>
+        </div>
       )}
 
       {step === "guide" && (

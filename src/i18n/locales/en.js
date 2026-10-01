@@ -213,6 +213,13 @@ export const en = {
     audioRetry: "If you did not hear it, turn up volume or check headphones. Playing test sound again…",
     practiceBanner: "Practice — 30 sec (all sections, not recorded)",
     startTest: "Start test",
+    prep: {
+      continue: "Continue",
+      paragraphs: [
+        "Before you start the test, read the on-screen instructions carefully and follow the steps in each stage in order. It is important that you respond according to the instructions during the test.",
+        "Make sure you are in a quiet place, that your internet connection is stable, and that you will not be distracted during the test. After the test starts, do not refresh the page, do not use the back button, and do not leave the session unfinished."
+      ]
+    },
     thankYouTitle: "Thank you for your participation",
     thankYouRedirect: "You will be redirected to the home page in 30 seconds.",
     thankYouInviteRedirect: "Your test is complete. Results will only be visible to your clinician. You will be redirected to the home page shortly.",

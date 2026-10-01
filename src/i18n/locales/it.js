@@ -213,6 +213,13 @@ export const it = {
     audioRetry: "Se non lo hai sentito, alza il volume o controlla le cuffie. Il suono di prova viene ripetuto…",
     practiceBanner: "Prova — 30 sec (tutte le sezioni, non registrata)",
     startTest: "Inizia il test",
+    prep: {
+      continue: "Continua",
+      paragraphs: [
+        "Prima di iniziare il test, leggi attentamente le istruzioni sullo schermo e segui i passaggi di ogni fase nell'ordine indicato. Durante il test è importante rispondere secondo le istruzioni.",
+        "Assicurati di essere in un ambiente silenzioso, che la connessione internet sia stabile e che nulla ti distragga durante il test. Dopo l'inizio del test non aggiornare la pagina, non usare il pulsante indietro e non interrompere la sessione."
+      ]
+    },
     thankYouTitle: "Grazie per la partecipazione",
     thankYouRedirect: "Tra 30 secondi verrai riportato alla home.",
     thankYouInviteRedirect: "Il test è completato. I risultati saranno visibili solo al tuo specialista. Tra poco verrai riportato alla home.",
