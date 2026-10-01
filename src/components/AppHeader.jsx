@@ -57,9 +57,14 @@ export function AppHeader() {
                   </div>
                 </>
               ) : isMarketingHome ? (
-                <Button asLink to="/giris" variant="primary" size="sm" className="fp-mkt-login-btn">
-                  {nav.login}
-                </Button>
+                <>
+                  <Button asLink to="/uzman-basvuru" variant="secondary" size="sm" className="fp-mkt-apply-btn">
+                    {nav.apply}
+                  </Button>
+                  <Button asLink to="/giris" variant="primary" size="sm" className="fp-mkt-login-btn">
+                    {nav.login}
+                  </Button>
+                </>
               ) : (
                 <>
                   <AppNavLink to="/" end>

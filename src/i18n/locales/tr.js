@@ -403,7 +403,7 @@ export const tr = {
     applicationsEmpty: "Henüz kurumsal başvuru yok.",
     applicationsFailed: "Kurumsal başvurular okunamadı. Supabase SQL Editor'da corporate-applications.sql dosyasını çalıştırın.",
     specialistApplicationsTitle: "Uzman başvuruları ({{count}})",
-    specialistApplicationsDesc: "Uzman olmak isteyenlerin başvuru yanıtları. Yalnızca yöneticiler görür.",
+    specialistApplicationsDesc: "Uzman başvuru formunun yanıtları. Satıra tıklayınca ayrıntı ve belgeler açılır. Yalnızca yöneticiler görür.",
     specialistApplicationsEmpty: "Henüz uzman başvurusu yok.",
     specialistApplicationsFailed: "Uzman başvuruları okunamadı. Supabase SQL Editor'da specialist-applications.sql dosyasını çalıştırın.",
     profession: "Meslek",

@@ -401,7 +401,7 @@ export const en = {
     applicationsEmpty: "No institutional applications yet.",
     applicationsFailed: "Could not load institutional applications. Run corporate-applications.sql in the Supabase SQL Editor.",
     specialistApplicationsTitle: "Specialist applications ({{count}})",
-    specialistApplicationsDesc: "Applications from people who want to become specialists. Visible to administrators only.",
+    specialistApplicationsDesc: "Responses from the specialist application form. Click a row to open the details and documents. Visible to administrators only.",
     specialistApplicationsEmpty: "No specialist applications yet.",
     specialistApplicationsFailed: "Could not load specialist applications. Run specialist-applications.sql in the Supabase SQL Editor.",
     profession: "Profession",

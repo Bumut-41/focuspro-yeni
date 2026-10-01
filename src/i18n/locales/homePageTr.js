@@ -8,7 +8,8 @@ export const homePageTr = {
     centers: "FocusProLab Merkezleri",
     faq: "Sık Sorulan Sorular",
     contact: "İletişim",
-    login: "Giriş Yap"
+    login: "Giriş Yap",
+    apply: "Uzman Başvuru"
   },
   hero: {
     title: "Dikkat, Dürtüsellik ve Performansın Objektif Değerlendirilmesi",
@@ -21,6 +22,7 @@ export const homePageTr = {
     ],
     ctaTest: "Bireysel Teste Başla",
     ctaExpert: "Uzmanla Test Planla",
+    ctaApply: "Uzman Başvuru",
     badges: [
       { icon: "⚡", label: "Anlık Sonuç" },
       { icon: "📄", label: "PDF Rapor" },
@@ -87,7 +89,7 @@ export const homePageTr = {
   professionals: {
     title: "Uzmanlar İçin",
     items: ["Psikologlar", "Psikiyatristler", "PDR Uzmanları", "Özel Eğitim Merkezleri", "Hastaneler", "Okullar"],
-    cta: "Uzman Başvurusu",
+    cta: "Uzman Başvuru",
     to: "/uzman-basvuru",
     corporateCta: "Kurumsal Başvuru",
     corporateTo: "/kurumsal-basvuru"
@@ -319,36 +321,85 @@ export const homePageTr = {
   },
   specialist: {
     back: "Ana sayfaya dön",
-    title: "Uzman Başvurusu",
-    lead: "FocusProLab uzmanı olmak için başvurun",
+    title: "FocusProLab Uzman Başvuru Formu",
+    lead: "FocusProLab Uzman Ağına Katılın",
     intro:
-      "Danışanlarınızla FocusProLab değerlendirmesi yapmak isteyen psikolog, psikiyatrist ve ilgili alan uzmanları bu formu doldurur. Kurumunuz adına başvuru için kurumsal formu kullanın.",
-    corporateLink: "Kurumsal başvuru formu",
-    formTitle: "Başvuru Formu",
+      "FocusProLab değerlendirme ve gelişim sistemlerini profesyonel uygulamalarınızda kullanmak için uzman başvurunuzu oluşturabilirsiniz. Başvurular mesleki bilgiler ve kullanım alanı dikkate alınarak değerlendirilecektir.",
+    corporateLink: "Kurum adına başvuracaksanız kurumsal formu kullanın.",
+    sections: {
+      personal: "Kişisel Bilgiler",
+      professional: "Mesleki Bilgiler",
+      documents: "Belge Yükleme",
+      purpose: "FocusProLab Kullanım Amacı",
+      consents: "Onaylar"
+    },
     fields: {
-      name: "Ad Soyad",
-      profession: "Meslek",
-      professionPlaceholder: "Meslek seçin",
-      phone: "Telefon",
-      email: "E-posta",
-      country: "Ülke",
-      city: "Şehir",
-      cityPlaceholder: "Şehir seçin",
-      workplace: "Çalıştığı kurum",
-      message: "Mesajınız"
+      name: "Ad Soyad *",
+      email: "E-posta *",
+      phone: "Cep Telefonu *",
+      city: "Şehir *",
+      birth: "Doğum tarihi",
+      birthHint: "İsteğe bağlı",
+      profession: "Meslek *",
+      professionHint: "Birden fazla işaretleyebilirsiniz.",
+      otherExplain: "Açıklayınız",
+      university: "Mezun olunan üniversite *",
+      department: "Bölüm *",
+      graduationYear: "Mezuniyet yılı",
+      postgraduate: "Yüksek lisans / doktora",
+      workplace: "Çalışılan kurum / klinik",
+      experience: "Mesleki deneyim süresi",
+      practiceAreas: "Uzmanlık / çalışma alanları",
+      diploma: "Diploma",
+      certificate: "Uzmanlık/yüksek lisans belgesi (uygunsa)",
+      fileHint: "PDF, JPG veya PNG. En fazla 8 MB.",
+      purpose: "FocusProLab sistemini hangi amaçlarla kullanmayı planlıyorsunuz?",
+      purposeHint: "Birden fazla seçim yapılabilir.",
+      heard: "FocusProLab’ı nereden duydunuz?",
+      motivation: "FocusProLab uzmanı olmak istemenizin temel nedeni nedir?"
     },
     professions: [
-      "Psikolog",
-      "Klinik Psikolog",
-      "Psikiyatrist",
-      "Psikolojik Danışman",
-      "Özel Eğitim Uzmanı",
-      "Diğer"
+      { key: "clinical_psychologist", label: "Klinik Psikolog" },
+      { key: "psychologist", label: "Psikolog" },
+      { key: "counselor", label: "Psikolojik Danışman / PDR" },
+      { key: "psychiatrist", label: "Psikiyatri Uzmanı" },
+      { key: "child_psychiatrist", label: "Çocuk ve Ergen Psikiyatrisi Uzmanı" },
+      { key: "other", label: "Diğer" }
+    ],
+    purposes: [
+      { key: "attention", label: "Dikkat değerlendirmesi" },
+      { key: "child_adolescent", label: "Çocuk ve ergen değerlendirmeleri" },
+      { key: "adult", label: "Yetişkin değerlendirmeleri" },
+      { key: "adhd", label: "DEHB değerlendirme sürecine yardımcı araç olarak" },
+      { key: "cognitive", label: "Bilişsel performans değerlendirmesi" },
+      { key: "program12", label: "12 Haftalık Dikkat ve Odak Geliştirme Sistemi" },
+      { key: "followup", label: "Klinik takip" },
+      { key: "education", label: "Eğitim / okul çalışmaları" },
+      { key: "research", label: "Akademik araştırma" },
+      { key: "corporate", label: "Kurumsal uygulamalar" },
+      { key: "other", label: "Diğer" }
+    ],
+    sources: [
+      { key: "instagram", label: "Instagram" },
+      { key: "linkedin", label: "LinkedIn" },
+      { key: "colleague", label: "Meslektaş önerisi" },
+      { key: "event", label: "Eğitim veya etkinlik" },
+      { key: "institution", label: "Kurum" },
+      { key: "search", label: "İnternet araması" },
+      { key: "other", label: "Diğer" }
+    ],
+    consents: [
+      { key: "accuracy", label: "Verdiğim bilgilerin doğru olduğunu beyan ederim." },
+      { key: "privacy", label: "Başvurum kapsamında ilettiğim kişisel verilerin değerlendirilmesine ilişkin aydınlatma metnini okudum." },
+      { key: "terms", label: "FocusProLab sistemlerinin mesleki yetkinlik ve kullanım koşulları çerçevesinde kullanılması gerektiğini kabul ediyorum." }
     ],
     submit: "Başvuruyu Gönder",
-    required: "Lütfen tüm zorunlu alanları doldurun.",
-    success: "Başvurunuz alındı. En kısa sürede sizinle iletişime geçeceğiz.",
-    saveError: "Başvuru kaydedilemedi. Lütfen kısa bir süre sonra yeniden deneyin."
+    required: "Lütfen yıldızlı alanları, en az bir meslek ve kullanım amacını, duyma kaynağını ve üç onayı tamamlayın.",
+    fileInvalid: "Belgeler PDF, JPG veya PNG olmalı ve 8 MB’ı geçmemelidir.",
+    success: "Başvurunuz alındı. Mesleki bilgiler ve kullanım alanı dikkate alınarak değerlendirilecek; uygun bulunursa uzmanlık hakkınız tanımlanacaktır.",
+    saveError: "Başvuru kaydedilemedi. Lütfen kısa bir süre sonra yeniden deneyin.",
+    noFile: "Yüklenmedi",
+    openFile: "Belgeyi aç"
   },
   corporate: {
     back: "Ana sayfaya dön",

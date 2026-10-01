@@ -36,6 +36,12 @@
   border-color: #1e3a5f !important;
 }
 
+.fp-mkt-apply-btn {
+  background: #fff !important;
+  color: #1e3a5f !important;
+  border: 1px solid #1e3a5f !important;
+}
+
 .fp-mkt {
   width: 100%;
   background: #f8fafc;
@@ -1143,6 +1149,82 @@ a.fp-mkt-metric:hover {
   margin: 0;
   color: #b91c1c;
   font-weight: 600;
+}
+
+.fp-spec-section {
+  grid-column: 1 / -1;
+  margin: 0.75rem 0 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.fp-spec-label {
+  margin: 0;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.fp-spec-hint {
+  margin: 0.2rem 0 0.55rem;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.fp-spec-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fp-spec-check {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  line-height: 1.45;
+  color: #0f172a;
+}
+
+.fp-spec-check input {
+  margin-top: 0.2rem;
+}
+
+.fp-spec-file-input {
+  display: block;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.fp-spec-detail {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.fp-spec-detail h3 {
+  margin: 0 0 0.75rem;
+}
+
+.fp-spec-detail dl {
+  margin: 0;
+}
+
+.fp-spec-detail-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  gap: 0.35rem 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.fp-spec-detail-row dt {
+  margin: 0;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.fp-spec-detail-row dd {
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 .fp-center-list {

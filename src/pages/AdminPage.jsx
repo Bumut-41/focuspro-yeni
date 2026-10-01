@@ -30,7 +30,8 @@ import {
   getReportPdfSignedUrl
 } from "../services/sessions.js";
 import { fetchCorporateApplications } from "../services/corporateApplications.js";
-import { fetchSpecialistApplications } from "../services/specialistApplications.js";
+import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
+import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
   Alert,
   Button,
@@ -55,7 +56,7 @@ function countryName(code, locale) {
 
 export default function AdminPage() {
   const { isAdmin, isSuperAdmin, user: authUser } = useAuth();
-  const { t, locale, dateLocale } = useLocale();
+  const { t, locale, dateLocale, strings } = useLocale();
   const [profiles, setProfiles] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [grantUser, setGrantUser] = useState("");
@@ -74,6 +75,7 @@ export default function AdminPage() {
   const [applicationsError, setApplicationsError] = useState("");
   const [specialistApplications, setSpecialistApplications] = useState([]);
   const [specialistApplicationsError, setSpecialistApplicationsError] = useState("");
+  const [specialistId, setSpecialistId] = useState(null);
 
   async function openStoredPdf(pdfPath, busyKey, filename = "FocusProLab-report.pdf") {
     if (!pdfPath) return;
@@ -387,29 +389,36 @@ export default function AdminPage() {
                 render: (row) => new Date(row.created_at).toLocaleString(dateLocale)
               },
               { key: "full_name", label: t("admin.name") },
-              { key: "profession", label: t("admin.profession") },
-              { key: "phone", label: t("admin.phone") },
               { key: "email", label: t("admin.email") },
-              {
-                label: t("admin.country"),
-                render: (row) => countryName(row.country_code, locale)
-              },
+              { key: "phone", label: t("admin.phone") },
               { key: "city", label: t("admin.city") },
               {
-                label: t("admin.workplace"),
-                render: (row) => row.workplace || "—"
-              },
-              {
-                label: t("admin.message"),
-                render: (row) => (
-                  <span style={{ display: "block", maxWidth: 280, whiteSpace: "pre-wrap" }}>{row.message || "—"}</span>
-                )
+                label: t("admin.profession"),
+                render: (row) =>
+                  (row.professions || [])
+                    .map((key) => strings.home.marketing.specialist.professions.find((item) => item.key === key)?.label || key)
+                    .join(", ")
               }
             ]}
             rows={specialistApplications}
             rowKey={(row) => row.id}
+            onRowClick={(row) => setSpecialistId(row.id)}
+            activeKey={specialistId}
           />
         )}
+        <SpecialistApplicationDetail
+          row={specialistApplications.find((row) => row.id === specialistId) || null}
+          page={strings.home.marketing.specialist}
+          dateLocale={dateLocale}
+          onOpenDoc={async (path) => {
+            try {
+              const url = await getSpecialistDocumentUrl(path);
+              window.open(url, "_blank", "noopener,noreferrer");
+            } catch (error) {
+              setMsg(error.message || t("admin.storedPdfFailed"));
+            }
+          }}
+        />
       </Card>
 
       <Card>

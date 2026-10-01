@@ -8,7 +8,8 @@ export const homePageEn = {
     centers: "FocusProLab Centres",
     faq: "FAQ",
     contact: "Contact",
-    login: "Sign in"
+    login: "Sign in",
+    apply: "Specialist application"
   },
   hero: {
     title: "Objective Assessment of Attention, Impulsivity and Performance",
@@ -21,6 +22,7 @@ export const homePageEn = {
     ],
     ctaTest: "Start individual test",
     ctaExpert: "Plan test with clinician",
+    ctaApply: "Specialist application",
     badges: [
       { icon: "⚡", label: "Instant results" },
       { icon: "📄", label: "PDF report" },
@@ -319,36 +321,85 @@ export const homePageEn = {
   },
   specialist: {
     back: "Back to home",
-    title: "Specialist application",
-    lead: "Apply to become a FocusProLab specialist",
+    title: "FocusProLab Specialist Application Form",
+    lead: "Join the FocusProLab Specialist Network",
     intro:
-      "Psychologists, psychiatrists and related professionals who want to assess clients with FocusProLab fill in this form. Use the institutional form to apply on behalf of an organisation.",
-    corporateLink: "Institutional application form",
-    formTitle: "Application form",
+      "You can apply to use FocusProLab assessment and development systems in your professional practice. Applications are reviewed against professional background and intended use.",
+    corporateLink: "Applying for an organisation? Use the institutional form.",
+    sections: {
+      personal: "Personal details",
+      professional: "Professional details",
+      documents: "Documents",
+      purpose: "Intended use of FocusProLab",
+      consents: "Confirmations"
+    },
     fields: {
-      name: "Full name",
-      profession: "Profession",
-      professionPlaceholder: "Select a profession",
-      phone: "Phone",
-      email: "Email",
-      country: "Country",
-      city: "City",
-      cityPlaceholder: "Select a city",
-      workplace: "Workplace",
-      message: "Your message"
+      name: "Full name *",
+      email: "Email *",
+      phone: "Mobile phone *",
+      city: "City *",
+      birth: "Date of birth",
+      birthHint: "Optional",
+      profession: "Profession *",
+      professionHint: "You can select more than one.",
+      otherExplain: "Please specify",
+      university: "University *",
+      department: "Department *",
+      graduationYear: "Graduation year",
+      postgraduate: "Master’s / doctorate",
+      workplace: "Organisation / clinic",
+      experience: "Years of professional experience",
+      practiceAreas: "Specialties / areas of practice",
+      diploma: "Diploma",
+      certificate: "Specialty or master’s certificate (if applicable)",
+      fileHint: "PDF, JPG or PNG. 8 MB maximum.",
+      purpose: "For which purposes do you plan to use FocusProLab?",
+      purposeHint: "You can select more than one.",
+      heard: "How did you hear about FocusProLab?",
+      motivation: "What is the main reason you want to become a FocusProLab specialist?"
     },
     professions: [
-      "Psychologist",
-      "Clinical psychologist",
-      "Psychiatrist",
-      "Counsellor",
-      "Special education specialist",
-      "Other"
+      { key: "clinical_psychologist", label: "Clinical psychologist" },
+      { key: "psychologist", label: "Psychologist" },
+      { key: "counselor", label: "Counsellor / school counsellor" },
+      { key: "psychiatrist", label: "Psychiatrist" },
+      { key: "child_psychiatrist", label: "Child and adolescent psychiatrist" },
+      { key: "other", label: "Other" }
+    ],
+    purposes: [
+      { key: "attention", label: "Attention assessment" },
+      { key: "child_adolescent", label: "Child and adolescent assessments" },
+      { key: "adult", label: "Adult assessments" },
+      { key: "adhd", label: "As a support tool in ADHD assessment" },
+      { key: "cognitive", label: "Cognitive performance assessment" },
+      { key: "program12", label: "12-week attention and focus development system" },
+      { key: "followup", label: "Clinical follow-up" },
+      { key: "education", label: "Education / school work" },
+      { key: "research", label: "Academic research" },
+      { key: "corporate", label: "Organisational use" },
+      { key: "other", label: "Other" }
+    ],
+    sources: [
+      { key: "instagram", label: "Instagram" },
+      { key: "linkedin", label: "LinkedIn" },
+      { key: "colleague", label: "Colleague recommendation" },
+      { key: "event", label: "Training or event" },
+      { key: "institution", label: "Organisation" },
+      { key: "search", label: "Web search" },
+      { key: "other", label: "Other" }
+    ],
+    consents: [
+      { key: "accuracy", label: "I confirm that the information I have given is accurate." },
+      { key: "privacy", label: "I have read the privacy notice on the use of the personal data I submit with this application." },
+      { key: "terms", label: "I accept that FocusProLab systems must be used within professional competence and the terms of use." }
     ],
     submit: "Send application",
-    required: "Please complete all required fields.",
-    success: "Your application has been received. We will contact you shortly.",
-    saveError: "The application could not be saved. Please try again in a moment."
+    required: "Please complete the required fields, at least one profession and purpose, how you heard about us, and all three confirmations.",
+    fileInvalid: "Documents must be PDF, JPG or PNG and no larger than 8 MB.",
+    success: "Your application has been received. It will be reviewed against your professional background and intended use. If approved, specialist access will be granted.",
+    saveError: "The application could not be saved. Please try again in a moment.",
+    noFile: "Not uploaded",
+    openFile: "Open document"
   },
   corporate: {
     back: "Back to home",

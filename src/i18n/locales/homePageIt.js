@@ -8,7 +8,8 @@ export const homePageIt = {
     centers: "Centri FocusProLab",
     faq: "Domande frequenti",
     contact: "Contatti",
-    login: "Accedi"
+    login: "Accedi",
+    apply: "Domanda da specialista"
   },
   hero: {
     title: "Valutazione obiettiva di attenzione, impulsività e prestazione",
@@ -21,6 +22,7 @@ export const homePageIt = {
     ],
     ctaTest: "Inizia il test individuale",
     ctaExpert: "Pianifica il test con lo specialista",
+    ctaApply: "Domanda da specialista",
     badges: [
       { icon: "⚡", label: "Risultati immediati" },
       { icon: "📄", label: "Report PDF" },
@@ -319,36 +321,85 @@ export const homePageIt = {
   },
   specialist: {
     back: "Torna alla home",
-    title: "Domanda da specialista",
-    lead: "Candidati per diventare specialista FocusProLab",
+    title: "Modulo di domanda specialista FocusProLab",
+    lead: "Entra nella rete di specialisti FocusProLab",
     intro:
-      "Psicologi, psichiatri e professionisti affini che vogliono valutare i clienti con FocusProLab compilano questo modulo. Per candidare un'organizzazione usa il modulo istituzionale.",
-    corporateLink: "Modulo di richiesta istituzionale",
-    formTitle: "Modulo di candidatura",
+      "Puoi candidarti per usare i sistemi di valutazione e sviluppo FocusProLab nella tua pratica professionale. Le domande sono valutate in base al profilo professionale e all’uso previsto.",
+    corporateLink: "Se candidi un’organizzazione, usa il modulo istituzionale.",
+    sections: {
+      personal: "Dati personali",
+      professional: "Dati professionali",
+      documents: "Documenti",
+      purpose: "Uso previsto di FocusProLab",
+      consents: "Conferme"
+    },
     fields: {
-      name: "Nome e cognome",
-      profession: "Professione",
-      professionPlaceholder: "Seleziona la professione",
-      phone: "Telefono",
-      email: "E-mail",
-      country: "Paese",
-      city: "Città",
-      cityPlaceholder: "Seleziona la città",
-      workplace: "Luogo di lavoro",
-      message: "Il tuo messaggio"
+      name: "Nome e cognome *",
+      email: "E-mail *",
+      phone: "Cellulare *",
+      city: "Città *",
+      birth: "Data di nascita",
+      birthHint: "Facoltativo",
+      profession: "Professione *",
+      professionHint: "Puoi selezionarne più di una.",
+      otherExplain: "Specifica",
+      university: "Università *",
+      department: "Corso di laurea *",
+      graduationYear: "Anno di laurea",
+      postgraduate: "Magistrale / dottorato",
+      workplace: "Ente / clinica",
+      experience: "Esperienza professionale",
+      practiceAreas: "Specializzazioni / ambiti di lavoro",
+      diploma: "Diploma",
+      certificate: "Attestato di specializzazione o magistrale (se presente)",
+      fileHint: "PDF, JPG o PNG. Massimo 8 MB.",
+      purpose: "Per quali scopi prevedi di usare FocusProLab?",
+      purposeHint: "Puoi selezionare più di una opzione.",
+      heard: "Come hai conosciuto FocusProLab?",
+      motivation: "Qual è il motivo principale per cui vuoi diventare specialista FocusProLab?"
     },
     professions: [
-      "Psicologo",
-      "Psicologo clinico",
-      "Psichiatra",
-      "Counselor",
-      "Specialista in educazione speciale",
-      "Altro"
+      { key: "clinical_psychologist", label: "Psicologo clinico" },
+      { key: "psychologist", label: "Psicologo" },
+      { key: "counselor", label: "Counselor / orientatore" },
+      { key: "psychiatrist", label: "Psichiatra" },
+      { key: "child_psychiatrist", label: "Psichiatra dell’infanzia e dell’adolescenza" },
+      { key: "other", label: "Altro" }
+    ],
+    purposes: [
+      { key: "attention", label: "Valutazione dell’attenzione" },
+      { key: "child_adolescent", label: "Valutazioni di bambini e adolescenti" },
+      { key: "adult", label: "Valutazioni degli adulti" },
+      { key: "adhd", label: "Come supporto nel percorso di valutazione ADHD" },
+      { key: "cognitive", label: "Valutazione della prestazione cognitiva" },
+      { key: "program12", label: "Sistema di 12 settimane per attenzione e concentrazione" },
+      { key: "followup", label: "Follow-up clinico" },
+      { key: "education", label: "Scuola / formazione" },
+      { key: "research", label: "Ricerca accademica" },
+      { key: "corporate", label: "Uso organizzativo" },
+      { key: "other", label: "Altro" }
+    ],
+    sources: [
+      { key: "instagram", label: "Instagram" },
+      { key: "linkedin", label: "LinkedIn" },
+      { key: "colleague", label: "Consiglio di un collega" },
+      { key: "event", label: "Formazione o evento" },
+      { key: "institution", label: "Ente" },
+      { key: "search", label: "Ricerca su internet" },
+      { key: "other", label: "Altro" }
+    ],
+    consents: [
+      { key: "accuracy", label: "Dichiaro che le informazioni fornite sono corrette." },
+      { key: "privacy", label: "Ho letto l’informativa sul trattamento dei dati personali inviati con questa domanda." },
+      { key: "terms", label: "Accetto che i sistemi FocusProLab vadano usati nel rispetto della competenza professionale e delle condizioni d’uso." }
     ],
     submit: "Invia la domanda",
-    required: "Compila tutti i campi obbligatori.",
-    success: "La tua domanda è stata ricevuta. Ti contatteremo al più presto.",
-    saveError: "Impossibile salvare la domanda. Riprova tra poco."
+    required: "Compila i campi obbligatori, almeno una professione e una finalità, la fonte e le tre conferme.",
+    fileInvalid: "I documenti devono essere PDF, JPG o PNG e non superare 8 MB.",
+    success: "La tua domanda è stata ricevuta. Sarà valutata in base al profilo professionale e all’uso previsto. Se approvata, verrà assegnato l’accesso da specialista.",
+    saveError: "Impossibile salvare la domanda. Riprova tra poco.",
+    noFile: "Non caricato",
+    openFile: "Apri documento"
   },
   corporate: {
     back: "Torna alla home",

@@ -401,7 +401,7 @@ export const it = {
     applicationsEmpty: "Nessuna domanda istituzionale.",
     applicationsFailed: "Impossibile leggere le domande istituzionali. Esegui corporate-applications.sql nell'editor SQL di Supabase.",
     specialistApplicationsTitle: "Domande degli specialisti ({{count}})",
-    specialistApplicationsDesc: "Domande di chi vuole diventare specialista. Visibili solo agli amministratori.",
+    specialistApplicationsDesc: "Risposte del modulo da specialista. Clicca una riga per aprire dettagli e documenti. Visibili solo agli amministratori.",
     specialistApplicationsEmpty: "Nessuna domanda da specialista.",
     specialistApplicationsFailed: "Impossibile leggere le domande degli specialisti. Esegui specialist-applications.sql nell'editor SQL di Supabase.",
     profession: "Professione",
