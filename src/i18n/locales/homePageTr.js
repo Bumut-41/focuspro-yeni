@@ -87,8 +87,10 @@ export const homePageTr = {
   professionals: {
     title: "Uzmanlar İçin",
     items: ["Psikologlar", "Psikiyatristler", "PDR Uzmanları", "Özel Eğitim Merkezleri", "Hastaneler", "Okullar"],
-    cta: "Kurumsal Başvuru",
-    to: "/kurumsal-basvuru"
+    cta: "Uzman Başvurusu",
+    to: "/uzman-basvuru",
+    corporateCta: "Kurumsal Başvuru",
+    corporateTo: "/kurumsal-basvuru"
   },
   afterTest: {
     title: "Test Sonrası Neler Olur?",
@@ -314,6 +316,39 @@ export const homePageTr = {
       outcomes: ["Yol haritası", "Öneriler", "Sorularınıza cevap"],
       cta: "Randevu Al"
     }
+  },
+  specialist: {
+    back: "Ana sayfaya dön",
+    title: "Uzman Başvurusu",
+    lead: "FocusProLab uzmanı olmak için başvurun",
+    intro:
+      "Danışanlarınızla FocusProLab değerlendirmesi yapmak isteyen psikolog, psikiyatrist ve ilgili alan uzmanları bu formu doldurur. Kurumunuz adına başvuru için kurumsal formu kullanın.",
+    corporateLink: "Kurumsal başvuru formu",
+    formTitle: "Başvuru Formu",
+    fields: {
+      name: "Ad Soyad",
+      profession: "Meslek",
+      professionPlaceholder: "Meslek seçin",
+      phone: "Telefon",
+      email: "E-posta",
+      country: "Ülke",
+      city: "Şehir",
+      cityPlaceholder: "Şehir seçin",
+      workplace: "Çalıştığı kurum",
+      message: "Mesajınız"
+    },
+    professions: [
+      "Psikolog",
+      "Klinik Psikolog",
+      "Psikiyatrist",
+      "Psikolojik Danışman",
+      "Özel Eğitim Uzmanı",
+      "Diğer"
+    ],
+    submit: "Başvuruyu Gönder",
+    required: "Lütfen tüm zorunlu alanları doldurun.",
+    success: "Başvurunuz alındı. En kısa sürede sizinle iletişime geçeceğiz.",
+    saveError: "Başvuru kaydedilemedi. Lütfen kısa bir süre sonra yeniden deneyin."
   },
   corporate: {
     back: "Ana sayfaya dön",

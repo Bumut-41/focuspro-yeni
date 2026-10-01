@@ -87,8 +87,10 @@ export const homePageIt = {
   professionals: {
     title: "Per i professionisti",
     items: ["Psicologi", "Psichiatri", "Consulenti scolastici", "Centri di educazione speciale", "Ospedali", "Scuole"],
-    cta: "Richiesta istituzionale",
-    to: "/kurumsal-basvuru"
+    cta: "Domanda da specialista",
+    to: "/uzman-basvuru",
+    corporateCta: "Richiesta istituzionale",
+    corporateTo: "/kurumsal-basvuru"
   },
   afterTest: {
     title: "Cosa succede dopo il test?",
@@ -314,6 +316,39 @@ export const homePageIt = {
       outcomes: ["Una roadmap", "Raccomandazioni", "Risposte alle tue domande"],
       cta: "Prenota un appuntamento"
     }
+  },
+  specialist: {
+    back: "Torna alla home",
+    title: "Domanda da specialista",
+    lead: "Candidati per diventare specialista FocusProLab",
+    intro:
+      "Psicologi, psichiatri e professionisti affini che vogliono valutare i clienti con FocusProLab compilano questo modulo. Per candidare un'organizzazione usa il modulo istituzionale.",
+    corporateLink: "Modulo di richiesta istituzionale",
+    formTitle: "Modulo di candidatura",
+    fields: {
+      name: "Nome e cognome",
+      profession: "Professione",
+      professionPlaceholder: "Seleziona la professione",
+      phone: "Telefono",
+      email: "E-mail",
+      country: "Paese",
+      city: "Città",
+      cityPlaceholder: "Seleziona la città",
+      workplace: "Luogo di lavoro",
+      message: "Il tuo messaggio"
+    },
+    professions: [
+      "Psicologo",
+      "Psicologo clinico",
+      "Psichiatra",
+      "Counselor",
+      "Specialista in educazione speciale",
+      "Altro"
+    ],
+    submit: "Invia la domanda",
+    required: "Compila tutti i campi obbligatori.",
+    success: "La tua domanda è stata ricevuta. Ti contatteremo al più presto.",
+    saveError: "Impossibile salvare la domanda. Riprova tra poco."
   },
   corporate: {
     back: "Torna alla home",

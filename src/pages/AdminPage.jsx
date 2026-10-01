@@ -30,6 +30,7 @@ import {
   getReportPdfSignedUrl
 } from "../services/sessions.js";
 import { fetchCorporateApplications } from "../services/corporateApplications.js";
+import { fetchSpecialistApplications } from "../services/specialistApplications.js";
 import {
   Alert,
   Button,
@@ -42,6 +43,15 @@ import {
   Select,
   Stack
 } from "../components/ui.jsx";
+
+function countryName(code, locale) {
+  if (!code) return "—";
+  try {
+    return new Intl.DisplayNames([locale], { type: "region" }).of(code) || code;
+  } catch {
+    return code;
+  }
+}
 
 export default function AdminPage() {
   const { isAdmin, isSuperAdmin, user: authUser } = useAuth();
@@ -62,6 +72,8 @@ export default function AdminPage() {
   const [deleteBusy, setDeleteBusy] = useState(null);
   const [applications, setApplications] = useState([]);
   const [applicationsError, setApplicationsError] = useState("");
+  const [specialistApplications, setSpecialistApplications] = useState([]);
+  const [specialistApplicationsError, setSpecialistApplicationsError] = useState("");
 
   async function openStoredPdf(pdfPath, busyKey, filename = "FocusProLab-report.pdf") {
     if (!pdfPath) return;
@@ -77,10 +89,11 @@ export default function AdminPage() {
   }
 
   const load = useCallback(async () => {
-    const [profilesResult, sessionsResult, applicationsResult] = await Promise.allSettled([
+    const [profilesResult, sessionsResult, applicationsResult, specialistResult] = await Promise.allSettled([
       fetchAllProfiles(),
       fetchAllSessions(200),
-      fetchCorporateApplications()
+      fetchCorporateApplications(),
+      fetchSpecialistApplications()
     ]);
     if (profilesResult.status === "fulfilled") {
       const p = profilesResult.value;
@@ -104,6 +117,13 @@ export default function AdminPage() {
     } else {
       setApplications([]);
       setApplicationsError(t("admin.applicationsFailed"));
+    }
+    if (specialistResult.status === "fulfilled") {
+      setSpecialistApplications(specialistResult.value);
+      setSpecialistApplicationsError("");
+    } else {
+      setSpecialistApplications([]);
+      setSpecialistApplicationsError(t("admin.specialistApplicationsFailed"));
     }
   }, [t]);
 
@@ -331,13 +351,7 @@ export default function AdminPage() {
               { key: "email", label: t("admin.email") },
               {
                 label: t("admin.country"),
-                render: (row) => {
-                  try {
-                    return new Intl.DisplayNames([locale], { type: "region" }).of(row.country_code) || row.country_code;
-                  } catch {
-                    return row.country_code;
-                  }
-                }
+                render: (row) => countryName(row.country_code, locale)
               },
               { key: "city", label: t("admin.city") },
               { key: "institution_type", label: t("admin.institutionType") },
@@ -351,6 +365,48 @@ export default function AdminPage() {
               }
             ]}
             rows={applications}
+            rowKey={(row) => row.id}
+          />
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title={t("admin.specialistApplicationsTitle", { count: specialistApplications.length })}
+          description={t("admin.specialistApplicationsDesc")}
+        />
+        {specialistApplicationsError && <Alert variant="error">{specialistApplicationsError}</Alert>}
+        {!specialistApplicationsError && !specialistApplications.length && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("admin.specialistApplicationsEmpty")}</p>
+        )}
+        {specialistApplications.length > 0 && (
+          <DataTable
+            columns={[
+              {
+                label: t("admin.date"),
+                render: (row) => new Date(row.created_at).toLocaleString(dateLocale)
+              },
+              { key: "full_name", label: t("admin.name") },
+              { key: "profession", label: t("admin.profession") },
+              { key: "phone", label: t("admin.phone") },
+              { key: "email", label: t("admin.email") },
+              {
+                label: t("admin.country"),
+                render: (row) => countryName(row.country_code, locale)
+              },
+              { key: "city", label: t("admin.city") },
+              {
+                label: t("admin.workplace"),
+                render: (row) => row.workplace || "—"
+              },
+              {
+                label: t("admin.message"),
+                render: (row) => (
+                  <span style={{ display: "block", maxWidth: 280, whiteSpace: "pre-wrap" }}>{row.message || "—"}</span>
+                )
+              }
+            ]}
+            rows={specialistApplications}
             rowKey={(row) => row.id}
           />
         )}

@@ -15,6 +15,7 @@ import ProductProgramPage from "./pages/ProductProgramPage.jsx";
 import ProductCommentaryPage from "./pages/ProductCommentaryPage.jsx";
 import ProductConsultationPage from "./pages/ProductConsultationPage.jsx";
 import CorporateApplyPage from "./pages/CorporateApplyPage.jsx";
+import SpecialistApplyPage from "./pages/SpecialistApplyPage.jsx";
 import CentersPage from "./pages/CentersPage.jsx";
 import MetricDetailPage from "./pages/MetricDetailPage.jsx";
 import ProgramTrialPage from "./pages/ProgramTrialPage.jsx";
@@ -32,6 +33,7 @@ function Shell({ children }) {
     pathname === "/" ||
     pathname.startsWith("/urun/") ||
     pathname.startsWith("/kurumsal-basvuru") ||
+    pathname.startsWith("/uzman-basvuru") ||
     pathname.startsWith("/merkezler") ||
     pathname.startsWith("/olcum/");
 
@@ -76,6 +78,7 @@ function AppRoutes() {
       <Route path="/urun/uzman-yorumu" element={<ProductCommentaryPage />} />
       <Route path="/urun/uzman-gorusmesi" element={<ProductConsultationPage />} />
       <Route path="/kurumsal-basvuru" element={<CorporateApplyPage />} />
+      <Route path="/uzman-basvuru" element={<SpecialistApplyPage />} />
       <Route path="/merkezler" element={<CentersPage />} />
       <Route path="/olcum/:slug" element={<MetricDetailPage />} />
       <Route path="/urun/gelisim-programi/deneme" element={<ProgramTrialPage />} />

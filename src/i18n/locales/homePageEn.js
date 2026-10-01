@@ -87,8 +87,10 @@ export const homePageEn = {
   professionals: {
     title: "For professionals",
     items: ["Psychologists", "Psychiatrists", "School counsellors", "Special education centres", "Hospitals", "Schools"],
-    cta: "Institutional enquiry",
-    to: "/kurumsal-basvuru"
+    cta: "Specialist application",
+    to: "/uzman-basvuru",
+    corporateCta: "Institutional application",
+    corporateTo: "/kurumsal-basvuru"
   },
   afterTest: {
     title: "What happens after the test?",
@@ -314,6 +316,39 @@ export const homePageEn = {
       outcomes: ["A roadmap", "Recommendations", "Answers to your questions"],
       cta: "Book an appointment"
     }
+  },
+  specialist: {
+    back: "Back to home",
+    title: "Specialist application",
+    lead: "Apply to become a FocusProLab specialist",
+    intro:
+      "Psychologists, psychiatrists and related professionals who want to assess clients with FocusProLab fill in this form. Use the institutional form to apply on behalf of an organisation.",
+    corporateLink: "Institutional application form",
+    formTitle: "Application form",
+    fields: {
+      name: "Full name",
+      profession: "Profession",
+      professionPlaceholder: "Select a profession",
+      phone: "Phone",
+      email: "Email",
+      country: "Country",
+      city: "City",
+      cityPlaceholder: "Select a city",
+      workplace: "Workplace",
+      message: "Your message"
+    },
+    professions: [
+      "Psychologist",
+      "Clinical psychologist",
+      "Psychiatrist",
+      "Counsellor",
+      "Special education specialist",
+      "Other"
+    ],
+    submit: "Send application",
+    required: "Please complete all required fields.",
+    success: "Your application has been received. We will contact you shortly.",
+    saveError: "The application could not be saved. Please try again in a moment."
   },
   corporate: {
     back: "Back to home",

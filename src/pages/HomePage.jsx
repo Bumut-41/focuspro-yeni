@@ -143,8 +143,16 @@ export default function HomePage() {
               ))}
             </div>
             <div className="fp-mkt-pro-cta-wrap">
-              <Button asLink to={m.professionals.to || "/kurumsal-basvuru"} variant="primary" className="fp-mkt-btn-navy">
+              <Button asLink to={m.professionals.to || "/uzman-basvuru"} variant="primary" className="fp-mkt-btn-navy">
                 {m.professionals.cta}
+              </Button>
+              <Button
+                asLink
+                to={m.professionals.corporateTo || "/kurumsal-basvuru"}
+                variant="secondary"
+                className="fp-mkt-btn-outline"
+              >
+                {m.professionals.corporateCta}
               </Button>
             </div>
           </section>

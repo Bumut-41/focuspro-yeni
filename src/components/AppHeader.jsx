@@ -14,6 +14,7 @@ export function AppHeader() {
     (pathname === "/" ||
       pathname.startsWith("/urun/") ||
       pathname.startsWith("/kurumsal-basvuru") ||
+      pathname.startsWith("/uzman-basvuru") ||
       pathname.startsWith("/merkezler") ||
       pathname.startsWith("/olcum/"));
   const onHome = pathname === "/";
