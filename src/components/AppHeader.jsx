@@ -32,8 +32,6 @@ export function AppHeader() {
           <nav className="fp-mkt-topnav" aria-label="Marketing">
             <a href="/">{nav.home}</a>
             <a href={onHome ? "#nedir" : "/#nedir"}>{nav.about}</a>
-            <a href={onHome ? "#kimler" : "/#kimler"}>{nav.who}</a>
-            <Link to="/uzman-basvuru">{nav.pros}</Link>
             <Link to="/merkezler">{nav.centers}</Link>
             <a href={onHome ? "#sss" : "/#sss"}>{nav.faq}</a>
             <Link to="/iletisim">{nav.contact}</Link>
