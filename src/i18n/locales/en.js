@@ -135,7 +135,7 @@ export const en = {
     sentSuccess: "Invitation sent to {{email}}.",
     creditsPurchased: "{{count}} demo credits added.",
     listTitle: "Sent invitations",
-    listDesc: "Pending, accepted, and completed invitations.",
+    listDesc: "Pending, accepted, and completed invitations. Invitations not finished within three days leave the list.",
     noInvites: "No invitations yet.",
     noInvitesDesc: "Send your first invitation above.",
     colDate: "Date",

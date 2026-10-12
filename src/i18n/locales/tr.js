@@ -135,7 +135,7 @@ export const tr = {
     sentSuccess: "Davet {{email}} adresine gönderildi.",
     creditsPurchased: "{{count}} demo kredi eklendi.",
     listTitle: "Gönderilen davetler",
-    listDesc: "Bekleyen, kabul edilen ve tamamlanan davetler.",
+    listDesc: "Bekleyen, kabul edilen ve tamamlanan davetler. Üç gün içinde testi bitirmeyenler listeden çıkar.",
     noInvites: "Henüz davet yok.",
     noInvitesDesc: "İlk davetinizi yukarıdan gönderin.",
     colDate: "Tarih",

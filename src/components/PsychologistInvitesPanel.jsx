@@ -19,6 +19,12 @@ function statusVariant(status) {
   return "default";
 }
 
+function isVisibleInvite(row, now = Date.now()) {
+  if (row.status === "completed") return true;
+  if (!row.expires_at) return false;
+  return new Date(row.expires_at).getTime() > now;
+}
+
 export function PsychologistInvitesPanel() {
   const { credits, refreshProfile } = useAuth();
   const { t, dateLocale, locale } = useLocale();
@@ -78,6 +84,8 @@ export function PsychologistInvitesPanel() {
     }
   }
 
+  const visibleInvites = invites.filter((row) => isVisibleInvite(row));
+
   return (
     <>
       <Card style={{ marginTop: 20 }}>
@@ -118,8 +126,8 @@ export function PsychologistInvitesPanel() {
 
       <Card style={{ marginTop: 20 }}>
         <CardHeader title={t("invite.listTitle")} description={t("invite.listDesc")} />
-        {!invites.length && <EmptyState title={t("invite.noInvites")} description={t("invite.noInvitesDesc")} />}
-        {invites.length > 0 && (
+        {!visibleInvites.length && <EmptyState title={t("invite.noInvites")} description={t("invite.noInvitesDesc")} />}
+        {visibleInvites.length > 0 && (
           <DataTable
             columns={[
               {
@@ -142,7 +150,7 @@ export function PsychologistInvitesPanel() {
                     : "—"
               }
             ]}
-            rows={invites}
+            rows={visibleInvites}
             rowKey={(row) => row.id}
           />
         )}

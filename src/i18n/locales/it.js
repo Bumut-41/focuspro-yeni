@@ -135,7 +135,7 @@ export const it = {
     sentSuccess: "Invito inviato a {{email}}.",
     creditsPurchased: "Aggiunti {{count}} crediti demo.",
     listTitle: "Inviti inviati",
-    listDesc: "Inviti in attesa, accettati e completati.",
+    listDesc: "Inviti in attesa, accettati e completati. Gli inviti non completati entro tre giorni escono dall'elenco.",
     noInvites: "Nessun invito.",
     noInvitesDesc: "Invia il primo invito dal modulo sopra.",
     colDate: "Data",
