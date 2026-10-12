@@ -67,6 +67,26 @@ function emailContent(
   };
 }
 
+const ALLOWED_SITES = new Set([
+  "https://focuspro-yeni.vercel.app",
+  "https://focusprolab.com",
+  "https://www.focusprolab.com",
+  "https://italy.focusprolab.com",
+  "https://uk.focusprolab.com"
+]);
+
+function allowedSiteUrl(requested: string, fallback: string) {
+  try {
+    const url = new URL(requested);
+    const origin = url.origin;
+    if (ALLOWED_SITES.has(origin)) return origin;
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return origin;
+  } catch {
+    /* ignore invalid origins */
+  }
+  return fallback.replace(/\/$/, "");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: cors });
@@ -81,7 +101,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const siteUrl = Deno.env.get("SITE_URL") ?? "https://focuspro-yeni.vercel.app";
+    const fallbackSite = Deno.env.get("SITE_URL") ?? "https://focuspro-yeni.vercel.app";
 
     if (!supabaseUrl || !anonKey || !serviceKey) {
       return json({ error: "server misconfigured" }, 500);
@@ -98,7 +118,8 @@ Deno.serve(async (req) => {
       return json({ error: "unauthorized" }, 401);
     }
 
-    const { inviteId, locale = "tr" } = await req.json();
+    const { inviteId, locale = "tr", siteUrl: requestedSite = "" } = await req.json();
+    const siteUrl = allowedSiteUrl(requestedSite, fallbackSite);
     if (!inviteId) {
       return json({ error: "inviteId required" }, 400);
     }

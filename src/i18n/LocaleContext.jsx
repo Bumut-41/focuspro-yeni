@@ -10,6 +10,13 @@ import {
 
 const LocaleContext = createContext(null);
 
+function localeFromHost() {
+  const host = window.location.hostname;
+  if (host === "italy.focusprolab.com" || host.startsWith("italy.")) return "it";
+  if (host === "uk.focusprolab.com" || host.startsWith("uk.")) return "en";
+  return null;
+}
+
 function readStoredLocale() {
   try {
     const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
@@ -17,7 +24,7 @@ function readStoredLocale() {
   } catch {
     /* ignore */
   }
-  return DEFAULT_LOCALE;
+  return localeFromHost() || DEFAULT_LOCALE;
 }
 
 export function LocaleProvider({ children }) {

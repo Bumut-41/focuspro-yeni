@@ -38,7 +38,7 @@ export async function fetchMyInvites(limit = 50) {
 
 export async function sendTestInviteEmail({ inviteId, locale = "tr" }) {
   const { data, error } = await supabase.functions.invoke("send-test-invite", {
-    body: { inviteId, locale }
+    body: { inviteId, locale, siteUrl: window.location.origin }
   });
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
