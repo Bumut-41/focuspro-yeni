@@ -17,5 +17,14 @@ export const CENTERS = [
     phoneHref: "tel:+905347993836",
     lat: 41.012817,
     lng: 28.643778
+  },
+  {
+    id: "boran-sari",
+    name: "Klinik Psikolog Burcu Boran Sarı",
+    address: "Kadıköy, İstanbul",
+    phone: "0535 566 87 72",
+    phoneHref: "tel:+905355668772",
+    lat: 40.9916,
+    lng: 29.0232
   }
 ];
