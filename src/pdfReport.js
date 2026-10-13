@@ -6,7 +6,6 @@ import { getShapeSvg } from "./shapeUtils.jsx";
 import {
   computeDetailedMetrics,
   formatDurationSeconds,
-  formatRate,
   getDistractorSummaryMatrix,
   getGlobalIndexZScores,
   getLevelText,
@@ -430,7 +429,6 @@ export function buildDocDefinition({
   const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale, zGlobal);
   const sections = getSectionSummaries(logs, profile, age, pressTimeline, locale);
   const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline, locale);
-  const betaStr = metrics.beta != null ? metrics.beta.toFixed(2) : "—";
 
   const chartBlocks = [];
   let chartFirst = true;
@@ -456,7 +454,6 @@ export function buildDocDefinition({
   }
 
   const durationMin = Math.round(profile.durationMs / 60000);
-  const m = pdf.metrics;
   const timingFormula = fillTemplate(pdf.timingFormula, {
     onTime: metrics.timingOnTimeHit ?? "—",
     rtSpeed: metrics.timingRtSpeed ?? "—",
@@ -646,54 +643,6 @@ export function buildDocDefinition({
         `${pdf.change}: ${deltaStr}`,
         `${pdf.commentLabel}: ${sustainability.comment}`
       ]),
-
-      sectionTitle(pdf.rawPsych, true),
-      {
-        columns: [
-          {
-            width: "*",
-            table: {
-              headerRows: 1,
-              widths: ["*", "*"],
-              body: [
-                [
-                  { text: pdf.measurement, bold: true, color: "#fff", fontSize: 9 },
-                  { text: pdf.value, bold: true, color: "#fff", fontSize: 9 }
-                ],
-                [m.accuracy, `%${metrics.accuracy}`],
-                [m.hitRate, formatRate(metrics.hitRate)],
-                [m.omissionRate, formatRate(metrics.omissionRate)],
-                [m.commissionRate, formatRate(metrics.commissionRate)],
-                [m.lateRate, formatRate(metrics.lateRate)],
-                [m.multiRate, formatRate(metrics.multiPressRate)]
-              ]
-            },
-            layout: tableLayout("#374151")
-          },
-          {
-            width: "*",
-            table: {
-              headerRows: 1,
-              widths: ["*", "*"],
-              body: [
-                [
-                  { text: pdf.measurement, bold: true, color: "#fff", fontSize: 9 },
-                  { text: pdf.value, bold: true, color: "#fff", fontSize: 9 }
-                ],
-                [m.avgRt, `${metrics.avgReaction} ms`],
-                [m.rtSd, `${metrics.rtStd} ms`],
-                [m.dPrime, metrics.dPrime.toFixed(2)],
-                [m.beta, betaStr],
-                [m.criterion, metrics.criterionC.toFixed(2)],
-                [m.validityIndex, `${validity.score}/100`]
-              ]
-            },
-            layout: tableLayout("#1e3a5f")
-          }
-        ],
-        columnGap: 10,
-        margin: [0, 0, 0, 14]
-      },
 
       sectionTitle(pdf.professionalTitle, true),
       { text: professional, lineHeight: 1.4, alignment: "justify", margin: [0, 0, 0, 16] },
