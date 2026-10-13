@@ -214,7 +214,7 @@ export const en = {
     spaceTouch: "Tap to continue",
     audioTitle: "Now let's check the sound",
     audioSub:
-      "A short test sound plays automatically. Press green if you heard it clearly, red if you did not.",
+      "Set the volume to 50. If you heard it clearly, press green; if you did not, press red.",
     audioHeard: "I heard the sound",
     audioNotHeard: "I did not hear it",
     audioPlayError:

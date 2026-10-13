@@ -214,7 +214,7 @@ export const it = {
     spaceTouch: "Tocca per continuare",
     audioTitle: "Ora controlliamo l'audio",
     audioSub:
-      "Parte automaticamente un breve suono di prova. Premi verde se lo hai sentito bene, rosso se non lo hai sentito.",
+      "Porta il volume a 50. Se lo hai sentito bene premi verde, se non lo hai sentito premi rosso.",
     audioHeard: "Ho sentito il suono",
     audioNotHeard: "Non l'ho sentito",
     audioPlayError:

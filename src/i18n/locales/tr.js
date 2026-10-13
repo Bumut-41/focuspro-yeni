@@ -214,7 +214,7 @@ export const tr = {
     spaceTouch: "Dokunarak geç",
     audioTitle: "Şimdi sesi kontrol edelim",
     audioSub:
-      "Kısa bir test sesi otomatik çalınır. Sesi net duyduysanız yeşil, duymadıysanız kırmızı butona basın.",
+      "Sesi 50 seviyesine getirin. Sesi net duyduysanız yeşil, duymadıysanız kırmızıya basın.",
     audioHeard: "Sesi duydum",
     audioNotHeard: "Sesi duymadım",
     audioPlayError:
