@@ -17,6 +17,26 @@ function safeFilename(name: string) {
   return (name || "Katilimci").replace(/[^\w\u00C0-\u024F.-]+/g, "_").slice(0, 60);
 }
 
+function uniqueEmails(list: Array<string | null | undefined>) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of list) {
+    const email = (raw || "").trim();
+    if (!email.includes("@")) continue;
+    const key = email.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(email);
+  }
+  return out;
+}
+
+async function accountEmail(admin: ReturnType<typeof createClient>, userId: string) {
+  const { data, error } = await admin.auth.admin.getUserById(userId);
+  if (error) return null;
+  return data?.user?.email ?? null;
+}
+
 function emailContent(locale: string, participantName: string) {
   if (locale === "en") {
     return {
@@ -108,9 +128,11 @@ Deno.serve(async (req) => {
       return json({ error: "pdf_not_ready" }, 400);
     }
 
-    let toEmail = user.email;
+    let recipients: string[] = [];
     if (isTaker) {
-      toEmail = user.email;
+      const ownerEmail =
+        session.owner_id && session.owner_id !== user.id ? await accountEmail(admin, session.owner_id) : null;
+      recipients = uniqueEmails([user.email, ownerEmail]);
     } else if (clientId) {
       const { data: client, error: clientErr } = await admin
         .from("specialist_clients")
@@ -126,17 +148,21 @@ Deno.serve(async (req) => {
       if (!sameName) {
         return json({ error: "forbidden" }, 403);
       }
-      toEmail = client.email;
+      recipients = uniqueEmails([client.email, user.email]);
     } else {
       const { data: profile } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
       if (profile?.role === "psychologist") {
         return json({ error: "recipient_required" }, 400);
       }
-      toEmail = user.email;
+      recipients = uniqueEmails([user.email]);
+    }
+
+    if (!recipients.length) {
+      return json({ error: "recipient_required" }, 400);
     }
 
     if (session.report_email_sent_at) {
-      return json({ ok: true, alreadySent: true, email: toEmail });
+      return json({ ok: true, alreadySent: true, emails: recipients });
     }
 
     const resendKey = Deno.env.get("RESEND_API_KEY");
@@ -155,6 +181,7 @@ Deno.serve(async (req) => {
     const participantName = session.participant_name || "Katilimci";
     const { subject, html } = emailContent(locale, participantName);
     const filename = `FocusProLab_${safeFilename(participantName)}.pdf`;
+    const [primary, ...copies] = recipients;
 
     const mailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -164,7 +191,8 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [toEmail],
+        to: [primary],
+        ...(copies.length ? { bcc: copies } : {}),
         subject,
         html,
         attachments: [{ filename, content: base64 }]
@@ -181,7 +209,7 @@ Deno.serve(async (req) => {
       .update({ report_email_sent_at: new Date().toISOString() })
       .eq("id", sessionId);
 
-    return json({ ok: true, email: toEmail });
+    return json({ ok: true, emails: recipients });
   } catch (e) {
     return json({ error: "unexpected", detail: String(e) }, 500);
   }
