@@ -9,26 +9,25 @@ export function AppHeader() {
   const { user, profile, signOut, isSupabaseReady, isAdmin } = useAuth();
   const { strings, t } = useLocale();
   const { pathname } = useLocation();
-  const isMarketingHome =
-    !user &&
-    (pathname === "/" ||
-      pathname.startsWith("/urun/") ||
-      pathname.startsWith("/kurumsal-basvuru") ||
-      pathname.startsWith("/uzman-basvuru") ||
-      pathname.startsWith("/merkezler") ||
-      pathname.startsWith("/iletisim") ||
-      pathname.startsWith("/olcum/"));
+  const isMarketingPage =
+    pathname === "/" ||
+    pathname.startsWith("/urun/") ||
+    pathname.startsWith("/kurumsal-basvuru") ||
+    pathname.startsWith("/uzman-basvuru") ||
+    pathname.startsWith("/merkezler") ||
+    pathname.startsWith("/iletisim") ||
+    pathname.startsWith("/olcum/");
   const onHome = pathname === "/";
   const nav = strings.home?.marketing?.nav;
 
   return (
-    <header className={`fp-header${isMarketingHome ? " fp-header--marketing" : ""}`}>
+    <header className={`fp-header${isMarketingPage ? " fp-header--marketing" : ""}`}>
       <div className="fp-header-inner">
         <Link to="/" className="fp-brand" aria-label="Focus Pro Lab">
           <BrandLogo variant="header" />
         </Link>
 
-        {isMarketingHome && nav && (
+        {isMarketingPage && nav && (
           <nav className="fp-mkt-topnav" aria-label="Marketing">
             <a href="/">{nav.home}</a>
             <a href={onHome ? "#nedir" : "/#nedir"}>{nav.about}</a>
@@ -55,7 +54,7 @@ export function AppHeader() {
                     </Button>
                   </div>
                 </>
-              ) : isMarketingHome ? (
+              ) : isMarketingPage ? (
                 <>
                   <Button asLink to="/uzman-basvuru" variant="secondary" size="sm" className="fp-mkt-apply-btn">
                     {nav.apply}
