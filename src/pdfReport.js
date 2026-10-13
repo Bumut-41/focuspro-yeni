@@ -1,5 +1,5 @@
 import { profileLabel, getStrings } from "./i18n/index.js";
-import { dateLocaleForPdf, fillTemplate, getReportPdfStrings, getFullPhaseLegend, getIndexDefinitions, getNormLevels, getSeverityLevels } from "./i18n/reportPdfStrings.js";
+import { dateLocaleForPdf, fillTemplate, getReportPdfStrings, getFullPhaseLegend, getIndexDefinitions, getNormLevels } from "./i18n/reportPdfStrings.js";
 import { triggerBlobDownload } from "./lib/triggerBlobDownload.js";
 import { pdfFlagRow, pdfStatusLine } from "./lib/pdfStatusMarker.js";
 import { getShapeSvg } from "./shapeUtils.jsx";
@@ -13,8 +13,7 @@ import {
   getScoreColor,
   getScores,
   getSectionSummaries,
-  normPlacementFromZ,
-  difficultySeverityLevel
+  normPlacementFromZ
 } from "./reportHelpers.js";
 import {
   buildClinicalFlags,
@@ -294,7 +293,6 @@ function clinicalFlagsSection(clinicalFlags, pdf) {
 function buildNormComparison(scores, profileKey, locale = "tr") {
   const pdf = getReportPdfStrings(locale);
   const NORM_LEVELS = getNormLevels(locale);
-  const SEVERITY_LEVELS = getSeverityLevels(locale);
   const z = getGlobalIndexZScores(scores, profileKey);
   const indices = [
     { key: "A", score: scores.attention, z: z.attention },
@@ -316,24 +314,6 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
     });
     return [
       { text: `${row.level} ${row.label}`, fillColor: row.color, color: row.level <= 2 ? "#0f172a" : "#fff", fontSize: 9 },
-      ...cells
-    ];
-  });
-
-  const difficulty = indices.filter((ix) => {
-    const n = normPlacementFromZ(ix.z);
-    return n === 4 || n === 5;
-  });
-  const sevRows = SEVERITY_LEVELS.map((row) => {
-    const cells = ["A", "T", "I", "H"].map((key) => {
-      const ix = indices.find((i) => i.key === key);
-      if (!ix) return { text: "", fillColor: row.color };
-      const sev = difficultySeverityLevel(ix.score, ix.z);
-      if (sev !== row.level) return { text: "", fillColor: row.color };
-      return { text: String(row.level), alignment: "center", bold: true, color: "#fff", fillColor: row.color };
-    });
-    return [
-      { text: `${row.level} ${row.label}`, fillColor: row.color, color: "#fff", fontSize: 8 },
       ...cells
     ];
   });
@@ -365,36 +345,6 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
       margin: [0, 0, 0, 12]
     }
   ];
-
-  if (difficulty.length) {
-    blocks.push(
-      {
-        text: pdf.severity,
-        fontSize: 12,
-        bold: true,
-        color: HEADER,
-        margin: [0, 4, 0, 8]
-      },
-      {
-        table: {
-          headerRows: 1,
-          widths: ["*", 40, 40, 40, 40],
-          body: [
-            [
-              { text: pdf.severity, bold: true, color: "#fff", fillColor: "#7f1d1d" },
-              { text: "A", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" },
-              { text: "T", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" },
-              { text: "I", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" },
-              { text: "H", bold: true, color: "#fff", alignment: "center", fillColor: "#7f1d1d" }
-            ],
-            ...sevRows
-          ]
-        },
-        layout: normTableLayout("#7f1d1d"),
-        margin: [0, 0, 0, 10]
-      }
-    );
-  }
 
   blocks.push({
     ul: getIndexDefinitions(locale).map(([t, d]) => ({ text: [{ text: `${t}: `, bold: true }, d], fontSize: 8, margin: [0, 2, 0, 0] }))
