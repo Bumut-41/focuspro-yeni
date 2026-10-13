@@ -115,7 +115,7 @@ export const homePageIt = {
       },
       {
         q: "Quanto dura il test?",
-        a: "Circa 15–20 minuti in base al profilo e all'età, più una breve prova."
+        a: "Circa 13–15 minuti in base al profilo e all'età, più una breve prova."
       },
       {
         q: "Chi vede i risultati?",

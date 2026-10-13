@@ -115,7 +115,7 @@ export const homePageTr = {
       },
       {
         q: "Test ne kadar sürer?",
-        a: "Profil ve yaş grubuna göre yaklaşık 15–20 dakika sürer; öncesinde kısa bir deneme uygulaması vardır."
+        a: "Profil ve yaş grubuna göre yaklaşık 13–15 dakika sürer; öncesinde kısa bir deneme uygulaması vardır."
       },
       {
         q: "Sonuçları kim görür?",

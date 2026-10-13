@@ -115,7 +115,7 @@ export const homePageEn = {
       },
       {
         q: "How long does the test take?",
-        a: "About 15–20 minutes depending on profile and age group, plus a short practice run."
+        a: "About 13–15 minutes depending on profile and age group, plus a short practice run."
       },
       {
         q: "Who sees the results?",

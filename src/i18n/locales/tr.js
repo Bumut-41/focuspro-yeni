@@ -90,11 +90,11 @@ export const tr = {
       "Test bitince sonuç ekranda görünmez. Rapor, kayıtlı e-posta adresinize gönderilir.",
     clientResultsHint:
       "Yalnızca sizin eklediğiniz danışanların test raporları burada görünür. Basış raporuna bu panelden erişilmez.",
-    guideHint: "Test akışında 3 bölümlü rehber gösterilir: sistemi kullanma, test senaryoları, ölçülen davranışlar.",
+    guideHint: "Asıl testten önce 30 saniyelik deneme yönergesi gösterilir. Deneme puanı değerlendirmeye girmez.",
     newTest: "Yeni test başlat",
     adminPanel: "Yönetim paneli",
-    historyTitle: "Geçmiş testleriniz",
-    historyTitleClients: "Danışan testleri",
+    historyTitle: "Geçmiş testleriniz ({{count}})",
+    historyTitleClients: "Danışan testleri ({{count}})",
     historyDesc: "Katılımcı test raporu PDF — panel üzerinden görüntülenir.",
     historyDescClients: "Eklediğiniz danışanların test raporları. Basış raporu yalnızca yöneticidedir.",
     noTests: "Henüz kayıtlı test yok.",
@@ -199,7 +199,8 @@ export const tr = {
     pdfSaveFailed: "PDF kaydı başarısız; «PDF indir» ile tekrar deneyebilirsiniz.",
     newTest: "Yeni test",
     devTimer: "Deneme sayacı",
-    stepGuide: "Adım 3 / 5 · Katılımcı rehberi",
+    stepGuide: "Adım 3 / 5 · Deneme yönergesi",
+    countdownGo: "Başla",
     stepSpace: "Adım 1 / 5 · Tuş kontrolü",
     stepAudio: "Adım 2 / 5 · Ses kontrolü",
     stepMain: "Adım 5 / 5 · Asıl test",
@@ -232,98 +233,25 @@ export const tr = {
     qaHint:
       "Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses, temel ve kapanış kapalı.",
     participantGuide: {
-      title: "Katılımcı rehberi",
-      stepOf: "Bölüm {{current}} / {{total}}",
-      tabs: {
-        usage: "Sistemi kullan",
-        scenarios: "Test senaryoları",
-        criteria: "Neler ölçülür?"
-      },
-      usage: {
-        title: "Sistemi nasıl kullanırsın?",
-        lead: "Aşağıdaki adımları sırayla tamamlayacaksın:",
-        steps: [
-          "Siteye giriş yap veya kayıt ol",
-          "Katılımcı bilgilerini gir",
-          "SPACE tuşu ve ses kontrolü",
-          "Bu rehberi oku",
-          "30 saniyelik deneme testi (kayıt yok)",
-          "«Teste başla» butonu ile asıl test",
-          "Teşekkür ekranı → ana sayfaya yönlendirme"
-        ],
-        ruleTitle: "Tüm test boyunca kuralın",
-        rule: "Yalnızca mavi üçgeni gördüğünde SPACE tuşuna bir kez ve hızlıca bas."
-      },
-      scenarios: {
-        title: "Test senaryoları",
-        lead: "Her bölümde ekranda farklı şeyler olur. Görevin her senaryoda aynıdır.",
-        happensLabel: "Ne olur?",
-        actionLabel: "Ne yapmalısın?",
-        actionDefault:
-          "Her mavi üçgen gördüğünde space tuşuna basmalısın. Diğer şekillere tepki vermemelisin.",
-        items: [
-          {
-            title: "Deneme testi (30 sn)",
-            happens: "Asıl testin kısaltılmış hali; tüm bölüm türleri kısa süre gelir. Kayıt edilmez."
-          },
-          {
-            title: "Çeldirici yok",
-            happens: "Sadece şekiller ekranda gelir; gif veya ek ses yok."
-          },
-          {
-            title: "Sessiz hareketli görüntüler",
-            happens: "Ekran kenarında sessiz gif animasyonları oynar."
-          },
-          {
-            title: "Yalnızca ses",
-            happens: "Görüntü olmadan kısa ses uyaranları duyarsın."
-          },
-          {
-            title: "Görüntü + ses birlikte",
-            happens: "Hem gif hem ses çeldiricileri birlikte gelir."
-          },
-          {
-            title: "Kapanış bölümü",
-            happens: "Test sonuna doğru çeldiriciler azalır."
-          }
-        ]
-      },
-      criteria: {
-        title: "Hangi davranışlar nasıl değerlendirilir?",
-        lead: "Her SPACE basışın kaydedilir. Sistem bunlardan dört ayrı alan hesaplar; alanlar birbirine karışmaz:",
-        measuresLabel: "Ölçüm:",
-        items: [
-          {
-            code: "A",
-            title: "Dikkat",
-            desc: "Hedefe odaklanıp odaklanamadığın",
-            measures: "İhmal — hedef (mavi üçgen) varken basmama"
-          },
-          {
-            code: "T",
-            title: "Zamanlama",
-            desc: "Tepkinin zamanında ve tutarlı olup olmadığı",
-            measures: "Zamanında isabet, RT hızı, geç yanıt ve RT stabilitesi (ağırlıklı T formülü)"
-          },
-          {
-            code: "I",
-            title: "Dürtüsellik",
-            desc: "Hedef dışına aceleci ilk tepki eğilimin",
-            measures: "Commission errors — hedef dışı uyaranlara verilen ilk tepkiler"
-          },
-          {
-            code: "H",
-            title: "Hiperaktivite",
-            desc: "Fazla veya yönerge dışı tuş kullanımın",
-            measures: "Mükerrer basış + boş ekran basışları"
-          }
-        ],
-        privacy:
-          "Test bitince sonuç ekranı görmezsin; «Katılımınız için teşekkürler» mesajı çıkar. Kayıtlar güvenle saklanır ve yalnızca yetkili uzman tarafından değerlendirilir."
-      },
-      next: "Devam",
-      back: "Geri",
-      startPractice: "Deneme testine başla"
+      brand: "FocusProlab Dikkat Testi",
+      title: "30 saniyelik Deneme Yönergesi",
+      intro: "Gerçek değerlendirmeye başlamadan önce kısa bir alıştırma yapalım!",
+      purpose: "Bu bölüm, testin nasıl çalıştığını anlamanız ve uygulamaya alışmanız için hazırlanmıştır.",
+      directive: "Yönerge:",
+      shapes: "Ekranda farklı şekiller göreceksiniz.",
+      rules: [
+        "Mavi üçgeni her gördüğünüzde mümkün olduğunca hızlı ve doğru şekilde boşluk (SPACE) tuşuna basın.",
+        "Mavi üçgen dışındaki şekillerde hiçbir tuşa basmayın.",
+        "Dikkatinizi ekranın ortasına verin.",
+        "Hem hızlı hem de doğru yanıt vermeye çalışın."
+      ],
+      duration: "⏱️ Alıştırma süresi: 30 saniye",
+      notScored: "Bu bölümdeki yanıtlarınız değerlendirme puanınıza dahil edilmeyecektir.",
+      ready: "Hazırsanız başlayalım!",
+      note: "Not: Deneme testinden sonra gerçek teste yönlendirileceksiniz.",
+      ruleTitle: "Tüm test boyunca kuralın",
+      rule: "Yalnızca mavi üçgeni gördüğünde SPACE tuşuna bir kez ve hızlıca bas.",
+      startPractice: "DENEMEYİ BAŞLAT"
     },
     instructions: {
       title: "FocusProlab Dikkat Testi Yönergesi",
@@ -450,6 +378,21 @@ export const tr = {
     pressInTrial: "Basış #",
     reactionMs: "RT (ms)",
     status: "Durum"
+  },
+  filters: {
+    search: "Ara",
+    userPlaceholder: "Ad veya e-posta",
+    testPlaceholder: "Katılımcı veya uygulayan",
+    participantPlaceholder: "Katılımcı adı",
+    role: "Rol",
+    profile: "Profil",
+    all: "Tümü",
+    from: "Başlangıç",
+    to: "Bitiş",
+    clear: "Temizle",
+    shown: "{{shown}} kayıt gösteriliyor, toplam {{total}}",
+    noMatch: "Bu filtreye uyan kayıt yok.",
+    narrow: "Çok fazla sonuç var. Aramayı daraltın; ilk {{shown}} kayıt listeleniyor (toplam {{total}})."
   },
   profiles: {
     child: "Çocuk (6–12)",

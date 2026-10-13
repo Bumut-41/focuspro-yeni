@@ -90,11 +90,11 @@ export const en = {
       "Results are not shown on screen when the test ends. The report is sent to your registered email address.",
     clientResultsHint:
       "Only test reports for clients you added appear here. The press report is not available in this panel.",
-    guideHint: "The test flow shows a 3-part guide: using the system, test scenarios, and measured behaviours.",
+    guideHint: "A 30-second practice briefing is shown before the real test. Practice answers are not scored.",
     newTest: "Start new test",
     adminPanel: "Admin panel",
-    historyTitle: "Your past tests",
-    historyTitleClients: "Client tests",
+    historyTitle: "Your past tests ({{count}})",
+    historyTitleClients: "Client tests ({{count}})",
     historyDesc: "Participant test report PDF — view from the dashboard.",
     historyDescClients: "Test reports for the clients you added. The press report stays with administrators.",
     noTests: "No saved tests yet.",
@@ -199,7 +199,8 @@ export const en = {
     pdfSaveFailed: "PDF save failed; try again with «Download PDF».",
     newTest: "New test",
     devTimer: "Practice timer",
-    stepGuide: "Step 3 / 5 · Participant guide",
+    stepGuide: "Step 3 / 5 · Practice instructions",
+    countdownGo: "Start",
     stepSpace: "Step 1 / 5 · Key check",
     stepAudio: "Step 2 / 5 · Sound check",
     stepMain: "Step 5 / 5 · Main test",
@@ -231,98 +232,25 @@ export const en = {
     qaHint:
       "Temporary mode: silent GIF and silent+audio GIF sections only (~6 min). Audio-only, baseline, and closing disabled.",
     participantGuide: {
-      title: "Participant guide",
-      stepOf: "Section {{current}} / {{total}}",
-      tabs: {
-        usage: "Using the system",
-        scenarios: "Test scenarios",
-        criteria: "What is measured"
-      },
-      usage: {
-        title: "How do you use the system?",
-        lead: "You will complete these steps in order:",
-        steps: [
-          "Log in or register on the site",
-          "Enter participant information",
-          "SPACE key and sound check",
-          "Read this guide",
-          "30-second practice test (not recorded)",
-          "Main test via «Start test» button",
-          "Thank-you screen → redirect to home page"
-        ],
-        ruleTitle: "Your rule throughout the test",
-        rule: "Press SPACE once, quickly, only when you see the blue triangle."
-      },
-      scenarios: {
-        title: "Test scenarios",
-        lead: "Different things appear on screen in each section. Your task stays the same.",
-        happensLabel: "What happens?",
-        actionLabel: "What should you do?",
-        actionDefault:
-          "Every time you see a blue triangle, press the space key. Do not react to other shapes.",
-        items: [
-          {
-            title: "Practice test (30 sec)",
-            happens: "A shortened version of the main test; all section types appear briefly. Not recorded."
-          },
-          {
-            title: "No distractors",
-            happens: "Only shapes appear on screen; no GIFs or extra sounds."
-          },
-          {
-            title: "Silent moving images",
-            happens: "Silent GIF animations play at the edge of the screen."
-          },
-          {
-            title: "Audio only",
-            happens: "You hear short sound cues without images."
-          },
-          {
-            title: "Image + sound combined",
-            happens: "Both GIF and sound distractors appear together."
-          },
-          {
-            title: "Closing section",
-            happens: "Towards the end, distractors decrease."
-          }
-        ]
-      },
-      criteria: {
-        title: "Which behaviours are evaluated?",
-        lead: "Every SPACE press is recorded. Four separate areas are calculated; they do not overlap:",
-        measuresLabel: "Measures:",
-        items: [
-          {
-            code: "A",
-            title: "Attention",
-            desc: "How well you stay on target",
-            measures: "Omissions — not pressing when the target (blue triangle) is shown"
-          },
-          {
-            code: "T",
-            title: "Timing",
-            desc: "Whether responses are on time and consistent",
-            measures: "On-time hit, RT speed, late response, and RT stability (weighted T formula)"
-          },
-          {
-            code: "I",
-            title: "Impulsivity",
-            desc: "Tendency to give a first response to non-targets",
-            measures: "Commission errors — first responses to non-target stimuli"
-          },
-          {
-            code: "H",
-            title: "Hyperactivity",
-            desc: "Excess or off-task key use",
-            measures: "Repeated presses + blank-screen presses"
-          }
-        ],
-        privacy:
-          "You will not see a result screen after the test; you will see «Thank you for your participation». Data is stored securely and reviewed only by authorized professionals."
-      },
-      next: "Continue",
-      back: "Back",
-      startPractice: "Start practice test"
+      brand: "FocusProLab Attention Test",
+      title: "30-second practice instructions",
+      intro: "Let's do a short practice before the real assessment begins!",
+      purpose: "This section is here so you can see how the test works and get used to it.",
+      directive: "Instructions:",
+      shapes: "You will see different shapes on the screen.",
+      rules: [
+        "Every time you see a blue triangle, press the space (SPACE) key as quickly and accurately as you can.",
+        "Do not press any key for shapes other than the blue triangle.",
+        "Keep your attention on the center of the screen.",
+        "Try to respond both quickly and accurately."
+      ],
+      duration: "⏱️ Practice time: 30 seconds",
+      notScored: "Your responses in this section will not count toward your assessment score.",
+      ready: "When you are ready, let's begin!",
+      note: "Note: After the practice you will be taken to the real test.",
+      ruleTitle: "Your rule throughout the test",
+      rule: "Press SPACE once, quickly, only when you see the blue triangle.",
+      startPractice: "START PRACTICE"
     },
     instructions: {
       title: "FocusProLab Attention Test Instructions",
@@ -448,6 +376,21 @@ export const en = {
     pressInTrial: "Press #",
     reactionMs: "RT (ms)",
     status: "Status"
+  },
+  filters: {
+    search: "Search",
+    userPlaceholder: "Name or email",
+    testPlaceholder: "Participant or examiner",
+    participantPlaceholder: "Participant name",
+    role: "Role",
+    profile: "Profile",
+    all: "All",
+    from: "From",
+    to: "To",
+    clear: "Clear",
+    shown: "Showing {{shown}} of {{total}}",
+    noMatch: "No records match this filter.",
+    narrow: "Too many results. Narrow the search; the first {{shown}} of {{total}} are listed."
   },
   profiles: {
     child: "Child (6–12)",

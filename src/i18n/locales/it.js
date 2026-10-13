@@ -90,11 +90,11 @@ export const it = {
       "Al termine del test il risultato non compare sullo schermo. Il report viene inviato all'indirizzo e-mail registrato.",
     clientResultsHint:
       "Qui compaiono solo i report dei clienti che hai aggiunto. Il report delle pressioni non è disponibile in questo pannello.",
-    guideHint: "Il flusso del test mostra una guida in 3 parti: uso del sistema, scenari del test e comportamenti misurati.",
+    guideHint: "Prima del test vero compare la prova di 30 secondi. Le risposte della prova non entrano nel punteggio.",
     newTest: "Avvia un nuovo test",
     adminPanel: "Pannello admin",
-    historyTitle: "I tuoi test precedenti",
-    historyTitleClients: "Test dei clienti",
+    historyTitle: "I tuoi test precedenti ({{count}})",
+    historyTitleClients: "Test dei clienti ({{count}})",
     historyDesc: "Report PDF del partecipante — visibile dal pannello.",
     historyDescClients: "Report dei clienti che hai aggiunto. Il report delle pressioni resta agli amministratori.",
     noTests: "Nessun test salvato.",
@@ -199,7 +199,8 @@ export const it = {
     pdfSaveFailed: "Salvataggio PDF non riuscito; riprova con «Scarica PDF».",
     newTest: "Nuovo test",
     devTimer: "Timer di prova",
-    stepGuide: "Passo 3 / 5 · Guida del partecipante",
+    stepGuide: "Passo 3 / 5 · Istruzioni di prova",
+    countdownGo: "Via",
     stepSpace: "Passo 1 / 5 · Controllo tasto",
     stepAudio: "Passo 2 / 5 · Controllo audio",
     stepMain: "Passo 5 / 5 · Test principale",
@@ -231,98 +232,25 @@ export const it = {
     qaHint:
       "Modalità temporanea: solo sezioni GIF silenziose e GIF silenziose+audio (~6 min). Solo audio, baseline e chiusura disattivate.",
     participantGuide: {
-      title: "Guida del partecipante",
-      stepOf: "Sezione {{current}} / {{total}}",
-      tabs: {
-        usage: "Uso del sistema",
-        scenarios: "Scenari del test",
-        criteria: "Cosa si misura"
-      },
-      usage: {
-        title: "Come si usa il sistema?",
-        lead: "Completerai questi passi in ordine:",
-        steps: [
-          "Accedi o registrati sul sito",
-          "Inserisci i dati del partecipante",
-          "Controllo del tasto SPAZIO e dell'audio",
-          "Leggi questa guida",
-          "Prova di 30 secondi (non registrata)",
-          "Test principale con il pulsante «Inizia il test»",
-          "Schermata di ringraziamento → ritorno alla home"
-        ],
-        ruleTitle: "La regola per tutto il test",
-        rule: "Premi SPAZIO una sola volta, rapidamente, solo quando vedi il triangolo blu."
-      },
-      scenarios: {
-        title: "Scenari del test",
-        lead: "In ogni sezione sullo schermo compaiono cose diverse. Il compito resta lo stesso.",
-        happensLabel: "Cosa succede?",
-        actionLabel: "Cosa devi fare?",
-        actionDefault:
-          "Ogni volta che vedi un triangolo blu, premi la barra spaziatrice. Non reagire alle altre forme.",
-        items: [
-          {
-            title: "Prova (30 sec)",
-            happens: "Versione breve del test principale; tutti i tipi di sezione compaiono per poco. Non viene registrata."
-          },
-          {
-            title: "Senza distrattori",
-            happens: "Compaiono solo le forme; niente GIF né suoni extra."
-          },
-          {
-            title: "Immagini in movimento silenziose",
-            happens: "Animazioni GIF silenziose ai bordi dello schermo."
-          },
-          {
-            title: "Solo audio",
-            happens: "Senti brevi segnali sonori, senza immagini."
-          },
-          {
-            title: "Immagine + suono",
-            happens: "Distrattori GIF e sonori compaiono insieme."
-          },
-          {
-            title: "Sezione di chiusura",
-            happens: "Verso la fine i distrattori diminuiscono."
-          }
-        ]
-      },
-      criteria: {
-        title: "Quali comportamenti vengono valutati?",
-        lead: "Ogni pressione di SPAZIO viene registrata. Si calcolano quattro aree distinte, senza sovrapposizioni:",
-        measuresLabel: "Misura:",
-        items: [
-          {
-            code: "A",
-            title: "Attenzione",
-            desc: "Quanto resti sul target",
-            measures: "Omissioni — non premere quando compare il target (triangolo blu)"
-          },
-          {
-            code: "T",
-            title: "Tempismo",
-            desc: "Se le risposte sono tempestive e costanti",
-            measures: "Risposta in tempo, velocità RT, risposta tardiva e stabilità RT (formula T ponderata)"
-          },
-          {
-            code: "I",
-            title: "Impulsività",
-            desc: "Tendenza a rispondere per primi agli stimoli non target",
-            measures: "Errori di commissione — prime risposte a stimoli non target"
-          },
-          {
-            code: "H",
-            title: "Iperattività",
-            desc: "Uso eccessivo o fuori compito del tasto",
-            measures: "Pressioni ripetute + pressioni a schermo vuoto"
-          }
-        ],
-        privacy:
-          "Dopo il test non vedrai una schermata dei risultati, ma «Grazie per la partecipazione». I dati sono conservati in modo sicuro e rivisti solo da professionisti autorizzati."
-      },
-      next: "Continua",
-      back: "Indietro",
-      startPractice: "Inizia la prova"
+      brand: "Test di attenzione FocusProLab",
+      title: "Istruzioni per la prova di 30 secondi",
+      intro: "Facciamo un breve esercizio prima della valutazione vera!",
+      purpose: "Questa sezione serve a capire come funziona il test e ad abituarti all'applicazione.",
+      directive: "Istruzioni:",
+      shapes: "Vedrai forme diverse sullo schermo.",
+      rules: [
+        "Ogni volta che vedi un triangolo blu, premi la barra spaziatrice (SPAZIO) il più rapidamente e correttamente possibile.",
+        "Non premere alcun tasto per le forme diverse dal triangolo blu.",
+        "Tieni l'attenzione al centro dello schermo.",
+        "Cerca di rispondere sia in fretta sia in modo corretto."
+      ],
+      duration: "⏱️ Durata dell'esercizio: 30 secondi",
+      notScored: "Le risposte di questa sezione non entrano nel punteggio della valutazione.",
+      ready: "Se sei pronto, iniziamo!",
+      note: "Nota: dopo la prova verrai indirizzato al test vero.",
+      ruleTitle: "La regola per tutto il test",
+      rule: "Premi SPAZIO una sola volta, rapidamente, solo quando vedi il triangolo blu.",
+      startPractice: "INIZIA LA PROVA"
     },
     instructions: {
       title: "Istruzioni del test di attenzione FocusProLab",
@@ -448,6 +376,21 @@ export const it = {
     pressInTrial: "Pressione n.",
     reactionMs: "TR (ms)",
     status: "Stato"
+  },
+  filters: {
+    search: "Cerca",
+    userPlaceholder: "Nome o e-mail",
+    testPlaceholder: "Partecipante o esaminatore",
+    participantPlaceholder: "Nome del partecipante",
+    role: "Ruolo",
+    profile: "Profilo",
+    all: "Tutti",
+    from: "Dal",
+    to: "Al",
+    clear: "Azzera",
+    shown: "{{shown}} record su {{total}}",
+    noMatch: "Nessun record corrisponde a questo filtro.",
+    narrow: "Troppi risultati. Restringi la ricerca; sono elencati i primi {{shown}} di {{total}}."
   },
   profiles: {
     child: "Bambino (6–12)",

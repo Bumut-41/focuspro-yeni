@@ -1,3 +1,4 @@
+import { dayEndIso, dayStartIso, likeTerm } from "../lib/listFilters.js";
 import { supabase } from "../lib/supabase.js";
 
 export async function saveTestSession({
@@ -28,24 +29,45 @@ export async function saveTestSession({
   return { sessionId: data, ownerId: null };
 }
 
-export async function fetchMySessions(limit = 50) {
-  const { data, error } = await supabase
+function applySessionFilters(request, { query = "", profile = "", from = "", to = "", ownerIds = [] } = {}) {
+  let next = request;
+  if (profile) next = next.eq("profile_key", profile);
+  if (from) next = next.gte("created_at", dayStartIso(from));
+  if (to) next = next.lte("created_at", dayEndIso(to));
+  const term = likeTerm(query);
+  const ids = ownerIds.filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 40);
+  if (term && ids.length) {
+    next = next.or(`participant_name.ilike."%${term}%",owner_id.in.(${ids.join(",")})`);
+  } else if (term) {
+    next = next.ilike("participant_name", `%${term}%`);
+  }
+  return next;
+}
+
+export async function fetchMySessions(options = {}) {
+  const opts = typeof options === "number" ? { limit: options } : options;
+  const limit = opts.limit ?? 200;
+  let request = supabase
     .from("test_sessions")
     .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, invite_id")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("created_at", { ascending: false });
+  request = applySessionFilters(request, opts).limit(limit);
+  const { data, error } = await request;
   if (error) throw error;
   return data ?? [];
 }
 
-export async function fetchAllSessions(limit = 100) {
-  const { data, error } = await supabase
+export async function fetchAllSessions(options = {}) {
+  const opts = typeof options === "number" ? { limit: options } : options;
+  const limit = opts.limit ?? 300;
+  let request = supabase
     .from("test_sessions")
     .select(
       "id, owner_id, taker_id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, admin_pdf_path, owner:profiles!owner_id(full_name, role), taker:profiles!taker_id(full_name, role)"
     )
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("created_at", { ascending: false });
+  request = applySessionFilters(request, opts).limit(limit);
+  const { data, error } = await request;
   if (error) throw error;
   return data ?? [];
 }

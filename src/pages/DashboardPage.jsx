@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
@@ -7,7 +7,9 @@ import { fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../s
 import { fetchMyClients } from "../services/clients.js";
 import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
+import { includesText, inDateRange } from "../lib/listFilters.js";
 import { isStaleChunkError, reloadStaleChunk } from "../lib/reloadStaleChunk.js";
+import { RecordFilters } from "../components/RecordFilters.jsx";
 import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
 import { SpecialistClientsPanel } from "../components/SpecialistClientsPanel.jsx";
 import {
@@ -28,7 +30,16 @@ export default function DashboardPage() {
   const [sessions, setSessions] = useState([]);
   const [msg, setMsg] = useState("");
   const [pdfBusy, setPdfBusy] = useState(null);
+  const [testQuery, setTestQuery] = useState("");
+  const [testProfile, setTestProfile] = useState("");
+  const [testFrom, setTestFrom] = useState("");
+  const [testTo, setTestTo] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const canViewSessions = isAdmin || isPsychologist;
+  const profileOptions = useMemo(
+    () => ["child", "teen", "adult"].map((key) => ({ value: key, label: profileLabel(key, locale) })),
+    [locale]
+  );
 
   async function downloadTestReport(session) {
     setPdfBusy(session.id);
@@ -49,13 +60,25 @@ export default function DashboardPage() {
     }
   }
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(testQuery), 300);
+    return () => clearTimeout(timer);
+  }, [testQuery]);
+
   const load = useCallback(async () => {
     if (!canViewSessions) {
       setSessions([]);
       return;
     }
+    const searching = debouncedQuery.trim().length >= 2 || Boolean(testProfile || testFrom || testTo);
     try {
-      const rows = await fetchMySessions();
+      const rows = await fetchMySessions({
+        limit: searching ? 400 : 200,
+        query: debouncedQuery.trim().length >= 2 ? debouncedQuery : "",
+        profile: testProfile,
+        from: testFrom,
+        to: testTo
+      });
       if (!isPsychologist) {
         setSessions(rows);
         return;
@@ -71,11 +94,24 @@ export default function DashboardPage() {
     } catch (e) {
       setMsg(e.message);
     }
-  }, [canViewSessions, isPsychologist]);
+  }, [canViewSessions, isPsychologist, debouncedQuery, testProfile, testFrom, testTo]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const testsFiltered = Boolean(testQuery.trim() || testProfile || testFrom || testTo);
+  const filteredSessions = useMemo(
+    () =>
+      sessions.filter(
+        (session) =>
+          (!testProfile || session.profile_key === testProfile) &&
+          inDateRange(session.created_at, testFrom, testTo) &&
+          includesText(testQuery, session.participant_name)
+      ),
+    [sessions, testQuery, testProfile, testFrom, testTo]
+  );
+  const visibleSessions = filteredSessions.slice(0, 100);
 
   return (
     <Page wide>
@@ -120,13 +156,49 @@ export default function DashboardPage() {
       {canViewSessions && (
       <Card>
         <CardHeader
-          title={isPsychologist ? t("dashboard.historyTitleClients") : t("dashboard.historyTitle")}
+          title={
+            isPsychologist
+              ? t("dashboard.historyTitleClients", { count: filteredSessions.length })
+              : t("dashboard.historyTitle", { count: filteredSessions.length })
+          }
           description={isPsychologist ? t("dashboard.historyDescClients") : t("dashboard.historyDesc")}
         />
-        {!sessions.length && (
+        {(sessions.length > 0 || testsFiltered) && (
+          <RecordFilters
+            t={t}
+            query={testQuery}
+            onQuery={setTestQuery}
+            queryPlaceholder={t("filters.participantPlaceholder")}
+            profile={testProfile}
+            onProfile={setTestProfile}
+            profileOptions={profileOptions}
+            from={testFrom}
+            onFrom={setTestFrom}
+            to={testTo}
+            onTo={setTestTo}
+            active={testsFiltered}
+            onClear={() => {
+              setTestQuery("");
+              setTestProfile("");
+              setTestFrom("");
+              setTestTo("");
+            }}
+            statusText={
+              visibleSessions.length < filteredSessions.length
+                ? t("filters.narrow", { shown: visibleSessions.length, total: filteredSessions.length })
+                : testsFiltered && filteredSessions.length !== sessions.length
+                  ? t("filters.shown", { shown: filteredSessions.length, total: sessions.length })
+                  : ""
+            }
+          />
+        )}
+        {!testsFiltered && !sessions.length && (
           <EmptyState title={t("dashboard.noTests")} description={t("dashboard.noTestsDesc")} />
         )}
-        {sessions.length > 0 && (
+        {testsFiltered && filteredSessions.length === 0 && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("filters.noMatch")}</p>
+        )}
+        {visibleSessions.length > 0 && (
           <DataTable
             columns={[
               {
@@ -161,7 +233,7 @@ export default function DashboardPage() {
                 )
               }
             ]}
-            rows={sessions}
+            rows={visibleSessions}
             rowKey={(s) => s.id}
           />
         )}

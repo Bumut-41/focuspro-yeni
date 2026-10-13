@@ -66,6 +66,7 @@ export default function TestFlowPage() {
   const [spaceKeyLit, setSpaceKeyLit] = useState(false);
   const pendingPracticeStart = useRef(false);
   const pendingMainStart = useRef(false);
+  const countdownKind = useRef("main");
   const audioDoneLock = useRef(false);
   const audioRef = useRef(null);
   const pdfSavedRef = useRef(false);
@@ -321,11 +322,16 @@ export default function TestFlowPage() {
     beginWithParticipant(name.trim(), birth, gender, consent);
   }
 
+  function beginCountdown(kind) {
+    countdownKind.current = kind;
+    setCountdown(3);
+    setStep("countdown");
+  }
+
   function startPractice() {
     if (!spaceVerified || !audioVerified) return;
     setActiveTestProfile(getPracticeProfile(getProfile(pkey)));
-    pendingPracticeStart.current = true;
-    setStep("practiceRun");
+    beginCountdown("practice");
   }
 
   function beginTest() {
@@ -334,20 +340,24 @@ export default function TestFlowPage() {
     setSessionId(null);
     pdfSavedRef.current = false;
     setActiveTestProfile(getProfile(pkey));
-    setCountdown(1);
-    setStep("countdown");
+    beginCountdown("main");
   }
 
   useEffect(() => {
     if (step !== "countdown" || countdown == null) return undefined;
     const timer = window.setTimeout(() => {
-      if (countdown >= 3) {
+      if (countdown === "go") {
         setCountdown(null);
-        pendingMainStart.current = true;
-        setStep("run");
+        if (countdownKind.current === "practice") {
+          pendingPracticeStart.current = true;
+          setStep("practiceRun");
+        } else {
+          pendingMainStart.current = true;
+          setStep("run");
+        }
         return;
       }
-      setCountdown((n) => n + 1);
+      setCountdown((n) => (n <= 1 ? "go" : n - 1));
     }, 1000);
     return () => window.clearTimeout(timer);
   }, [step, countdown]);
@@ -697,8 +707,11 @@ export default function TestFlowPage() {
 
       {step === "countdown" && countdown != null && (
         <div className="test-countdown" role="status" aria-live="assertive" aria-atomic="true">
-          <span key={countdown} className="test-countdown-num">
-            {countdown}
+          <span
+            key={countdown}
+            className={countdown === "go" ? "test-countdown-num test-countdown-num--word" : "test-countdown-num"}
+          >
+            {countdown === "go" ? t("test.countdownGo") : countdown}
           </span>
         </div>
       )}

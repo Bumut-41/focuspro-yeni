@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
@@ -8,6 +8,7 @@ import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession
 } from "../lib/adminSessionPdf.js";
+import { includesText, inDateRange } from "../lib/listFilters.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import {
   USER_ROLES,
@@ -32,6 +33,7 @@ import {
 import { fetchCorporateApplications } from "../services/corporateApplications.js";
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
 import { fetchContactMessages } from "../services/contactMessages.js";
+import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
   Alert,
@@ -80,6 +82,14 @@ export default function AdminPage() {
   const [contactMessages, setContactMessages] = useState([]);
   const [contactMessagesError, setContactMessagesError] = useState("");
   const [contactId, setContactId] = useState(null);
+  const [grantQuery, setGrantQuery] = useState("");
+  const [userQuery, setUserQuery] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [testQuery, setTestQuery] = useState("");
+  const [testProfile, setTestProfile] = useState("");
+  const [testFrom, setTestFrom] = useState("");
+  const [testTo, setTestTo] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   async function openStoredPdf(pdfPath, busyKey, filename = "FocusProLab-report.pdf") {
     if (!pdfPath) return;
@@ -94,14 +104,36 @@ export default function AdminPage() {
     }
   }
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(testQuery), 300);
+    return () => clearTimeout(timer);
+  }, [testQuery]);
+
   const load = useCallback(async () => {
-    const [profilesResult, sessionsResult, applicationsResult, specialistResult, contactResult] = await Promise.allSettled([
+    const searching = debouncedQuery.trim().length >= 2 || Boolean(testProfile || testFrom || testTo);
+    const [profilesResult, applicationsResult, specialistResult, contactResult] = await Promise.allSettled([
       fetchAllProfiles(),
-      fetchAllSessions(200),
       fetchCorporateApplications(),
       fetchSpecialistApplications(),
       fetchContactMessages()
     ]);
+    const loadedProfiles = profilesResult.status === "fulfilled" ? profilesResult.value : [];
+    const ownerIds =
+      debouncedQuery.trim().length >= 2
+        ? loadedProfiles
+            .filter((row) => includesText(debouncedQuery, row.full_name, row.email))
+            .map((row) => row.id)
+        : [];
+    const sessionsResult = await fetchAllSessions({
+      limit: searching ? 400 : 300,
+      query: debouncedQuery.trim().length >= 2 ? debouncedQuery : "",
+      profile: testProfile,
+      from: testFrom,
+      to: testTo,
+      ownerIds
+    })
+      .then((value) => ({ status: "fulfilled", value }))
+      .catch((reason) => ({ status: "rejected", reason }));
     if (profilesResult.status === "fulfilled") {
       const p = profilesResult.value;
       setProfiles(p);
@@ -139,7 +171,44 @@ export default function AdminPage() {
       setContactMessages([]);
       setContactMessagesError(t("admin.contactMessagesFailed"));
     }
-  }, [t]);
+  }, [t, debouncedQuery, testProfile, testFrom, testTo]);
+
+  const profileOptions = useMemo(
+    () => ["child", "teen", "adult"].map((key) => ({ value: key, label: profileLabel(key, locale) })),
+    [locale]
+  );
+  const roleOptions = useMemo(
+    () => USER_ROLES.map((role) => ({ value: role, label: roleLabel(role, locale) })),
+    [locale]
+  );
+  const grantOptions = useMemo(
+    () => profiles.filter((row) => !grantQuery.trim() || includesText(grantQuery, row.full_name, row.email) || row.id === grantUser),
+    [profiles, grantQuery, grantUser]
+  );
+  const usersFiltered = Boolean(userQuery.trim() || userRole);
+  const filteredUsers = useMemo(
+    () => profiles.filter((row) => (!userRole || row.role === userRole) && includesText(userQuery, row.full_name, row.email)),
+    [profiles, userQuery, userRole]
+  );
+  const visibleUsers = filteredUsers.slice(0, 100);
+  const testsFiltered = Boolean(testQuery.trim() || testProfile || testFrom || testTo);
+  const filteredSessions = useMemo(
+    () =>
+      sessions.filter(
+        (session) =>
+          (!testProfile || session.profile_key === testProfile) &&
+          inDateRange(session.created_at, testFrom, testTo) &&
+          includesText(testQuery, session.participant_name, session.owner?.full_name, session.profiles?.full_name)
+      ),
+    [sessions, testQuery, testProfile, testFrom, testTo]
+  );
+  const visibleSessions = filteredSessions.slice(0, 100);
+
+  function filterStatus(active, shown, matched, source) {
+    if (shown < matched) return t("filters.narrow", { shown, total: matched });
+    if (active && matched !== source) return t("filters.shown", { shown: matched, total: source });
+    return "";
+  }
 
   useEffect(() => {
     if (isAdmin) load().catch((e) => setMsg(e.message));
@@ -309,10 +378,17 @@ export default function AdminPage() {
           </p>
         )}
         <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
+          <Field label={t("filters.search")} className="fp-field--grow">
+            <Input
+              value={grantQuery}
+              onChange={(e) => setGrantQuery(e.target.value)}
+              placeholder={t("filters.userPlaceholder")}
+            />
+          </Field>
           <Field label={t("admin.grantLabel")} className="fp-field--grow">
             <Select value={grantUser} onChange={(e) => setGrantUser(e.target.value)}>
               <option value="">{t("common.select")}</option>
-              {profiles.map((p) => (
+              {grantOptions.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.full_name} ({p.role}) — {p.test_credits} kredi
                 </option>
@@ -500,7 +576,7 @@ export default function AdminPage() {
 
       <Card>
         <CardHeader
-          title={t("admin.usersTitle", { count: profiles.length })}
+          title={t("admin.usersTitle", { count: filteredUsers.length })}
           description={isSuperAdmin ? t("admin.usersDescSuper") : t("admin.usersDesc")}
         />
         <ul
@@ -518,6 +594,25 @@ export default function AdminPage() {
             </li>
           ))}
         </ul>
+        <RecordFilters
+          t={t}
+          query={userQuery}
+          onQuery={setUserQuery}
+          queryPlaceholder={t("filters.userPlaceholder")}
+          role={userRole}
+          onRole={setUserRole}
+          roleOptions={roleOptions}
+          active={usersFiltered}
+          onClear={() => {
+            setUserQuery("");
+            setUserRole("");
+          }}
+          statusText={filterStatus(usersFiltered, visibleUsers.length, filteredUsers.length, profiles.length)}
+        />
+        {profiles.length > 0 && filteredUsers.length === 0 && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("filters.noMatch")}</p>
+        )}
+        {visibleUsers.length > 0 && (
         <DataTable
           columns={[
             { key: "full_name", label: t("admin.name") },
@@ -598,16 +693,44 @@ export default function AdminPage() {
               )
             }
           ]}
-          rows={profiles}
+          rows={visibleUsers}
           rowKey={(p) => p.id}
         />
+        )}
       </Card>
 
       <Card>
         <CardHeader
-          title={t("admin.sessionsTitle", { count: sessions.length })}
+          title={t("admin.sessionsTitle", { count: filteredSessions.length })}
           description={t("admin.sessionsDesc")}
         />
+        {(sessions.length > 0 || testsFiltered) && (
+          <RecordFilters
+            t={t}
+            query={testQuery}
+            onQuery={setTestQuery}
+            queryPlaceholder={t("filters.testPlaceholder")}
+            profile={testProfile}
+            onProfile={setTestProfile}
+            profileOptions={profileOptions}
+            from={testFrom}
+            onFrom={setTestFrom}
+            to={testTo}
+            onTo={setTestTo}
+            active={testsFiltered}
+            onClear={() => {
+              setTestQuery("");
+              setTestProfile("");
+              setTestFrom("");
+              setTestTo("");
+            }}
+            statusText={filterStatus(testsFiltered, visibleSessions.length, filteredSessions.length, sessions.length)}
+          />
+        )}
+        {testsFiltered && filteredSessions.length === 0 && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("filters.noMatch")}</p>
+        )}
+        {visibleSessions.length > 0 && (
         <DataTable
           columns={[
             { label: t("admin.date"), render: (s) => new Date(s.created_at).toLocaleString(dateLocale) },
@@ -653,10 +776,11 @@ export default function AdminPage() {
               )
             }
           ]}
-          rows={sessions}
+          rows={visibleSessions}
           rowKey={(s) => s.id}
           activeKey={selectedId}
         />
+        )}
       </Card>
 
       {detailLoading && <p className="fp-loading">{t("common.loading")}</p>}
