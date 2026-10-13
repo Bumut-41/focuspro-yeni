@@ -40,7 +40,7 @@ export default function ProductCommentaryPage() {
           <p className="fp-detail-copy">📧 {page.delivery}</p>
         </section>
 
-        <Button type="button" size="lg" className="fp-mkt-btn-teal fp-detail-cta" disabled>
+        <Button asLink to="/merkezler" size="lg" className="fp-mkt-btn-teal fp-detail-cta">
           ▶️ {page.cta}
         </Button>
       </div>

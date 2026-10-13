@@ -56,7 +56,7 @@ export default function ProductConsultationPage() {
           </ul>
         </section>
 
-        <Button type="button" size="lg" className="fp-mkt-btn-teal fp-detail-cta" disabled>
+        <Button asLink to="/merkezler" size="lg" className="fp-mkt-btn-teal fp-detail-cta">
           ▶️ {page.cta}
         </Button>
       </div>
