@@ -511,7 +511,11 @@ export default function TestFlowPage() {
 
   return (
     <div
-      className={isImmersiveStep ? "test-flow test-flow--immersive" : "test-flow"}
+      className={
+        isImmersiveStep
+          ? `test-flow test-flow--immersive${step === "guide" ? " test-flow--page" : ""}`
+          : "test-flow"
+      }
       style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
     >
       {!isImmersiveStep && (

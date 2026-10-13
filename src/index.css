@@ -1152,20 +1152,25 @@ a:hover {
 }
 
 /* Katılımcı rehberi — 3 bölüm */
+.test-flow--page {
+  justify-content: flex-start;
+  min-height: auto;
+}
+
 .test-participant-guide {
-  width: min(96vw, 720px);
-  margin: auto;
-  padding: clamp(20px, 4vw, 32px);
-  background: var(--fp-surface);
-  border: 1px solid var(--fp-border);
-  border-radius: var(--fp-radius-xl);
-  box-shadow: var(--fp-shadow-lg);
-  max-height: min(88vh, 680px);
-  overflow-y: auto;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: clamp(28px, 5vh, 48px) clamp(20px, 4vw, 32px) 64px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  max-height: none;
+  overflow: visible;
 }
 
 .test-flow--immersive .test-participant-guide {
-  margin: clamp(12px, 2vh, 24px) auto;
+  margin: 0 auto;
 }
 
 .test-participant-guide-title {
