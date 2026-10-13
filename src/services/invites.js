@@ -50,6 +50,7 @@ export function inviteErrorMessage(code, t) {
     invite_not_found: t("invite.errNotFound"),
     invite_expired: t("invite.errExpired"),
     invite_already_used: t("invite.errUsed"),
+    test_already_completed: t("invite.errAlreadyCompleted"),
     invite_cancelled: t("invite.errCancelled"),
     email_mismatch: t("invite.errEmailMismatch"),
     invite_individual_only: t("invite.errIndividualOnly"),

@@ -5,6 +5,7 @@ import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
 import { fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
 import { fetchMyClients } from "../services/clients.js";
+import { getActiveInviteForUser } from "../services/invites.js";
 import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import { includesText, inDateRange } from "../lib/listFilters.js";
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [testFrom, setTestFrom] = useState("");
   const [testTo, setTestTo] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [inviteUsed, setInviteUsed] = useState(false);
   const canViewSessions = isAdmin || isPsychologist;
   const profileOptions = useMemo(
     () => ["child", "teen", "adult"].map((key) => ({ value: key, label: profileLabel(key, locale) })),
@@ -100,6 +102,19 @@ export default function DashboardPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (isAdmin || isPsychologist) return undefined;
+    let cancelled = false;
+    getActiveInviteForUser()
+      .then((row) => {
+        if (!cancelled && row?.completed) setInviteUsed(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, isPsychologist]);
+
   const testsFiltered = Boolean(testQuery.trim() || testProfile || testFrom || testTo);
   const filteredSessions = useMemo(
     () =>
@@ -134,9 +149,13 @@ export default function DashboardPage() {
           </p>
         )}
         <Stack gap={12} style={{ marginTop: 20 }}>
-          <Button asLink to="/test" variant="primary">
-            {isPsychologist ? t("clients.startTest") : t("dashboard.newTest")}
-          </Button>
+          {inviteUsed ? (
+            <Alert variant="info">{t("invite.usedBody")}</Alert>
+          ) : (
+            <Button asLink to="/test" variant="primary">
+              {isPsychologist ? t("clients.startTest") : t("dashboard.newTest")}
+            </Button>
+          )}
           {isAdmin && (
             <Button asLink to="/admin" variant="secondary">
               {t("dashboard.adminPanel")}

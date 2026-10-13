@@ -54,6 +54,7 @@ export default function TestFlowPage() {
   const [inviteReady, setInviteReady] = useState(false);
   const [inviteError, setInviteError] = useState("");
   const [isInviteFlow, setIsInviteFlow] = useState(false);
+  const [inviteUsed, setInviteUsed] = useState(false);
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [practiceCompleted, setPracticeCompleted] = useState(false);
@@ -103,13 +104,18 @@ export default function TestFlowPage() {
         if (token) {
           try {
             await acceptTestInvite(token);
-          } catch {
-            /* zaten kabul edilmiş olabilir */
+          } catch (acceptError) {
+            const message = acceptError?.message || "";
+            if (message.includes("invite_already_used") || message.includes("test_already_completed")) {
+              if (!cancelled) setInviteUsed(true);
+            }
           }
         }
         const active = await getActiveInviteForUser();
         if (cancelled) return;
-        if (active?.id) {
+        if (active?.completed) {
+          setInviteUsed(true);
+        } else if (active?.id) {
           setInviteId(active.id);
           setIsInviteFlow(true);
         }
@@ -461,6 +467,20 @@ export default function TestFlowPage() {
     return (
       <Page narrow>
         <p className="fp-loading">{t("common.loading")}</p>
+      </Page>
+    );
+  }
+
+  if (inviteUsed) {
+    return (
+      <Page narrow>
+        <Card>
+          <h2 className="fp-card-title">{t("invite.usedTitle")}</h2>
+          <p className="fp-card-desc">{t("invite.usedBody")}</p>
+          <Button asLink to="/panel" variant="secondary" style={{ marginTop: 16 }}>
+            {t("common.backToPanel")}
+          </Button>
+        </Card>
       </Page>
     );
   }
