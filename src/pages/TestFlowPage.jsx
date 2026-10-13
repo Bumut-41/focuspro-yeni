@@ -388,39 +388,49 @@ export default function TestFlowPage() {
       return undefined;
     }
 
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      try {
-        const result = await persistAllSessionPdfs({
-          userId: pdfOwnerId || user.id,
-          sessionId,
-          participant,
-          profile,
-          logs,
-          target,
-          pressTimeline,
-          locale,
-          saveAdminPdf: false
-        });
-        if (!cancelled && result.testSaved) {
-          pdfSavedRef.current = true;
-          try {
-            await sendSessionReportEmail(sessionId, locale, reportClientIdRef.current);
-          } catch (mailErr) {
-            console.warn(mailErr);
+    const ownerForPdf = pdfOwnerId || user.id;
+    const clientId = reportClientIdRef.current;
+    let started = false;
+    pdfSavedRef.current = true;
+    const timer = window.setTimeout(() => {
+      started = true;
+      void (async () => {
+        try {
+          const result = await persistAllSessionPdfs({
+            userId: ownerForPdf,
+            sessionId,
+            participant,
+            profile,
+            logs,
+            target,
+            pressTimeline,
+            locale,
+            saveAdminPdf: false
+          });
+          if (!result.testSaved) {
+            pdfSavedRef.current = false;
+          } else {
+            try {
+              await sendSessionReportEmail(sessionId, locale, clientId);
+            } catch (mailErr) {
+              console.warn(mailErr);
+            }
           }
+          if (result.errors?.length) {
+            console.warn(formatPersistResult(result, pressTimeline.length > 0, locale));
+          }
+        } catch (e) {
+          pdfSavedRef.current = false;
+          console.warn(e);
         }
-        if (!cancelled && result.errors?.length) {
-          console.warn(formatPersistResult(result, pressTimeline.length > 0, locale));
-        }
-      } catch (e) {
-        console.warn(e);
-      }
+      })();
     }, 900);
 
     return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
+      if (!started) {
+        window.clearTimeout(timer);
+        pdfSavedRef.current = false;
+      }
     };
   }, [step, sessionId, user?.id, pdfOwnerId, logs, target, profile, participant, pressTimeline, locale]);
 
