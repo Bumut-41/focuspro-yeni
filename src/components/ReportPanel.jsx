@@ -41,7 +41,7 @@ export function ReportPanel({
       : null;
   const executive =
     scores && validity && clinicalFlags && distractor
-      ? buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale)
+      ? buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale, profile.key ?? profile.profileKey ?? "adult")
       : null;
   const series = logs.length ? scoreSeries(logs, profile.lateResponseMs, metricOpts) : null;
 

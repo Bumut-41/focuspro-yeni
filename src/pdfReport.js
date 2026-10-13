@@ -473,13 +473,13 @@ export function buildDocDefinition({
 
   const distractor = buildDistractorAnalysisFriendly(logs, profile, age, pressTimeline, locale);
   const sustainability = buildSustainabilityReport(logs, profile, age, pressTimeline, locale);
-  const indexComments = buildIndexClinicalComments(scores, locale);
+  const zGlobal = getGlobalIndexZScores(scores, profileKey);
+  const indexComments = buildIndexClinicalComments(scores, locale, zGlobal);
   const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale);
-  const executive = buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale);
-  const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale);
+  const executive = buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale, profileKey);
+  const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale, zGlobal);
   const sections = getSectionSummaries(logs, profile, age, pressTimeline, locale);
   const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline, locale);
-  const zGlobal = getGlobalIndexZScores(scores, profileKey);
   const betaStr = metrics.beta != null ? metrics.beta.toFixed(2) : "—";
 
   const chartBlocks = [];

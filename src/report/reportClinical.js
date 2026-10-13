@@ -7,6 +7,7 @@ import {
 import { buildReportPhaseBuckets, logsForBucket } from "./phaseBuckets.js";
 import { getOverallRiskText, riskLabel } from "../metrics.js";
 import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
+import { normLevelFromZ, normZScore } from "../reportNorms.js";
 import { CLINICAL_THRESHOLDS, DISTRACTOR_DROP, TIERS, distractorImpactLevel } from "./scoreTiers.js";
 import { timelineForLogs } from "./timelineFilter.js";
 
@@ -56,21 +57,68 @@ function indexComment(block, score) {
   return block.cLow;
 }
 
+function globalIndexZ(scores, profileKey = "adult") {
+  return {
+    attention: normZScore(scores.attention, profileKey, "global", "attention"),
+    timing: normZScore(scores.timing, profileKey, "global", "timing"),
+    impulsivity: normZScore(scores.impulsivity, profileKey, "global", "impulsivity"),
+    hyperactivity: normZScore(scores.hyperactivity, profileKey, "global", "hyperactivity")
+  };
+}
+
+/** Norm tablosuyla aynı bant: ortalamanın altı “koruyabilmiş” cümlesine düşmez. */
+function commentForNormZ(block, z) {
+  const level = normLevelFromZ(z);
+  if (level === 1) return block.c90;
+  if (level === 2) return block.c80;
+  if (level <= 4) return block.c60;
+  return block.cLow;
+}
+
+export function indexLevelLabelFromZ(z, locale = "tr") {
+  const L = getReportPdfStrings(locale).levels;
+  const level = normLevelFromZ(z);
+  if (level === 1) return L.veryGood;
+  if (level === 2) return L.good;
+  if (level === 3) return L.average;
+  if (level === 4) return L.low;
+  return L.poor;
+}
+
 export function pickTierComment(block, score) {
   return indexComment(block, score);
 }
 
-export function buildGeneralShortComment(scores, distractor, locale = "tr") {
+export function buildGeneralShortComment(scores, distractor, locale = "tr", z = null) {
   const G = getReportPdfStrings(locale).generalComments;
   const { attention: A, timing: T, impulsivity: I, hyperactivity: H } = scores;
+  const marked = z && ["attention", "timing", "impulsivity", "hyperactivity"].some((key) => normLevelFromZ(z[key]) >= 4);
 
-  if (A >= 90 && T >= 85 && I >= 80 && H >= 90) return G.profile1;
-  if (A >= 85 && T < 65 && I >= 75 && H >= 90) return G.profile2;
-  if (A >= 85 && T >= 80 && I < 60 && H >= 90) return G.profile3;
+  if (!marked && A >= 90 && T >= 85 && I >= 80 && H >= 90) return G.profile1;
+  if (!marked && A >= 85 && T < 65 && I >= 75 && H >= 90) return G.profile2;
+  if (!marked && A >= 85 && T >= 80 && I < 60 && H >= 90) return G.profile3;
 
   const parts = [];
-  if (A >= 80 && T >= 75 && I >= 75 && H >= 80) {
+  const strongCore = z
+    ? ["attention", "timing", "impulsivity", "hyperactivity"].every((key) => normLevelFromZ(z[key]) <= 2)
+    : A >= 80 && T >= 75 && I >= 75 && H >= 80;
+  if (strongCore) {
     parts.push(G.partStrongCore);
+  } else if (z) {
+    const att = normLevelFromZ(z.attention);
+    if (att >= 5) parts.push(G.partAttLow);
+    else if (att >= 3) parts.push(G.partAttMid);
+    else parts.push(G.partAttOk);
+
+    const tim = normLevelFromZ(z.timing);
+    if (tim >= 5) parts.push(G.partTimLow);
+    else if (tim >= 3) parts.push(G.partTimMid);
+
+    const imp = normLevelFromZ(z.impulsivity);
+    if (imp >= 5) parts.push(G.partImpLow);
+    else if (imp >= 3) parts.push(G.partImpMid);
+
+    if (normLevelFromZ(z.hyperactivity) >= 4) parts.push(G.partHypLow);
   } else {
     if (A < 60) parts.push(G.partAttLow);
     else if (A < 70) parts.push(G.partAttMid);
@@ -353,15 +401,19 @@ export function buildSustainabilityReport(logs, profile, age = null, pressTimeli
   return { ...sust, comment };
 }
 
-export function buildIndexClinicalComments(scores, locale = "tr") {
+export function buildIndexClinicalComments(scores, locale = "tr", z = null) {
   const I = getReportPdfStrings(locale).indexes;
-  const mk = (key, score) => ({
-    score,
-    title: I[key].title,
-    level: indexLevelLabel(score, locale),
-    definition: I[key].definition,
-    comment: indexComment(I[key], score)
-  });
+  const mk = (key, score) => {
+    const zv = z?.[key];
+    const useNorm = zv != null && Number.isFinite(zv);
+    return {
+      score,
+      title: I[key].title,
+      level: useNorm ? indexLevelLabelFromZ(zv, locale) : indexLevelLabel(score, locale),
+      definition: I[key].definition,
+      comment: useNorm ? commentForNormZ(I[key], zv) : indexComment(I[key], score)
+    };
+  };
   return {
     attention: mk("attention", scores.attention),
     timing: mk("timing", scores.timing),
@@ -397,23 +449,26 @@ export function buildClinicalFlags(scores, metrics, validity, distractor, sustai
   return flags;
 }
 
-export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale = "tr") {
+export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale = "tr", profileKey = "adult") {
   const St = getReportPdfStrings(locale).strengths;
   const risk = getOverallRiskText(scores.overall, locale);
+  const z = globalIndexZ(scores, profileKey);
 
   const strengths = [];
-  if (scores.attention >= CLINICAL_THRESHOLDS.strength) strengths.push(St.attention);
-  if (scores.timing >= CLINICAL_THRESHOLDS.strength) strengths.push(St.timing);
-  if (scores.impulsivity >= CLINICAL_THRESHOLDS.strength) strengths.push(St.impulse);
-  if (scores.hyperactivity >= CLINICAL_THRESHOLDS.strength) strengths.push(St.motor);
-
   const weaknesses = [];
-  if (scores.timing < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.timing);
-  if (scores.impulsivity < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.impulse);
-  if (scores.attention < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.attention);
-  if (scores.hyperactivity < CLINICAL_THRESHOLDS.weakness) weaknesses.push(St.motor);
+  const fields = [
+    ["attention", scores.attention, St.attention],
+    ["timing", scores.timing, St.timing],
+    ["impulsivity", scores.impulsivity, St.impulse],
+    ["hyperactivity", scores.hyperactivity, St.motor]
+  ];
+  for (const [key, score, label] of fields) {
+    const level = normLevelFromZ(z[key]);
+    if (level <= 2 && score >= CLINICAL_THRESHOLDS.strength) strengths.push(label);
+    if (level >= 4) weaknesses.push(label);
+  }
 
-  const shortComment = buildGeneralShortComment(scores, distractor, locale);
+  const shortComment = buildGeneralShortComment(scores, distractor, locale, z);
 
   return {
     overall: scores.overall,
@@ -426,18 +481,24 @@ export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, 
   };
 }
 
-export function buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale = "tr") {
+export function buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale = "tr", z = null) {
   const I = getReportPdfStrings(locale).indexes;
   const P = getReportPdfStrings(locale).professional;
   if (validity.isInvalid) {
     return [P.invalid1, P.invalid2, P.invalid3].join("\n\n");
   }
 
+  const line = (key) => {
+    const zv = z?.[key];
+    if (zv != null && Number.isFinite(zv)) return commentForNormZ(I[key], zv);
+    return pickTierComment(I[key], scores[key]);
+  };
+
   const paras = [P.coop];
-  paras.push(pickTierComment(I.attention, scores.attention));
-  paras.push(pickTierComment(I.timing, scores.timing));
-  paras.push(pickTierComment(I.impulsivity, scores.impulsivity));
-  paras.push(pickTierComment(I.hyperactivity, scores.hyperactivity));
+  paras.push(line("attention"));
+  paras.push(line("timing"));
+  paras.push(line("impulsivity"));
+  paras.push(line("hyperactivity"));
   paras.push(distractor.anyAffected ? P.distLow : P.distOk);
   if (sustainability.delta != null && sustainability.delta <= CLINICAL_THRESHOLDS.sustainabilityOrange) {
     paras.push(fillTemplate(P.sustNote, { label: sustainability.label }));
