@@ -59,7 +59,7 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-          <HomeHeroVisual hero={m.hero} />
+          <HomeHeroVisual />
         </div>
       </section>
 

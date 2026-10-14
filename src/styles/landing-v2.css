@@ -162,7 +162,14 @@
 /* Hero visual */
 .fp-mkt-hero-visual {
   position: relative;
-  min-height: 320px;
+  min-height: 0;
+}
+
+.fp-mkt-hero-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
 }
 
 .fp-mkt-laptop {
