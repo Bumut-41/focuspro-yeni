@@ -970,6 +970,44 @@ a:hover {
   max-width: 320px;
 }
 
+.space-screen--touch {
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.space-screen-tap {
+  position: relative;
+  z-index: 3;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 55%, #0369a1 100%);
+  box-shadow: 0 16px 40px rgba(2, 132, 199, 0.45);
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  animation: space-screen-key-bounce 1.2s ease-in-out infinite;
+}
+
+.space-screen-tap.is-pressed {
+  transform: scale(0.96);
+  animation: none;
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 55%, #15803d 100%);
+}
+
+.space-screen-keyhint {
+  margin: 18px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #94a3b8;
+}
+
 .space-screen-touch {
   padding: 12px 20px;
   border-radius: 12px;
@@ -1701,6 +1739,10 @@ a:hover {
   justify-content: center;
   cursor: pointer;
   flex: 1;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 @media (min-width: 900px) {
@@ -1711,6 +1753,22 @@ a:hover {
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
   }
+
+  .test-run-stage.test-run-stage--fill {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+html.test-touch-lock,
+html.test-touch-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
 }
 
 /* Araba, kedi, koşan, motorsiklet, araba korna — yatay geçiş */

@@ -12,6 +12,7 @@ import {
 import { computeReportMetrics } from "../reportHelpers.js";
 import { ShapeView } from "../shapeUtils.jsx";
 import { useAttentionTest } from "../useAttentionTest.js";
+import { useTouchTest } from "../useTouchTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
 import { TestParticipantGuide } from "../components/TestParticipantGuide.jsx";
 import { formatPersistResult, persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
@@ -29,9 +30,12 @@ import {
 export default function TestFlowPage() {
   const { refreshProfile, user, isPsychologist } = useAuth();
   const { t, strings, locale } = useLocale();
+  const touchTest = useTouchTest();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const instr = strings.test.instructions;
+  const instr = touchTest
+    ? { ...strings.test.instructions, ...strings.test.instructionsTouch }
+    : strings.test.instructions;
   const [step, setStep] = useState("form");
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
@@ -95,6 +99,12 @@ export default function TestFlowPage() {
     setImmersive(isImmersiveStep);
     return () => setImmersive(false);
   }, [isImmersiveStep, setImmersive]);
+
+  useEffect(() => {
+    const lock = touchTest && (step === "countdown" || step === "practiceRun" || step === "run");
+    document.documentElement.classList.toggle("test-touch-lock", lock);
+    return () => document.documentElement.classList.remove("test-touch-lock");
+  }, [touchTest, step]);
 
   useEffect(() => {
     let cancelled = false;
@@ -202,6 +212,15 @@ export default function TestFlowPage() {
   const { target, scene, gifs, running, start, register } = useAttentionTest(activeTestProfile, {
       onFinished: handleTestFinished
     });
+
+  const handleStagePointerDown = useCallback(
+    (event) => {
+      if (typeof event.button === "number" && event.button > 0) return;
+      if (event.cancelable) event.preventDefault();
+      register();
+    },
+    [register]
+  );
 
   const participant = { name, age, birthDate: birth, gender };
 
@@ -614,45 +633,70 @@ export default function TestFlowPage() {
       )}
 
       {step === "guide" && (
-        <TestParticipantGuide onStartPractice={startPractice} targetShape={target?.shape ?? "triangle"} />
+        <TestParticipantGuide
+          onStartPractice={startPractice}
+          targetShape={target?.shape ?? "triangle"}
+          touchTest={touchTest}
+        />
       )}
 
       {step === "spaceCheck" && (
         <div
-          className="space-screen"
+          className={touchTest ? "space-screen space-screen--touch" : "space-screen"}
           ref={spaceScreenRef}
           tabIndex={-1}
           onKeyDown={handleSpaceProbeKey}
-          aria-label={t("test.spaceTitle")}
+          onPointerDown={
+            touchTest
+              ? (event) => {
+                  if (typeof event.button === "number" && event.button > 0) return;
+                  completeSpaceCheck();
+                }
+              : undefined
+          }
+          aria-label={t(touchTest ? "test.spaceTitleTouch" : "test.spaceTitle")}
         >
           <div className="space-screen-bg" aria-hidden />
           <div className="space-screen-bg space-screen-bg--2" aria-hidden />
           <div className="space-screen-inner">
-            <p className="space-screen-kicker">{t("test.stepSpace")}</p>
+            <p className="space-screen-kicker">{t(touchTest ? "test.stepSpaceTouch" : "test.stepSpace")}</p>
             {!spaceCelebrating ? (
-              <>
-                <h2 className="space-screen-head">{t("test.spaceTitle")}</h2>
-                <p className="space-screen-sub">{t("test.spaceSub")}</p>
-                <div className="space-screen-visual" aria-hidden>
-                  <div className="space-screen-ring space-screen-ring--r1" />
-                  <div className="space-screen-ring space-screen-ring--r2" />
-                  <div className="space-screen-ring space-screen-ring--r3" />
-                  <div className="space-screen-key-wrap">
-                    <div className={`space-screen-key${spaceKeyLit ? " is-pressed" : " space-screen-key--pulse"}`}>
-                      <span className="space-screen-key-label">SPACE</span>
+              touchTest ? (
+                <>
+                  <h2 className="space-screen-head">{t("test.spaceTitleTouch")}</h2>
+                  <p className="space-screen-sub">{t("test.spaceSubTouch")}</p>
+                  <div className="space-screen-visual" aria-hidden>
+                    <div className="space-screen-ring space-screen-ring--r1" />
+                    <div className="space-screen-ring space-screen-ring--r2" />
+                    <div className="space-screen-ring space-screen-ring--r3" />
+                    <div className={`space-screen-tap${spaceKeyLit ? " is-pressed" : ""}`}>
+                      <span>{t("test.spaceNudgeTouch")}</span>
                     </div>
-                    <p className="space-screen-nudge">{t("test.spaceNudge")}</p>
                   </div>
-                </div>
-                <button type="button" className="space-screen-touch" onClick={() => completeSpaceCheck()}>
-                  {t("test.spaceTouch")}
-                </button>
-              </>
+                  <p className="space-screen-keyhint">{t("test.spaceKeyboardHint")}</p>
+                </>
+              ) : (
+                <>
+                  <h2 className="space-screen-head">{t("test.spaceTitle")}</h2>
+                  <p className="space-screen-sub">{t("test.spaceSub")}</p>
+                  <div className="space-screen-visual" aria-hidden>
+                    <div className="space-screen-ring space-screen-ring--r1" />
+                    <div className="space-screen-ring space-screen-ring--r2" />
+                    <div className="space-screen-ring space-screen-ring--r3" />
+                    <div className="space-screen-key-wrap">
+                      <div className={`space-screen-key${spaceKeyLit ? " is-pressed" : " space-screen-key--pulse"}`}>
+                        <span className="space-screen-key-label">SPACE</span>
+                      </div>
+                      <p className="space-screen-nudge">{t("test.spaceNudge")}</p>
+                    </div>
+                  </div>
+                </>
+              )
             ) : (
               <div className="space-screen-win">
                 <span className="space-screen-win-burst" aria-hidden />
                 <span className="space-screen-win-check">✓</span>
-                <p className="space-screen-win-title">{t("test.spaceOk")}</p>
+                <p className="space-screen-win-title">{t(touchTest ? "test.spaceOkTouch" : "test.spaceOk")}</p>
               </div>
             )}
           </div>
@@ -695,10 +739,9 @@ export default function TestFlowPage() {
 
       {step === "practiceRun" && running && (
         <div
-          className="test-run-stage"
+          className={touchTest ? "test-run-stage test-run-stage--fill" : "test-run-stage"}
           role="presentation"
-          onClick={register}
-          onTouchStart={register}
+          onPointerDown={handleStagePointerDown}
         >
           {gifs.map((g) => (
             <DistractorGif
@@ -752,10 +795,9 @@ export default function TestFlowPage() {
 
       {step === "run" && running && (
         <div
-          className="test-run-stage"
+          className={touchTest ? "test-run-stage test-run-stage--fill" : "test-run-stage"}
           role="presentation"
-          onClick={register}
-          onTouchStart={register}
+          onPointerDown={handleStagePointerDown}
         >
           {gifs.map((g) => (
             <DistractorGif

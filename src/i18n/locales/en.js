@@ -208,10 +208,16 @@ export const en = {
     stepAudio: "Step 2 / 5 · Sound check",
     stepMain: "Step 5 / 5 · Main test",
     spaceTitle: "Let's try the SPACE key first",
-    spaceSub: "Press or tap the SPACE key once.",
+    spaceSub: "Press the SPACE key once.",
     spaceNudge: "Press ↓",
     spaceOk: "OK — SPACE detected",
     spaceTouch: "Tap to continue",
+    stepSpaceTouch: "Step 1 / 5 · Tap check",
+    spaceTitleTouch: "Let's try tapping the screen first",
+    spaceSubTouch: "During the test you will tap the screen when you see the target.",
+    spaceNudgeTouch: "Tap",
+    spaceOkTouch: "OK — tap detected",
+    spaceKeyboardHint: "If you have a keyboard, Space works too.",
     audioTitle: "Now let's check the sound",
     audioSub:
       "Set the volume to 50. If you heard it clearly, press green; if you did not, press red.",
@@ -255,6 +261,15 @@ export const en = {
       rule: "Press SPACE once, quickly, only when you see the blue triangle.",
       startPractice: "START PRACTICE"
     },
+    participantGuideTouch: {
+      rules: [
+        "Every time you see a blue triangle, tap the screen once as quickly and accurately as you can.",
+        "Do not tap the screen for shapes other than the blue triangle.",
+        "Keep your attention on the center of the screen.",
+        "Try to respond both quickly and accurately."
+      ],
+      rule: "Tap the screen once, quickly, only when you see the blue triangle."
+    },
     instructions: {
       title: "FocusProLab Attention Test Instructions",
       practiceBtn: "Click for practice test",
@@ -269,6 +284,18 @@ export const en = {
       briefExtra: "When you are ready, you can start the main test.",
       briefEmphasis:
         "Remember: press the space bar once as quickly as you can each time you see the blue triangle"
+    },
+    instructionsTouch: {
+      paragraphs: [
+        "In this test you will see different shapes on the screen.",
+        "Your task is to tap the screen once as quickly as you can each time you see the blue triangle.",
+        "Do not tap for any shape other than the blue triangle.",
+        "For example, do not tap for blue square, green triangle, red circle, black plus, or any other shape.",
+        "After these instructions you will do a 30-second practice run like the real test: distractor-free, then short silent GIF, audio-only, and combined sections. This practice is not recorded.",
+        "Remember: tap the screen once as quickly as you can each time you see the blue triangle."
+      ],
+      briefEmphasis:
+        "Remember: tap the screen once as quickly as you can each time you see the blue triangle"
     }
   },
   report: {

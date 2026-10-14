@@ -2,9 +2,10 @@ import { useLocale } from "../i18n/LocaleContext.jsx";
 import { ShapeView } from "../shapeUtils.jsx";
 import { FIXED_TARGET_COLOR } from "../constants.js";
 
-export function TestParticipantGuide({ onStartPractice, targetShape = "triangle" }) {
+export function TestParticipantGuide({ onStartPractice, targetShape = "triangle", touchTest = false }) {
   const { t, strings } = useLocale();
-  const g = strings.test.participantGuide;
+  const base = strings.test.participantGuide;
+  const g = touchTest ? { ...base, ...strings.test.participantGuideTouch } : base;
 
   return (
     <div className="test-participant-guide">

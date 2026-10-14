@@ -208,10 +208,16 @@ export const tr = {
     stepAudio: "Adım 2 / 5 · Ses kontrolü",
     stepMain: "Adım 5 / 5 · Asıl test",
     spaceTitle: "Önce SPACE tuşunu deneyelim",
-    spaceSub: "SPACE tuşuna bir kez basın veya dokunun.",
+    spaceSub: "SPACE tuşuna bir kez basın.",
     spaceNudge: "Basın ↓",
     spaceOk: "Tamam — SPACE algılandı",
     spaceTouch: "Dokunarak geç",
+    stepSpaceTouch: "Adım 1 / 5 · Dokunma kontrolü",
+    spaceTitleTouch: "Önce ekrana dokunmayı deneyelim",
+    spaceSubTouch: "Test sırasında da hedefi görünce ekrana dokunacaksınız.",
+    spaceNudgeTouch: "Dokunun",
+    spaceOkTouch: "Tamam — dokunuş algılandı",
+    spaceKeyboardHint: "Klavyeniz varsa Space de olur.",
     audioTitle: "Şimdi sesi kontrol edelim",
     audioSub:
       "Sesi 50 seviyesine getirin. Sesi net duyduysanız yeşil, duymadıysanız kırmızıya basın.",
@@ -256,6 +262,15 @@ export const tr = {
       rule: "Yalnızca mavi üçgeni gördüğünde SPACE tuşuna bir kez ve hızlıca bas.",
       startPractice: "DENEMEYİ BAŞLAT"
     },
+    participantGuideTouch: {
+      rules: [
+        "Mavi üçgeni her gördüğünüzde mümkün olduğunca hızlı ve doğru şekilde ekrana bir kez dokunun.",
+        "Mavi üçgen dışındaki şekillerde ekrana dokunmayın.",
+        "Dikkatinizi ekranın ortasına verin.",
+        "Hem hızlı hem de doğru yanıt vermeye çalışın."
+      ],
+      rule: "Yalnızca mavi üçgeni gördüğünde ekrana bir kez ve hızlıca dokun."
+    },
     instructions: {
       title: "FocusProlab Dikkat Testi Yönergesi",
       practiceBtn: "Deneme testi için tıklayınız",
@@ -270,6 +285,18 @@ export const tr = {
       briefExtra: "Hazırsan asıl teste başlayabilirsin.",
       briefEmphasis:
         "Unutma: Sadece mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmalısın"
+    },
+    instructionsTouch: {
+      paragraphs: [
+        "Bu testte ekranda farklı şekiller göreceksin.",
+        "Senin görevin yalnızca mavi üçgeni her gördüğünde ekrana en hızlı şekilde sadece bir kez dokunmaktır.",
+        "Mavi üçgen dışında başka hiçbir şekli gördüğünde dokunma.",
+        "Örneğin; mavi kare, yeşil üçgen, kırmızı daire, siyah artı veya başka şekiller gördüğünde dokunma.",
+        "Yönergeden sonra 30 saniyelik bir deneme yapacaksın; asıl testteki gibi sırayla çeldirici yok, sessiz gif, sadece ses ve kombine bölümler kısa süreyle gelir. Bu deneme kaydedilmez.",
+        "Unutma: Sadece mavi üçgeni her gördüğünde ekrana en hızlı şekilde sadece bir kez dokunmalısın."
+      ],
+      briefEmphasis:
+        "Unutma: Sadece mavi üçgeni her gördüğünde ekrana en hızlı şekilde sadece bir kez dokunmalısın"
     }
   },
   report: {

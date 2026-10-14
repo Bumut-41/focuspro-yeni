@@ -208,10 +208,16 @@ export const it = {
     stepAudio: "Passo 2 / 5 · Controllo audio",
     stepMain: "Passo 5 / 5 · Test principale",
     spaceTitle: "Proviamo prima il tasto SPAZIO",
-    spaceSub: "Premi o tocca il tasto SPAZIO una volta.",
+    spaceSub: "Premi il tasto SPAZIO una volta.",
     spaceNudge: "Premi ↓",
     spaceOk: "OK — SPAZIO rilevato",
     spaceTouch: "Tocca per continuare",
+    stepSpaceTouch: "Passo 1 / 5 · Controllo tocco",
+    spaceTitleTouch: "Proviamo prima a toccare lo schermo",
+    spaceSubTouch: "Durante il test toccherai lo schermo quando vedi il bersaglio.",
+    spaceNudgeTouch: "Tocca",
+    spaceOkTouch: "OK — tocco rilevato",
+    spaceKeyboardHint: "Se hai una tastiera, funziona anche Spazio.",
     audioTitle: "Ora controlliamo l'audio",
     audioSub:
       "Porta il volume a 50. Se lo hai sentito bene premi verde, se non lo hai sentito premi rosso.",
@@ -255,6 +261,15 @@ export const it = {
       rule: "Premi SPAZIO una sola volta, rapidamente, solo quando vedi il triangolo blu.",
       startPractice: "INIZIA LA PROVA"
     },
+    participantGuideTouch: {
+      rules: [
+        "Ogni volta che vedi un triangolo blu, tocca lo schermo una volta, il più rapidamente e correttamente possibile.",
+        "Non toccare lo schermo per le forme diverse dal triangolo blu.",
+        "Tieni l'attenzione al centro dello schermo.",
+        "Cerca di rispondere sia in fretta sia in modo corretto."
+      ],
+      rule: "Tocca lo schermo una sola volta, rapidamente, solo quando vedi il triangolo blu."
+    },
     instructions: {
       title: "Istruzioni del test di attenzione FocusProLab",
       practiceBtn: "Clicca per la prova",
@@ -269,6 +284,18 @@ export const it = {
       briefExtra: "Quando sei pronto puoi avviare il test principale.",
       briefEmphasis:
         "Ricorda: premi la barra spaziatrice una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu"
+    },
+    instructionsTouch: {
+      paragraphs: [
+        "In questo test vedrai forme diverse sullo schermo.",
+        "Il tuo compito è toccare lo schermo una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu.",
+        "Non toccare per nessuna forma diversa dal triangolo blu.",
+        "Per esempio non toccare per quadrato blu, triangolo verde, cerchio rosso, più nero o qualsiasi altra forma.",
+        "Dopo queste istruzioni farai una prova di 30 secondi simile al test vero: senza distrattori, poi brevi GIF silenziose, solo audio e sezioni combinate. Questa prova non viene registrata.",
+        "Ricorda: tocca lo schermo una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu."
+      ],
+      briefEmphasis:
+        "Ricorda: tocca lo schermo una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu"
     }
   },
   report: {
