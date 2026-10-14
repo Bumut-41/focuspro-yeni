@@ -84,20 +84,26 @@ export default function HomePage() {
             <div className="fp-mkt-audience">
               {m.audience.cards.map((card) => (
                 <article key={card.key} className={`fp-mkt-audience-card fp-mkt-audience-card--${card.theme}`}>
-                  <span className="fp-mkt-audience-icon" aria-hidden>
-                    {card.icon}
-                  </span>
-                  <h3>{card.title}</h3>
-                  <p>{card.text}</p>
-                  <Button
-                    asLink
-                    to={card.key === "pro" && user ? "/panel" : card.to}
-                    variant="primary"
-                    size="sm"
-                    className="fp-mkt-audience-cta"
-                  >
-                    {card.cta}
-                  </Button>
+                  <div className="fp-mkt-audience-photo-wrap">
+                    <img
+                      src={`/audience-${card.key}.png`}
+                      alt=""
+                      className="fp-mkt-audience-photo"
+                    />
+                  </div>
+                  <div className="fp-mkt-audience-body">
+                    <h3>{card.title}</h3>
+                    <p>{card.text}</p>
+                    <Button
+                      asLink
+                      to={card.key === "pro" && user ? "/panel" : card.to}
+                      variant="primary"
+                      size="sm"
+                      className="fp-mkt-audience-cta"
+                    >
+                      {card.cta}
+                    </Button>
+                  </div>
                 </article>
               ))}
             </div>

@@ -403,11 +403,34 @@ a.fp-mkt-metric:hover {
 
 .fp-mkt-audience-card {
   border-radius: 16px;
-  padding: 1.5rem 1.25rem;
+  padding: 0;
   color: #fff;
   display: flex;
   flex-direction: column;
-  min-height: 220px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.fp-mkt-audience-photo-wrap {
+  height: 168px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.fp-mkt-audience-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  transform: scale(1.08);
+}
+
+.fp-mkt-audience-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.15rem 1.25rem 1.25rem;
 }
 
 .fp-mkt-audience-card--blue {
