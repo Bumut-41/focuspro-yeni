@@ -112,29 +112,48 @@ export default function HomePage() {
           <section className="fp-mkt-section">
             <h2 className="fp-mkt-section-title">{m.products.title}</h2>
             <div className="fp-mkt-products">
-              {m.products.items.map((p) =>
-                p.to ? (
+              {m.products.items.map((p) => {
+                const photo = {
+                  "/urun/focusprolab-testi": "/product-test.png",
+                  "/urun/pdf-rapor": "/product-report.png",
+                  "/urun/gelisim-programi": "/product-program.png",
+                  "/urun/uzman-yorumu": "/product-commentary.png",
+                  "/urun/uzman-gorusmesi": "/product-consult.png"
+                }[p.to];
+                const body = (
+                  <>
+                    {photo ? (
+                      <div className="fp-mkt-product-photo-wrap">
+                        <img src={photo} alt="" className="fp-mkt-product-photo" />
+                      </div>
+                    ) : (
+                      <span className="fp-mkt-product-icon" aria-hidden>
+                        {p.icon}
+                      </span>
+                    )}
+                    <div className="fp-mkt-product-body">
+                      <h3>{p.title}</h3>
+                      <p>{p.desc}</p>
+                      {p.to ? (
+                        <span className="fp-mkt-product-link">{m.products.cta}</span>
+                      ) : (
+                        <button type="button" className="fp-mkt-product-link">
+                          {m.products.cta}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                );
+                return p.to ? (
                   <Link key={p.title} to={p.to} className="fp-mkt-product fp-mkt-product--link">
-                    <span className="fp-mkt-product-icon" aria-hidden>
-                      {p.icon}
-                    </span>
-                    <h3>{p.title}</h3>
-                    <p>{p.desc}</p>
-                    <span className="fp-mkt-product-link">{m.products.cta}</span>
+                    {body}
                   </Link>
                 ) : (
                   <article key={p.title} className="fp-mkt-product">
-                    <span className="fp-mkt-product-icon" aria-hidden>
-                      {p.icon}
-                    </span>
-                    <h3>{p.title}</h3>
-                    <p>{p.desc}</p>
-                    <button type="button" className="fp-mkt-product-link">
-                      {m.products.cta}
-                    </button>
+                    {body}
                   </article>
-                )
-              )}
+                );
+              })}
             </div>
           </section>
 
