@@ -1,4 +1,5 @@
--- Davetli test yalnızca bir kez. Supabase SQL Editor'da bir kez çalıştırın.
+-- Her davet bağlantısı tek kullanımlık. Aynı kişiye yeni davet açılabilir; her açılış 1 kredi düşer.
+-- Supabase SQL Editor'da FocusPro-Yeni projesinde bir kez çalıştırın.
 
 create or replace function public.create_test_invite(p_recipient_email text)
 returns jsonb
@@ -13,7 +14,6 @@ declare
   v_token text;
   v_id uuid;
   v_expires timestamptz := now() + interval '3 days';
-  v_existing public.test_invites%rowtype;
 begin
   if v_uid is null then
     raise exception 'not_authenticated';
@@ -23,35 +23,6 @@ begin
   end if;
   if v_email !~ '^[^@]+@[^@]+\.[^@]+$' then
     raise exception 'invalid_email';
-  end if;
-
-  select * into v_existing
-  from public.test_invites
-  where recipient_email = v_email
-    and status = 'completed'
-  order by completed_at desc nulls last
-  limit 1;
-
-  if found then
-    raise exception 'test_already_completed';
-  end if;
-
-  select * into v_existing
-  from public.test_invites
-  where psychologist_id = v_uid
-    and recipient_email = v_email
-    and status in ('pending', 'accepted')
-    and expires_at > now()
-  order by created_at desc
-  limit 1;
-
-  if found then
-    return jsonb_build_object(
-      'id', v_existing.id,
-      'token', v_existing.token,
-      'recipient_email', v_existing.recipient_email,
-      'expires_at', v_existing.expires_at
-    );
   end if;
 
   select test_credits into v_credits from public.profiles where id = v_uid for update;
@@ -120,15 +91,6 @@ begin
     raise exception 'email_mismatch';
   end if;
 
-  if exists (
-    select 1 from public.test_invites
-    where status = 'completed'
-      and id <> v_inv.id
-      and (taker_id = v_uid or recipient_email = v_user_email)
-  ) then
-    raise exception 'test_already_completed';
-  end if;
-
   if exists (select 1 from public.profiles where id = v_uid and role <> 'individual') then
     raise exception 'invite_individual_only';
   end if;
@@ -167,13 +129,6 @@ begin
     return null;
   end if;
 
-  if exists (
-    select 1 from public.test_invites
-    where taker_id = v_uid and status = 'completed'
-  ) then
-    return jsonb_build_object('completed', true);
-  end if;
-
   select * into v_inv
   from public.test_invites
   where taker_id = v_uid
@@ -183,6 +138,12 @@ begin
   limit 1;
 
   if not found then
+    if exists (
+      select 1 from public.test_invites
+      where taker_id = v_uid and status = 'completed'
+    ) then
+      return jsonb_build_object('completed', true);
+    end if;
     return null;
   end if;
 
@@ -225,15 +186,6 @@ begin
 
   if not exists (select 1 from public.profiles where id = v_uid) then
     raise exception 'profile_not_found';
-  end if;
-
-  if not public.is_admin() and not public.is_psychologist() then
-    if exists (
-      select 1 from public.test_invites
-      where taker_id = v_uid and status = 'completed'
-    ) then
-      raise exception 'invite_already_used';
-    end if;
   end if;
 
   v_owner := v_uid;
