@@ -12,6 +12,7 @@ import { isStaleChunkError, reloadStaleChunk } from "../lib/reloadStaleChunk.js"
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
 import { SpecialistClientsPanel } from "../components/SpecialistClientsPanel.jsx";
+import { MyPurchasesPanel } from "../components/MyPurchasesPanel.jsx";
 import {
   Alert,
   Badge,
@@ -185,6 +186,8 @@ export default function DashboardPage() {
           </Alert>
         )}
       </Card>
+
+      {(profile?.role === "individual" || profile?.role === "psychologist") && <MyPurchasesPanel />}
 
       {isPsychologist && <SpecialistClientsPanel />}
       {isPsychologist && <PsychologistInvitesPanel />}
