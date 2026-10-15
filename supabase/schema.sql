@@ -82,7 +82,7 @@ begin
   v_birth := nullif(new.raw_user_meta_data->>'birth_date', '')::date;
 
   insert into public.profiles (id, role, full_name, birth_date, test_credits, profile_completed)
-  values (new.id, v_role, v_name, v_birth, 999999, v_birth is not null)
+  values (new.id, v_role, v_name, v_birth, 0, v_birth is not null)
   on conflict (id) do nothing;
 
   return new;

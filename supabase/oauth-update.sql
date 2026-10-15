@@ -29,7 +29,7 @@ begin
   v_completed := v_birth is not null;
 
   insert into public.profiles (id, role, full_name, birth_date, test_credits, profile_completed)
-  values (new.id, v_role, v_name, v_birth, 999999, v_completed)
+  values (new.id, v_role, v_name, v_birth, 0, v_completed)
   on conflict (id) do update set
     full_name = excluded.full_name
   where public.profiles.profile_completed = false;
