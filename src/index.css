@@ -1836,6 +1836,123 @@ html.test-touch-lock body {
   }
 }
 
+.fp-buy-form {
+  margin-top: var(--fp-space-5);
+}
+
+.fp-buy-price,
+.fp-buy-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fp-space-3);
+}
+
+.fp-buy-price {
+  margin-top: var(--fp-space-4);
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--fp-primary-soft);
+}
+
+.fp-buy-price strong,
+.fp-buy-total span:last-child {
+  color: var(--fp-primary);
+  font-size: 1.25rem;
+}
+
+.fp-buy-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+}
+
+.fp-buy-qty button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--fp-border);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fp-buy-qty button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fp-buy-qty .fp-input {
+  width: 72px;
+  text-align: center;
+}
+
+.fp-buy-total {
+  margin: var(--fp-space-5) 0;
+  padding-top: var(--fp-space-4);
+  border-top: 1px solid var(--fp-border);
+  font-weight: 700;
+}
+
+.fp-buy-section {
+  margin: var(--fp-space-5) 0 0;
+  font-size: 1.05rem;
+}
+
+.fp-buy-types {
+  display: flex;
+  gap: 8px;
+  margin-top: var(--fp-space-4);
+}
+
+.fp-buy-types button {
+  flex: 1;
+  height: 40px;
+  border: 1px solid var(--fp-border);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.fp-buy-types button.is-active {
+  border-color: var(--fp-primary);
+  background: var(--fp-primary-soft);
+  color: var(--fp-primary);
+}
+
+.fp-buy-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--fp-space-4);
+}
+
+.fp-buy-form .fp-btn {
+  margin-top: var(--fp-space-5);
+}
+
+.fp-buy-cap h2 {
+  margin: var(--fp-space-5) 0 var(--fp-space-2);
+  font-size: 1.15rem;
+}
+
+.fp-buy-cap p {
+  margin: 0 0 var(--fp-space-4);
+  color: var(--fp-text-secondary);
+}
+
+.fp-buy-after {
+  margin-top: var(--fp-space-4);
+}
+
+@media (max-width: 640px) {
+  .fp-buy-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .distractor-gif-move-ltr,
   .distractor-gif-move-rtl,

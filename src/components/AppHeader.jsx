@@ -45,6 +45,9 @@ export function AppHeader() {
                   <AppNavLink to="/panel" end>
                     {t("nav.panel")}
                   </AppNavLink>
+                  {profile?.role === "individual" && (
+                    <AppNavLink to="/test-satin-al">{t("nav.buyTest")}</AppNavLink>
+                  )}
                   <AppNavLink to="/test">{t("nav.test")}</AppNavLink>
                   {isAdmin && <AppNavLink to="/admin">{t("nav.admin")}</AppNavLink>}
                   <div className="fp-nav-user">

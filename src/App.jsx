@@ -24,6 +24,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CompleteProfilePage from "./pages/CompleteProfilePage.jsx";
 import InvitePage from "./pages/InvitePage.jsx";
+import BuyTestPage from "./pages/BuyTestPage.jsx";
 
 const TestFlowPage = lazy(() => import("./pages/TestFlowPage.jsx"));
 
@@ -90,6 +91,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/test-satin-al"
+        element={
+          <ProtectedRoute>
+            <BuyTestPage />
           </ProtectedRoute>
         }
       />
