@@ -119,7 +119,7 @@ export default function HomePage() {
             <div className="fp-mkt-products">
               {m.products.items.map((p) => {
                 const photo = {
-                  "/urun/focusprolab-testi": "/product-test.png",
+                  "/urun/focusprolab-testi": "/product-test.jpg",
                   "/urun/pdf-rapor": "/product-report.png",
                   "/urun/gelisim-programi": "/product-program.png",
                   "/urun/uzman-yorumu": "/product-commentary.png",
