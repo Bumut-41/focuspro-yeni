@@ -421,7 +421,13 @@ export const tr = {
     contactMessagesEmpty: "Henüz iletişim mesajı yok.",
     contactMessagesFailed: "İletişim mesajları okunamadı. Supabase SQL Editor'da contact-messages.sql dosyasını çalıştırın.",
     subject: "Konu",
-    location: "Şehir / ülke"
+    location: "Şehir / ülke",
+    purchasesTitle: "Test satın almaları ({{count}})",
+    purchasesDesc: "Bireysel kullanıcıların fatura bilgileri. Satıra tıklayınca adres ve kimlik numarası açılır.",
+    purchasesEmpty: "Henüz satın alma yok.",
+    purchasesFailed: "Satın almalar okunamadı. Supabase SQL Editor'da individual-purchases-admin-read.sql dosyasını çalıştırın.",
+    invoiceType: "Fatura türü",
+    taxId: "Kimlik / vergi no"
   },
   pressTimeline: {
     title: "Basış zaman çizelgesi",

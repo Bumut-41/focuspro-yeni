@@ -419,7 +419,13 @@ export const it = {
     contactMessagesEmpty: "Nessun messaggio.",
     contactMessagesFailed: "Impossibile leggere i messaggi. Esegui contact-messages.sql nell'editor SQL di Supabase.",
     subject: "Oggetto",
-    location: "Città / paese"
+    location: "Città / paese",
+    purchasesTitle: "Acquisti di test ({{count}})",
+    purchasesDesc: "Dati di fatturazione degli utenti individuali. Clicca una riga per vedere indirizzo e numero identificativo.",
+    purchasesEmpty: "Nessun acquisto.",
+    purchasesFailed: "Impossibile leggere gli acquisti. Esegui individual-purchases-admin-read.sql nell'editor SQL di Supabase.",
+    invoiceType: "Tipo di fattura",
+    taxId: "Codice identificativo / fiscale"
   },
   pressTimeline: {
     title: "Cronologia delle pressioni",

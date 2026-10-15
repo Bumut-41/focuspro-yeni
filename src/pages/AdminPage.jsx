@@ -33,6 +33,7 @@ import {
 import { fetchCorporateApplications } from "../services/corporateApplications.js";
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
 import { fetchContactMessages } from "../services/contactMessages.js";
+import { fetchIndividualPurchases, formatTl } from "../services/purchases.js";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
@@ -82,6 +83,9 @@ export default function AdminPage() {
   const [contactMessages, setContactMessages] = useState([]);
   const [contactMessagesError, setContactMessagesError] = useState("");
   const [contactId, setContactId] = useState(null);
+  const [purchases, setPurchases] = useState([]);
+  const [purchasesError, setPurchasesError] = useState("");
+  const [purchaseId, setPurchaseId] = useState(null);
   const [grantQuery, setGrantQuery] = useState("");
   const [userQuery, setUserQuery] = useState("");
   const [userRole, setUserRole] = useState("");
@@ -111,11 +115,12 @@ export default function AdminPage() {
 
   const load = useCallback(async () => {
     const searching = debouncedQuery.trim().length >= 2 || Boolean(testProfile || testFrom || testTo);
-    const [profilesResult, applicationsResult, specialistResult, contactResult] = await Promise.allSettled([
+    const [profilesResult, applicationsResult, specialistResult, contactResult, purchasesResult] = await Promise.allSettled([
       fetchAllProfiles(),
       fetchCorporateApplications(),
       fetchSpecialistApplications(),
-      fetchContactMessages()
+      fetchContactMessages(),
+      fetchIndividualPurchases()
     ]);
     const loadedProfiles = profilesResult.status === "fulfilled" ? profilesResult.value : [];
     const ownerIds =
@@ -170,6 +175,13 @@ export default function AdminPage() {
     } else {
       setContactMessages([]);
       setContactMessagesError(t("admin.contactMessagesFailed"));
+    }
+    if (purchasesResult.status === "fulfilled") {
+      setPurchases(purchasesResult.value);
+      setPurchasesError("");
+    } else {
+      setPurchases([]);
+      setPurchasesError(t("admin.purchasesFailed"));
     }
   }, [t, debouncedQuery, testProfile, testFrom, testTo]);
 
@@ -415,6 +427,78 @@ export default function AdminPage() {
           >
             {msg}
           </Alert>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title={t("admin.purchasesTitle", { count: purchases.length })}
+          description={t("admin.purchasesDesc")}
+        />
+        {purchasesError && <Alert variant="error">{purchasesError}</Alert>}
+        {!purchasesError && !purchases.length && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("admin.purchasesEmpty")}</p>
+        )}
+        {purchases.length > 0 && (
+          <DataTable
+            columns={[
+              {
+                label: t("admin.date"),
+                render: (row) => new Date(row.created_at).toLocaleString(dateLocale)
+              },
+              { key: "invoice_name", label: t("admin.name") },
+              {
+                label: t("admin.invoiceType"),
+                render: (row) =>
+                  row.invoice_type === "company" ? t("purchase.typeCompany") : t("purchase.typeIndividual")
+              },
+              { key: "quantity", label: t("admin.amount") },
+              {
+                label: t("purchase.total"),
+                render: (row) => formatTl(row.total_tl, locale)
+              },
+              { key: "email", label: t("admin.email") }
+            ]}
+            rows={purchases}
+            rowKey={(row) => row.id}
+            onRowClick={(row) => setPurchaseId(row.id)}
+            activeKey={purchaseId}
+          />
+        )}
+        {purchases.find((row) => row.id === purchaseId) && (
+          <div className="fp-spec-detail">
+            {(() => {
+              const row = purchases.find((item) => item.id === purchaseId);
+              const lines = [
+                [t("admin.date"), new Date(row.created_at).toLocaleString(dateLocale)],
+                [t("admin.name"), row.invoice_name],
+                [
+                  t("admin.invoiceType"),
+                  row.invoice_type === "company" ? t("purchase.typeCompany") : t("purchase.typeIndividual")
+                ],
+                [t("admin.taxId"), row.tax_id],
+                [t("purchase.taxOffice"), row.tax_office],
+                [t("admin.email"), row.email],
+                [t("admin.phone"), row.phone],
+                [t("admin.city"), row.city],
+                [t("purchase.district"), row.district],
+                [t("purchase.address"), row.address],
+                [t("admin.amount"), row.quantity],
+                [t("purchase.unit"), formatTl(row.unit_price_tl, locale)],
+                [t("purchase.total"), formatTl(row.total_tl, locale)]
+              ];
+              return (
+                <dl>
+                  {lines.map(([label, value]) => (
+                    <div key={label} className="fp-spec-detail-row">
+                      <dt>{label}</dt>
+                      <dd>{value || "—"}</dd>
+                    </div>
+                  ))}
+                </dl>
+              );
+            })()}
+          </div>
         )}
       </Card>
 

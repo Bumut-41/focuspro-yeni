@@ -32,3 +32,15 @@ export async function purchaseIndividualTests(input) {
   if (error) throw error;
   return data;
 }
+
+export async function fetchIndividualPurchases(limit = 200) {
+  const { data, error } = await supabase
+    .from("individual_test_purchases")
+    .select(
+      "id, quantity, unit_price_tl, total_tl, invoice_type, invoice_name, tax_id, tax_office, email, phone, city, district, address, created_at"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}

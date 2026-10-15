@@ -419,7 +419,13 @@ export const en = {
     contactMessagesEmpty: "No contact messages yet.",
     contactMessagesFailed: "Could not load contact messages. Run contact-messages.sql in the Supabase SQL Editor.",
     subject: "Subject",
-    location: "City / country"
+    location: "City / country",
+    purchasesTitle: "Test purchases ({{count}})",
+    purchasesDesc: "Invoice details from individual users. Click a row to open the address and ID number.",
+    purchasesEmpty: "No purchases yet.",
+    purchasesFailed: "Could not load purchases. Run individual-purchases-admin-read.sql in the Supabase SQL Editor.",
+    invoiceType: "Invoice type",
+    taxId: "ID / tax number"
   },
   pressTimeline: {
     title: "Press timeline",
