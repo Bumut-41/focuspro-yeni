@@ -22,6 +22,56 @@
   color: #0d9488;
 }
 
+@media (min-width: 1024px) {
+  .fp-header--marketing.fp-header--account {
+    height: auto;
+    --fp-header-h: 136px;
+  }
+
+  .fp-header--marketing.fp-header--account .fp-header-inner {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand marketing locale"
+      "brand account .";
+    column-gap: 1rem;
+    row-gap: 0.85rem;
+    height: auto;
+    align-items: center;
+    padding-top: 0.7rem;
+    padding-bottom: 0.85rem;
+  }
+
+  .fp-header--marketing.fp-header--account .fp-brand {
+    grid-area: brand;
+    height: 84px;
+    align-self: center;
+  }
+
+  .fp-header--marketing.fp-header--account .fp-mkt-topnav {
+    grid-area: marketing;
+    flex: none;
+    width: 100%;
+    padding: 0;
+  }
+
+  .fp-header--marketing.fp-header--account .fp-header-end {
+    display: contents;
+  }
+
+  .fp-header--marketing.fp-header--account .fp-nav {
+    grid-area: account;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .fp-header--marketing.fp-header--account .fp-locale-toggle {
+    grid-area: locale;
+    justify-self: end;
+    align-self: center;
+  }
+}
+
 .fp-mkt-topnav {
   display: none;
   align-items: center;

@@ -21,7 +21,11 @@ export function AppHeader() {
   const nav = strings.home?.marketing?.nav;
 
   return (
-    <header className={`fp-header${isMarketingPage ? " fp-header--marketing" : ""}`}>
+    <header
+      className={`fp-header${isMarketingPage ? " fp-header--marketing" : ""}${
+        isMarketingPage && user ? " fp-header--account" : ""
+      }`}
+    >
       <div className="fp-header-inner">
         <Link to="/" className="fp-brand" aria-label="Focus Pro Lab">
           <BrandLogo variant="header" />
