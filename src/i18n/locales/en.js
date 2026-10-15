@@ -129,6 +129,8 @@ export const en = {
       "Only test reports for clients you added appear here. The press report is not available in this panel.",
     guideHint: "A 30-second practice briefing is shown before the real test. Practice answers are not scored.",
     newTest: "Start new test",
+    noTestCreditsTitle: "You have no tests left",
+    noTestCredits: "Each completed test uses 1 test from your balance. Buy a test to continue.",
     adminPanel: "Admin panel",
     historyTitle: "Your past tests ({{count}})",
     historyTitleClients: "Client tests ({{count}})",

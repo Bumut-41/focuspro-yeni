@@ -129,6 +129,8 @@ export const tr = {
       "Yalnızca sizin eklediğiniz danışanların test raporları burada görünür. Basış raporuna bu panelden erişilmez.",
     guideHint: "Asıl testten önce 30 saniyelik deneme yönergesi gösterilir. Deneme puanı değerlendirmeye girmez.",
     newTest: "Yeni test başlat",
+    noTestCreditsTitle: "Test hakkınız kalmadı",
+    noTestCredits: "Her tamamlanan test, bakiyenizden 1 test düşer. Devam etmek için test satın alın.",
     adminPanel: "Yönetim paneli",
     historyTitle: "Geçmiş testleriniz ({{count}})",
     historyTitleClients: "Danışan testleri ({{count}})",

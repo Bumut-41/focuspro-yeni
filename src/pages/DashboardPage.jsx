@@ -5,7 +5,6 @@ import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
 import { fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
 import { fetchMyClients } from "../services/clients.js";
-import { getActiveInviteForUser } from "../services/invites.js";
 import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import { includesText, inDateRange } from "../lib/listFilters.js";
@@ -26,7 +25,7 @@ import {
 } from "../components/ui.jsx";
 
 export default function DashboardPage() {
-  const { profile, isAdmin, isPsychologist } = useAuth();
+  const { profile, isAdmin, isPsychologist, credits } = useAuth();
   const { t, locale, dateLocale } = useLocale();
   const [sessions, setSessions] = useState([]);
   const [msg, setMsg] = useState("");
@@ -36,7 +35,6 @@ export default function DashboardPage() {
   const [testFrom, setTestFrom] = useState("");
   const [testTo, setTestTo] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [inviteUsed, setInviteUsed] = useState(false);
   const canViewSessions = isAdmin || isPsychologist;
   const profileOptions = useMemo(
     () => ["child", "teen", "adult"].map((key) => ({ value: key, label: profileLabel(key, locale) })),
@@ -102,19 +100,6 @@ export default function DashboardPage() {
     load();
   }, [load]);
 
-  useEffect(() => {
-    if (isAdmin || isPsychologist) return undefined;
-    let cancelled = false;
-    getActiveInviteForUser()
-      .then((row) => {
-        if (!cancelled && row?.completed) setInviteUsed(true);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [isAdmin, isPsychologist]);
-
   const testsFiltered = Boolean(testQuery.trim() || testProfile || testFrom || testTo);
   const filteredSessions = useMemo(
     () =>
@@ -149,8 +134,18 @@ export default function DashboardPage() {
           </p>
         )}
         <Stack gap={12} style={{ marginTop: 20 }}>
-          {inviteUsed ? (
-            <Alert variant="info">{t("invite.usedBody")}</Alert>
+          {profile?.role === "individual" && (
+            <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
+              {t("purchase.credits", { count: credits })}
+            </p>
+          )}
+          {profile?.role === "individual" && credits < 1 ? (
+            <>
+              <Alert variant="info">{t("dashboard.noTestCredits")}</Alert>
+              <Button asLink to="/test-satin-al" variant="primary">
+                {t("nav.buyTest")}
+              </Button>
+            </>
           ) : (
             <Button asLink to="/test" variant="primary">
               {isPsychologist ? t("clients.startTest") : t("dashboard.newTest")}

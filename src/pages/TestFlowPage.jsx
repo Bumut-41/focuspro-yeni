@@ -28,7 +28,7 @@ import {
 } from "../copy/testInstructions.js";
 
 export default function TestFlowPage() {
-  const { refreshProfile, user, isPsychologist } = useAuth();
+  const { refreshProfile, user, isPsychologist, credits, profile: account } = useAuth();
   const { t, strings, locale } = useLocale();
   const touchTest = useTouchTest();
   const navigate = useNavigate();
@@ -109,27 +109,27 @@ export default function TestFlowPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const token = searchParams.get("invite") || searchParams.get("davet") || getStoredInviteToken();
-      try {
-        if (token) {
-          try {
-            await acceptTestInvite(token);
-          } catch (acceptError) {
-            const message = acceptError?.message || "";
-            if (message.includes("invite_already_used") || message.includes("test_already_completed")) {
-              if (!cancelled) setInviteUsed(true);
+        const tokenFromUrl = searchParams.get("invite") || searchParams.get("davet");
+        const token = tokenFromUrl || getStoredInviteToken();
+        try {
+          if (token) {
+            try {
+              await acceptTestInvite(token);
+            } catch (acceptError) {
+              const message = acceptError?.message || "";
+              if (message.includes("invite_already_used") || message.includes("test_already_completed")) {
+                clearStoredInviteToken();
+                if (tokenFromUrl && !cancelled) setInviteUsed(true);
+              }
             }
           }
-        }
-        const active = await getActiveInviteForUser();
-        if (cancelled) return;
-        if (active?.completed) {
-          setInviteUsed(true);
-        } else if (active?.id) {
-          setInviteId(active.id);
-          setIsInviteFlow(true);
-        }
-        setInviteReady(true);
+          const active = await getActiveInviteForUser();
+          if (cancelled) return;
+          if (active?.id && !active.completed) {
+            setInviteId(active.id);
+            setIsInviteFlow(true);
+          }
+          setInviteReady(true);
       } catch (e) {
         if (!cancelled) {
           setInviteError(parseRpcError(e, t));
@@ -508,6 +508,20 @@ export default function TestFlowPage() {
           <p className="fp-card-desc">{t("invite.usedBody")}</p>
           <Button asLink to="/panel" variant="secondary" style={{ marginTop: 16 }}>
             {t("common.backToPanel")}
+          </Button>
+        </Card>
+      </Page>
+    );
+  }
+
+  if (account?.role === "individual" && !isInviteFlow && credits < 1) {
+    return (
+      <Page narrow>
+        <Card>
+          <h2 className="fp-card-title">{t("dashboard.noTestCreditsTitle")}</h2>
+          <p className="fp-card-desc">{t("dashboard.noTestCredits")}</p>
+          <Button asLink to="/test-satin-al" variant="primary" style={{ marginTop: 16 }}>
+            {t("nav.buyTest")}
           </Button>
         </Card>
       </Page>
