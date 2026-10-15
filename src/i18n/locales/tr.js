@@ -151,6 +151,7 @@ export const tr = {
     profile: "Profil",
     overallScore: "Genel skor",
     testReport: "Test raporu",
+    pressReport: "Basış raporu",
     openReport: "Raporu indir",
     downloadReport: "Raporu indir",
     generateReport: "Raporu oluştur",

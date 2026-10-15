@@ -151,6 +151,7 @@ export const en = {
     profile: "Profile",
     overallScore: "Overall score",
     testReport: "Test report",
+    pressReport: "Press report",
     openReport: "Download report",
     downloadReport: "Download report",
     generateReport: "Generate report",

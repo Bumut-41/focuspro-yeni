@@ -3,9 +3,9 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
-import { fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
+import { fetchAdminPressTimeline, fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
 import { fetchMyClients } from "../services/clients.js";
-import { downloadParticipantReportFromSession } from "../lib/adminSessionPdf.js";
+import { downloadParticipantReportFromSession, downloadPressReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import { includesText, inDateRange } from "../lib/listFilters.js";
 import { isStaleChunkError, reloadStaleChunk } from "../lib/reloadStaleChunk.js";
@@ -42,7 +42,7 @@ export default function DashboardPage() {
   );
 
   async function downloadTestReport(session) {
-    setPdfBusy(session.id);
+    setPdfBusy(`${session.id}-test`);
     setMsg("");
     try {
       if (session.pdf_path) {
@@ -55,6 +55,28 @@ export default function DashboardPage() {
     } catch (e) {
       if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
       setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+
+  async function downloadPressReport(session) {
+    setPdfBusy(`${session.id}-press`);
+    setMsg("");
+    try {
+      if (session.admin_pdf_path) {
+        const url = await getReportPdfSignedUrl(session.admin_pdf_path);
+        await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}-press.pdf`);
+        return;
+      }
+      const [detail, timeline] = await Promise.all([
+        fetchSessionDetail(session.id),
+        fetchAdminPressTimeline(session.id)
+      ]);
+      await downloadPressReportFromSession(detail, timeline);
+    } catch (e) {
+      if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
+      setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("admin.pressPdfFailed"));
     } finally {
       setPdfBusy(null);
     }
@@ -235,17 +257,38 @@ export default function DashboardPage() {
                   <Button
                     variant="primary"
                     size="sm"
-                    disabled={pdfBusy === s.id}
+                    disabled={pdfBusy === `${s.id}-test`}
                     onClick={() => downloadTestReport(s)}
                   >
-                    {pdfBusy === s.id
+                    {pdfBusy === `${s.id}-test`
                       ? "…"
                       : s.pdf_path
                         ? t("dashboard.downloadReport")
                         : t("dashboard.generateReport")}
                   </Button>
                 )
-              }
+              },
+              ...(isAdmin
+                ? [
+                    {
+                      label: t("dashboard.pressReport"),
+                      render: (s) => (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={pdfBusy === `${s.id}-press`}
+                          onClick={() => downloadPressReport(s)}
+                        >
+                          {pdfBusy === `${s.id}-press`
+                            ? "…"
+                            : s.admin_pdf_path
+                              ? t("admin.openPressReport")
+                              : t("admin.downloadPressReport")}
+                        </Button>
+                      )
+                    }
+                  ]
+                : [])
             ]}
             rows={visibleSessions}
             rowKey={(s) => s.id}

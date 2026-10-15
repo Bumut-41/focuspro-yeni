@@ -49,7 +49,7 @@ export async function fetchMySessions(options = {}) {
   const limit = opts.limit ?? 200;
   let request = supabase
     .from("test_sessions")
-    .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, invite_id")
+    .select("id, participant_name, participant_age, profile_key, metrics, created_at, pdf_path, admin_pdf_path, invite_id")
     .order("created_at", { ascending: false });
   request = applySessionFilters(request, opts).limit(limit);
   const { data, error } = await request;

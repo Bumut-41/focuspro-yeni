@@ -151,6 +151,7 @@ export const it = {
     profile: "Profilo",
     overallScore: "Punteggio complessivo",
     testReport: "Report del test",
+    pressReport: "Report pressioni",
     openReport: "Scarica il report",
     downloadReport: "Scarica il report",
     generateReport: "Genera il report",
