@@ -377,6 +377,7 @@ export const en = {
     email: "Email",
     roleCol: "Role / access",
     credits: "Credits",
+    age: "Age",
     roleUpdated: "{{name}} updated to {{role}}.",
     creditSaved: "{{name}} credits saved as {{credits}}.",
     invalidCredit: "Enter a valid credit value (0 or higher).",

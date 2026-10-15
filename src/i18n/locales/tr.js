@@ -379,6 +379,7 @@ export const tr = {
     email: "E-posta",
     roleCol: "Rol / yetki",
     credits: "Kredi",
+    age: "Yaş",
     roleUpdated: "{{name}} → {{role}} olarak güncellendi.",
     creditSaved: "{{name}} kredisi {{credits}} olarak kaydedildi.",
     invalidCredit: "Geçerli bir kredi değeri girin (0 veya üzeri).",

@@ -34,6 +34,13 @@ import { fetchCorporateApplications } from "../services/corporateApplications.js
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
 import { fetchContactMessages } from "../services/contactMessages.js";
 import { downloadPurchasesCsv, downloadSpecialistPurchasesCsv, fetchIndividualPurchases, fetchSpecialistPurchases, formatTl } from "../services/purchases.js";
+import {
+  downloadContactCsv,
+  downloadCorporateCsv,
+  downloadProfilesCsv,
+  downloadSessionsCsv,
+  downloadSpecialistApplicationsCsv
+} from "../services/adminExport.js";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
@@ -119,12 +126,11 @@ export default function AdminPage() {
   const { pathname } = useLocation();
 
   const load = useCallback(async () => {
-    const searching = debouncedQuery.trim().length >= 2 || Boolean(testProfile || testFrom || testTo);
     const [profilesResult, applicationsResult, specialistResult, contactResult, purchasesResult, packResult] = await Promise.allSettled([
       fetchAllProfiles(),
-      fetchCorporateApplications(),
-      fetchSpecialistApplications(),
-      fetchContactMessages(),
+      fetchCorporateApplications(5000),
+      fetchSpecialistApplications(5000),
+      fetchContactMessages(5000),
       fetchIndividualPurchases(5000),
       fetchSpecialistPurchases(5000)
     ]);
@@ -136,7 +142,7 @@ export default function AdminPage() {
             .map((row) => row.id)
         : [];
     const sessionsResult = await fetchAllSessions({
-      limit: searching ? 400 : 300,
+      limit: 5000,
       query: debouncedQuery.trim().length >= 2 ? debouncedQuery : "",
       profile: testProfile,
       from: testFrom,
@@ -439,7 +445,35 @@ export default function AdminPage() {
 
       {section === "/admin/kredi" && (
       <Card>
-        <CardHeader title={t("admin.grantLabel")} description={t("admin.grantDesc")} />
+        <CardHeader
+          title={t("admin.grantLabel")}
+          description={t("admin.grantDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!profiles.length}
+              onClick={() =>
+                downloadProfilesCsv(
+                  profiles,
+                  {
+                    date: t("admin.date"),
+                    name: t("admin.name"),
+                    email: t("admin.email"),
+                    role: t("admin.roleCol"),
+                    credits: t("admin.credits"),
+                    birth: t("auth.birthDate"),
+                    id: t("admin.recordId")
+                  },
+                  { dateLocale, roleName: (role) => roleLabel(role, locale) }
+                )
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
+        />
         {isSuperAdmin && (
           <p style={{ margin: "0 0 12px", fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
             {t("admin.superHint")}
@@ -697,6 +731,40 @@ export default function AdminPage() {
         <CardHeader
           title={t("admin.applicationsTitle", { count: applications.length })}
           description={t("admin.applicationsDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!applications.length}
+              onClick={() =>
+                downloadCorporateCsv(
+                  applications,
+                  {
+                    date: t("admin.date"),
+                    organization: t("admin.organization"),
+                    contact: t("admin.contact"),
+                    jobTitle: t("admin.jobTitle"),
+                    phone: t("admin.phone"),
+                    email: t("admin.email"),
+                    country: t("admin.country"),
+                    city: t("admin.city"),
+                    institutionType: t("admin.institutionType"),
+                    experts: t("admin.experts"),
+                    monthlyClients: t("admin.monthlyClients"),
+                    message: t("admin.message"),
+                    id: t("admin.recordId")
+                  },
+                  {
+                    dateLocale,
+                    countryName: (code) => (code ? countryName(code, locale) : "")
+                  }
+                )
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
         />
         {applicationsError && <Alert variant="error">{applicationsError}</Alert>}
         {!applicationsError && !applications.length && (
@@ -741,6 +809,23 @@ export default function AdminPage() {
         <CardHeader
           title={t("admin.specialistApplicationsTitle", { count: specialistApplications.length })}
           description={t("admin.specialistApplicationsDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!specialistApplications.length}
+              onClick={() =>
+                downloadSpecialistApplicationsCsv(
+                  specialistApplications,
+                  { date: t("admin.date"), id: t("admin.recordId") },
+                  { dateLocale, page: strings.home.marketing.specialist }
+                )
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
         />
         {specialistApplicationsError && <Alert variant="error">{specialistApplicationsError}</Alert>}
         {!specialistApplicationsError && !specialistApplications.length && (
@@ -792,6 +877,38 @@ export default function AdminPage() {
         <CardHeader
           title={t("admin.contactMessagesTitle", { count: contactMessages.length })}
           description={t("admin.contactMessagesDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!contactMessages.length}
+              onClick={() =>
+                downloadContactCsv(
+                  contactMessages,
+                  {
+                    date: t("admin.date"),
+                    name: t("admin.name"),
+                    email: t("admin.email"),
+                    phone: t("admin.phone"),
+                    profession: t("admin.profession"),
+                    organization: t("admin.organization"),
+                    location: t("admin.location"),
+                    subject: t("admin.subject"),
+                    message: t("admin.message"),
+                    id: t("admin.recordId")
+                  },
+                  {
+                    dateLocale,
+                    subjectLabel: (key) =>
+                      strings.home.marketing.contactPage.subjects.find((item) => item.key === key)?.label || key || ""
+                  }
+                )
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
         />
         {contactMessagesError && <Alert variant="error">{contactMessagesError}</Alert>}
         {!contactMessagesError && !contactMessages.length && (
@@ -859,6 +976,31 @@ export default function AdminPage() {
         <CardHeader
           title={t("admin.usersTitle", { count: filteredUsers.length })}
           description={isSuperAdmin ? t("admin.usersDescSuper") : t("admin.usersDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!filteredUsers.length}
+              onClick={() =>
+                downloadProfilesCsv(
+                  filteredUsers,
+                  {
+                    date: t("admin.date"),
+                    name: t("admin.name"),
+                    email: t("admin.email"),
+                    role: t("admin.roleCol"),
+                    credits: t("admin.credits"),
+                    birth: t("auth.birthDate"),
+                    id: t("admin.recordId")
+                  },
+                  { dateLocale, roleName: (role) => roleLabel(role, locale) }
+                )
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
         />
         <ul
           style={{
@@ -987,6 +1129,39 @@ export default function AdminPage() {
         <CardHeader
           title={t("admin.sessionsTitle", { count: filteredSessions.length })}
           description={t("admin.sessionsDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!filteredSessions.length}
+              onClick={() =>
+                downloadSessionsCsv(
+                  filteredSessions,
+                  {
+                    date: t("admin.date"),
+                    operator: t("admin.operator"),
+                    participant: t("admin.participant"),
+                    age: t("admin.age"),
+                    profile: t("dashboard.profile"),
+                    overall: t("dashboard.overallScore"),
+                    attention: t("report.attention"),
+                    timing: t("report.timing"),
+                    impulsivity: t("report.impulsivity"),
+                    hyperactivity: t("report.hyperactivity"),
+                    record: t("admin.record"),
+                    testSaved: t("admin.testSaved"),
+                    testPending: t("admin.testPending"),
+                    pressSaved: t("admin.pressSaved"),
+                    id: t("admin.recordId")
+                  },
+                  { dateLocale, profileName: (key) => (key ? profileLabel(key, locale) : "") }
+                )
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
         />
         {(sessions.length > 0 || testsFiltered) && (
           <RecordFilters
