@@ -445,7 +445,7 @@ export default function AdminPage() {
             {t("admin.superHint")}
           </p>
         )}
-        <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
+        <Stack wrap gap={12}>
           <Field label={t("filters.search")} className="fp-field--grow">
             <Input
               value={grantQuery}

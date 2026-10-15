@@ -21,7 +21,7 @@ export function RecordFilters({
 }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
+      <Stack wrap gap={12}>
         <Field label={t("filters.search")} className="fp-field--grow">
           <Input
             value={query}

@@ -461,6 +461,36 @@ a:hover {
   flex-wrap: wrap;
 }
 
+.fp-stack:not(.fp-stack--col):has(> .fp-field) {
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.fp-stack:not(.fp-stack--col):has(> .fp-field) > .fp-field {
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1 1 160px;
+  min-width: 140px;
+}
+
+.fp-stack:not(.fp-stack--col):has(> .fp-field) .fp-input,
+.fp-stack:not(.fp-stack--col):has(> .fp-field) .fp-select {
+  height: 42px;
+}
+
+.fp-stack:not(.fp-stack--col):has(> .fp-field) > .fp-btn {
+  align-self: flex-end;
+  flex: 0 0 auto;
+  height: 42px;
+}
+
+.fp-stack:not(.fp-stack--col):has(> .fp-field) > .fp-checkbox-row {
+  flex: 1 0 100%;
+  margin-top: 0;
+}
+
 .fp-table-wrap {
   overflow-x: auto;
   margin-top: var(--fp-space-4);
@@ -1927,6 +1957,11 @@ html.test-touch-lock body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--fp-space-4);
+  align-items: end;
+}
+
+.fp-buy-row > .fp-field {
+  margin-top: 0;
 }
 
 .fp-buy-form .fp-btn {

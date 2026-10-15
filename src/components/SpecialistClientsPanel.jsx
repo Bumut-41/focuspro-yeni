@@ -108,7 +108,7 @@ export function SpecialistClientsPanel() {
     <Card style={{ marginTop: 20 }}>
       <CardHeader title={t("clients.title")} description={t("clients.desc")} />
       <Card as="form" onSubmit={onSave} style={{ padding: 16, background: "var(--fp-surface-muted)" }}>
-        <Stack gap={12}>
+        <Stack wrap gap={12}>
           <Field label={t("clients.name")}>
             <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required />
           </Field>

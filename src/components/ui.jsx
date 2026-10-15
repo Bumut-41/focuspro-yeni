@@ -98,7 +98,7 @@ export function Badge({ variant = "neutral", children }) {
   return <span className={cn("fp-badge", `fp-badge--${variant}`)}>{children}</span>;
 }
 
-export function Stack({ children, direction = "row", gap, className, wrap }) {
+export function Stack({ children, direction = "row", gap, className, wrap, style }) {
   return (
     <div
       className={cn(
@@ -107,7 +107,7 @@ export function Stack({ children, direction = "row", gap, className, wrap }) {
         wrap && "fp-stack--wrap",
         className
       )}
-      style={gap != null ? { gap } : undefined}
+      style={{ ...style, ...(gap != null ? { gap } : null) }}
     >
       {children}
     </div>
