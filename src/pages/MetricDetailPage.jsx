@@ -20,6 +20,7 @@ export default function MetricDetailPage() {
         <Link to="/" className="fp-detail-back">
           ← {pages.back}
         </Link>
+        <img src={`/metric-${page.color}.png`} alt="" className="fp-detail-metric-photo" />
         <div className={`fp-mkt-metric--${page.color}`}>
           <span className="fp-mkt-metric-code">{page.code}</span>
         </div>

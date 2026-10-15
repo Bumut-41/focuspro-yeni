@@ -71,9 +71,14 @@ export default function HomePage() {
             <div className="fp-mkt-metrics">
               {m.metrics.items.map((item) => (
                 <Link key={item.code} to={item.to} className={`fp-mkt-metric fp-mkt-metric--${item.color}`}>
-                  <span className="fp-mkt-metric-code">{item.code}</span>
-                  <h3>{item.label}</h3>
-                  <p>{item.desc}</p>
+                  <div className="fp-mkt-metric-photo-wrap">
+                    <img src={`/metric-${item.color}.png`} alt="" className="fp-mkt-metric-photo" />
+                  </div>
+                  <div className="fp-mkt-metric-body">
+                    <span className="fp-mkt-metric-code">{item.code}</span>
+                    <h3>{item.label}</h3>
+                    <p>{item.desc}</p>
+                  </div>
                 </Link>
               ))}
             </div>
