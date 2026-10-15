@@ -577,22 +577,63 @@ export const homePageEn = {
       hiperaktivite: {
         code: "H",
         color: "h",
-        title: "Hyperactivity",
-        en: "Hiperaktivite",
-        desc: "Motor control and response regulation",
-        points: ["Unnecessary motor responses", "Repetitive behavior patterns", "Motor inhibition", "Behavior control"]
+        title: "Motor Response Control",
+        en: "Motor Yanıt Kontrolü",
+        summary:
+          "The ability to regulate unnecessary and repetitive motor responses and to respond in line with the task instructions.",
+        paragraphs: [
+          "Motor response control is a performance domain related to a person's ability, while carrying out a task, to regulate motor responses, limit unnecessary responses, and keep behavior aligned with what the task requires.",
+          "In computerized tasks that require attention, it is important not only to respond at the right time, but also to avoid unnecessary repetitions of the same stimulus and to refrain from key presses when no response is required.",
+          "FocusProLab aims to examine motor response control through repeated key presses, responses during intervals with no stimulus, and responses that fall outside the task instructions."
+        ],
+        indicators: [
+          {
+            title: "Unnecessary motor responses",
+            text: "Examining off-task key presses that occur when no target is present, or during intervals when no response should be given."
+          },
+          {
+            title: "Repeated key presses",
+            text: "Assessing the frequency and distribution of presses made more than once for the same stimulus."
+          },
+          {
+            title: "Motor response regulation",
+            text: "Examining performance indicators related to controlling unnecessary or repetitive motor responses across the task."
+          },
+          {
+            title: "Response pattern across the task",
+            text: "Assessing how unnecessary and repeated key presses change across different parts of the test."
+          }
+        ]
       },
       "celdirici-direnci": {
         code: "C",
         color: "c",
         title: "Distractor Resistance",
         en: "Çeldirici Direnci",
-        desc: "Examining how distracting stimuli affect performance",
-        points: [
-          "Performance under visual distractors",
-          "Performance under auditory distractors",
-          "Performance under combined distractors",
-          "Keeping the task going when attention is pulled away"
+        summary:
+          "The ability to maintain task performance and keep focus on the target when distracting stimuli are present.",
+        paragraphs: [
+          "Distractor resistance is a cognitive process related to a person's ability to focus on task-relevant information and sustain performance even when stimuli that could pull attention away are present.",
+          "In daily life people encounter sounds, movement, and varied visual stimuli. In some situations these stimuli can affect attention, response speed, and response accuracy.",
+          "FocusProLab aims to assess distractor resistance by examining performance differences between conditions with and without distracting stimuli."
+        ],
+        indicators: [
+          {
+            title: "Distractor effect",
+            text: "Examining changes in reaction time and response accuracy that appear when distracting stimuli are present."
+          },
+          {
+            title: "Sustaining focus",
+            text: "Assessing the ability to notice targets and keep task-related attention despite distracting stimuli."
+          },
+          {
+            title: "Sensitivity to visual and auditory distractors",
+            text: "Examining separately how the different types of distractors used in the test affect performance."
+          },
+          {
+            title: "Performance stability",
+            text: "Comparing the consistency of responses and the variability of performance in conditions with and without distractors."
+          }
         ]
       }
     }

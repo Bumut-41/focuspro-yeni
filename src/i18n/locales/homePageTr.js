@@ -577,22 +577,62 @@ export const homePageTr = {
       hiperaktivite: {
         code: "H",
         color: "h",
-        title: "Hiperaktivite",
-        en: "Hyperactivity",
-        desc: "Motor kontrol ve gereksiz tepki düzenleme",
-        points: ["Gereksiz motor tepkiler", "Tekrarlayan davranış örüntüleri", "Motor inhibisyon", "Davranış kontrolü"]
+        title: "Motor Yanıt Kontrolü",
+        en: "Motor Response Control",
+        summary: "Gereksiz ve tekrarlayan motor yanıtları düzenleyebilme, görev yönergelerine uygun tepki verebilme becerisi.",
+        paragraphs: [
+          "Motor yanıt kontrolü, bireyin bir görevi yerine getirirken motor tepkilerini düzenleyebilmesi, gereksiz yanıtları sınırlandırabilmesi ve davranışlarını görev gerekliliklerine uygun şekilde sürdürebilmesiyle ilişkili bir performans alanıdır.",
+          "Dikkat gerektiren bilgisayarlı görevlerde yalnızca doğru zamanda yanıt vermek değil, aynı uyarana gereksiz tekrarlar yapmamak ve yanıt gerektirmeyen durumlarda tuş basışlarından kaçınmak da önemlidir.",
+          "FocusProLab, motor yanıt kontrolünü tekrarlayan tuş basışları, uyaran bulunmayan zaman aralıklarındaki tepkiler ve görev yönergesi dışında gerçekleşen yanıtlar üzerinden incelemeyi amaçlar."
+        ],
+        indicators: [
+          {
+            title: "Gereksiz Motor Yanıtlar",
+            text: "Hedef uyaran bulunmayan veya yanıt verilmemesi gereken zaman aralıklarında gerçekleşen görev dışı tuş basışlarının incelenmesi."
+          },
+          {
+            title: "Tekrarlayan Tuş Basışları",
+            text: "Aynı uyaran için birden fazla kez yapılan basışların sıklığının ve dağılımının değerlendirilmesi."
+          },
+          {
+            title: "Motor Yanıt Düzenleme",
+            text: "Görev boyunca gereksiz veya tekrarlayan motor yanıtların kontrol edilebilmesine ilişkin performans göstergelerinin incelenmesi."
+          },
+          {
+            title: "Görev Boyunca Yanıt Örüntüsü",
+            text: "Testin farklı bölümlerinde gereksiz ve tekrarlayan tuş basışlarının nasıl değiştiğinin değerlendirilmesi."
+          }
+        ]
       },
       "celdirici-direnci": {
         code: "C",
         color: "c",
         title: "Çeldirici Direnci",
         en: "Distractor Resistance",
-        desc: "Dikkat dağıtıcı uyaranların performans üzerindeki etkisinin incelenmesi",
-        points: [
-          "Görsel dikkat dağıtıcılar altında performans",
-          "İşitsel dikkat dağıtıcılar altında performans",
-          "Birleşik çeldiriciler altında performans",
-          "Dikkat dağıldığında görevi sürdürme"
+        summary:
+          "Dikkat dağıtıcı uyaranların varlığında görev performansını sürdürebilme ve hedefe odaklanmayı koruyabilme becerisi.",
+        paragraphs: [
+          "Çeldirici direnci, bireyin çevresinde dikkatini dağıtabilecek uyaranlar bulunmasına rağmen görevle ilgili bilgilere odaklanabilmesi ve performansını sürdürebilmesiyle ilişkili bilişsel bir süreçtir.",
+          "Günlük yaşamda bireyler sesler, hareketler ve farklı görsel uyaranlarla karşılaşırlar. Bu uyaranlar bazı durumlarda dikkat süreçlerini, tepki hızını ve yanıt doğruluğunu etkileyebilir.",
+          "FocusProLab, çeldirici direncini dikkat dağıtıcı uyaranların bulunduğu ve bulunmadığı koşullardaki performans farklılıklarını inceleyerek değerlendirmeyi amaçlar."
+        ],
+        indicators: [
+          {
+            title: "Çeldirici Etkisi",
+            text: "Dikkat dağıtıcı uyaranların bulunduğu koşullarda tepki süresi ve yanıt doğruluğunda ortaya çıkan değişimlerin incelenmesi."
+          },
+          {
+            title: "Odaklanmayı Sürdürme",
+            text: "Çeldirici uyaranlara rağmen hedefleri fark etme ve göreve yönelik dikkati koruyabilme performansının değerlendirilmesi."
+          },
+          {
+            title: "Görsel ve İşitsel Çeldiricilere Duyarlılık",
+            text: "Testte kullanılan farklı çeldirici türlerinin performans üzerindeki etkilerinin ayrı ayrı incelenmesi."
+          },
+          {
+            title: "Performans Kararlılığı",
+            text: "Çeldiricili ve çeldiricisiz koşullarda yanıtların tutarlılığının ve performans değişkenliğinin karşılaştırılması."
+          }
         ]
       }
     }

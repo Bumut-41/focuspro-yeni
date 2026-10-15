@@ -577,22 +577,63 @@ export const homePageIt = {
       hiperaktivite: {
         code: "H",
         color: "h",
-        title: "Iperattività",
-        en: "Hyperactivity",
-        desc: "Controllo motorio e regolazione della risposta",
-        points: ["Risposte motorie inutili", "Schemi di comportamento ripetitivi", "Inibizione motoria", "Controllo del comportamento"]
+        title: "Controllo della risposta motoria",
+        en: "Motor Response Control",
+        summary:
+          "La capacità di regolare le risposte motorie inutili e ripetitive e di rispondere in modo coerente con le istruzioni del compito.",
+        paragraphs: [
+          "Il controllo della risposta motoria è un ambito di prestazione legato alla capacità di regolare le risposte motorie mentre si svolge un compito, di limitare le risposte inutili e di mantenere il comportamento allineato a ciò che il compito richiede.",
+          "Nei compiti computerizzati che richiedono attenzione non basta rispondere al momento giusto: è importante anche non ripetere inutilmente la stessa risposta allo stesso stimolo ed evitare le pressioni quando non è richiesta una risposta.",
+          "FocusProLab si propone di esaminare il controllo della risposta motoria attraverso le pressioni ripetute, le risposte negli intervalli senza stimolo e le risposte che escono dalle istruzioni del compito."
+        ],
+        indicators: [
+          {
+            title: "Risposte motorie inutili",
+            text: "Esame delle pressioni fuori compito che avvengono quando non c'è un target o negli intervalli in cui non si deve rispondere."
+          },
+          {
+            title: "Pressioni ripetute",
+            text: "Valutazione della frequenza e della distribuzione delle pressioni fatte più di una volta per lo stesso stimolo."
+          },
+          {
+            title: "Regolazione della risposta motoria",
+            text: "Esame degli indicatori di prestazione relativi al controllo delle risposte motorie inutili o ripetitive nel corso del compito."
+          },
+          {
+            title: "Schema di risposta nel corso del compito",
+            text: "Valutazione di come cambiano le pressioni inutili e ripetute nelle diverse parti del test."
+          }
+        ]
       },
       "celdirici-direnci": {
         code: "C",
         color: "c",
         title: "Resistenza ai distrattori",
         en: "Distractor Resistance",
-        desc: "Esame dell'effetto degli stimoli distraenti sulla prestazione",
-        points: [
-          "Prestazione con distrattori visivi",
-          "Prestazione con distrattori uditivi",
-          "Prestazione con distrattori combinati",
-          "Continuare il compito quando l'attenzione viene distolta"
+        summary:
+          "La capacità di mantenere la prestazione nel compito e di conservare il focus sul target in presenza di stimoli distraenti.",
+        paragraphs: [
+          "La resistenza ai distrattori è un processo cognitivo legato alla capacità di concentrarsi sulle informazioni rilevanti per il compito e di sostenere la prestazione anche quando sono presenti stimoli che possono distogliere l'attenzione.",
+          "Nella vita quotidiana le persone incontrano suoni, movimenti e stimoli visivi diversi. In alcune situazioni questi stimoli possono influire sull'attenzione, sulla velocità di risposta e sull'accuratezza.",
+          "FocusProLab si propone di valutare la resistenza ai distrattori esaminando le differenze di prestazione tra condizioni con e senza stimoli distraenti."
+        ],
+        indicators: [
+          {
+            title: "Effetto del distrattore",
+            text: "Esame dei cambiamenti nel tempo di reazione e nell'accuratezza della risposta quando sono presenti stimoli distraenti."
+          },
+          {
+            title: "Mantenere il focus",
+            text: "Valutazione della capacità di notare i target e di conservare l'attenzione sul compito nonostante i distrattori."
+          },
+          {
+            title: "Sensibilità ai distrattori visivi e uditivi",
+            text: "Esame separato degli effetti dei diversi tipi di distrattori usati nel test sulla prestazione."
+          },
+          {
+            title: "Stabilità della prestazione",
+            text: "Confronto della costanza delle risposte e della variabilità della prestazione nelle condizioni con e senza distrattori."
+          }
         ]
       }
     }
