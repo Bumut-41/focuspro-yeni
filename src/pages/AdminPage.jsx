@@ -33,7 +33,7 @@ import {
 import { fetchCorporateApplications } from "../services/corporateApplications.js";
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
 import { fetchContactMessages } from "../services/contactMessages.js";
-import { downloadPurchasesCsv, fetchIndividualPurchases, formatTl } from "../services/purchases.js";
+import { downloadPurchasesCsv, downloadSpecialistPurchasesCsv, fetchIndividualPurchases, fetchSpecialistPurchases, formatTl } from "../services/purchases.js";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
@@ -86,6 +86,9 @@ export default function AdminPage() {
   const [purchases, setPurchases] = useState([]);
   const [purchasesError, setPurchasesError] = useState("");
   const [purchaseId, setPurchaseId] = useState(null);
+  const [packPurchases, setPackPurchases] = useState([]);
+  const [packPurchasesError, setPackPurchasesError] = useState("");
+  const [packPurchaseId, setPackPurchaseId] = useState(null);
   const [grantQuery, setGrantQuery] = useState("");
   const [userQuery, setUserQuery] = useState("");
   const [userRole, setUserRole] = useState("");
@@ -117,12 +120,13 @@ export default function AdminPage() {
 
   const load = useCallback(async () => {
     const searching = debouncedQuery.trim().length >= 2 || Boolean(testProfile || testFrom || testTo);
-    const [profilesResult, applicationsResult, specialistResult, contactResult, purchasesResult] = await Promise.allSettled([
+    const [profilesResult, applicationsResult, specialistResult, contactResult, purchasesResult, packResult] = await Promise.allSettled([
       fetchAllProfiles(),
       fetchCorporateApplications(),
       fetchSpecialistApplications(),
       fetchContactMessages(),
-      fetchIndividualPurchases(5000)
+      fetchIndividualPurchases(5000),
+      fetchSpecialistPurchases(5000)
     ]);
     const loadedProfiles = profilesResult.status === "fulfilled" ? profilesResult.value : [];
     const ownerIds =
@@ -184,6 +188,13 @@ export default function AdminPage() {
     } else {
       setPurchases([]);
       setPurchasesError(t("admin.purchasesFailed"));
+    }
+    if (packResult.status === "fulfilled") {
+      setPackPurchases(packResult.value);
+      setPackPurchasesError("");
+    } else {
+      setPackPurchases([]);
+      setPackPurchasesError(t("admin.specialistPurchasesFailed"));
     }
   }, [t, debouncedQuery, testProfile, testFrom, testTo]);
 
@@ -386,6 +397,7 @@ export default function AdminPage() {
     "/admin",
     "/admin/kredi",
     "/admin/satin-almalar",
+    "/admin/uzman-satin-almalar",
     "/admin/kurumsal",
     "/admin/uzman",
     "/admin/iletisim",
@@ -403,6 +415,7 @@ export default function AdminPage() {
           <nav className="fp-admin-menu" aria-label={t("admin.title")}>
             <Link to="/admin/kredi">{t("admin.grantLabel")}</Link>
             <Link to="/admin/satin-almalar">{t("admin.purchasesTitle", { count: purchases.length })}</Link>
+            <Link to="/admin/uzman-satin-almalar">{t("admin.specialistPurchasesTitle", { count: packPurchases.length })}</Link>
             <Link to="/admin/kurumsal">{t("admin.applicationsTitle", { count: applications.length })}</Link>
             <Link to="/admin/uzman">{t("admin.specialistApplicationsTitle", { count: specialistApplications.length })}</Link>
             <Link to="/admin/iletisim">{t("admin.contactMessagesTitle", { count: contactMessages.length })}</Link>
@@ -553,6 +566,115 @@ export default function AdminPage() {
                 [t("admin.amount"), row.quantity],
                 [t("purchase.unit"), formatTl(row.unit_price_tl, locale)],
                 [t("purchase.total"), formatTl(row.total_tl, locale)]
+              ];
+              return (
+                <dl>
+                  {lines.map(([label, value]) => (
+                    <div key={label} className="fp-spec-detail-row">
+                      <dt>{label}</dt>
+                      <dd>{value || "—"}</dd>
+                    </div>
+                  ))}
+                </dl>
+              );
+            })()}
+          </div>
+        )}
+      </Card>
+      )}
+
+      {section === "/admin/uzman-satin-almalar" && (
+      <Card>
+        <CardHeader
+          title={t("admin.specialistPurchasesTitle", { count: packPurchases.length })}
+          description={t("admin.specialistPurchasesDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!packPurchases.length}
+              onClick={() =>
+                downloadSpecialistPurchasesCsv(packPurchases, {
+                  date: t("admin.date"),
+                  invoiceType: t("admin.invoiceType"),
+                  name: t("admin.name"),
+                  taxId: t("admin.taxId"),
+                  taxOffice: t("purchase.taxOffice"),
+                  email: t("admin.email"),
+                  phone: t("admin.phone"),
+                  city: t("admin.city"),
+                  district: t("purchase.district"),
+                  address: t("purchase.address"),
+                  quantity: t("admin.amount"),
+                  unitPrice: t("purchase.unit"),
+                  net: t("purchase.net"),
+                  vatRate: t("admin.vatRate"),
+                  vat: t("admin.vatAmount"),
+                  total: t("purchase.gross"),
+                  id: t("admin.recordId"),
+                  company: t("purchase.typeCompany"),
+                  individual: t("purchase.typeIndividual")
+                })
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
+        />
+        {packPurchasesError && <Alert variant="error">{packPurchasesError}</Alert>}
+        {!packPurchasesError && !packPurchases.length && (
+          <p style={{ margin: 0, color: "var(--fp-text-secondary)" }}>{t("admin.specialistPurchasesEmpty")}</p>
+        )}
+        {packPurchases.length > 0 && (
+          <DataTable
+            columns={[
+              {
+                label: t("admin.date"),
+                render: (row) => new Date(row.created_at).toLocaleString(dateLocale)
+              },
+              { key: "invoice_name", label: t("admin.name") },
+              { key: "quantity", label: t("admin.amount") },
+              {
+                label: t("purchase.unit"),
+                render: (row) => formatTl(row.unit_price_tl, locale)
+              },
+              {
+                label: t("purchase.gross"),
+                render: (row) => formatTl(row.total_tl, locale)
+              },
+              { key: "email", label: t("admin.email") }
+            ]}
+            rows={packPurchases}
+            rowKey={(row) => row.id}
+            onRowClick={(row) => setPackPurchaseId(row.id)}
+            activeKey={packPurchaseId}
+          />
+        )}
+        {packPurchases.find((row) => row.id === packPurchaseId) && (
+          <div className="fp-spec-detail">
+            {(() => {
+              const row = packPurchases.find((item) => item.id === packPurchaseId);
+              const lines = [
+                [t("admin.date"), new Date(row.created_at).toLocaleString(dateLocale)],
+                [t("admin.name"), row.invoice_name],
+                [
+                  t("admin.invoiceType"),
+                  row.invoice_type === "company" ? t("purchase.typeCompany") : t("purchase.typeIndividual")
+                ],
+                [t("admin.taxId"), row.tax_id],
+                [t("purchase.taxOffice"), row.tax_office],
+                [t("admin.email"), row.email],
+                [t("admin.phone"), row.phone],
+                [t("admin.city"), row.city],
+                [t("purchase.district"), row.district],
+                [t("purchase.address"), row.address],
+                [t("admin.amount"), row.quantity],
+                [t("purchase.unit"), formatTl(row.unit_price_tl, locale)],
+                [t("purchase.net"), formatTl(row.net_tl, locale)],
+                [t("admin.vatRate"), `%${row.vat_rate}`],
+                [t("purchase.vat", { rate: row.vat_rate }), formatTl(row.vat_tl, locale)],
+                [t("purchase.gross"), formatTl(row.total_tl, locale)]
               ];
               return (
                 <dl>

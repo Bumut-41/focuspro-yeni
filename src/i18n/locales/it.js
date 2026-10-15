@@ -53,7 +53,15 @@ export const it = {
     errIndividual: "Questo acquisto è solo per gli account individuali.",
     errInvoice: "Compila i dati di fatturazione in modo completo e corretto.",
     errTaxId: "Il numero non è valido. Per una fattura privata servono 11 cifre, per un'azienda 10 cifre.",
-    errSetup: "La registrazione dell'acquisto non è ancora disponibile nel database. Avvisa l'amministratore."
+    errSetup: "La registrazione dell'acquisto non è ancora disponibile nel database. Avvisa l'amministratore.",
+    packLead: "Pacchetti per specialisti. I prezzi sono per test e IVA esclusa.",
+    packTests: "{{count}} test",
+    packUnit: "{{price}} a test + IVA",
+    net: "Imponibile",
+    vat: "IVA ({{rate}}%)",
+    gross: "Totale",
+    errSpecialist: "Questo acquisto è solo per gli account specialista.",
+    errPack: "Il pacchetto selezionato non è valido."
   },
   common: {
     wait: "Attendere…",
@@ -427,6 +435,12 @@ export const it = {
     purchasesFailed: "Impossibile leggere gli acquisti. Esegui individual-purchases-admin-read.sql nell'editor SQL di Supabase.",
     exportPurchases: "Esporta in Excel",
     recordId: "Numero record",
+    specialistPurchasesTitle: "Acquisti degli specialisti ({{count}})",
+    specialistPurchasesDesc: "Dati di fatturazione dei pacchetti specialista. I prezzi sono IVA esclusa; il totale è IVA inclusa.",
+    specialistPurchasesEmpty: "Nessun acquisto specialista.",
+    specialistPurchasesFailed: "Impossibile leggere gli acquisti degli specialisti. Esegui specialist-test-purchase.sql nell'editor SQL di Supabase.",
+    vatRate: "Aliquota IVA",
+    vatAmount: "Importo IVA",
     invoiceType: "Tipo di fattura",
     taxId: "Codice identificativo / fiscale"
   },

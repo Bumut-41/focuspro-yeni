@@ -1947,6 +1947,54 @@ html.test-touch-lock body {
   margin-top: var(--fp-space-4);
 }
 
+.fp-buy-packs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.fp-buy-packs button {
+  padding: 14px;
+  border: 1px solid var(--fp-border);
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fp-buy-packs button.is-active {
+  border-color: var(--fp-primary);
+  background: var(--fp-primary-soft);
+}
+
+.fp-buy-packs strong,
+.fp-buy-packs span {
+  display: block;
+}
+
+.fp-buy-packs span {
+  margin-top: 4px;
+  color: var(--fp-text-secondary);
+  font-size: 0.875rem;
+}
+
+.fp-buy-lines {
+  margin-top: var(--fp-space-4);
+}
+
+.fp-buy-lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--fp-space-3);
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .fp-buy-packs {
+    grid-template-columns: 1fr;
+  }
+}
+
 .fp-admin-menu {
   display: flex;
   flex-direction: column;

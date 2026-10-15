@@ -134,11 +134,11 @@ export default function DashboardPage() {
           </p>
         )}
         <Stack gap={12} style={{ marginTop: 20 }}>
-          {profile?.role === "individual" && (
+          {profile?.role === "individual" || profile?.role === "psychologist" ? (
             <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
               {t("purchase.credits", { count: credits })}
             </p>
-          )}
+          ) : null}
           {profile?.role === "individual" && credits < 1 ? (
             <>
               <Alert variant="info">{t("dashboard.noTestCredits")}</Alert>

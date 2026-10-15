@@ -53,7 +53,15 @@ export const en = {
     errIndividual: "This purchase is only for individual accounts.",
     errInvoice: "Fill in the invoice details completely and correctly.",
     errTaxId: "The ID number is invalid. Use an 11-digit national ID for an individual invoice, or a 10-digit tax number for a company invoice.",
-    errSetup: "The purchase record is not available in the database yet. Please tell the administrator."
+    errSetup: "The purchase record is not available in the database yet. Please tell the administrator.",
+    packLead: "Specialist packs. Prices are per test and exclude VAT.",
+    packTests: "{{count}} tests",
+    packUnit: "{{price}} per test + VAT",
+    net: "Subtotal",
+    vat: "VAT ({{rate}}%)",
+    gross: "Total",
+    errSpecialist: "This purchase is only for specialist accounts.",
+    errPack: "The selected pack is invalid."
   },
   common: {
     wait: "Please wait…",
@@ -427,6 +435,12 @@ export const en = {
     purchasesFailed: "Could not load purchases. Run individual-purchases-admin-read.sql in the Supabase SQL Editor.",
     exportPurchases: "Export to Excel",
     recordId: "Record id",
+    specialistPurchasesTitle: "Specialist purchases ({{count}})",
+    specialistPurchasesDesc: "Invoice details for specialist packs. Prices are stored excluding VAT; the total includes VAT.",
+    specialistPurchasesEmpty: "No specialist purchases yet.",
+    specialistPurchasesFailed: "Could not load specialist purchases. Run specialist-test-purchase.sql in the Supabase SQL Editor.",
+    vatRate: "VAT rate",
+    vatAmount: "VAT amount",
     invoiceType: "Invoice type",
     taxId: "ID / tax number"
   },

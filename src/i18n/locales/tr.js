@@ -53,7 +53,15 @@ export const tr = {
     errIndividual: "Bu satın alma yalnızca bireysel hesaplar içindir.",
     errInvoice: "Fatura bilgilerini eksiksiz ve doğru doldurun.",
     errTaxId: "Kimlik numarası geçersiz. Bireysel faturada 11 haneli T.C. kimlik no, kurumsal faturada 10 haneli vergi no girin.",
-    errSetup: "Satın alma kaydı henüz veritabanında açılmadı. Yöneticiye haber verin."
+    errSetup: "Satın alma kaydı henüz veritabanında açılmadı. Yöneticiye haber verin.",
+    packLead: "Uzman paketleri. Fiyatlar test başınadır ve KDV hariçtir.",
+    packTests: "{{count}} test",
+    packUnit: "Test başı {{price}} + KDV",
+    net: "Ara toplam",
+    vat: "KDV (%{{rate}})",
+    gross: "Genel toplam",
+    errSpecialist: "Bu satın alma yalnızca uzman hesaplar içindir.",
+    errPack: "Seçilen paket geçersiz."
   },
   common: {
     wait: "Bekleyin…",
@@ -429,6 +437,12 @@ export const tr = {
     purchasesFailed: "Satın almalar okunamadı. Supabase SQL Editor'da individual-purchases-admin-read.sql dosyasını çalıştırın.",
     exportPurchases: "Excel'e aktar",
     recordId: "Kayıt no",
+    specialistPurchasesTitle: "Uzman satın almaları ({{count}})",
+    specialistPurchasesDesc: "Uzman paketlerinin fatura bilgileri. Fiyatlar KDV hariç kaydedilir, toplam KDV dahildir.",
+    specialistPurchasesEmpty: "Henüz uzman satın alması yok.",
+    specialistPurchasesFailed: "Uzman satın almaları okunamadı. Supabase SQL Editor'da specialist-test-purchase.sql dosyasını çalıştırın.",
+    vatRate: "KDV oranı",
+    vatAmount: "KDV tutarı",
     invoiceType: "Fatura türü",
     taxId: "Kimlik / vergi no"
   },
