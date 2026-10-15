@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import {
   SPECIALIST_PACKS,
   formatTl,
-  purchaseSpecialistTests,
   specialistPackTotals
 } from "../services/purchases.js";
 import { Alert, Button, Card, Field, Input, Page } from "../components/ui.jsx";
+import { CheckoutScreen } from "../components/CheckoutScreen.jsx";
 
 const EMPTY = {
   invoiceType: "company",
@@ -22,24 +22,13 @@ const EMPTY = {
   address: ""
 };
 
-function purchaseError(err, t) {
-  const code = err?.message ?? "";
-  if (code.includes("specialist_only")) return t("purchase.errSpecialist");
-  if (code.includes("invalid_pack")) return t("purchase.errPack");
-  if (code.includes("invalid_tax_id")) return t("purchase.errTaxId");
-  if (code.includes("invalid_invoice")) return t("purchase.errInvoice");
-  if (code.includes("Could not find the function") || code.includes("schema cache")) return t("purchase.errSetup");
-  return err?.message || t("common.error");
-}
-
 export default function SpecialistBuyPage() {
-  const { profile, user, credits, refreshProfile } = useAuth();
+  const { profile, user, credits } = useAuth();
   const { t, locale } = useLocale();
   const [pack, setPack] = useState(SPECIALIST_PACKS[0]);
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(null);
+  const [checkout, setCheckout] = useState(null);
 
   useEffect(() => {
     if (!profile || profile.role !== "psychologist") return;
@@ -79,53 +68,66 @@ export default function SpecialistBuyPage() {
     return "";
   }
 
-  async function onSubmit(event) {
+  function onSubmit(event) {
     event.preventDefault();
     const problem = validate();
     if (problem) {
       setError(problem);
       return;
     }
-    setBusy(true);
-    setError("");
-    try {
-      const result = await purchaseSpecialistTests({
-        quantity: pack.quantity,
-        invoiceType: form.invoiceType,
-        invoiceName: form.invoiceName.trim(),
-        taxId: form.taxId,
-        taxOffice: form.taxOffice.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        city: form.city.trim(),
-        district: form.district.trim(),
-        address: form.address.trim()
-      });
-      await refreshProfile();
-      setDone(result);
-    } catch (err) {
-      setError(purchaseError(err, t));
-    } finally {
-      setBusy(false);
-    }
+    setCheckout({
+      quantity: pack.quantity,
+      unitPrice: pack.unitPriceTl,
+      net: totals.net,
+      vat: totals.vat,
+      vatRate: totals.vatRate,
+      total: totals.total,
+      invoiceType: form.invoiceType,
+      invoiceName: form.invoiceName.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      city: form.city.trim(),
+      district: form.district.trim(),
+      address: form.address.trim()
+    });
   }
 
   return (
-    <Page narrow>
+    <Page narrow={!checkout}>
       <Card>
-        <h1 className="fp-card-title">{t("purchase.title")}</h1>
-        <p className="fp-card-desc">{t("purchase.packLead")}</p>
-        <p className="fp-hint">{t("purchase.credits", { count: credits })}</p>
-        {error ? <Alert variant="error">{error}</Alert> : null}
-        {done ? (
-          <Alert variant="success">
-            {t("purchase.successBody", {
-              count: done.quantity,
-              total: formatTl(done.total_tl, locale)
-            })}
-          </Alert>
+        {!checkout ? (
+          <>
+            <h1 className="fp-card-title">{t("purchase.title")}</h1>
+            <p className="fp-card-desc">{t("purchase.packLead")}</p>
+            <p className="fp-hint">{t("purchase.credits", { count: credits })}</p>
+          </>
         ) : null}
+        {error ? <Alert variant="error">{error}</Alert> : null}
 
+        {checkout ? (
+          <CheckoutScreen
+            t={t}
+            total={formatTl(checkout.total, locale)}
+            onBack={() => setCheckout(null)}
+            lines={[
+              { label: t("purchase.packTests", { count: checkout.quantity }), value: formatTl(checkout.unitPrice, locale) },
+              { label: t("purchase.net"), value: formatTl(checkout.net, locale) },
+              { label: t("purchase.vat", { rate: checkout.vatRate }), value: formatTl(checkout.vat, locale) },
+              { label: t("purchase.gross"), value: formatTl(checkout.total, locale), strong: true }
+            ]}
+            buyer={[
+              {
+                label: t("purchase.invoiceTitle"),
+                value: checkout.invoiceType === "company" ? t("purchase.typeCompany") : t("purchase.typeIndividual")
+              },
+              { label: checkout.invoiceType === "company" ? t("purchase.companyName") : t("purchase.name"), value: checkout.invoiceName },
+              { label: t("purchase.email"), value: checkout.email },
+              { label: t("purchase.phone"), value: checkout.phone },
+              { label: t("purchase.city"), value: `${checkout.district} / ${checkout.city}` },
+              { label: t("purchase.address"), value: checkout.address }
+            ]}
+          />
+        ) : (
         <form onSubmit={onSubmit} className="fp-buy-form">
           <div className="fp-buy-packs" role="radiogroup" aria-label={t("purchase.packLead")}>
             {SPECIALIST_PACKS.map((item) => (
@@ -206,16 +208,11 @@ export default function SpecialistBuyPage() {
             <Input value={form.address} onChange={(event) => setField("address", event.target.value)} autoComplete="street-address" required />
           </Field>
 
-          <Button type="submit" variant="primary" disabled={busy}>
-            {busy ? t("purchase.saving") : t("purchase.submit", { total: formatTl(totals.total, locale) })}
+          <Button type="submit" variant="primary">
+            {t("purchase.toPay", { total: formatTl(totals.total, locale) })}
           </Button>
         </form>
-
-        {done ? (
-          <p className="fp-buy-after">
-            <Link to="/panel">{t("common.panelBack")}</Link>
-          </p>
-        ) : null}
+        )}
       </Card>
     </Page>
   );

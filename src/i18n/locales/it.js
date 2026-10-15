@@ -61,7 +61,15 @@ export const it = {
     vat: "IVA ({{rate}}%)",
     gross: "Totale",
     errSpecialist: "Questo acquisto è solo per gli account specialista.",
-    errPack: "Il pacchetto selezionato non è valido."
+    errPack: "Il pacchetto selezionato non è valido.",
+    toPay: "Vai al pagamento · {{total}}",
+    payTitle: "Pagamento",
+    payLead: "Il riepilogo dell'ordine è pronto. Il pagamento con carta si aprirà in questa schermata quando l'account iyzico sarà collegato.",
+    payNote: "Il numero della carta non viene chiesto in questa pagina. Il pagamento si completerà qui quando si aprirà la finestra iyzico. Ora non c'è alcun addebito e non viene aggiunto credito test.",
+    payButton: "Paga con carta",
+    orderTitle: "Riepilogo ordine",
+    edit: "Modifica i dati",
+    secureTitle: "Pagamento sicuro"
   },
   common: {
     wait: "Attendere…",

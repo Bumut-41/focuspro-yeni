@@ -61,7 +61,15 @@ export const en = {
     vat: "VAT ({{rate}}%)",
     gross: "Total",
     errSpecialist: "This purchase is only for specialist accounts.",
-    errPack: "The selected pack is invalid."
+    errPack: "The selected pack is invalid.",
+    toPay: "Continue to payment · {{total}}",
+    payTitle: "Payment",
+    payLead: "Your order summary is ready. Card payment will open on this screen when the iyzico account is connected.",
+    payNote: "Card numbers are not collected on this page. Payment will finish here when the iyzico window is connected. No card charge is made now, and no test credit is added.",
+    payButton: "Pay by card",
+    orderTitle: "Order summary",
+    edit: "Edit details",
+    secureTitle: "Secure payment"
   },
   common: {
     wait: "Please wait…",

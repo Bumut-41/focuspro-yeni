@@ -61,7 +61,15 @@ export const tr = {
     vat: "KDV (%{{rate}})",
     gross: "Genel toplam",
     errSpecialist: "Bu satın alma yalnızca uzman hesaplar içindir.",
-    errPack: "Seçilen paket geçersiz."
+    errPack: "Seçilen paket geçersiz.",
+    toPay: "Ödemeye geç · {{total}}",
+    payTitle: "Ödeme",
+    payLead: "Sipariş özetiniz hazır. Kart ödemesi, iyzico hesabı bağlanınca bu ekranda açılır.",
+    payNote: "Kart numarası bu sayfada alınmaz. iyzico penceresi bağlandığında ödeme burada tamamlanır. Şu anda karttan tahsilat yapılmaz ve test bakiyesi eklenmez.",
+    payButton: "Kartla öde",
+    orderTitle: "Sipariş özeti",
+    edit: "Bilgileri düzenle",
+    secureTitle: "Güvenli ödeme"
   },
   common: {
     wait: "Bekleyin…",

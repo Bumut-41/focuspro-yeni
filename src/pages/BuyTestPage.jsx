@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import {
   INDIVIDUAL_TEST_LIMIT,
   INDIVIDUAL_TEST_PRICE_TL,
   fetchIndividualPurchaseQuota,
-  formatTl,
-  purchaseIndividualTests
+  formatTl
 } from "../services/purchases.js";
 import { Alert, Button, Card, Field, Input, Page } from "../components/ui.jsx";
+import { CheckoutScreen } from "../components/CheckoutScreen.jsx";
 
 const EMPTY = {
   invoiceType: "individual",
@@ -34,14 +34,13 @@ function purchaseError(err, t) {
 }
 
 export default function BuyTestPage() {
-  const { profile, user, credits, refreshProfile } = useAuth();
+  const { profile, user, credits } = useAuth();
   const { t, locale } = useLocale();
   const [quota, setQuota] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(null);
+  const [checkout, setCheckout] = useState(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -107,49 +106,37 @@ export default function BuyTestPage() {
     return "";
   }
 
-  async function onSubmit(event) {
+  function onSubmit(event) {
     event.preventDefault();
     const problem = validate();
     if (problem) {
       setError(problem);
       return;
     }
-    setBusy(true);
-    setError("");
-    try {
-      const result = await purchaseIndividualTests({
-        quantity,
-        invoiceType: form.invoiceType,
-        invoiceName: form.invoiceName.trim(),
-        taxId: form.taxId,
-        taxOffice: form.taxOffice.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        city: form.city.trim(),
-        district: form.district.trim(),
-        address: form.address.trim()
-      });
-      await refreshProfile();
-      setDone(result);
-      setQuota({
-        limit: INDIVIDUAL_TEST_LIMIT,
-        purchased: result.purchased,
-        remaining: result.remaining,
-        unit_price_tl: result.unit_price_tl
-      });
-      setQuantity(1);
-    } catch (err) {
-      setError(purchaseError(err, t));
-    } finally {
-      setBusy(false);
-    }
+    setCheckout({
+      quantity,
+      unitPrice,
+      total,
+      invoiceType: form.invoiceType,
+      invoiceName: form.invoiceName.trim(),
+      taxId: form.taxId.replace(/\D/g, ""),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      city: form.city.trim(),
+      district: form.district.trim(),
+      address: form.address.trim()
+    });
   }
 
   return (
-    <Page narrow>
+    <Page narrow={!checkout}>
       <Card>
-        <h1 className="fp-card-title">{t("purchase.title")}</h1>
-        <p className="fp-card-desc">{t("purchase.lead", { price: formatTl(unitPrice, locale) })}</p>
+        {!checkout ? (
+          <>
+            <h1 className="fp-card-title">{t("purchase.title")}</h1>
+            <p className="fp-card-desc">{t("purchase.lead", { price: formatTl(unitPrice, locale) })}</p>
+          </>
+        ) : null}
 
         {error ? (
           <Alert variant="error">{error}</Alert>
@@ -157,13 +144,28 @@ export default function BuyTestPage() {
 
         {!ready ? <p className="fp-loading">{t("common.loading")}</p> : null}
 
-        {done ? (
-          <Alert variant="success">
-            {t("purchase.successBody", {
-              count: done.quantity,
-              total: formatTl(done.total_tl, locale)
-            })}
-          </Alert>
+        {ready && !atCap && checkout ? (
+          <CheckoutScreen
+            t={t}
+            total={formatTl(checkout.total, locale)}
+            onBack={() => setCheckout(null)}
+            lines={[
+              { label: t("purchase.quantity"), value: String(checkout.quantity) },
+              { label: t("purchase.unit"), value: formatTl(checkout.unitPrice, locale) },
+              { label: t("purchase.total"), value: formatTl(checkout.total, locale), strong: true }
+            ]}
+            buyer={[
+              {
+                label: t("purchase.invoiceTitle"),
+                value: checkout.invoiceType === "company" ? t("purchase.typeCompany") : t("purchase.typeIndividual")
+              },
+              { label: t("purchase.name"), value: checkout.invoiceName },
+              { label: t("purchase.email"), value: checkout.email },
+              { label: t("purchase.phone"), value: checkout.phone },
+              { label: t("purchase.city"), value: `${checkout.district} / ${checkout.city}` },
+              { label: t("purchase.address"), value: checkout.address }
+            ]}
+          />
         ) : null}
 
         {atCap ? (
@@ -176,7 +178,7 @@ export default function BuyTestPage() {
           </div>
         ) : null}
 
-        {ready && !atCap ? (
+        {ready && !atCap && !checkout ? (
           <form onSubmit={onSubmit} className="fp-buy-form">
             <div className="fp-buy-price">
               <span>{t("purchase.unit")}</span>
@@ -309,16 +311,10 @@ export default function BuyTestPage() {
               />
             </Field>
 
-            <Button type="submit" variant="primary" disabled={busy || !quota}>
-              {busy ? t("purchase.saving") : t("purchase.submit", { total: formatTl(total, locale) })}
+            <Button type="submit" variant="primary" disabled={!quota}>
+              {t("purchase.toPay", { total: formatTl(total, locale) })}
             </Button>
           </form>
-        ) : null}
-
-        {done ? (
-          <p className="fp-buy-after">
-            <Link to="/panel">{t("common.panelBack")}</Link>
-          </p>
         ) : null}
       </Card>
     </Page>
