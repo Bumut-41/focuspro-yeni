@@ -139,10 +139,10 @@ export default function DashboardPage() {
               {t("purchase.credits", { count: credits })}
             </p>
           ) : null}
-          {profile?.role === "individual" && credits < 1 ? (
+          {(profile?.role === "individual" || profile?.role === "psychologist") && credits < 1 ? (
             <>
               <Alert variant="info">{t("dashboard.noTestCredits")}</Alert>
-              <Button asLink to="/test-satin-al" variant="primary">
+              <Button asLink to={profile?.role === "psychologist" ? "/uzman-test-satin-al" : "/test-satin-al"} variant="primary">
                 {t("nav.buyTest")}
               </Button>
             </>

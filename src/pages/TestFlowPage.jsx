@@ -514,13 +514,20 @@ export default function TestFlowPage() {
     );
   }
 
-  if (account?.role === "individual" && !isInviteFlow && credits < 1) {
+  const needsPurchase =
+    !isInviteFlow && credits < 1 && (account?.role === "individual" || account?.role === "psychologist");
+  if (needsPurchase) {
     return (
       <Page narrow>
         <Card>
           <h2 className="fp-card-title">{t("dashboard.noTestCreditsTitle")}</h2>
           <p className="fp-card-desc">{t("dashboard.noTestCredits")}</p>
-          <Button asLink to="/test-satin-al" variant="primary" style={{ marginTop: 16 }}>
+          <Button
+            asLink
+            to={account?.role === "psychologist" ? "/uzman-test-satin-al" : "/test-satin-al"}
+            variant="primary"
+            style={{ marginTop: 16 }}
+          >
             {t("nav.buyTest")}
           </Button>
         </Card>
