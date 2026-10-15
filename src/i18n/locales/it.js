@@ -358,6 +358,7 @@ export const it = {
       "Tutti gli utenti e i risultati dei test. Per ogni sessione scarica il report del partecipante e il PDF delle pressioni.",
     superHint: "Super Admin: tutte le azioni admin sotto, più crediti manuali e cancellazione utenti nella tabella.",
     grantLabel: "Assegna crediti all'utente",
+    grantDesc: "Aggiungi crediti test all'utente selezionato.",
     amount: "Quantità",
     add: "Aggiungi",
     creditAdded: "Crediti aggiunti.",

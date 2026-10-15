@@ -358,6 +358,7 @@ export const en = {
       "All users and test results. Download participant test report and press report PDF for each session.",
     superHint: "Super Admin: all admin actions below + manual credits and user deletion in the table.",
     grantLabel: "Grant credits to user",
+    grantDesc: "Add test credits to the selected user.",
     amount: "Amount",
     add: "Add",
     creditAdded: "Credits added.",

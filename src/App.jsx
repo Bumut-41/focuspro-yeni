@@ -113,7 +113,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/admin"
+        path="/admin/*"
         element={
           <ProtectedRoute>
             <AdminPage />

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
@@ -112,6 +112,8 @@ export default function AdminPage() {
     const timer = setTimeout(() => setDebouncedQuery(testQuery), 300);
     return () => clearTimeout(timer);
   }, [testQuery]);
+
+  const { pathname } = useLocation();
 
   const load = useCallback(async () => {
     const searching = debouncedQuery.trim().length >= 2 || Boolean(testProfile || testFrom || testTo);
@@ -379,11 +381,52 @@ export default function AdminPage() {
   }
 
   const rolesForPicker = assignableRoles(isSuperAdmin);
+  const section = pathname.replace(/\/$/, "") || "/admin";
+  const adminPages = new Set([
+    "/admin",
+    "/admin/kredi",
+    "/admin/satin-almalar",
+    "/admin/kurumsal",
+    "/admin/uzman",
+    "/admin/iletisim",
+    "/admin/kullanicilar",
+    "/admin/testler"
+  ]);
+
+  if (!adminPages.has(section)) return <Navigate to="/admin" replace />;
 
   return (
     <Page wide>
+      {section === "/admin" ? (
+        <Card>
+          <CardHeader title={t("admin.title")} description={t("admin.description")} />
+          <nav className="fp-admin-menu" aria-label={t("admin.title")}>
+            <Link to="/admin/kredi">{t("admin.grantLabel")}</Link>
+            <Link to="/admin/satin-almalar">{t("admin.purchasesTitle", { count: purchases.length })}</Link>
+            <Link to="/admin/kurumsal">{t("admin.applicationsTitle", { count: applications.length })}</Link>
+            <Link to="/admin/uzman">{t("admin.specialistApplicationsTitle", { count: specialistApplications.length })}</Link>
+            <Link to="/admin/iletisim">{t("admin.contactMessagesTitle", { count: contactMessages.length })}</Link>
+            <Link to="/admin/kullanicilar">{t("admin.usersTitle", { count: filteredUsers.length })}</Link>
+            <Link to="/admin/testler">{t("admin.sessionsTitle", { count: filteredSessions.length })}</Link>
+          </nav>
+        </Card>
+      ) : (
+        <Link to="/admin" className="fp-back-link">
+          ← {t("admin.title")}
+        </Link>
+      )}
+      {msg && (
+        <Alert
+          variant={/eklendi|güncellendi|kaydedildi|silindi|added|updated|saved|deleted/i.test(msg) ? "success" : "info"}
+          style={{ marginTop: 12 }}
+        >
+          {msg}
+        </Alert>
+      )}
+
+      {section === "/admin/kredi" && (
       <Card>
-        <CardHeader title={t("admin.title")} description={t("admin.description")} />
+        <CardHeader title={t("admin.grantLabel")} description={t("admin.grantDesc")} />
         {isSuperAdmin && (
           <p style={{ margin: "0 0 12px", fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
             {t("admin.superHint")}
@@ -420,16 +463,10 @@ export default function AdminPage() {
             {t("admin.add")}
           </Button>
         </Stack>
-        {msg && (
-          <Alert
-            variant={/eklendi|güncellendi|kaydedildi|silindi|added|updated|saved|deleted/i.test(msg) ? "success" : "info"}
-            style={{ marginTop: 12 }}
-          >
-            {msg}
-          </Alert>
-        )}
       </Card>
+      )}
 
+      {section === "/admin/satin-almalar" && (
       <Card>
         <CardHeader
           title={t("admin.purchasesTitle", { count: purchases.length })}
@@ -501,7 +538,9 @@ export default function AdminPage() {
           </div>
         )}
       </Card>
+      )}
 
+      {section === "/admin/kurumsal" && (
       <Card>
         <CardHeader
           title={t("admin.applicationsTitle", { count: applications.length })}
@@ -543,7 +582,9 @@ export default function AdminPage() {
           />
         )}
       </Card>
+      )}
 
+      {section === "/admin/uzman" && (
       <Card>
         <CardHeader
           title={t("admin.specialistApplicationsTitle", { count: specialistApplications.length })}
@@ -592,7 +633,9 @@ export default function AdminPage() {
           }}
         />
       </Card>
+      )}
 
+      {section === "/admin/iletisim" && (
       <Card>
         <CardHeader
           title={t("admin.contactMessagesTitle", { count: contactMessages.length })}
@@ -657,7 +700,9 @@ export default function AdminPage() {
           </div>
         )}
       </Card>
+      )}
 
+      {section === "/admin/kullanicilar" && (
       <Card>
         <CardHeader
           title={t("admin.usersTitle", { count: filteredUsers.length })}
@@ -782,7 +827,10 @@ export default function AdminPage() {
         />
         )}
       </Card>
+      )}
 
+      {section === "/admin/testler" && (
+      <>
       <Card>
         <CardHeader
           title={t("admin.sessionsTitle", { count: filteredSessions.length })}
@@ -895,6 +943,8 @@ export default function AdminPage() {
           }}
           pdfBusy={pdfBusy?.startsWith(`${detail.id}-detail`) ?? false}
         />
+      )}
+      </>
       )}
     </Page>
   );

@@ -1947,6 +1947,37 @@ html.test-touch-lock body {
   margin-top: var(--fp-space-4);
 }
 
+.fp-admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fp-admin-menu a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 1px solid var(--fp-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--fp-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.fp-admin-menu a::after {
+  content: "→";
+  color: var(--fp-primary);
+  font-weight: 700;
+}
+
+.fp-admin-menu a:hover {
+  border-color: #99f6e4;
+  background: var(--fp-primary-soft);
+  text-decoration: none;
+}
+
 @media (max-width: 640px) {
   .fp-buy-row {
     grid-template-columns: 1fr;

@@ -359,6 +359,7 @@ export const tr = {
     superHint:
       "Super Admin: aşağıdaki tüm yönetici işlemleri + tabloda manuel kredi ve kullanıcı silme.",
     grantLabel: "Kullanıcıya kredi ver",
+    grantDesc: "Seçtiğiniz kullanıcıya test kredisi ekleyin.",
     amount: "Adet",
     add: "Ekle",
     creditAdded: "Kredi eklendi.",
