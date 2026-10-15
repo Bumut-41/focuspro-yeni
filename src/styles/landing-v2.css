@@ -902,6 +902,44 @@ a.fp-mkt-metric:hover {
   color: #0f172a;
 }
 
+.fp-detail-en {
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.fp-detail-summary {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #0f172a;
+}
+
+.fp-detail-indicators {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.fp-detail-indicator {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.95rem 1.05rem;
+}
+
+.fp-detail-indicator h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.fp-detail-indicator p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
 .fp-detail-kicker {
   margin: 0 0 0.4rem;
   font-size: 0.85rem;

@@ -483,30 +483,96 @@ export const homePageIt = {
   },
   metricPages: {
     back: "Torna alla home",
+    indicatorsTitle: "Indicatori di prestazione valutati",
     items: {
       dikkat: {
         code: "A",
         color: "a",
         title: "Attenzione",
         en: "Attention",
-        desc: "Notare i target e sostenere la concentrazione",
-        points: ["Attenzione sostenuta", "Attenzione selettiva", "Focus sul target", "Continuità della prestazione"]
+        summary: "La capacità di notare gli stimoli target e di sostenere la concentrazione per tutta la durata del compito.",
+        paragraphs: [
+          "L'attenzione è uno dei processi cognitivi fondamentali che permette di concentrarsi su determinati stimoli, distinguere le informazioni rilevanti e mantenere l'attenzione sul compito per tutta la sua durata.",
+          "FocusProLab si propone di esaminare la prestazione attentiva attraverso le risposte agli stimoli target e i cambiamenti di prestazione che emergono nel corso del compito."
+        ],
+        indicators: [
+          {
+            title: "Attenzione sostenuta",
+            text: "Mantenere la prestazione attentiva per tutto il compito e rispondere in modo continuativo agli stimoli target."
+          },
+          {
+            title: "Attenzione selettiva",
+            text: "Distinguere gli stimoli target da quelli non target e produrre la risposta appropriata."
+          },
+          {
+            title: "Focus sul target",
+            text: "Riconoscere correttamente gli stimoli target ed esaminare i target mancati (errori di omissione)."
+          },
+          {
+            title: "Continuità della prestazione",
+            text: "Valutare come cambia la prestazione attentiva nei diversi momenti del test."
+          }
+        ]
       },
       zamanlama: {
         code: "T",
         color: "t",
         title: "Tempismo",
         en: "Timing",
-        desc: "Risposte tempestive e costanti",
-        points: ["Tempo di reazione", "Costanza della risposta", "Controllo del ritmo", "Rispondere al momento giusto"]
+        summary: "La capacità di rispondere agli stimoli con una velocità adeguata, al momento giusto e in modo costante.",
+        paragraphs: [
+          "Il tempismo indica il tempo che intercorre tra la percezione di uno stimolo e la risposta motoria, e la costanza temporale di quelle risposte. Oltre alla velocità di risposta, quanto variano i tempi di risposta nel corso del compito è un indicatore importante per comprendere la prestazione.",
+          "FocusProLab si propone di esaminare la prestazione di tempismo attraverso i tempi di reazione, la variabilità tra le risposte e i cambiamenti di velocità che emergono durante il test."
+        ],
+        indicators: [
+          {
+            title: "Tempo di reazione",
+            text: "Esame, in millisecondi, del tempo tra la presentazione del target e la risposta della persona."
+          },
+          {
+            title: "Costanza della risposta",
+            text: "Valutazione di quanto i tempi di risposta siano vicini tra loro e della variabilità del tempo di reazione."
+          },
+          {
+            title: "Controllo del ritmo",
+            text: "Esame del mantenimento, dell'accelerazione o del rallentamento della velocità di risposta man mano che il compito procede."
+          },
+          {
+            title: "Rispondere al momento giusto",
+            text: "Valutazione della capacità di rispondere ai target entro limiti di tempo di risposta definiti in anticipo."
+          }
+        ]
       },
       durtusellik: {
         code: "I",
         color: "i",
         title: "Impulsività",
         en: "Impulsivity",
-        desc: "Controllo delle risposte agli stimoli non target",
-        points: ["Inibizione della risposta", "Tendenza a rispondere agli stimoli non target", "Controllo decisionale", "Autoregolazione comportamentale"]
+        summary:
+          "La capacità di controllare le risposte inutili agli stimoli non target e di trattenere le risposte inappropriate.",
+        paragraphs: [
+          "L'impulsività è una caratteristica comportamentale legata alla capacità di controllare la risposta prima di reagire a uno stimolo e, quando serve, di fermare le risposte automatiche.",
+          "Nei compiti che richiedono attenzione non basta rispondere agli stimoli corretti: è importante anche trattenere la risposta quando non si deve rispondere.",
+          "FocusProLab si propone di esaminare la prestazione legata all'impulsività attraverso le risposte errate agli stimoli non target, il controllo della risposta e gli schemi di risposta che emergono nel corso del compito."
+        ],
+        indicators: [
+          {
+            title: "Inibizione della risposta",
+            text: "Esame della capacità di trattenere risposte motorie inappropriate davanti a stimoli non target."
+          },
+          {
+            title: "Tendenza a rispondere allo stimolo sbagliato",
+            text: "Valutazione della frequenza e della proporzione delle pressioni errate su stimoli a cui non si deve rispondere (errori di commissione)."
+          },
+          {
+            title: "Equilibrio tra velocità e accuratezza",
+            text: "Esame della relazione tra la tendenza a rispondere in fretta e il tasso di risposte errate."
+          },
+          {
+            title: "Controllo della risposta nel corso del compito",
+            text: "Valutazione di come cambiano le risposte errate agli stimoli non target nei diversi momenti del test."
+          }
+        ]
       },
       hiperaktivite: {
         code: "H",

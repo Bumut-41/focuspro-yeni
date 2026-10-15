@@ -483,30 +483,96 @@ export const homePageTr = {
   },
   metricPages: {
     back: "Ana sayfaya dön",
+    indicatorsTitle: "Değerlendirilen Performans Göstergeleri",
     items: {
       dikkat: {
         code: "A",
         color: "a",
         title: "Dikkat",
         en: "Attention",
-        desc: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme",
-        points: ["Dikkati sürdürme", "Seçici dikkat", "Hedefe odaklanma", "Performans sürekliliği"]
+        summary: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürebilme becerisi.",
+        paragraphs: [
+          "Dikkat, bireyin belirli uyaranlara odaklanmasını, ilgili bilgileri ayırt etmesini ve dikkatini görev süresince koruyabilmesini sağlayan temel bilişsel süreçlerden biridir.",
+          "FocusProLab, dikkat performansını hedef uyaranlara verilen yanıtlar ve görev boyunca ortaya çıkan performans değişimleri üzerinden incelemeyi amaçlar."
+        ],
+        indicators: [
+          {
+            title: "Dikkati Sürdürme",
+            text: "Görev boyunca dikkat performansını devam ettirebilme ve hedef uyaranlara yanıt verme sürekliliği."
+          },
+          {
+            title: "Seçici Dikkat",
+            text: "Hedef uyaranları hedef dışı uyaranlardan ayırt ederek uygun yanıt oluşturabilme."
+          },
+          {
+            title: "Hedefe Odaklanma",
+            text: "Hedef uyaranları doğru şekilde fark etme ve kaçırılan hedeflerin (ihmal hatalarının) incelenmesi."
+          },
+          {
+            title: "Performans Sürekliliği",
+            text: "Testin farklı zaman dilimlerinde dikkat performansının nasıl değiştiğinin değerlendirilmesi."
+          }
+        ]
       },
       zamanlama: {
         code: "T",
         color: "t",
         title: "Zamanlama",
         en: "Timing",
-        desc: "Doğru zamanda ve tutarlı tepki verme",
-        points: ["Tepki süresi", "Tepki tutarlılığı", "Tempo kontrolü", "Doğru zamanda yanıt verme"]
+        summary: "Uyaranlara uygun hızda, doğru zamanda ve tutarlı tepkiler verebilme becerisi.",
+        paragraphs: [
+          "Zamanlama, bireyin bir uyaranı algılaması ile bu uyarana motor yanıt oluşturması arasında geçen süreyi ve yanıtlarının zamansal tutarlılığını ifade eder. Tepki hızının yanı sıra, görev boyunca yanıt sürelerinin ne ölçüde değiştiği de performansın anlaşılmasında önemli bir göstergedir.",
+          "FocusProLab, zamanlama performansını tepki süreleri, yanıtlar arasındaki değişkenlik ve test süresince ortaya çıkan hız değişimleri üzerinden incelemeyi amaçlar."
+        ],
+        indicators: [
+          {
+            title: "Tepki Süresi",
+            text: "Hedef uyaranın sunulması ile bireyin yanıt vermesi arasında geçen sürenin milisaniye cinsinden incelenmesi."
+          },
+          {
+            title: "Tepki Tutarlılığı",
+            text: "Yanıt sürelerinin birbirine ne kadar yakın olduğunun ve tepki süresi değişkenliğinin değerlendirilmesi."
+          },
+          {
+            title: "Tempo Kontrolü",
+            text: "Görev ilerledikçe tepki hızının korunması, hızlanma veya yavaşlama eğilimlerinin incelenmesi."
+          },
+          {
+            title: "Zamanında Yanıt Verme",
+            text: "Hedef uyaranlara önceden tanımlanmış yanıt süresi sınırları içerisinde tepki verebilme performansının değerlendirilmesi."
+          }
+        ]
       },
       durtusellik: {
         code: "I",
         color: "i",
         title: "Dürtüsellik",
         en: "Impulsivity",
-        desc: "Hedef dışı uyaranlara gereksiz tepki kontrolü",
-        points: ["Tepki inhibisyonu", "Yanlış uyarana tepki verme eğilimi", "Karar verme kontrolü", "Davranışsal özdenetim"]
+        summary:
+          "Hedef dışı uyaranlara verilen gereksiz tepkileri kontrol edebilme ve uygun olmayan yanıtları engelleyebilme becerisi.",
+        paragraphs: [
+          "Dürtüsellik, bireyin bir uyarana tepki vermeden önce yanıtını kontrol edebilmesi ve gerektiğinde otomatik tepkilerini durdurabilmesiyle ilişkili davranışsal bir özelliktir.",
+          "Dikkat gerektiren görevlerde yalnızca doğru uyaranlara yanıt vermek değil, yanıt verilmemesi gereken durumlarda tepkiyi engelleyebilmek de önemlidir.",
+          "FocusProLab, dürtüsellikle ilişkili performansı hedef dışı uyaranlara verilen yanlış tepkiler, yanıt kontrolü ve görev boyunca ortaya çıkan tepki örüntüleri üzerinden incelemeyi amaçlar."
+        ],
+        indicators: [
+          {
+            title: "Tepki İnhibisyonu",
+            text: "Hedef dışı uyaranlar karşısında uygun olmayan motor yanıtları engelleyebilme performansının incelenmesi."
+          },
+          {
+            title: "Yanlış Uyarana Tepki Verme Eğilimi",
+            text: "Yanıt verilmemesi gereken uyaranlara yapılan hatalı basışların (commission errors) sıklığının ve oranının değerlendirilmesi."
+          },
+          {
+            title: "Yanıt Hızı ve Doğruluk Dengesi",
+            text: "Hızlı yanıt verme eğilimi ile yanlış tepki oranı arasındaki ilişkinin incelenmesi."
+          },
+          {
+            title: "Görev Boyunca Yanıt Kontrolü",
+            text: "Testin farklı zaman dilimlerinde hedef dışı uyaranlara verilen yanlış tepkilerin değişiminin değerlendirilmesi."
+          }
+        ]
       },
       hiperaktivite: {
         code: "H",

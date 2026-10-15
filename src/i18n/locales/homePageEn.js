@@ -483,30 +483,96 @@ export const homePageEn = {
   },
   metricPages: {
     back: "Back to home",
+    indicatorsTitle: "Performance indicators assessed",
     items: {
       dikkat: {
         code: "A",
         color: "a",
         title: "Attention",
         en: "Dikkat",
-        desc: "Noticing targets and sustaining focus",
-        points: ["Sustaining attention", "Selective attention", "Focusing on the target", "Performance continuity"]
+        summary: "The ability to notice target stimuli and sustain focus throughout the task.",
+        paragraphs: [
+          "Attention is one of the core cognitive processes that allows a person to focus on particular stimuli, distinguish relevant information, and keep attention on the task for its duration.",
+          "FocusProLab aims to examine attention performance through responses to target stimuli and the performance changes that appear across the task."
+        ],
+        indicators: [
+          {
+            title: "Sustaining attention",
+            text: "Continuing attention performance through the task and responding consistently to target stimuli."
+          },
+          {
+            title: "Selective attention",
+            text: "Distinguishing targets from non-targets and producing the appropriate response."
+          },
+          {
+            title: "Focusing on the target",
+            text: "Correctly noticing target stimuli and examining missed targets (omission errors)."
+          },
+          {
+            title: "Performance continuity",
+            text: "Assessing how attention performance changes across different periods of the test."
+          }
+        ]
       },
       zamanlama: {
         code: "T",
         color: "t",
         title: "Timing",
         en: "Zamanlama",
-        desc: "Timely and consistent responses",
-        points: ["Reaction time", "Response consistency", "Tempo control", "Responding at the right time"]
+        summary: "The ability to respond to stimuli at an appropriate speed, at the right time, and with consistency.",
+        paragraphs: [
+          "Timing refers to the time between perceiving a stimulus and producing a motor response to it, and to how consistent those responses are over time. Along with response speed, how much response times change across the task is an important indicator for understanding performance.",
+          "FocusProLab aims to examine timing performance through reaction times, variability between responses, and speed changes that appear during the test."
+        ],
+        indicators: [
+          {
+            title: "Reaction time",
+            text: "Examining, in milliseconds, the time between presentation of the target and the person's response."
+          },
+          {
+            title: "Response consistency",
+            text: "Assessing how close response times are to one another and the variability of reaction time."
+          },
+          {
+            title: "Tempo control",
+            text: "Examining whether response speed is maintained, speeds up, or slows down as the task progresses."
+          },
+          {
+            title: "Responding on time",
+            text: "Assessing the ability to respond to targets within predefined response-time limits."
+          }
+        ]
       },
       durtusellik: {
         code: "I",
         color: "i",
         title: "Impulsivity",
         en: "Dürtüsellik",
-        desc: "Control over responses to non-targets",
-        points: ["Response inhibition", "Tendency to respond to non-targets", "Decision-making control", "Behavioral self-regulation"]
+        summary:
+          "The ability to control unnecessary responses to non-target stimuli and to withhold inappropriate responses.",
+        paragraphs: [
+          "Impulsivity is a behavioral characteristic related to a person's ability to control a response before reacting to a stimulus and, when needed, to stop automatic responses.",
+          "In tasks that require attention, it matters not only to respond to the correct stimuli, but also to withhold a response when no response should be given.",
+          "FocusProLab aims to examine performance related to impulsivity through incorrect responses to non-targets, response control, and the response patterns that appear across the task."
+        ],
+        indicators: [
+          {
+            title: "Response inhibition",
+            text: "Examining the ability to withhold inappropriate motor responses to non-target stimuli."
+          },
+          {
+            title: "Tendency to respond to the wrong stimulus",
+            text: "Assessing the frequency and rate of incorrect presses to stimuli that should not receive a response (commission errors)."
+          },
+          {
+            title: "Balance of response speed and accuracy",
+            text: "Examining the relationship between a tendency to respond quickly and the rate of incorrect responses."
+          },
+          {
+            title: "Response control across the task",
+            text: "Assessing how incorrect responses to non-targets change across different periods of the test."
+          }
+        ]
       },
       hiperaktivite: {
         code: "H",
