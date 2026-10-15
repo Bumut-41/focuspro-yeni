@@ -422,9 +422,11 @@ export const en = {
     subject: "Subject",
     location: "City / country",
     purchasesTitle: "Test purchases ({{count}})",
-    purchasesDesc: "Invoice details from individual users. Click a row to open the address and ID number.",
+    purchasesDesc: "Invoice details from individual users. Click a row to open the address and ID number. Every record can be exported to Excel.",
     purchasesEmpty: "No purchases yet.",
     purchasesFailed: "Could not load purchases. Run individual-purchases-admin-read.sql in the Supabase SQL Editor.",
+    exportPurchases: "Export to Excel",
+    recordId: "Record id",
     invoiceType: "Invoice type",
     taxId: "ID / tax number"
   },

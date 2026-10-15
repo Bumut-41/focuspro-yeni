@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase.js";
+import { triggerBlobDownload } from "../lib/triggerBlobDownload.js";
 
 export const INDIVIDUAL_TEST_PRICE_TL = 1500;
 export const INDIVIDUAL_TEST_LIMIT = 5;
@@ -43,4 +44,63 @@ export async function fetchIndividualPurchases(limit = 200) {
     .limit(limit);
   if (error) throw error;
   return data ?? [];
+}
+
+function csvCell(value) {
+  const text = value == null ? "" : String(value);
+  if (text.startsWith("=")) return text;
+  if (/[;"\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+function excelText(value) {
+  const text = value == null ? "" : String(value).trim();
+  if (!text) return "";
+  return `="${text.replace(/"/g, '""')}"`;
+}
+
+export function downloadPurchasesCsv(rows, labels) {
+  const header = [
+    labels.date,
+    labels.invoiceType,
+    labels.name,
+    labels.taxId,
+    labels.taxOffice,
+    labels.email,
+    labels.phone,
+    labels.city,
+    labels.district,
+    labels.address,
+    labels.quantity,
+    labels.unitPrice,
+    labels.total,
+    labels.id
+  ];
+  const lines = [header.map(csvCell).join(";")];
+  for (const row of rows) {
+    const typeLabel = row.invoice_type === "company" ? labels.company : labels.individual;
+    lines.push(
+      [
+        row.created_at ? new Date(row.created_at).toLocaleString("tr-TR") : "",
+        typeLabel,
+        row.invoice_name || "",
+        excelText(row.tax_id),
+        row.tax_office || "",
+        row.email || "",
+        excelText(row.phone),
+        row.city || "",
+        row.district || "",
+        row.address || "",
+        row.quantity ?? "",
+        row.unit_price_tl ?? "",
+        row.total_tl ?? "",
+        row.id || ""
+      ]
+        .map(csvCell)
+        .join(";")
+    );
+  }
+  const blob = new Blob([`\uFEFF${lines.join("\r\n")}`], { type: "text/csv;charset=utf-8" });
+  const day = new Date().toISOString().slice(0, 10);
+  triggerBlobDownload(blob, `focusprolab-faturalar-${day}.csv`);
 }

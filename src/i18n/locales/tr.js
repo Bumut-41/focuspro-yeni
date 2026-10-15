@@ -424,9 +424,11 @@ export const tr = {
     subject: "Konu",
     location: "Şehir / ülke",
     purchasesTitle: "Test satın almaları ({{count}})",
-    purchasesDesc: "Bireysel kullanıcıların fatura bilgileri. Satıra tıklayınca adres ve kimlik numarası açılır.",
+    purchasesDesc: "Bireysel kullanıcıların fatura bilgileri. Satıra tıklayınca adres ve kimlik numarası açılır. Tüm kayıtlar Excel'e aktarılabilir.",
     purchasesEmpty: "Henüz satın alma yok.",
     purchasesFailed: "Satın almalar okunamadı. Supabase SQL Editor'da individual-purchases-admin-read.sql dosyasını çalıştırın.",
+    exportPurchases: "Excel'e aktar",
+    recordId: "Kayıt no",
     invoiceType: "Fatura türü",
     taxId: "Kimlik / vergi no"
   },

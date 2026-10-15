@@ -33,7 +33,7 @@ import {
 import { fetchCorporateApplications } from "../services/corporateApplications.js";
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
 import { fetchContactMessages } from "../services/contactMessages.js";
-import { fetchIndividualPurchases, formatTl } from "../services/purchases.js";
+import { downloadPurchasesCsv, fetchIndividualPurchases, formatTl } from "../services/purchases.js";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
@@ -122,7 +122,7 @@ export default function AdminPage() {
       fetchCorporateApplications(),
       fetchSpecialistApplications(),
       fetchContactMessages(),
-      fetchIndividualPurchases()
+      fetchIndividualPurchases(5000)
     ]);
     const loadedProfiles = profilesResult.status === "fulfilled" ? profilesResult.value : [];
     const ownerIds =
@@ -471,6 +471,36 @@ export default function AdminPage() {
         <CardHeader
           title={t("admin.purchasesTitle", { count: purchases.length })}
           description={t("admin.purchasesDesc")}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!purchases.length}
+              onClick={() =>
+                downloadPurchasesCsv(purchases, {
+                  date: t("admin.date"),
+                  invoiceType: t("admin.invoiceType"),
+                  name: t("admin.name"),
+                  taxId: t("admin.taxId"),
+                  taxOffice: t("purchase.taxOffice"),
+                  email: t("admin.email"),
+                  phone: t("admin.phone"),
+                  city: t("admin.city"),
+                  district: t("purchase.district"),
+                  address: t("purchase.address"),
+                  quantity: t("admin.amount"),
+                  unitPrice: t("purchase.unit"),
+                  total: t("purchase.total"),
+                  id: t("admin.recordId"),
+                  company: t("purchase.typeCompany"),
+                  individual: t("purchase.typeIndividual")
+                })
+              }
+            >
+              {t("admin.exportPurchases")}
+            </Button>
+          }
         />
         {purchasesError && <Alert variant="error">{purchasesError}</Alert>}
         {!purchasesError && !purchases.length && (

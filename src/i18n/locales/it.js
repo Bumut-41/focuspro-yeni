@@ -422,9 +422,11 @@ export const it = {
     subject: "Oggetto",
     location: "Città / paese",
     purchasesTitle: "Acquisti di test ({{count}})",
-    purchasesDesc: "Dati di fatturazione degli utenti individuali. Clicca una riga per vedere indirizzo e numero identificativo.",
+    purchasesDesc: "Dati di fatturazione degli utenti individuali. Clicca una riga per vedere indirizzo e numero identificativo. Tutti i record si possono esportare in Excel.",
     purchasesEmpty: "Nessun acquisto.",
     purchasesFailed: "Impossibile leggere gli acquisti. Esegui individual-purchases-admin-read.sql nell'editor SQL di Supabase.",
+    exportPurchases: "Esporta in Excel",
+    recordId: "Numero record",
     invoiceType: "Tipo di fattura",
     taxId: "Codice identificativo / fiscale"
   },
