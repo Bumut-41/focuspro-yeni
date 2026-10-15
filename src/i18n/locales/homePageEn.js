@@ -40,7 +40,14 @@ export const homePageEn = {
       { code: "A", label: "Attention", desc: "Noticing targets and sustaining focus", color: "a", to: "/olcum/dikkat" },
       { code: "T", label: "Timing", desc: "Timely and consistent responses", color: "t", to: "/olcum/zamanlama" },
       { code: "I", label: "Impulsivity", desc: "Control over responses to non-targets", color: "i", to: "/olcum/durtusellik" },
-      { code: "H", label: "Hyperactivity", desc: "Motor control and response regulation", color: "h", to: "/olcum/hiperaktivite" }
+      { code: "H", label: "Hyperactivity", desc: "Motor control and response regulation", color: "h", to: "/olcum/hiperaktivite" },
+      {
+        code: "C",
+        label: "Distractor Resistance",
+        desc: "Examining how distracting stimuli affect performance",
+        color: "c",
+        to: "/olcum/celdirici-direnci"
+      }
     ]
   },
   audience: {
@@ -508,6 +515,19 @@ export const homePageEn = {
         en: "Hiperaktivite",
         desc: "Motor control and response regulation",
         points: ["Unnecessary motor responses", "Repetitive behavior patterns", "Motor inhibition", "Behavior control"]
+      },
+      "celdirici-direnci": {
+        code: "C",
+        color: "c",
+        title: "Distractor Resistance",
+        en: "Çeldirici Direnci",
+        desc: "Examining how distracting stimuli affect performance",
+        points: [
+          "Performance under visual distractors",
+          "Performance under auditory distractors",
+          "Performance under combined distractors",
+          "Keeping the task going when attention is pulled away"
+        ]
       }
     }
   },

@@ -330,7 +330,7 @@
 /* Metrics */
 .fp-mkt-metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -367,6 +367,9 @@
 }
 .fp-mkt-metric--h .fp-mkt-metric-code {
   background: #7c3aed;
+}
+.fp-mkt-metric--c .fp-mkt-metric-code {
+  background: #be123c;
 }
 
 .fp-mkt-metric h3 {

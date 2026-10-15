@@ -40,7 +40,14 @@ export const homePageTr = {
       { code: "A", label: "Dikkat", desc: "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme", color: "a", to: "/olcum/dikkat" },
       { code: "T", label: "Zamanlama", desc: "Doğru zamanda ve tutarlı tepki verme", color: "t", to: "/olcum/zamanlama" },
       { code: "I", label: "Dürtüsellik", desc: "Hedef dışı uyaranlara gereksiz tepki kontrolü", color: "i", to: "/olcum/durtusellik" },
-      { code: "H", label: "Hiperaktivite", desc: "Motor kontrol ve gereksiz tepki düzenleme", color: "h", to: "/olcum/hiperaktivite" }
+      { code: "H", label: "Hiperaktivite", desc: "Motor kontrol ve gereksiz tepki düzenleme", color: "h", to: "/olcum/hiperaktivite" },
+      {
+        code: "C",
+        label: "Çeldirici Direnci",
+        desc: "Dikkat dağıtıcı uyaranların performans üzerindeki etkisinin incelenmesi",
+        color: "c",
+        to: "/olcum/celdirici-direnci"
+      }
     ]
   },
   audience: {
@@ -508,6 +515,19 @@ export const homePageTr = {
         en: "Hyperactivity",
         desc: "Motor kontrol ve gereksiz tepki düzenleme",
         points: ["Gereksiz motor tepkiler", "Tekrarlayan davranış örüntüleri", "Motor inhibisyon", "Davranış kontrolü"]
+      },
+      "celdirici-direnci": {
+        code: "C",
+        color: "c",
+        title: "Çeldirici Direnci",
+        en: "Distractor Resistance",
+        desc: "Dikkat dağıtıcı uyaranların performans üzerindeki etkisinin incelenmesi",
+        points: [
+          "Görsel dikkat dağıtıcılar altında performans",
+          "İşitsel dikkat dağıtıcılar altında performans",
+          "Birleşik çeldiriciler altında performans",
+          "Dikkat dağıldığında görevi sürdürme"
+        ]
       }
     }
   },

@@ -40,7 +40,14 @@ export const homePageIt = {
       { code: "A", label: "Attenzione", desc: "Notare i target e sostenere la concentrazione", color: "a", to: "/olcum/dikkat" },
       { code: "T", label: "Tempismo", desc: "Risposte tempestive e costanti", color: "t", to: "/olcum/zamanlama" },
       { code: "I", label: "Impulsività", desc: "Controllo delle risposte agli stimoli non target", color: "i", to: "/olcum/durtusellik" },
-      { code: "H", label: "Iperattività", desc: "Controllo motorio e regolazione della risposta", color: "h", to: "/olcum/hiperaktivite" }
+      { code: "H", label: "Iperattività", desc: "Controllo motorio e regolazione della risposta", color: "h", to: "/olcum/hiperaktivite" },
+      {
+        code: "C",
+        label: "Resistenza ai distrattori",
+        desc: "Esame dell'effetto degli stimoli distraenti sulla prestazione",
+        color: "c",
+        to: "/olcum/celdirici-direnci"
+      }
     ]
   },
   audience: {
@@ -508,6 +515,19 @@ export const homePageIt = {
         en: "Hyperactivity",
         desc: "Controllo motorio e regolazione della risposta",
         points: ["Risposte motorie inutili", "Schemi di comportamento ripetitivi", "Inibizione motoria", "Controllo del comportamento"]
+      },
+      "celdirici-direnci": {
+        code: "C",
+        color: "c",
+        title: "Resistenza ai distrattori",
+        en: "Distractor Resistance",
+        desc: "Esame dell'effetto degli stimoli distraenti sulla prestazione",
+        points: [
+          "Prestazione con distrattori visivi",
+          "Prestazione con distrattori uditivi",
+          "Prestazione con distrattori combinati",
+          "Continuare il compito quando l'attenzione viene distolta"
+        ]
       }
     }
   },
