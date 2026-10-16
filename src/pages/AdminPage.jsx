@@ -34,6 +34,12 @@ import { fetchCorporateApplications } from "../services/corporateApplications.js
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
 import { fetchContactMessages } from "../services/contactMessages.js";
 import { downloadPurchasesCsv, downloadSpecialistPurchasesCsv, fetchIndividualPurchases, fetchSpecialistPurchases, formatTl } from "../services/purchases.js";
+import {
+  createPromoCode,
+  deletePromoCode,
+  fetchPromoCodes,
+  updatePromoCode
+} from "../services/promoCodes.js";
 import { formatReportEmailStatus, sendSessionReportEmail } from "../services/emailReport.js";
 import {
   downloadContactCsv,
@@ -97,6 +103,16 @@ export default function AdminPage() {
   const [packPurchases, setPackPurchases] = useState([]);
   const [packPurchasesError, setPackPurchasesError] = useState("");
   const [packPurchaseId, setPackPurchaseId] = useState(null);
+  const [promoCodes, setPromoCodes] = useState([]);
+  const [promoError, setPromoError] = useState("");
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoForm, setPromoForm] = useState({
+    code: "",
+    discountType: "percent",
+    discountValue: "",
+    note: "",
+    active: true
+  });
   const [grantQuery, setGrantQuery] = useState("");
   const [userQuery, setUserQuery] = useState("");
   const [userRole, setUserRole] = useState("");
@@ -127,14 +143,16 @@ export default function AdminPage() {
   const { pathname } = useLocation();
 
   const load = useCallback(async () => {
-    const [profilesResult, applicationsResult, specialistResult, contactResult, purchasesResult, packResult] = await Promise.allSettled([
-      fetchAllProfiles(),
-      fetchCorporateApplications(5000),
-      fetchSpecialistApplications(5000),
-      fetchContactMessages(5000),
-      fetchIndividualPurchases(5000),
-      fetchSpecialistPurchases(5000)
-    ]);
+    const [profilesResult, applicationsResult, specialistResult, contactResult, purchasesResult, packResult, promoResult] =
+      await Promise.allSettled([
+        fetchAllProfiles(),
+        fetchCorporateApplications(5000),
+        fetchSpecialistApplications(5000),
+        fetchContactMessages(5000),
+        fetchIndividualPurchases(5000),
+        fetchSpecialistPurchases(5000),
+        isSuperAdmin ? fetchPromoCodes() : Promise.resolve([])
+      ]);
     const loadedProfiles = profilesResult.status === "fulfilled" ? profilesResult.value : [];
     const ownerIds =
       debouncedQuery.trim().length >= 2
@@ -203,7 +221,21 @@ export default function AdminPage() {
       setPackPurchases([]);
       setPackPurchasesError(t("admin.specialistPurchasesFailed"));
     }
-  }, [t, debouncedQuery, testProfile, testFrom, testTo]);
+    if (promoResult.status === "fulfilled") {
+      setPromoCodes(promoResult.value);
+      setPromoError("");
+    } else {
+      setPromoCodes([]);
+      if (isSuperAdmin) {
+        const reason = promoResult.reason?.message || "";
+        setPromoError(
+          /schema cache|does not exist|Could not find/i.test(reason)
+            ? t("admin.promoErrSetup")
+            : reason || t("admin.promoErrSetup")
+        );
+      }
+    }
+  }, [t, debouncedQuery, testProfile, testFrom, testTo, isSuperAdmin]);
 
   const profileOptions = useMemo(
     () => ["child", "teen", "adult"].map((key) => ({ value: key, label: profileLabel(key, locale) })),
@@ -430,10 +462,73 @@ export default function AdminPage() {
     "/admin/uzman",
     "/admin/iletisim",
     "/admin/kullanicilar",
-    "/admin/testler"
+    "/admin/testler",
+    ...(isSuperAdmin ? ["/admin/promosyon"] : [])
   ]);
 
   if (!adminPages.has(section)) return <Navigate to="/admin" replace />;
+
+  async function savePromo(event) {
+    event.preventDefault();
+    const code = promoForm.code.trim();
+    const value = Number(promoForm.discountValue);
+    if (!code || !Number.isFinite(value) || value <= 0) {
+      setMsg(t("admin.promoErr"));
+      return;
+    }
+    if (promoForm.discountType === "percent" && value > 100) {
+      setMsg(t("admin.promoErr"));
+      return;
+    }
+    setPromoBusy(true);
+    setMsg("");
+    try {
+      await createPromoCode({
+        code,
+        discountType: promoForm.discountType,
+        discountValue: value,
+        note: promoForm.note,
+        active: promoForm.active
+      });
+      setPromoForm({ code: "", discountType: "percent", discountValue: "", note: "", active: true });
+      setMsg(t("admin.promoSaved"));
+      await load();
+    } catch (e) {
+      const text = e?.message || "";
+      if (/duplicate|23505/i.test(text)) setMsg(t("admin.promoErrDuplicate"));
+      else if (/schema cache|does not exist/i.test(text)) setMsg(t("admin.promoErrSetup"));
+      else setMsg(text || t("admin.promoErr"));
+    } finally {
+      setPromoBusy(false);
+    }
+  }
+
+  async function togglePromo(row) {
+    setPromoBusy(true);
+    try {
+      await updatePromoCode(row.id, { active: !row.active });
+      setMsg(t("admin.promoUpdated"));
+      await load();
+    } catch (e) {
+      setMsg(e?.message || t("admin.promoErr"));
+    } finally {
+      setPromoBusy(false);
+    }
+  }
+
+  async function removePromo(row) {
+    if (!window.confirm(t("admin.promoDeleteConfirm", { code: row.code }))) return;
+    setPromoBusy(true);
+    try {
+      await deletePromoCode(row.id);
+      setMsg(t("admin.promoDeleted"));
+      await load();
+    } catch (e) {
+      setMsg(e?.message || t("admin.promoErr"));
+    } finally {
+      setPromoBusy(false);
+    }
+  }
 
   return (
     <Page wide>
@@ -449,6 +544,9 @@ export default function AdminPage() {
             <Link to="/admin/iletisim">{t("admin.contactMessagesTitle", { count: contactMessages.length })}</Link>
             <Link to="/admin/kullanicilar">{t("admin.usersTitle", { count: filteredUsers.length })}</Link>
             <Link to="/admin/testler">{t("admin.sessionsTitle", { count: filteredSessions.length })}</Link>
+            {isSuperAdmin ? (
+              <Link to="/admin/promosyon">{t("admin.promoTitle", { count: promoCodes.length })}</Link>
+            ) : null}
           </nav>
         </Card>
       ) : (
@@ -463,6 +561,125 @@ export default function AdminPage() {
         >
           {msg}
         </Alert>
+      )}
+
+      {section === "/admin/promosyon" && isSuperAdmin && (
+        <Card>
+          <CardHeader
+            title={t("admin.promoTitle", { count: promoCodes.length })}
+            description={t("admin.promoDesc")}
+          />
+          {promoError ? <Alert variant="warning">{promoError}</Alert> : null}
+          <Card as="form" onSubmit={savePromo} style={{ padding: 16, marginBottom: 16, background: "var(--fp-surface-muted)" }}>
+            <Stack wrap gap={12} style={{ alignItems: "flex-end" }}>
+              <Field label={t("admin.promoCode")}>
+                <Input
+                  value={promoForm.code}
+                  onChange={(e) => setPromoForm((f) => ({ ...f, code: e.target.value }))}
+                  placeholder="FNSBNK OZYGN"
+                  required
+                />
+              </Field>
+              <Field label={t("admin.promoType")}>
+                <Select
+                  value={promoForm.discountType}
+                  onChange={(e) => setPromoForm((f) => ({ ...f, discountType: e.target.value }))}
+                >
+                  <option value="percent">{t("admin.promoTypePercent")}</option>
+                  <option value="fixed">{t("admin.promoTypeFixed")}</option>
+                </Select>
+              </Field>
+              <Field label={t("admin.promoValue")}>
+                <Input
+                  type="number"
+                  min={1}
+                  max={promoForm.discountType === "percent" ? 100 : 1499}
+                  step="1"
+                  value={promoForm.discountValue}
+                  onChange={(e) => setPromoForm((f) => ({ ...f, discountValue: e.target.value }))}
+                  required
+                />
+              </Field>
+              <Field label={t("admin.promoNote")}>
+                <Input
+                  value={promoForm.note}
+                  onChange={(e) => setPromoForm((f) => ({ ...f, note: e.target.value }))}
+                />
+              </Field>
+              <label className="fp-hint" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={promoForm.active}
+                  onChange={(e) => setPromoForm((f) => ({ ...f, active: e.target.checked }))}
+                />
+                {t("admin.promoActive")}
+              </label>
+              <Button type="submit" variant="primary" disabled={promoBusy}>
+                {promoBusy ? t("common.wait") : t("admin.promoSave")}
+              </Button>
+            </Stack>
+          </Card>
+          {!promoCodes.length && !promoError ? (
+            <Alert variant="info">{t("admin.promoEmpty")}</Alert>
+          ) : null}
+          {promoCodes.length > 0 ? (
+            <DataTable
+              columns={[
+                { key: "code", label: t("admin.promoCode") },
+                {
+                  label: t("admin.promoType"),
+                  render: (row) =>
+                    row.discount_type === "percent"
+                      ? t("admin.promoTypePercent")
+                      : t("admin.promoTypeFixed")
+                },
+                {
+                  label: t("admin.promoValue"),
+                  render: (row) =>
+                    row.discount_type === "percent"
+                      ? `%${row.discount_value}`
+                      : formatTl(row.discount_value, locale)
+                },
+                {
+                  label: t("admin.promoActive"),
+                  render: (row) => (row.active ? t("admin.promoActive") : t("admin.promoInactive"))
+                },
+                {
+                  key: "note",
+                  label: t("admin.promoNote"),
+                  render: (row) => row.note || "—"
+                },
+                {
+                  label: t("admin.promoActions"),
+                  render: (row) => (
+                    <Stack gap={6} wrap>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={promoBusy}
+                        onClick={() => togglePromo(row)}
+                      >
+                        {t("admin.promoToggle")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={promoBusy}
+                        onClick={() => removePromo(row)}
+                      >
+                        {t("common.delete")}
+                      </Button>
+                    </Stack>
+                  )
+                }
+              ]}
+              rows={promoCodes}
+              rowKey={(row) => row.id}
+            />
+          ) : null}
+        </Card>
       )}
 
       {section === "/admin/kredi" && (
