@@ -300,10 +300,12 @@ export const it = {
     thankYouTitle: "Grazie per la partecipazione",
     thankYouBody:
       "I dati sono conservati in modo sicuro e, al termine del test, il report viene inviato al tuo indirizzo e-mail. I test svolti con uno specialista sono visibili anche nella sua schermata.",
-    reportWorking: "Salvataggio del PDF e invio e-mail… Non chiudere questa pagina.",
+    reportWorking: "Creazione e salvataggio del PDF del report e invio e-mail… Non chiudere questa pagina.",
+    pdfSaved: "Il PDF del report del test è stato salvato nel sistema.",
+    pdfFailed: "Impossibile salvare il PDF del report: {{reason}}. Prova «Genera report» dal pannello.",
     reportOk: "Il risultato del test è stato inviato a {{email}}.",
     reportOkNoEmail: "Il risultato del test è stato inviato al tuo indirizzo e-mail.",
-    reportFailed: "Report non consegnato: {{reason}}. Puoi reinviare dal pannello.",
+    reportFailed: "E-mail non consegnata: {{reason}}. Se il PDF è salvato, puoi reinviare dal pannello.",
     qaHint:
       "Modalità temporanea: solo sezioni GIF silenziose e GIF silenziose+audio (~6 min). Solo audio, baseline e chiusura disattivate.",
     participantGuide: {

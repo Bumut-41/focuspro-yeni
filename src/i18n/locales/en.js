@@ -298,10 +298,12 @@ export const en = {
       ]
     },
     thankYouTitle: "Thank you for your participation",
-    reportWorking: "Saving the report PDF and sending email… Please do not close this page.",
+    reportWorking: "Creating and saving the test report PDF and sending email… Please do not close this page.",
+    pdfSaved: "Test report PDF saved to the system.",
+    pdfFailed: "Test report PDF could not be saved: {{reason}}. Try «Generate report» from the panel.",
     reportOk: "Your test result has been sent to {{email}}.",
     reportOkNoEmail: "Your test result has been sent to your email address.",
-    reportFailed: "Report could not be delivered: {{reason}}. You can resend from the panel.",
+    reportFailed: "Email could not be delivered: {{reason}}. If the PDF is saved, you can resend from the panel.",
     thankYouBody:
       "Records are stored securely and the test report is emailed to you when the test ends. Tests taken with a specialist can also be viewed on the specialist's screen.",
     qaHint:

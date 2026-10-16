@@ -218,12 +218,24 @@ export default function TestFlowPage() {
         if (delivery.ok) {
           setReportDelivery({
             status: "ok",
+            pdfSaved: true,
             email: delivery.email || expectedEmail
+          });
+        } else if (delivery.pdfSaved) {
+          // PDF sistemde; sadece mail başarısız
+          console.warn("report_email_failed", delivery.code, delivery.detail);
+          setReportDelivery({
+            status: "pdf_ok_mail_failed",
+            pdfSaved: true,
+            code: delivery.code || "send_failed",
+            detail: delivery.detail || null,
+            email: expectedEmail
           });
         } else {
           console.warn("report_delivery_failed", delivery.code, delivery.detail);
           setReportDelivery({
             status: "failed",
+            pdfSaved: false,
             code: delivery.code || "unexpected",
             detail: delivery.detail || null,
             email: expectedEmail
@@ -852,15 +864,39 @@ export default function TestFlowPage() {
                 </p>
               )}
               {reportDelivery?.status === "ok" && (
-                <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {reportDelivery.email
-                    ? t("test.reportOk", { email: reportDelivery.email })
-                    : t("test.reportOkNoEmail")}
-                </p>
+                <>
+                  <p className="space-screen-win-sub" role="status">
+                    {t("test.pdfSaved")}
+                  </p>
+                  <p className="space-screen-win-sub" role="status" aria-live="polite">
+                    {reportDelivery.email
+                      ? t("test.reportOk", { email: reportDelivery.email })
+                      : t("test.reportOkNoEmail")}
+                  </p>
+                </>
+              )}
+              {reportDelivery?.status === "pdf_ok_mail_failed" && (
+                <>
+                  <p className="space-screen-win-sub" role="status">
+                    {t("test.pdfSaved")}
+                  </p>
+                  <p className="space-screen-error" role="alert">
+                    {t("test.reportFailed", {
+                      reason: (() => {
+                        const key = reportDelivery.code
+                          ? `admin.emailErr.${reportDelivery.code}`
+                          : "admin.emailErr.unexpected";
+                        const mapped = t(key);
+                        if (mapped && mapped !== key) return mapped;
+                        return reportDelivery.detail || t("admin.emailErr.unexpected");
+                      })()
+                    })}
+                  </p>
+                </>
               )}
               {reportDelivery?.status === "failed" && (
                 <p className="space-screen-error" role="alert">
-                  {t("test.reportFailed", {
+                  {t("test.pdfFailed", {
                     reason: (() => {
                       const key = reportDelivery.code
                         ? `admin.emailErr.${reportDelivery.code}`

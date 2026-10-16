@@ -149,6 +149,7 @@ export async function uploadAdminReportPdf(userId, sessionId, blob) {
 /** Yönetici basış PDF — yalnızca admin_pdf_path güncellenir. */
 export async function persistAdminReportPdf(userId, sessionId, blob) {
   const path = await uploadAdminReportPdf(userId, sessionId, blob);
+  await assertStorageObjectExists(path);
   await linkSessionPdfPath(sessionId, path, "admin");
   return path;
 }

@@ -301,10 +301,12 @@ export const tr = {
     thankYouTitle: "Katılımınız için teşekkürler",
     thankYouBody:
       "Kayıtlar güvenle saklanır ve test bittiğinde mail adresinize test raporu gönderilir. Uzman ile birlikte yaptığınız testler ayrıca uzman ekranında da görüntülenebilir.",
-    reportWorking: "Rapor PDF kaydediliyor ve e-posta gönderiliyor… Lütfen bu sayfayı kapatmayın.",
+    reportWorking: "Test raporu PDF oluşturuluyor, kaydediliyor ve e-posta gönderiliyor… Lütfen bu sayfayı kapatmayın.",
+    pdfSaved: "Test raporu PDF sisteme kaydedildi.",
+    pdfFailed: "Test raporu PDF kaydedilemedi: {{reason}}. Panelden «Raporu oluştur» ile tekrar deneyin.",
     reportOk: "Test sonucunuz {{email}} adresine iletilmiştir.",
     reportOkNoEmail: "Test sonucunuz e-posta adresinize iletilmiştir.",
-    reportFailed: "Rapor iletilemedi: {{reason}}. Panelden yeniden gönderebilirsiniz.",
+    reportFailed: "E-posta iletilemedi: {{reason}}. PDF kaydı varsa panelden yeniden gönderebilirsiniz.",
     qaHint:
       "Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses, temel ve kapanış kapalı.",
     participantGuide: {

@@ -50,16 +50,9 @@ function pickDeliveredEmail(mail) {
   return null;
 }
 
-async function persistTestPdfOnce(args) {
-  return persistAllSessionPdfs({
-    ...args,
-    saveAdminPdf: false
-  });
-}
-
 /**
  * PDF kaydı + rapor e-postası. Başarı/başarısızlık test_sessions'a yazılır.
- * PDF kaydı başarısız olursa bir kez daha dener (ağ/RLS geçici hataları).
+ * Test bitince PDF zorunlu: önce PDF (gerekirse 2 tur), sonra mail.
  */
 export async function deliverSessionReport({
   userId,
@@ -86,13 +79,15 @@ export async function deliverSessionReport({
     logs,
     target,
     pressTimeline,
-    locale
+    locale,
+    // Test raporu her zaman; basış timeline varsa admin PDF de otomatik
+    saveAdminPdf: Array.isArray(pressTimeline) && pressTimeline.length > 0
   };
 
-  let result = await persistTestPdfOnce(persistArgs);
+  let result = await persistAllSessionPdfs(persistArgs);
   if (!result.testSaved) {
     await new Promise((r) => setTimeout(r, 900));
-    result = await persistTestPdfOnce(persistArgs);
+    result = await persistAllSessionPdfs(persistArgs);
   }
 
   if (!result.testSaved) {
@@ -107,12 +102,25 @@ export async function deliverSessionReport({
     } catch {
       /* ignore */
     }
-    return { ok: false, code: "pdf_not_saved", detail, email: null, result };
+    return {
+      ok: false,
+      pdfSaved: false,
+      code: "pdf_not_saved",
+      detail,
+      email: null,
+      result
+    };
   }
 
   try {
     const mail = await sendSessionReportEmail(sessionId, locale, clientId);
-    return { ok: true, mail, email: pickDeliveredEmail(mail), result };
+    return {
+      ok: true,
+      pdfSaved: true,
+      mail,
+      email: pickDeliveredEmail(mail),
+      result
+    };
   } catch (err) {
     const code = err?.code || "send_failed";
     const detail = err?.detail || err?.message || null;
@@ -126,7 +134,8 @@ export async function deliverSessionReport({
     } catch {
       /* edge function already wrote status */
     }
-    return { ok: false, code, detail, email: null, result };
+    // PDF kaydı başarılı; mail ayrı sorun
+    return { ok: false, pdfSaved: true, code, detail, email: null, result };
   }
 }
 
