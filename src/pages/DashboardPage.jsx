@@ -5,6 +5,7 @@ import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
 import { fetchAdminPressTimeline, fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
 import { fetchMyClients } from "../services/clients.js";
+import { fetchMyInvites } from "../services/invites.js";
 import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession,
@@ -31,10 +32,25 @@ import {
   Stack
 } from "../components/ui.jsx";
 
+function resolveReportEmailFallback(session, clients, invites) {
+  const stored = (session?.report_email_to || "").trim();
+  if (stored) return stored;
+  if (session?.invite_id && invites?.length) {
+    const inv = invites.find((row) => row.id === session.invite_id);
+    if (inv?.recipient_email) return inv.recipient_email;
+  }
+  const name = (session?.participant_name || "").trim().toLocaleLowerCase("tr");
+  if (!name || !clients?.length) return null;
+  const client = clients.find((c) => c.full_name.trim().toLocaleLowerCase("tr") === name);
+  return client?.email || null;
+}
+
 export default function DashboardPage() {
   const { profile, isAdmin, isPsychologist, credits } = useAuth();
   const { t, locale, dateLocale } = useLocale();
   const [sessions, setSessions] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [invites, setInvites] = useState([]);
   const [msg, setMsg] = useState("");
   const [pdfBusy, setPdfBusy] = useState(null);
   const [testQuery, setTestQuery] = useState("");
@@ -50,9 +66,9 @@ export default function DashboardPage() {
 
   async function resolveClientIdForSession(session) {
     if (!isPsychologist || session.invite_id) return null;
-    const clients = await fetchMyClients().catch(() => []);
+    const list = clients.length ? clients : await fetchMyClients().catch(() => []);
     const name = (session.participant_name || "").trim().toLocaleLowerCase("tr");
-    const match = clients.find((c) => c.full_name.trim().toLocaleLowerCase("tr") === name);
+    const match = list.find((c) => c.full_name.trim().toLocaleLowerCase("tr") === name);
     return match?.id ?? null;
   }
 
@@ -173,11 +189,18 @@ export default function DashboardPage() {
         to: testTo
       });
       if (!isPsychologist) {
+        setClients([]);
+        setInvites([]);
         setSessions(rows);
         return;
       }
-      const clients = await fetchMyClients().catch(() => []);
-      const names = new Set(clients.map((client) => client.full_name.trim().toLocaleLowerCase("tr")));
+      const [clientRows, inviteRows] = await Promise.all([
+        fetchMyClients().catch(() => []),
+        fetchMyInvites(200).catch(() => [])
+      ]);
+      setClients(clientRows);
+      setInvites(inviteRows);
+      const names = new Set(clientRows.map((client) => client.full_name.trim().toLocaleLowerCase("tr")));
       setSessions(
         rows.filter(
           (session) =>
@@ -357,7 +380,12 @@ export default function DashboardPage() {
                             : "var(--fp-text-secondary)"
                       }}
                     >
-                      {formatReportEmailStatus(s, t, dateLocale)}
+                      {formatReportEmailStatus(
+                        s,
+                        t,
+                        dateLocale,
+                        resolveReportEmailFallback(s, clients, invites)
+                      )}
                     </span>
                     {s.pdf_path && !(s.report_email_sent_at || s.report_email_status === "sent") ? (
                       <Button

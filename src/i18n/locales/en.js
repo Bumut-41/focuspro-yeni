@@ -416,6 +416,7 @@ export const en = {
     reports: "Reports",
     emailStatus: "Report emailed?",
     emailDelivered: "Yes — sent on {{date}} to {{email}}",
+    emailDeliveredNoAddress: "Yes — sent on {{date}} (recipient address not recorded)",
     emailNotDelivered: "Not sent — {{reason}}",
     emailPending: "Sending…",
     emailResend: "Resend email",

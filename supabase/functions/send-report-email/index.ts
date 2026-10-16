@@ -200,12 +200,20 @@ Deno.serve(async (req) => {
     }
 
     if (session.report_email_sent_at) {
+      const to = (session.report_email_to || "").trim() || recipients.join(", ");
+      // Eski kayıtlarda adres boş kaldıysa tamamla
+      if (!(session.report_email_to || "").trim() && recipients.length) {
+        await admin
+          .from("test_sessions")
+          .update({ report_email_to: to, report_email_status: "sent" })
+          .eq("id", sessionId);
+      }
       return json({
         ok: true,
         alreadySent: true,
         emails: recipients,
         sentAt: session.report_email_sent_at,
-        to: session.report_email_to || recipients.join(", ")
+        to
       });
     }
 

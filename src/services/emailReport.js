@@ -139,12 +139,21 @@ export async function deliverSessionReport({
   }
 }
 
-export function formatReportEmailStatus(session, t, dateLocale) {
+/**
+ * @param {object} session
+ * @param {function} t
+ * @param {string} dateLocale
+ * @param {string | null} [fallbackEmail] report_email_to boşsa (eski kayıt) gösterilecek adres
+ */
+export function formatReportEmailStatus(session, t, dateLocale, fallbackEmail = null) {
   if (session?.report_email_sent_at || session?.report_email_status === "sent") {
     const when = session.report_email_sent_at
       ? new Date(session.report_email_sent_at).toLocaleString(dateLocale)
       : "—";
-    const email = session.report_email_to || "—";
+    const email = (session.report_email_to || "").trim() || (fallbackEmail || "").trim();
+    if (!email) {
+      return t("admin.emailDeliveredNoAddress", { date: when });
+    }
     return t("admin.emailDelivered", { date: when, email });
   }
 

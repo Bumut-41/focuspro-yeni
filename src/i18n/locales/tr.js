@@ -418,6 +418,7 @@ export const tr = {
     reports: "Raporlar",
     emailStatus: "Test sonucu iletildi mi",
     emailDelivered: "Evet — {{date}} tarihinde {{email}} adresine iletildi",
+    emailDeliveredNoAddress: "Evet — {{date}} tarihinde iletildi (adres kaydı eksik)",
     emailNotDelivered: "İletilmedi — {{reason}}",
     emailPending: "Gönderim sürüyor…",
     emailResend: "E-postayı yeniden gönder",
