@@ -858,59 +858,20 @@ export default function TestFlowPage() {
             <div className="space-screen-win">
               <span className="space-screen-win-check">✓</span>
               <h2 className="space-screen-win-title">{t("test.thankYouTitle")}</h2>
+              <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
               {reportDelivery?.status === "working" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
                   {t("test.reportWorking")}
                 </p>
               )}
               {reportDelivery?.status === "ok" && (
-                <>
-                  <p className="space-screen-win-sub" role="status">
-                    {t("test.pdfSaved")}
-                  </p>
-                  <p className="space-screen-win-sub" role="status" aria-live="polite">
-                    {reportDelivery.email
-                      ? t("test.reportOk", { email: reportDelivery.email })
-                      : t("test.reportOkNoEmail")}
-                  </p>
-                </>
-              )}
-              {reportDelivery?.status === "pdf_ok_mail_failed" && (
-                <>
-                  <p className="space-screen-win-sub" role="status">
-                    {t("test.pdfSaved")}
-                  </p>
-                  <p className="space-screen-error" role="alert">
-                    {t("test.reportFailed", {
-                      reason: (() => {
-                        const key = reportDelivery.code
-                          ? `admin.emailErr.${reportDelivery.code}`
-                          : "admin.emailErr.unexpected";
-                        const mapped = t(key);
-                        if (mapped && mapped !== key) return mapped;
-                        return reportDelivery.detail || t("admin.emailErr.unexpected");
-                      })()
-                    })}
-                  </p>
-                </>
-              )}
-              {reportDelivery?.status === "failed" && (
-                <p className="space-screen-error" role="alert">
-                  {t("test.pdfFailed", {
-                    reason: (() => {
-                      const key = reportDelivery.code
-                        ? `admin.emailErr.${reportDelivery.code}`
-                        : "admin.emailErr.unexpected";
-                      const mapped = t(key);
-                      if (mapped && mapped !== key) return mapped;
-                      return reportDelivery.detail || t("admin.emailErr.unexpected");
-                    })()
-                  })}
+                <p className="space-screen-win-sub" role="status" aria-live="polite">
+                  {reportDelivery.email
+                    ? t("test.reportOk", { email: reportDelivery.email })
+                    : t("test.reportOkNoEmail")}
                 </p>
               )}
-              {!reportDelivery && !saveError && (
-                <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
-              )}
+              {/* PDF/mail teknik hataları katılımcıya gösterilmez; panelden tamamlanır. */}
               {saveError && (
                 <p className="space-screen-error" role="alert">
                   {saveError}
