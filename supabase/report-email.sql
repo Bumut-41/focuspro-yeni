@@ -96,3 +96,57 @@ end;
 $$;
 
 grant execute on function public.record_report_email_status(uuid, text, text, text, text) to authenticated;
+
+-- PDF yolu: owner/taker RLS select kısıtı olsa bile güvenle yazar
+create or replace function public.set_session_report_pdf(
+  p_session_id uuid,
+  p_pdf_path text,
+  p_kind text default 'test'
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_owner uuid;
+  v_taker uuid;
+begin
+  if v_uid is null then
+    raise exception 'not_authenticated';
+  end if;
+  if p_pdf_path is null or length(trim(p_pdf_path)) < 3 then
+    raise exception 'invalid_path';
+  end if;
+  if p_kind not in ('test', 'admin') then
+    raise exception 'invalid_kind';
+  end if;
+
+  select owner_id, taker_id into v_owner, v_taker
+  from public.test_sessions
+  where id = p_session_id;
+
+  if v_owner is null then
+    raise exception 'session_not_found';
+  end if;
+
+  if v_uid is distinct from v_owner
+     and v_uid is distinct from v_taker
+     and not public.is_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  if p_kind = 'admin' then
+    update public.test_sessions
+    set admin_pdf_path = trim(p_pdf_path)
+    where id = p_session_id;
+  else
+    update public.test_sessions
+    set pdf_path = trim(p_pdf_path)
+    where id = p_session_id;
+  end if;
+end;
+$$;
+
+grant execute on function public.set_session_report_pdf(uuid, text, text) to authenticated;

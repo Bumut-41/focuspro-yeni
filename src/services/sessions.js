@@ -91,47 +91,57 @@ export async function fetchAdminPressTimeline(sessionId) {
   return data?.timeline ?? [];
 }
 
-export async function uploadReportPdf(userId, sessionId, blob) {
-  const path = `${userId}/${sessionId}.pdf`;
-  const { error } = await supabase.storage.from("reports").upload(path, blob, {
-    contentType: "application/pdf",
-    upsert: true
-  });
-  if (error) throw error;
-  return path;
+async function uploadWithRetry(path, blob, retries = 3) {
+  let lastErr;
+  for (let i = 0; i < retries; i++) {
+    const { error } = await supabase.storage.from("reports").upload(path, blob, {
+      contentType: "application/pdf",
+      upsert: true
+    });
+    if (!error) return path;
+    lastErr = error;
+    await new Promise((resolve) => setTimeout(resolve, 400 * (i + 1)));
+  }
+  throw lastErr;
 }
 
-/** Storage'a yükler ve test_sessions.pdf_path günceller. */
+export async function uploadReportPdf(userId, sessionId, blob) {
+  return uploadWithRetry(`${userId}/${sessionId}.pdf`, blob);
+}
+
+async function linkSessionPdfPath(sessionId, path, kind) {
+  const { error } = await supabase.rpc("set_session_report_pdf", {
+    p_session_id: sessionId,
+    p_pdf_path: path,
+    p_kind: kind
+  });
+  if (!error) return;
+  const missingRpc =
+    /Could not find the function|schema cache|PGRST202/i.test(error.message || "");
+  if (!missingRpc) throw error;
+  const column = kind === "admin" ? "admin_pdf_path" : "pdf_path";
+  const { error: updateError } = await supabase
+    .from("test_sessions")
+    .update({ [column]: path })
+    .eq("id", sessionId);
+  if (updateError) throw updateError;
+}
+
+/** Storage'a yükler ve test_sessions.pdf_path günceller (RPC ile, RLS select engeline takılmaz). */
 export async function persistSessionReportPdf(userId, sessionId, blob) {
   const path = await uploadReportPdf(userId, sessionId, blob);
-  const { error } = await supabase
-    .from("test_sessions")
-    .update({ pdf_path: path })
-    .eq("id", sessionId)
-    .eq("owner_id", userId);
-  if (error) throw error;
+  await linkSessionPdfPath(sessionId, path, "test");
   return path;
 }
 
 export async function uploadAdminReportPdf(userId, sessionId, blob) {
-  const path = `${userId}/${sessionId}-admin.pdf`;
-  const { error } = await supabase.storage.from("reports").upload(path, blob, {
-    contentType: "application/pdf",
-    upsert: true
-  });
-  if (error) throw error;
-  return path;
+  return uploadWithRetry(`${userId}/${sessionId}-admin.pdf`, blob);
 }
 
 /** Yönetici basış PDF — yalnızca admin_pdf_path güncellenir. */
 export async function persistAdminReportPdf(userId, sessionId, blob) {
   const path = await uploadAdminReportPdf(userId, sessionId, blob);
-  const { error } = await supabase
-    .from("test_sessions")
-    .update({ admin_pdf_path: path })
-    .eq("id", sessionId)
-    .eq("owner_id", userId);
-  if (error) throw error;
+  await linkSessionPdfPath(sessionId, path, "admin");
   return path;
 }
 

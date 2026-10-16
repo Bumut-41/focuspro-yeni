@@ -51,6 +51,7 @@ export default function TestFlowPage() {
   const [audioCelebrating, setAudioCelebrating] = useState(false);
   const [audioPlayError, setAudioPlayError] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [reportDelivery, setReportDelivery] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [pdfOwnerId, setPdfOwnerId] = useState(null);
   const [inviteId, setInviteId] = useState(null);
@@ -161,6 +162,7 @@ export default function TestFlowPage() {
       setLogs(snapshot);
       setPressTimeline(timeline ?? []);
       setSaveError("");
+      setReportDelivery({ status: "working" });
       setStep("thanks");
       try {
         const metrics = {
@@ -171,8 +173,9 @@ export default function TestFlowPage() {
           }),
           lateResponseMs: profile.lateResponseMs
         };
+        const participantSnap = { name, age, birthDate: birth, gender };
         const { sessionId: id, ownerId } = await saveTestSession({
-          participant: { name, age, birthDate: birth, gender },
+          participant: participantSnap,
           profileKey: pkey,
           logs: snapshot,
           metrics,
@@ -181,18 +184,48 @@ export default function TestFlowPage() {
           inviteId: inviteId || null
         });
         setSessionId(id);
-        setPdfOwnerId(ownerId || user?.id || null);
-        pdfSavedRef.current = false;
+        const ownerForPdf = ownerId || user?.id || null;
+        setPdfOwnerId(ownerForPdf);
         if (inviteId) clearStoredInviteToken();
         await refreshProfile();
+
+        if (!ownerForPdf || !id) {
+          setReportDelivery({ status: "failed", code: "pdf_not_saved" });
+          return;
+        }
+
+        pdfSavedRef.current = true;
+        const delivery = await deliverSessionReport({
+          userId: ownerForPdf,
+          sessionId: id,
+          participant: participantSnap,
+          profile,
+          logs: snapshot,
+          target: targetSnap,
+          pressTimeline: timeline ?? [],
+          locale,
+          clientId: reportClientIdRef.current
+        });
+        if (delivery.ok) {
+          setReportDelivery({ status: "ok" });
+        } else {
+          console.warn("report_delivery_failed", delivery.code, delivery.detail);
+          setReportDelivery({
+            status: "failed",
+            code: delivery.code || "unexpected",
+            detail: delivery.detail || null
+          });
+        }
       } catch (e) {
         const m = e?.message || "";
         if (m.includes("no_credits")) setSaveError(t("test.noCredits"));
         else if (m.includes("invite_")) setSaveError(parseRpcError(e, t));
         else setSaveError(t("test.saveError", { msg: m }));
+        setReportDelivery(null);
+        pdfSavedRef.current = false;
       }
     },
-    [profile.lateResponseMs, name, age, birth, gender, pkey, refreshProfile, t, locale, inviteId, user?.id]
+    [profile, name, age, birth, gender, pkey, refreshProfile, t, locale, inviteId, user?.id]
   );
 
   const handleTestFinished = useCallback(
@@ -400,51 +433,23 @@ export default function TestFlowPage() {
     }
   }, [step, start, activeTestProfile]);
 
-  // Test bitince PDF kaydı + rapor e-postası (sonuç test_sessions'a yazılır).
+  // PDF/e-posta kaydı sürerken sekme kapatmayı engelle (Beyhan tipi kayıp önlemi).
   useEffect(() => {
-    if (step !== "thanks" || !sessionId || !user?.id || !logs.length || !target || pdfSavedRef.current) {
-      return undefined;
-    }
-
-    const ownerForPdf = pdfOwnerId || user.id;
-    const clientId = reportClientIdRef.current;
-    let started = false;
-    pdfSavedRef.current = true;
-    const timer = window.setTimeout(() => {
-      started = true;
-      void (async () => {
-        try {
-          const delivery = await deliverSessionReport({
-            userId: ownerForPdf,
-            sessionId,
-            participant,
-            profile,
-            logs,
-            target,
-            pressTimeline,
-            locale,
-            clientId
-          });
-          if (!delivery.ok) {
-            console.warn("report_delivery_failed", delivery.code, delivery.detail);
-          }
-        } catch (e) {
-          console.warn(e);
-        }
-      })();
-    }, 400);
-
-    return () => {
-      window.clearTimeout(timer);
-      if (!started) pdfSavedRef.current = false;
+    if (reportDelivery?.status !== "working") return undefined;
+    const onBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
     };
-  }, [step, sessionId, user?.id, pdfOwnerId, logs, target, profile, participant, pressTimeline, locale]);
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [reportDelivery?.status]);
 
+  // Teşekkür ekranı: kayıt bittikten sonra yönlendir (çalışırken asla).
   useEffect(() => {
-    if (step !== "thanks") return undefined;
+    if (step !== "thanks" || reportDelivery?.status === "working") return undefined;
     const id = window.setTimeout(() => navigate("/", { replace: true }), 45_000);
     return () => window.clearTimeout(id);
-  }, [step, navigate]);
+  }, [step, navigate, reportDelivery?.status]);
 
   useEffect(() => {
     if (step !== "spaceCheck" || spaceCelebrating) return undefined;
@@ -829,6 +834,30 @@ export default function TestFlowPage() {
               <span className="space-screen-win-check">✓</span>
               <h2 className="space-screen-win-title">{t("test.thankYouTitle")}</h2>
               <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
+              {reportDelivery?.status === "working" && (
+                <p className="space-screen-win-sub" role="status" aria-live="polite">
+                  {t("test.reportWorking")}
+                </p>
+              )}
+              {reportDelivery?.status === "ok" && (
+                <p className="space-screen-win-sub" role="status">
+                  {t("test.reportOk")}
+                </p>
+              )}
+              {reportDelivery?.status === "failed" && (
+                <p className="space-screen-error" role="alert">
+                  {t("test.reportFailed", {
+                    reason: (() => {
+                      const key = reportDelivery.code
+                        ? `admin.emailErr.${reportDelivery.code}`
+                        : "admin.emailErr.unexpected";
+                      const mapped = t(key);
+                      if (mapped && mapped !== key) return mapped;
+                      return reportDelivery.detail || t("admin.emailErr.unexpected");
+                    })()
+                  })}
+                </p>
+              )}
               {saveError && (
                 <p className="space-screen-error" role="alert">
                   {saveError}

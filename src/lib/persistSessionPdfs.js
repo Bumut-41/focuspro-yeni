@@ -2,13 +2,14 @@ import { createAdminTimelinePdfBlob } from "../pdfAdminTimeline.js";
 import { createPdfBlob } from "../pdfReport.js";
 import { persistAdminReportPdf, persistSessionReportPdf } from "../services/sessions.js";
 
-async function withRetry(fn, retries = 1) {
+async function withRetry(fn, retries = 3) {
   let lastErr;
-  for (let i = 0; i <= retries; i++) {
+  for (let i = 0; i < retries; i++) {
     try {
       return await fn();
     } catch (e) {
       lastErr = e;
+      await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
     }
   }
   throw lastErr;
