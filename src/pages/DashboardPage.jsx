@@ -7,6 +7,7 @@ import { fetchAdminPressTimeline, fetchMySessions, fetchSessionDetail, getReport
 import { fetchMyClients } from "../services/clients.js";
 import { downloadParticipantReportFromSession, downloadPressReportFromSession } from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
+import { formatReportEmailStatus } from "../services/emailReport.js";
 import { includesText, inDateRange } from "../lib/listFilters.js";
 import { isStaleChunkError, reloadStaleChunk } from "../lib/reloadStaleChunk.js";
 import { RecordFilters } from "../components/RecordFilters.jsx";
@@ -269,6 +270,25 @@ export default function DashboardPage() {
                         ? t("dashboard.downloadReport")
                         : t("dashboard.generateReport")}
                   </Button>
+                )
+              },
+              {
+                label: t("admin.emailStatus"),
+                render: (s) => (
+                  <span
+                    style={{
+                      display: "block",
+                      maxWidth: 260,
+                      fontSize: "0.8125rem",
+                      lineHeight: 1.45,
+                      color:
+                        s.report_email_sent_at || s.report_email_status === "sent"
+                          ? "var(--fp-success)"
+                          : "var(--fp-text-secondary)"
+                    }}
+                  >
+                    {formatReportEmailStatus(s, t, dateLocale)}
+                  </span>
                 )
               },
               ...(isAdmin
