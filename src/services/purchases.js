@@ -109,7 +109,7 @@ export const SPECIALIST_VAT_RATE = 20;
 
 export const SPECIALIST_PACKS = [
   { quantity: 10, unitPriceTl: 1000 },
-  { quantity: 20, unitPriceTl: 990 },
+  { quantity: 20, unitPriceTl: 900 },
   { quantity: 50, unitPriceTl: 800 },
   { quantity: 100, unitPriceTl: 700 }
 ];

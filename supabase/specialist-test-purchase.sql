@@ -1,5 +1,5 @@
 -- Uzman test paketleri. Fiyatlar KDV hariçtir. KDV %20.
--- 10 test: 1000 TL, 20 test: 990 TL, 50 test: 800 TL, 100 test: 700 TL (test başı).
+-- 10 test: 1000 TL, 20 test: 900 TL, 50 test: 800 TL, 100 test: 700 TL (test başı).
 -- Supabase SQL Editor'da FocusPro-Yeni projesinde bir kez çalıştırın.
 
 create table if not exists public.specialist_test_purchases (
@@ -87,7 +87,7 @@ begin
 
   v_unit := case p_quantity
     when 10 then 1000
-    when 20 then 990
+    when 20 then 900
     when 50 then 800
     when 100 then 700
     else null
