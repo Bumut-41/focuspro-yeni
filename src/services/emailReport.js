@@ -42,8 +42,24 @@ export async function recordReportEmailStatus({
   if (error) throw error;
 }
 
+function pickDeliveredEmail(mail) {
+  if (Array.isArray(mail?.emails) && mail.emails[0]) return mail.emails[0];
+  if (typeof mail?.to === "string" && mail.to.includes("@")) {
+    return mail.to.split(",")[0].trim();
+  }
+  return null;
+}
+
+async function persistTestPdfOnce(args) {
+  return persistAllSessionPdfs({
+    ...args,
+    saveAdminPdf: false
+  });
+}
+
 /**
  * PDF kaydı + rapor e-postası. Başarı/başarısızlık test_sessions'a yazılır.
+ * PDF kaydı başarısız olursa bir kez daha dener (ağ/RLS geçici hataları).
  */
 export async function deliverSessionReport({
   userId,
@@ -62,7 +78,7 @@ export async function deliverSessionReport({
     /* kolon/RPC henüz yoksa devam */
   }
 
-  const result = await persistAllSessionPdfs({
+  const persistArgs = {
     userId,
     sessionId,
     participant,
@@ -70,9 +86,14 @@ export async function deliverSessionReport({
     logs,
     target,
     pressTimeline,
-    locale,
-    saveAdminPdf: false
-  });
+    locale
+  };
+
+  let result = await persistTestPdfOnce(persistArgs);
+  if (!result.testSaved) {
+    await new Promise((r) => setTimeout(r, 900));
+    result = await persistTestPdfOnce(persistArgs);
+  }
 
   if (!result.testSaved) {
     const detail = result.errors?.join(" ") || null;
@@ -86,12 +107,12 @@ export async function deliverSessionReport({
     } catch {
       /* ignore */
     }
-    return { ok: false, code: "pdf_not_saved", detail, result };
+    return { ok: false, code: "pdf_not_saved", detail, email: null, result };
   }
 
   try {
     const mail = await sendSessionReportEmail(sessionId, locale, clientId);
-    return { ok: true, mail, result };
+    return { ok: true, mail, email: pickDeliveredEmail(mail), result };
   } catch (err) {
     const code = err?.code || "send_failed";
     const detail = err?.detail || err?.message || null;
@@ -105,7 +126,7 @@ export async function deliverSessionReport({
     } catch {
       /* edge function already wrote status */
     }
-    return { ok: false, code, detail, result };
+    return { ok: false, code, detail, email: null, result };
   }
 }
 

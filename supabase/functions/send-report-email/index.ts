@@ -153,15 +153,17 @@ Deno.serve(async (req) => {
       return json({ error: "pdf_not_ready" }, 400);
     }
 
+    // Senaryolar: yalnızca testi yapan / danışanın maili (panel zaten psikoloğa düşer).
+    // 1) Bireysel → kullanıcı maili
+    // 2) Psikolog + danışan (yanında) → danışan kaydı maili
+    // 3) Davet ile uzaktan → davetli (taker) maili
     let recipients: string[] = [];
     if (isAdminUser && !isOwner && !isTaker) {
       const takerEmail = session.taker_id ? await accountEmail(admin, session.taker_id) : null;
       const ownerEmail = session.owner_id ? await accountEmail(admin, session.owner_id) : null;
-      recipients = uniqueEmails([takerEmail, ownerEmail]);
+      recipients = uniqueEmails([takerEmail || ownerEmail]);
     } else if (isTaker) {
-      const ownerEmail =
-        session.owner_id && session.owner_id !== user.id ? await accountEmail(admin, session.owner_id) : null;
-      recipients = uniqueEmails([user.email, ownerEmail]);
+      recipients = uniqueEmails([user.email]);
     } else if (clientId) {
       const { data: client, error: clientErr } = await admin
         .from("specialist_clients")
@@ -179,7 +181,11 @@ Deno.serve(async (req) => {
         await markFailed(admin, sessionId, "forbidden");
         return json({ error: "forbidden" }, 403);
       }
-      recipients = uniqueEmails([client.email, user.email]);
+      recipients = uniqueEmails([client.email]);
+    } else if (session.taker_id) {
+      // Davet ile yapılan test: psikolog panelinden yeniden gönderimde taker maili
+      const takerEmail = await accountEmail(admin, session.taker_id);
+      recipients = uniqueEmails([takerEmail]);
     } else {
       if (callerProfile?.role === "psychologist") {
         await markFailed(admin, sessionId, "recipient_required");

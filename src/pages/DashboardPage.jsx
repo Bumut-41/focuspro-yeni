@@ -5,9 +5,14 @@ import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
 import { fetchAdminPressTimeline, fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
 import { fetchMyClients } from "../services/clients.js";
-import { downloadParticipantReportFromSession, downloadPressReportFromSession } from "../lib/adminSessionPdf.js";
+import {
+  downloadParticipantReportFromSession,
+  downloadPressReportFromSession,
+  sessionToParticipantReportArgs
+} from "../lib/adminSessionPdf.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
-import { formatReportEmailStatus } from "../services/emailReport.js";
+import { deliverSessionReport, formatReportEmailStatus, sendSessionReportEmail } from "../services/emailReport.js";
+import { getProfile } from "../profiles.js";
 import { includesText, inDateRange } from "../lib/listFilters.js";
 import { isStaleChunkError, reloadStaleChunk } from "../lib/reloadStaleChunk.js";
 import { RecordFilters } from "../components/RecordFilters.jsx";
@@ -43,6 +48,14 @@ export default function DashboardPage() {
     [locale]
   );
 
+  async function resolveClientIdForSession(session) {
+    if (!isPsychologist || session.invite_id) return null;
+    const clients = await fetchMyClients().catch(() => []);
+    const name = (session.participant_name || "").trim().toLocaleLowerCase("tr");
+    const match = clients.find((c) => c.full_name.trim().toLocaleLowerCase("tr") === name);
+    return match?.id ?? null;
+  }
+
   async function downloadTestReport(session) {
     setPdfBusy(`${session.id}-test`);
     setMsg("");
@@ -52,11 +65,67 @@ export default function DashboardPage() {
         await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
         return;
       }
+      // PDF yoksa: yeniden üret, sisteme kaydet, mail dene — sonra indir
       const detail = await fetchSessionDetail(session.id);
-      await downloadParticipantReportFromSession(detail, [], locale);
+      const timeline = await fetchAdminPressTimeline(session.id).catch(() => []);
+      const ownerId = detail.owner_id;
+      if (!ownerId) {
+        await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
+        return;
+      }
+      const clientId = await resolveClientIdForSession(detail);
+      const args = sessionToParticipantReportArgs(detail, timeline ?? []);
+      const delivery = await deliverSessionReport({
+        userId: ownerId,
+        sessionId: detail.id,
+        participant: args.participant,
+        profile: args.profile || getProfile(detail.profile_key ?? "adult"),
+        logs: args.logs,
+        target: args.target,
+        pressTimeline: args.pressTimeline,
+        locale,
+        clientId
+      });
+      await load();
+      if (delivery.ok || delivery.result?.testSaved) {
+        const path = detail.pdf_path;
+        const fresh = await fetchSessionDetail(session.id).catch(() => null);
+        const pdfPath = fresh?.pdf_path || path;
+        if (pdfPath) {
+          const url = await getReportPdfSignedUrl(pdfPath);
+          await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
+          if (delivery.ok) setMsg(t("test.reportOk", { email: delivery.email || "—" }));
+          else setMsg(t("dashboard.reportSavedMailPending"));
+          return;
+        }
+      }
+      await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
+      if (!delivery.ok) {
+        setMsg(t("dashboard.reportGeneratePartial", { reason: delivery.code || "pdf_not_saved" }));
+      }
     } catch (e) {
       if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
       setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+
+  async function resendTestReportEmail(session) {
+    setPdfBusy(`${session.id}-mail`);
+    setMsg("");
+    try {
+      if (!session.pdf_path) {
+        setMsg(t("admin.emailErr.pdf_not_ready"));
+        return;
+      }
+      const clientId = await resolveClientIdForSession(session);
+      const mail = await sendSessionReportEmail(session.id, locale, clientId);
+      await load();
+      const email = Array.isArray(mail?.emails) ? mail.emails[0] : mail?.to;
+      setMsg(email ? t("test.reportOk", { email }) : t("test.reportOkNoEmail"));
+    } catch (e) {
+      setMsg(e?.message || t("admin.emailErr.send_failed"));
     } finally {
       setPdfBusy(null);
     }
@@ -275,20 +344,32 @@ export default function DashboardPage() {
               {
                 label: t("admin.emailStatus"),
                 render: (s) => (
-                  <span
-                    style={{
-                      display: "block",
-                      maxWidth: 260,
-                      fontSize: "0.8125rem",
-                      lineHeight: 1.45,
-                      color:
-                        s.report_email_sent_at || s.report_email_status === "sent"
-                          ? "var(--fp-success)"
-                          : "var(--fp-text-secondary)"
-                    }}
-                  >
-                    {formatReportEmailStatus(s, t, dateLocale)}
-                  </span>
+                  <Stack gap={6}>
+                    <span
+                      style={{
+                        display: "block",
+                        maxWidth: 260,
+                        fontSize: "0.8125rem",
+                        lineHeight: 1.45,
+                        color:
+                          s.report_email_sent_at || s.report_email_status === "sent"
+                            ? "var(--fp-success)"
+                            : "var(--fp-text-secondary)"
+                      }}
+                    >
+                      {formatReportEmailStatus(s, t, dateLocale)}
+                    </span>
+                    {s.pdf_path && !(s.report_email_sent_at || s.report_email_status === "sent") ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={pdfBusy === `${s.id}-mail`}
+                        onClick={() => resendTestReportEmail(s)}
+                      >
+                        {pdfBusy === `${s.id}-mail` ? "…" : t("admin.emailResend")}
+                      </Button>
+                    ) : null}
+                  </Stack>
                 )
               },
               ...(isAdmin

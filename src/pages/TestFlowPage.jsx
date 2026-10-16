@@ -194,6 +194,15 @@ export default function TestFlowPage() {
           return;
         }
 
+        const clientId = reportClientIdRef.current;
+        const expectedEmail = (() => {
+          if (clientId) {
+            const client = clients.find((row) => row.id === clientId);
+            if (client?.email) return client.email;
+          }
+          return user?.email || null;
+        })();
+
         pdfSavedRef.current = true;
         const delivery = await deliverSessionReport({
           userId: ownerForPdf,
@@ -204,16 +213,20 @@ export default function TestFlowPage() {
           target: targetSnap,
           pressTimeline: timeline ?? [],
           locale,
-          clientId: reportClientIdRef.current
+          clientId
         });
         if (delivery.ok) {
-          setReportDelivery({ status: "ok" });
+          setReportDelivery({
+            status: "ok",
+            email: delivery.email || expectedEmail
+          });
         } else {
           console.warn("report_delivery_failed", delivery.code, delivery.detail);
           setReportDelivery({
             status: "failed",
             code: delivery.code || "unexpected",
-            detail: delivery.detail || null
+            detail: delivery.detail || null,
+            email: expectedEmail
           });
         }
       } catch (e) {
@@ -225,7 +238,7 @@ export default function TestFlowPage() {
         pdfSavedRef.current = false;
       }
     },
-    [profile, name, age, birth, gender, pkey, refreshProfile, t, locale, inviteId, user?.id]
+    [profile, name, age, birth, gender, pkey, refreshProfile, t, locale, inviteId, user?.id, user?.email, clients]
   );
 
   const handleTestFinished = useCallback(
@@ -833,15 +846,16 @@ export default function TestFlowPage() {
             <div className="space-screen-win">
               <span className="space-screen-win-check">✓</span>
               <h2 className="space-screen-win-title">{t("test.thankYouTitle")}</h2>
-              <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
               {reportDelivery?.status === "working" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
                   {t("test.reportWorking")}
                 </p>
               )}
               {reportDelivery?.status === "ok" && (
-                <p className="space-screen-win-sub" role="status">
-                  {t("test.reportOk")}
+                <p className="space-screen-win-sub" role="status" aria-live="polite">
+                  {reportDelivery.email
+                    ? t("test.reportOk", { email: reportDelivery.email })
+                    : t("test.reportOkNoEmail")}
                 </p>
               )}
               {reportDelivery?.status === "failed" && (
@@ -857,6 +871,9 @@ export default function TestFlowPage() {
                     })()
                   })}
                 </p>
+              )}
+              {!reportDelivery && !saveError && (
+                <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
               )}
               {saveError && (
                 <p className="space-screen-error" role="alert">

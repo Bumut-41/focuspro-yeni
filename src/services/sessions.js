@@ -109,6 +109,13 @@ export async function uploadReportPdf(userId, sessionId, blob) {
   return uploadWithRetry(`${userId}/${sessionId}.pdf`, blob);
 }
 
+async function assertStorageObjectExists(path) {
+  const { data, error } = await supabase.storage.from("reports").createSignedUrl(path, 60);
+  if (error || !data?.signedUrl) {
+    throw new Error(error?.message || "pdf_storage_verify_failed");
+  }
+}
+
 async function linkSessionPdfPath(sessionId, path, kind) {
   const { error } = await supabase.rpc("set_session_report_pdf", {
     p_session_id: sessionId,
@@ -130,6 +137,7 @@ async function linkSessionPdfPath(sessionId, path, kind) {
 /** Storage'a yükler ve test_sessions.pdf_path günceller (RPC ile, RLS select engeline takılmaz). */
 export async function persistSessionReportPdf(userId, sessionId, blob) {
   const path = await uploadReportPdf(userId, sessionId, blob);
+  await assertStorageObjectExists(path);
   await linkSessionPdfPath(sessionId, path, "test");
   return path;
 }

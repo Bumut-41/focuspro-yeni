@@ -169,7 +169,9 @@ export const it = {
     generateReport: "Genera il report",
     pdfPreparing: "Preparazione del PDF…",
     pdfOpenFailed: "Impossibile aprire il PDF.",
-    pdfChunkFailed: "Il file del report è stato aggiornato. Aggiorna la pagina e apri di nuovo il report."
+    pdfChunkFailed: "Il file del report è stato aggiornato. Aggiorna la pagina e apri di nuovo il report.",
+    reportSavedMailPending: "Report salvato; e-mail non ancora inviata. Prova «Reinvia e-mail».",
+    reportGeneratePartial: "Report scaricato ma salvataggio/e-mail non completati ({{reason}})."
   },
   invite: {
     pageTitle: "Invito al test",
@@ -299,7 +301,8 @@ export const it = {
     thankYouBody:
       "I dati sono conservati in modo sicuro e, al termine del test, il report viene inviato al tuo indirizzo e-mail. I test svolti con uno specialista sono visibili anche nella sua schermata.",
     reportWorking: "Salvataggio del PDF e invio e-mail… Non chiudere questa pagina.",
-    reportOk: "Report del test salvato e inviato via e-mail.",
+    reportOk: "Il risultato del test è stato inviato a {{email}}.",
+    reportOkNoEmail: "Il risultato del test è stato inviato al tuo indirizzo e-mail.",
     reportFailed: "Report non consegnato: {{reason}}. Puoi reinviare dal pannello.",
     qaHint:
       "Modalità temporanea: solo sezioni GIF silenziose e GIF silenziose+audio (~6 min). Solo audio, baseline e chiusura disattivate.",

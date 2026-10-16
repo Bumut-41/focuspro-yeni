@@ -169,7 +169,9 @@ export const tr = {
     generateReport: "Raporu oluştur",
     pdfPreparing: "PDF hazırlanıyor…",
     pdfOpenFailed: "PDF açılamadı.",
-    pdfChunkFailed: "Rapor dosyası güncellendi. Sayfayı yenileyip raporu tekrar açın."
+    pdfChunkFailed: "Rapor dosyası güncellendi. Sayfayı yenileyip raporu tekrar açın.",
+    reportSavedMailPending: "Rapor sisteme kaydedildi; e-posta henüz iletilemedi. «E-postayı yeniden gönder» ile deneyin.",
+    reportGeneratePartial: "Rapor indirildi ancak sistem kaydı/e-posta tamamlanamadı ({{reason}})."
   },
   invite: {
     pageTitle: "Test daveti",
@@ -300,7 +302,8 @@ export const tr = {
     thankYouBody:
       "Kayıtlar güvenle saklanır ve test bittiğinde mail adresinize test raporu gönderilir. Uzman ile birlikte yaptığınız testler ayrıca uzman ekranında da görüntülenebilir.",
     reportWorking: "Rapor PDF kaydediliyor ve e-posta gönderiliyor… Lütfen bu sayfayı kapatmayın.",
-    reportOk: "Test raporu kaydedildi ve e-posta ile iletildi.",
+    reportOk: "Test sonucunuz {{email}} adresine iletilmiştir.",
+    reportOkNoEmail: "Test sonucunuz e-posta adresinize iletilmiştir.",
     reportFailed: "Rapor iletilemedi: {{reason}}. Panelden yeniden gönderebilirsiniz.",
     qaHint:
       "Geçici mod: yalnızca sessiz gif ve sessiz+sesli gif bölümleri (~6 dk). Sadece ses, temel ve kapanış kapalı.",
