@@ -112,31 +112,46 @@ export async function deliverSessionReport({
     };
   }
 
-  try {
-    const mail = await sendSessionReportEmail(sessionId, locale, clientId);
-    return {
-      ok: true,
-      pdfSaved: true,
-      mail,
-      email: pickDeliveredEmail(mail),
-      result
-    };
-  } catch (err) {
-    const code = err?.code || "send_failed";
-    const detail = err?.detail || err?.message || null;
+  let lastMailErr = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      await recordReportEmailStatus({
-        sessionId,
-        status: "failed",
-        errorCode: code,
-        errorDetail: detail
-      });
-    } catch {
-      /* edge function already wrote status */
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 1000));
+      const mail = await sendSessionReportEmail(sessionId, locale, clientId);
+      return {
+        ok: true,
+        pdfSaved: true,
+        mail,
+        email: pickDeliveredEmail(mail),
+        result
+      };
+    } catch (err) {
+      lastMailErr = err;
+      // Kalıcı alıcı/yapılandırma hatalarında ikinci deneme anlamsız
+      const code = err?.code || "";
+      if (
+        code === "recipient_required" ||
+        code === "email_not_configured" ||
+        code === "forbidden" ||
+        code === "pdf_not_ready"
+      ) {
+        break;
+      }
     }
-    // PDF kaydı başarılı; mail ayrı sorun
-    return { ok: false, pdfSaved: true, code, detail, email: null, result };
   }
+
+  const code = lastMailErr?.code || "send_failed";
+  const detail = lastMailErr?.detail || lastMailErr?.message || null;
+  try {
+    await recordReportEmailStatus({
+      sessionId,
+      status: "failed",
+      errorCode: code,
+      errorDetail: detail
+    });
+  } catch {
+    /* edge function already wrote status */
+  }
+  return { ok: false, pdfSaved: true, code, detail, email: null, result };
 }
 
 /**
