@@ -37,6 +37,22 @@ async function accountEmail(admin: ReturnType<typeof createClient>, userId: stri
   return data?.user?.email ?? null;
 }
 
+async function markFailed(
+  admin: ReturnType<typeof createClient>,
+  sessionId: string,
+  code: string,
+  detail?: string,
+  emails?: string[]
+) {
+  const patch: Record<string, unknown> = {
+    report_email_status: "failed",
+    report_email_error_code: code,
+    report_email_error_detail: detail || null
+  };
+  if (emails?.length) patch.report_email_to = emails.join(", ");
+  await admin.from("test_sessions").update(patch).eq("id", sessionId).is("report_email_sent_at", null);
+}
+
 function emailContent(locale: string, participantName: string) {
   if (locale === "en") {
     return {
@@ -79,6 +95,9 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: cors });
   }
 
+  let sessionIdForFail: string | null = null;
+  let adminForFail: ReturnType<typeof createClient> | null = null;
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -107,11 +126,13 @@ Deno.serve(async (req) => {
     if (!sessionId) {
       return json({ error: "sessionId required" }, 400);
     }
+    sessionIdForFail = sessionId;
 
     const admin = createClient(supabaseUrl, serviceKey);
+    adminForFail = admin;
     const { data: session, error: sessErr } = await admin
       .from("test_sessions")
-      .select("id, owner_id, taker_id, participant_name, pdf_path, report_email_sent_at")
+      .select("id, owner_id, taker_id, participant_name, pdf_path, report_email_sent_at, report_email_to")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -119,17 +140,25 @@ Deno.serve(async (req) => {
       return json({ error: "session_not_found" }, 404);
     }
 
+    const { data: callerProfile } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    const isAdminUser = callerProfile?.role === "admin" || callerProfile?.role === "super_admin";
     const isOwner = session.owner_id === user.id;
     const isTaker = session.taker_id === user.id;
-    if (!isOwner && !isTaker) {
+    if (!isOwner && !isTaker && !isAdminUser) {
+      await markFailed(admin, sessionId, "forbidden");
       return json({ error: "forbidden" }, 403);
     }
     if (!session.pdf_path) {
+      await markFailed(admin, sessionId, "pdf_not_ready");
       return json({ error: "pdf_not_ready" }, 400);
     }
 
     let recipients: string[] = [];
-    if (isTaker) {
+    if (isAdminUser && !isOwner && !isTaker) {
+      const takerEmail = session.taker_id ? await accountEmail(admin, session.taker_id) : null;
+      const ownerEmail = session.owner_id ? await accountEmail(admin, session.owner_id) : null;
+      recipients = uniqueEmails([takerEmail, ownerEmail]);
+    } else if (isTaker) {
       const ownerEmail =
         session.owner_id && session.owner_id !== user.id ? await accountEmail(admin, session.owner_id) : null;
       recipients = uniqueEmails([user.email, ownerEmail]);
@@ -140,39 +169,60 @@ Deno.serve(async (req) => {
         .eq("id", clientId)
         .maybeSingle();
       if (clientErr || !client || client.specialist_id !== user.id) {
+        await markFailed(admin, sessionId, "forbidden");
         return json({ error: "forbidden" }, 403);
       }
       const sameName =
         client.full_name.trim().toLocaleLowerCase("tr-TR") ===
         (session.participant_name || "").trim().toLocaleLowerCase("tr-TR");
       if (!sameName) {
+        await markFailed(admin, sessionId, "forbidden");
         return json({ error: "forbidden" }, 403);
       }
       recipients = uniqueEmails([client.email, user.email]);
     } else {
-      const { data: profile } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
-      if (profile?.role === "psychologist") {
+      if (callerProfile?.role === "psychologist") {
+        await markFailed(admin, sessionId, "recipient_required");
         return json({ error: "recipient_required" }, 400);
       }
       recipients = uniqueEmails([user.email]);
     }
 
     if (!recipients.length) {
+      await markFailed(admin, sessionId, "recipient_required");
       return json({ error: "recipient_required" }, 400);
     }
 
     if (session.report_email_sent_at) {
-      return json({ ok: true, alreadySent: true, emails: recipients });
+      return json({
+        ok: true,
+        alreadySent: true,
+        emails: recipients,
+        sentAt: session.report_email_sent_at,
+        to: session.report_email_to || recipients.join(", ")
+      });
     }
+
+    await admin
+      .from("test_sessions")
+      .update({
+        report_email_status: "pending",
+        report_email_error_code: null,
+        report_email_error_detail: null
+      })
+      .eq("id", sessionId)
+      .is("report_email_sent_at", null);
 
     const resendKey = Deno.env.get("RESEND_API_KEY");
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") ?? "FocusProLab <onboarding@resend.dev>";
     if (!resendKey) {
+      await markFailed(admin, sessionId, "email_not_configured", undefined, recipients);
       return json({ error: "email_not_configured" }, 503);
     }
 
     const { data: pdfBlob, error: dlErr } = await admin.storage.from("reports").download(session.pdf_path);
     if (dlErr || !pdfBlob) {
+      await markFailed(admin, sessionId, "pdf_download_failed", dlErr?.message, recipients);
       return json({ error: "pdf_download_failed", detail: dlErr?.message }, 500);
     }
 
@@ -201,16 +251,28 @@ Deno.serve(async (req) => {
 
     if (!mailRes.ok) {
       const errText = await mailRes.text();
+      await markFailed(admin, sessionId, "send_failed", errText.slice(0, 500), recipients);
       return json({ error: "send_failed", detail: errText }, 502);
     }
 
+    const sentAt = new Date().toISOString();
+    const to = recipients.join(", ");
     await admin
       .from("test_sessions")
-      .update({ report_email_sent_at: new Date().toISOString() })
+      .update({
+        report_email_sent_at: sentAt,
+        report_email_to: to,
+        report_email_status: "sent",
+        report_email_error_code: null,
+        report_email_error_detail: null
+      })
       .eq("id", sessionId);
 
-    return json({ ok: true, emails: recipients });
+    return json({ ok: true, emails: recipients, sentAt, to });
   } catch (e) {
+    if (adminForFail && sessionIdForFail) {
+      await markFailed(adminForFail, sessionIdForFail, "unexpected", String(e)).catch(() => {});
+    }
     return json({ error: "unexpected", detail: String(e) }, 500);
   }
 });

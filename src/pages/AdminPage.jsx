@@ -34,6 +34,7 @@ import { fetchCorporateApplications } from "../services/corporateApplications.js
 import { fetchSpecialistApplications, getSpecialistDocumentUrl } from "../services/specialistApplications.js";
 import { fetchContactMessages } from "../services/contactMessages.js";
 import { downloadPurchasesCsv, downloadSpecialistPurchasesCsv, fetchIndividualPurchases, fetchSpecialistPurchases, formatTl } from "../services/purchases.js";
+import { formatReportEmailStatus, sendSessionReportEmail } from "../services/emailReport.js";
 import {
   downloadContactCsv,
   downloadCorporateCsv,
@@ -290,6 +291,27 @@ export default function AdminPage() {
       await downloadPressReportFromSession(sess, tl);
     } catch (e) {
       setMsg(e.message || t("admin.pressPdfFailed"));
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+
+  async function resendReportEmail(sessionRow) {
+    const busyId = `${sessionRow.id}-mail`;
+    setPdfBusy(busyId);
+    setMsg("");
+    try {
+      await sendSessionReportEmail(sessionRow.id, locale);
+      setMsg(t("admin.emailResendOk"));
+      await load();
+    } catch (e) {
+      const code = e?.code;
+      const reason =
+        code && t(`admin.emailErr.${code}`) !== `admin.emailErr.${code}`
+          ? t(`admin.emailErr.${code}`)
+          : e?.message || t("admin.emailErr.unexpected");
+      setMsg(t("admin.emailResendFailed", { reason }));
+      await load().catch(() => {});
     } finally {
       setPdfBusy(null);
     }
@@ -1209,6 +1231,25 @@ export default function AdminPage() {
               )
             },
             {
+              label: t("admin.emailStatus"),
+              render: (s) => (
+                <span
+                  style={{
+                    display: "block",
+                    maxWidth: 280,
+                    fontSize: "0.8125rem",
+                    lineHeight: 1.45,
+                    color:
+                      s.report_email_sent_at || s.report_email_status === "sent"
+                        ? "var(--fp-success)"
+                        : "var(--fp-text-secondary)"
+                  }}
+                >
+                  {formatReportEmailStatus(s, t, dateLocale)}
+                </span>
+              )
+            },
+            {
               label: t("admin.reports"),
               render: (s) => (
                 <Stack gap={6} wrap>
@@ -1228,6 +1269,16 @@ export default function AdminPage() {
                   >
                     {pdfBusy?.startsWith(`${s.id}-basis`) ? "…" : s.admin_pdf_path ? t("admin.openPressReport") : t("admin.downloadPressReport")}
                   </Button>
+                  {s.pdf_path && !(s.report_email_sent_at || s.report_email_status === "sent") ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={pdfBusy?.startsWith(`${s.id}-mail`)}
+                      onClick={() => resendReportEmail(s)}
+                    >
+                      {pdfBusy?.startsWith(`${s.id}-mail`) ? "…" : t("admin.emailResend")}
+                    </Button>
+                  ) : null}
                   <Button variant="ghost" size="sm" onClick={() => openSession(s.id)}>
                     {selectedId === s.id ? t("common.close") : t("admin.pressDetail")}
                   </Button>

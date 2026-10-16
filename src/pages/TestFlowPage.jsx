@@ -15,12 +15,11 @@ import { useAttentionTest } from "../useAttentionTest.js";
 import { useTouchTest } from "../useTouchTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
 import { TestParticipantGuide } from "../components/TestParticipantGuide.jsx";
-import { formatPersistResult, persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
 import { clearStoredInviteToken, getStoredInviteToken } from "../lib/inviteStorage.js";
 import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../services/invites.js";
 import { fetchMyClients } from "../services/clients.js";
 import { saveTestSession } from "../services/sessions.js";
-import { sendSessionReportEmail } from "../services/emailReport.js";
+import { deliverSessionReport } from "../services/emailReport.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
@@ -401,7 +400,7 @@ export default function TestFlowPage() {
     }
   }, [step, start, activeTestProfile]);
 
-  // Test bitince PDF'leri arka planda kaydet (kullanıcıya gösterilmez).
+  // Test bitince PDF kaydı + rapor e-postası (sonuç test_sessions'a yazılır).
   useEffect(() => {
     if (step !== "thanks" || !sessionId || !user?.id || !logs.length || !target || pdfSavedRef.current) {
       return undefined;
@@ -415,7 +414,7 @@ export default function TestFlowPage() {
       started = true;
       void (async () => {
         try {
-          const result = await persistAllSessionPdfs({
+          const delivery = await deliverSessionReport({
             userId: ownerForPdf,
             sessionId,
             participant,
@@ -424,38 +423,26 @@ export default function TestFlowPage() {
             target,
             pressTimeline,
             locale,
-            saveAdminPdf: false
+            clientId
           });
-          if (!result.testSaved) {
-            pdfSavedRef.current = false;
-          } else {
-            try {
-              await sendSessionReportEmail(sessionId, locale, clientId);
-            } catch (mailErr) {
-              console.warn(mailErr);
-            }
-          }
-          if (result.errors?.length) {
-            console.warn(formatPersistResult(result, pressTimeline.length > 0, locale));
+          if (!delivery.ok) {
+            console.warn("report_delivery_failed", delivery.code, delivery.detail);
           }
         } catch (e) {
-          pdfSavedRef.current = false;
           console.warn(e);
         }
       })();
-    }, 900);
+    }, 400);
 
     return () => {
-      if (!started) {
-        window.clearTimeout(timer);
-        pdfSavedRef.current = false;
-      }
+      window.clearTimeout(timer);
+      if (!started) pdfSavedRef.current = false;
     };
   }, [step, sessionId, user?.id, pdfOwnerId, logs, target, profile, participant, pressTimeline, locale]);
 
   useEffect(() => {
     if (step !== "thanks") return undefined;
-    const id = window.setTimeout(() => navigate("/", { replace: true }), 30_000);
+    const id = window.setTimeout(() => navigate("/", { replace: true }), 45_000);
     return () => window.clearTimeout(id);
   }, [step, navigate]);
 
