@@ -1,6 +1,7 @@
 /**
  * Test kıstasları (Çocuk 13 dk, Yetişkin 15 dk, Ergen 15 dk).
- * Ana simge hızı = stimulus (ms). gap ≈ stimulus'un %45'i.
+ * stimulus = görünme süresi (ms), gap = boşluk (ms).
+ * SOA (uyaran başlangıçları arası) = stimulus + gap.
  */
 
 import {
@@ -23,6 +24,13 @@ const MIN = 60_000;
 const DISTRACTOR_RAMP_STEP_MS = 30_000;
 const DISTRACTOR_RAMP_STIMULUS_DROP = 100;
 
+/** Yetişkin pilot tempo (GPT / klinik öneri). */
+const ADULT_TEMPO = {
+  slow: { soa: 2000, display: 400 },
+  medium: { soa: 1500, display: 300 },
+  fast: { soa: 1100, display: 250 }
+};
+
 function phase(endMin, name, stimulus) {
   return {
     end: endMin * MIN,
@@ -30,6 +38,28 @@ function phase(endMin, name, stimulus) {
     stimulus,
     gap: Math.round(stimulus * 0.45)
   };
+}
+
+/** SOA + görünme süresi ile faz (yetişkin inişli-çıkışlı tempo). */
+function phaseTimed(endMin, name, { soa, display }) {
+  return {
+    end: endMin * MIN,
+    name,
+    stimulus: display,
+    gap: Math.max(50, soa - display)
+  };
+}
+
+/**
+ * Her 3 dk blok: 0–60 sn yavaş → 60–120 sn orta → 120–180 sn hızlı.
+ * Skorların 97–99’da yığılmasını azaltmak için kısa görünme + değişen tempo.
+ */
+function adultThreeMinBlock(startMin, sectionLabel) {
+  return [
+    phaseTimed(startMin + 1, `${sectionLabel} · 0–60 sn · yavaş`, ADULT_TEMPO.slow),
+    phaseTimed(startMin + 2, `${sectionLabel} · 60–120 sn · orta`, ADULT_TEMPO.medium),
+    phaseTimed(startMin + 3, `${sectionLabel} · 120–180 sn · hızlı`, ADULT_TEMPO.fast)
+  ];
 }
 
 /**
@@ -75,25 +105,13 @@ const childGif = mergeGifEvents([
 
 const childSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 8 * MIN)]);
 
-/** Yetişkin çeldirici bölüm başlangıç hızları (ms) — her bölüm kendi hızından ramp yapar. */
-const ADULT_DISTRACTOR_START_MS = {
-  silent: 1300,
-  combined: 1200
-};
-
-/** Yetişkin — 15 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–9 ses, 9–12 gif, 12–15 kapanış) */
+/** Yetişkin — 15 dk: 5×3 dk; her 3 dk içinde yavaş → orta → hızlı */
 const adultPhases = [
-  phase(1, "Yetişkin — 0–1 dk", 1300),
-  phase(2, "Yetişkin — 1–2 dk", 1100),
-  phase(3, "Yetişkin — 2–3 dk", 1000),
-  ...distractorRampPhases(3, 6, "Yetişkin — 3–6 dk (sessiz gif)", ADULT_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(6, 9, "Yetişkin — 6–9 dk (sadece ses)", ADULT_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(9, 11, "Yetişkin — 9–12 dk (sessiz + sesli gif)", ADULT_DISTRACTOR_START_MS.combined),
-  phase(11.5, "Yetişkin — 9–12 dk (sessiz + sesli gif) · 11–11:30", 900),
-  phase(12, "Yetişkin — 9–12 dk (sessiz + sesli gif) · 11:30–12", 900),
-  phase(13, "Yetişkin — 12–13 dk", 1100),
-  phase(14, "Yetişkin — 13–14 dk", 900),
-  phase(15, "Yetişkin — 14–15 dk", 900)
+  ...adultThreeMinBlock(0, "Yetişkin — 0–3 dk (temel)"),
+  ...adultThreeMinBlock(3, "Yetişkin — 3–6 dk (sessiz gif)"),
+  ...adultThreeMinBlock(6, "Yetişkin — 6–9 dk (sadece ses)"),
+  ...adultThreeMinBlock(9, "Yetişkin — 9–12 dk (sessiz + sesli gif)"),
+  ...adultThreeMinBlock(12, "Yetişkin — 12–15 dk (kapanış)")
 ];
 
 const adultGif = mergeGifEvents([
@@ -157,7 +175,9 @@ export const PROFILES = {
     label: "Yetişkin (18+)",
     durationMs: 15 * MIN,
     lateResponseMs: 800,
-    targetProbability: 0.4,
+    // Daha seyrek hedef + peş peşe sınır (useAttentionTest) → alışma / 99 skor yığılması azalır
+    targetProbability: 0.32,
+    maxTargetStreak: 2,
     phases: adultPhases,
     gifEvents: adultGif,
     soundEvents: adultSound
@@ -211,13 +231,13 @@ function practicePhase(endMs, name, stimulus) {
   };
 }
 
-/** Yetişkin / ergen — tablo hızları (ergen = yetişkin ile aynı). */
+/** Yetişkin / ergen deneme — yeni tempo oranlarına yakın (kısa görünme). */
 const PRACTICE_ADULT_TEEN_PHASES = [
-  practicePhase(5_000, "Deneme — çeldirici yok", 1300),
-  practicePhase(11_000, "Deneme — sessiz gif", 1100),
-  practicePhase(18_000, "Deneme — sadece ses", 1100),
-  practicePhase(26_000, "Deneme — kombine", 900),
-  practicePhase(PRACTICE_DURATION_MS, "Deneme — çeldirici yok", 1000)
+  { end: 5_000, name: "Deneme — çeldirici yok", stimulus: 400, gap: 1600 },
+  { end: 11_000, name: "Deneme — sessiz gif", stimulus: 300, gap: 1200 },
+  { end: 18_000, name: "Deneme — sadece ses", stimulus: 300, gap: 1200 },
+  { end: 26_000, name: "Deneme — kombine", stimulus: 250, gap: 850 },
+  { end: PRACTICE_DURATION_MS, name: "Deneme — çeldirici yok", stimulus: 300, gap: 1200 }
 ];
 
 /** Çocuk — tüm aralıklarda 1800 ms. */

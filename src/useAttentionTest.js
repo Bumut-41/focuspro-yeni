@@ -43,6 +43,8 @@ export function useAttentionTest(profile, { onFinished } = {}) {
   const testStartPerfRef = useRef(null);
   const pressTimelineRef = useRef([]);
   const sceneRef = useRef(null);
+  /** Peş peşe mavi üçgen (hedef) sayacı — alışmayı azaltır. */
+  const targetStreakRef = useRef(0);
 
   const nextTrialRef = useRef(null);
 
@@ -334,7 +336,14 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     }
     const ph = profile.phases.find((p) => ms < p.end) ?? profile.phases.at(-1);
     const n = logRef.current.length + 1;
-    const isT = seededRandom() < profile.targetProbability;
+    const maxStreak = Number(profile.maxTargetStreak) > 0 ? Number(profile.maxTargetStreak) : 99;
+    let isT = seededRandom() < profile.targetProbability;
+    // Mavi üçgen peş peşe gelmesin (maxTargetStreak)
+    if (isT && targetStreakRef.current >= maxStreak) {
+      isT = false;
+    }
+    if (isT) targetStreakRef.current += 1;
+    else targetStreakRef.current = 0;
     const cur = targetRef.current;
     const shown = isT ? { ...cur } : nonTarget();
     const onsetMs = elapsedMs();
@@ -382,7 +391,17 @@ export function useAttentionTest(profile, { onFinished } = {}) {
         nextTrialRef.current();
       }, gap);
     }, stim);
-  }, [elapsedMs, endTest, flushTrial, nonTarget, profile.durationMs, profile.phases, profile.targetProbability, trialToLog]);
+  }, [
+    elapsedMs,
+    endTest,
+    flushTrial,
+    nonTarget,
+    profile.durationMs,
+    profile.maxTargetStreak,
+    profile.phases,
+    profile.targetProbability,
+    trialToLog
+  ]);
 
   nextTrialRef.current = nextTrial;
 
@@ -475,6 +494,7 @@ export function useAttentionTest(profile, { onFinished } = {}) {
     eventIdSeqRef.current = 0;
     logRef.current = [];
     pressTimelineRef.current = [];
+    targetStreakRef.current = 0;
     testStartPerfRef.current = performance.now();
     trialRef.current = null;
     lastKey.current = 0;
