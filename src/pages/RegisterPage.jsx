@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabase.js";
 import { ageFromBirthDate } from "../profiles.js";
 import { getStoredInviteToken, setStoredInviteToken } from "../lib/inviteStorage.js";
 import { getInviteByToken } from "../services/invites.js";
+import { authErrorMessage } from "../lib/authErrors.js";
 import { BrandLogo } from "../components/BrandLogo.jsx";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
@@ -78,28 +79,52 @@ export default function RegisterPage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        data: {
-          full_name: fullName.trim(),
-          birth_date: birth,
-          role: "individual"
+    try {
+      // Onay maili göndermeden kayıt (Supabase built-in SMTP saatlik limitine takılmaz).
+      const { data, error: fnError } = await supabase.functions.invoke("register-account", {
+        body: {
+          email: email.trim().toLowerCase(),
+          password,
+          fullName: fullName.trim(),
+          birthDate: birth,
+          role: isInviteRegister ? "individual" : role
         }
+      });
+
+      if (fnError) {
+        setMsg(authErrorMessage(fnError, t));
+        return;
       }
-    });
-    setBusy(false);
-    if (error) {
-      setMsg(error.message);
-      return;
+      if (data?.error) {
+        setMsg(authErrorMessage(data, t));
+        return;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password
+      });
+      if (signInError) {
+        setMsg(t("auth.registerSuccessLogin"));
+        const loginPath = inviteToken ? `/giris?davet=${inviteToken}` : "/giris";
+        setTimeout(() => navigate(loginPath), 2000);
+        return;
+      }
+
+      navigate(inviteToken ? "/test" : "/panel", { replace: true });
+    } catch (err) {
+      setMsg(authErrorMessage(err, t));
+    } finally {
+      setBusy(false);
     }
-    setMsg(t("auth.registerSuccess"));
-    const loginPath = inviteToken ? `/giris?davet=${inviteToken}` : "/giris";
-    setTimeout(() => navigate(loginPath), 2500);
   }
 
-  const msgVariant = msg === t("auth.registerSuccess") ? "success" : msg ? "error" : null;
+  const msgVariant =
+    msg === t("auth.registerSuccess") || msg === t("auth.registerSuccessLogin")
+      ? "success"
+      : msg
+        ? "error"
+        : null;
 
   return (
     <Page narrow>

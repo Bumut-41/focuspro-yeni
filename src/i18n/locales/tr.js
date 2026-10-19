@@ -123,6 +123,13 @@ export const tr = {
     age18Required: "Üyelik için 18 yaş ve üzeri olmalısınız.",
     passwordMin: "Şifre en az 6 karakter olmalı.",
     registerSuccess: "Kayıt oluşturuldu. E-posta onayı açıksa gelen kutusunu kontrol edin, ardından giriş yapın.",
+    registerSuccessLogin: "Hesap oluşturuldu. Giriş sayfasından e-posta ve şifrenizle giriş yapabilirsiniz.",
+    errEmailRateLimit:
+      "Çok fazla kayıt denemesi yapıldı. Lütfen 1 saat sonra tekrar deneyin veya Google ile devam edin.",
+    errEmailTaken: "Bu e-posta adresi zaten kayıtlı. Giriş yapmayı deneyin.",
+    errInvalidLogin: "E-posta veya şifre hatalı.",
+    errEmailNotConfirmed: "E-posta henüz doğrulanmamış. Gelen kutunuzu kontrol edin.",
+    errInvalidEmail: "Geçerli bir e-posta adresi girin.",
     completeProfileTitle: "Profilinizi tamamlayın",
     completeProfileSub: "Google ile giriş yaptınız. Devam etmek için bir kez bu bilgileri girin.",
     saving: "Kaydediliyor…",

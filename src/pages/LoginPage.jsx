@@ -5,6 +5,7 @@ import { useLocale } from "../i18n/LocaleContext.jsx";
 import { supabase } from "../lib/supabase.js";
 import { getStoredInviteToken, setStoredInviteToken } from "../lib/inviteStorage.js";
 import { acceptTestInvite, parseRpcError } from "../services/invites.js";
+import { authErrorMessage } from "../lib/authErrors.js";
 import { BrandLogo } from "../components/BrandLogo.jsx";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
 import { Alert, Button, Card, Field, Input, Page } from "../components/ui.jsx";
@@ -55,7 +56,7 @@ export default function LoginPage() {
     });
     if (error) {
       setBusy(false);
-      setMsg(error.message);
+      setMsg(authErrorMessage(error, t));
       return;
     }
 

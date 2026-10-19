@@ -123,6 +123,13 @@ export const en = {
     age18Required: "You must be 18 or older to register.",
     passwordMin: "Password must be at least 6 characters.",
     registerSuccess: "Account created. If email confirmation is enabled, check your inbox, then log in.",
+    registerSuccessLogin: "Account created. You can sign in with your email and password.",
+    errEmailRateLimit:
+      "Too many sign-up attempts. Please try again in about an hour, or continue with Google.",
+    errEmailTaken: "This email is already registered. Try signing in.",
+    errInvalidLogin: "Incorrect email or password.",
+    errEmailNotConfirmed: "Email is not confirmed yet. Check your inbox.",
+    errInvalidEmail: "Enter a valid email address.",
     completeProfileTitle: "Complete your profile",
     completeProfileSub: "You signed in with Google. Enter this information once to continue.",
     saving: "Saving…",

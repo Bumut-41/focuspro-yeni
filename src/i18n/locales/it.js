@@ -123,6 +123,13 @@ export const it = {
     age18Required: "Per registrarti devi avere almeno 18 anni.",
     passwordMin: "La password deve avere almeno 6 caratteri.",
     registerSuccess: "Account creato. Se la conferma e-mail è attiva, controlla la posta e poi accedi.",
+    registerSuccessLogin: "Account creato. Puoi accedere con e-mail e password.",
+    errEmailRateLimit:
+      "Troppi tentativi di registrazione. Riprova tra circa un'ora oppure continua con Google.",
+    errEmailTaken: "Questa e-mail è già registrata. Prova ad accedere.",
+    errInvalidLogin: "E-mail o password non corretti.",
+    errEmailNotConfirmed: "E-mail non ancora confermata. Controlla la casella di posta.",
+    errInvalidEmail: "Inserisci un indirizzo e-mail valido.",
     completeProfileTitle: "Completa il profilo",
     completeProfileSub: "Hai effettuato l'accesso con Google. Inserisci questi dati una sola volta per continuare.",
     saving: "Salvataggio…",
