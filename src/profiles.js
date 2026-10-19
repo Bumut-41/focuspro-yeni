@@ -31,6 +31,20 @@ const ADULT_TEMPO = {
   fast: { soa: 1100, display: 250 }
 };
 
+/** Çocuk — yetişkinden yumuşak ama eski uzun görünmeye göre bir tık zor. */
+const CHILD_TEMPO = {
+  slow: { soa: 2200, display: 550 },
+  medium: { soa: 1800, display: 450 },
+  fast: { soa: 1400, display: 350 }
+};
+
+/** Ergen — çocuk ile yetişkin arası. */
+const TEEN_TEMPO = {
+  slow: { soa: 2100, display: 480 },
+  medium: { soa: 1600, display: 340 },
+  fast: { soa: 1200, display: 270 }
+};
+
 function phase(endMin, name, stimulus) {
   return {
     end: endMin * MIN,
@@ -54,12 +68,24 @@ function phaseTimed(endMin, name, { soa, display }) {
  * Her 3 dk blok: 0–60 sn yavaş → 60–120 sn orta → 120–180 sn hızlı.
  * Skorların 97–99’da yığılmasını azaltmak için kısa görünme + değişen tempo.
  */
-function adultThreeMinBlock(startMin, sectionLabel) {
+function threeMinTempoBlock(startMin, sectionLabel, tempo) {
   return [
-    phaseTimed(startMin + 1, `${sectionLabel} · 0–60 sn · yavaş`, ADULT_TEMPO.slow),
-    phaseTimed(startMin + 2, `${sectionLabel} · 60–120 sn · orta`, ADULT_TEMPO.medium),
-    phaseTimed(startMin + 3, `${sectionLabel} · 120–180 sn · hızlı`, ADULT_TEMPO.fast)
+    phaseTimed(startMin + 1, `${sectionLabel} · 0–60 sn · yavaş`, tempo.slow),
+    phaseTimed(startMin + 2, `${sectionLabel} · 60–120 sn · orta`, tempo.medium),
+    phaseTimed(startMin + 3, `${sectionLabel} · 120–180 sn · hızlı`, tempo.fast)
   ];
+}
+
+/** 2 dk blok (çocuk ses / kapanış): yavaş → orta veya orta → hızlı */
+function twoMinTempoBlock(startMin, sectionLabel, first, second, firstLabel, secondLabel) {
+  return [
+    phaseTimed(startMin + 1, `${sectionLabel} · 0–60 sn · ${firstLabel}`, first),
+    phaseTimed(startMin + 2, `${sectionLabel} · 60–120 sn · ${secondLabel}`, second)
+  ];
+}
+
+function adultThreeMinBlock(startMin, sectionLabel) {
+  return threeMinTempoBlock(startMin, sectionLabel, ADULT_TEMPO);
 }
 
 /**
@@ -86,16 +112,13 @@ function distractorRampPhases(startMin, endMin, baseName, sectionStartStimulus) 
   return phases;
 }
 
-/** Çocuk — 13 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–8 ses, 8–11 gif, 11–13 kapanış) */
+/** Çocuk — 13 dk; bölüm içinde yavaş→orta→hızlı (2 dk’lık bölümlerde çift tempo) */
 const childPhases = [
-  phase(1, "Çocuk — 0–1 dk", 1800),
-  phase(2, "Çocuk — 1–2 dk", 1700),
-  phase(3, "Çocuk — 2–3 dk", 1600),
-  phase(6, "Çocuk — 3–6 dk (sessiz gif)", 1600),
-  phase(8, "Çocuk — 6–8 dk (sadece ses)", 1600),
-  phase(11, "Çocuk — 8–11 dk (sessiz + sesli gif)", 1600),
-  phase(12, "Çocuk — 11–12 dk", 1850),
-  phase(13, "Çocuk — 12–13 dk", 1650)
+  ...threeMinTempoBlock(0, "Çocuk — 0–3 dk (temel)", CHILD_TEMPO),
+  ...threeMinTempoBlock(3, "Çocuk — 3–6 dk (sessiz gif)", CHILD_TEMPO),
+  ...twoMinTempoBlock(6, "Çocuk — 6–8 dk (sadece ses)", CHILD_TEMPO.slow, CHILD_TEMPO.medium, "yavaş", "orta"),
+  ...threeMinTempoBlock(8, "Çocuk — 8–11 dk (sessiz + sesli gif)", CHILD_TEMPO),
+  ...twoMinTempoBlock(11, "Çocuk — 11–13 dk (kapanış)", CHILD_TEMPO.medium, CHILD_TEMPO.fast, "orta", "hızlı")
 ];
 
 const childGif = mergeGifEvents([
@@ -121,25 +144,13 @@ const adultGif = mergeGifEvents([
 
 const adultSound = mergeSoundEvents([buildSoloSoundWindow(6 * MIN, 9 * MIN)]);
 
-/** Ergen çeldirici bölüm başlangıç hızları (ms). */
-const TEEN_DISTRACTOR_START_MS = {
-  silent: 1100,
-  combined: 900
-};
-
-/** Ergen — 15 dk (tablo: 0–3 temel, 3–6 sessiz gif, 6–9 ses, 9–12 gif, 12–15 kapanış) */
+/** Ergen — 15 dk: yetişkinle aynı yapı, biraz daha yumuşak tempo */
 const teenPhases = [
-  phase(1, "Ergen — 0–1 dk", 1400),
-  phase(2, "Ergen — 1–2 dk", 1200),
-  phase(3, "Ergen — 2–3 dk", 1000),
-  ...distractorRampPhases(3, 6, "Ergen — 3–6 dk (sessiz gif)", TEEN_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(6, 9, "Ergen — 6–9 dk (sadece ses)", TEEN_DISTRACTOR_START_MS.silent),
-  ...distractorRampPhases(9, 11, "Ergen — 9–12 dk (sessiz + sesli gif)", TEEN_DISTRACTOR_START_MS.combined),
-  phase(11.5, "Ergen — 9–12 dk (sessiz + sesli gif) · 11–11:30", 500),
-  phase(12, "Ergen — 9–12 dk (sessiz + sesli gif) · 11:30–12", 500),
-  phase(13, "Ergen — 12–13 dk", 1300),
-  phase(14, "Ergen — 13–14 dk", 1100),
-  phase(15, "Ergen — 14–15 dk", 900)
+  ...threeMinTempoBlock(0, "Ergen — 0–3 dk (temel)", TEEN_TEMPO),
+  ...threeMinTempoBlock(3, "Ergen — 3–6 dk (sessiz gif)", TEEN_TEMPO),
+  ...threeMinTempoBlock(6, "Ergen — 6–9 dk (sadece ses)", TEEN_TEMPO),
+  ...threeMinTempoBlock(9, "Ergen — 9–12 dk (sessiz + sesli gif)", TEEN_TEMPO),
+  ...threeMinTempoBlock(12, "Ergen — 12–15 dk (kapanış)", TEEN_TEMPO)
 ];
 
 const teenGif = mergeGifEvents([
@@ -155,7 +166,8 @@ export const PROFILES = {
     label: "Çocuk (6–12)",
     durationMs: 13 * MIN,
     lateResponseMs: 1000,
-    targetProbability: 0.45,
+    targetProbability: 0.38,
+    maxTargetStreak: 2,
     phases: childPhases,
     gifEvents: childGif,
     soundEvents: childSound
@@ -165,7 +177,8 @@ export const PROFILES = {
     label: "Ergen (13–17)",
     durationMs: 15 * MIN,
     lateResponseMs: 900,
-    targetProbability: 0.42,
+    targetProbability: 0.35,
+    maxTargetStreak: 2,
     phases: teenPhases,
     gifEvents: teenGif,
     soundEvents: teenSound
@@ -240,13 +253,13 @@ const PRACTICE_ADULT_TEEN_PHASES = [
   { end: PRACTICE_DURATION_MS, name: "Deneme — çeldirici yok", stimulus: 300, gap: 1200 }
 ];
 
-/** Çocuk — tüm aralıklarda 1800 ms. */
+/** Çocuk deneme — yeni tempo oranlarına yakın. */
 const PRACTICE_CHILD_PHASES = [
-  practicePhase(5_000, "Deneme — çeldirici yok", 1800),
-  practicePhase(11_000, "Deneme — sessiz gif", 1800),
-  practicePhase(18_000, "Deneme — sadece ses", 1800),
-  practicePhase(26_000, "Deneme — kombine", 1800),
-  practicePhase(PRACTICE_DURATION_MS, "Deneme — çeldirici yok", 1800)
+  { end: 5_000, name: "Deneme — çeldirici yok", stimulus: 550, gap: 1650 },
+  { end: 11_000, name: "Deneme — sessiz gif", stimulus: 450, gap: 1350 },
+  { end: 18_000, name: "Deneme — sadece ses", stimulus: 450, gap: 1350 },
+  { end: 26_000, name: "Deneme — kombine", stimulus: 350, gap: 1050 },
+  { end: PRACTICE_DURATION_MS, name: "Deneme — çeldirici yok", stimulus: 450, gap: 1350 }
 ];
 
 const PRACTICE_GIF = mergeGifEvents([
