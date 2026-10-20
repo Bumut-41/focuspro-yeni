@@ -288,7 +288,7 @@ export const reportPdfStrings = {
         ["T — Zamanlama", "T = (Zamanında İsabet×0.40) + (RT Hızı×0.25) + (Geç Yanıt×0.20) + (RT Stabilitesi×0.15). İhmal A'ya yazılır."],
         ["I — Dürtüsellik", "Commission errors: hedef dışı uyaranlara verilen ilk tepkiler. Mükerrer basış bu endekste değildir (H'ye gider)."],
         ["H — Hiperaktivite", "Mükerrer basış + boş ekran / yönerge dışı basış. Doğru veya yanlış simge fark etmez."],
-        ["Genel skor", "A×0.25 + T×0.35 + I×0.25 + H×0.15"]
+        ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
       ],
       normLevels: [
         { level: 1, label: "Çok iyi performans (Z ≥ 1.0)" },
@@ -622,7 +622,7 @@ export const reportPdfStrings = {
         ["T — Timing", "T = (On-time Hit×0.40) + (RT Speed×0.25) + (Late Response×0.20) + (RT Stability×0.15). Omissions are scored under A."],
         ["I — Impulsivity", "Commission errors: first responses to non-target stimuli. Repeated presses are not in this index (they go to H)."],
         ["H — Hyperactivity", "Repeated presses + blank-screen / off-task presses. Correct vs incorrect symbol does not matter."],
-        ["Overall score", "A×0.25 + T×0.35 + I×0.25 + H×0.15"]
+        ["Overall score", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
       ],
       normLevels: [
         { level: 1, label: "Very good performance (Z ≥ 1.0)" },

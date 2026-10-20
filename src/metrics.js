@@ -1,17 +1,17 @@
 import { getStrings } from "./i18n/index.js";
 
-/** Genel skor ağırlıkları: Genel = 0.25A + 0.35T + 0.25I + 0.15H */
+/** Genel skor ağırlıkları: Genel = 0.30A + 0.25T + 0.30I + 0.15H */
 export const OVERALL_WEIGHTS = {
-  attention: 0.25,
-  timing: 0.35,
-  impulsivity: 0.25,
+  attention: 0.3,
+  timing: 0.25,
+  impulsivity: 0.3,
   hyperactivity: 0.15
 };
 
 export function formatOverallFormulaLabel(locale = "tr") {
-  if (locale === "en") return "A×0.25 + T×0.35 + I×0.25 + H×0.15";
-  if (locale === "it") return "A×0.25 + T×0.35 + I×0.25 + H×0.15";
-  return "A×0.25 + T×0.35 + I×0.25 + H×0.15";
+  if (locale === "en") return "A×0.30 + T×0.25 + I×0.30 + H×0.15";
+  if (locale === "it") return "A×0.30 + T×0.25 + I×0.30 + H×0.15";
+  return "A×0.30 + T×0.25 + I×0.30 + H×0.15";
 }
 
 function clamp(x, a = 0, b = 100) {

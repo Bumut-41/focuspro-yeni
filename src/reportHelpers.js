@@ -442,7 +442,7 @@ export function buildMoxoSummary(scores, metrics, profile, vigilance) {
   ].sort((a, b) => a.z - b.z)[0];
 
   const narrative = buildNarrativeComment(scores, z);
-  const genelCalc = `Genel Skor = ${scores.attention}×0.25 + ${scores.timing}×0.35 + ${scores.impulsivity}×0.25 + ${scores.hyperactivity}×0.15 = ${scores.overall}`;
+  const genelCalc = `Genel Skor = ${scores.attention}×0.30 + ${scores.timing}×0.25 + ${scores.impulsivity}×0.30 + ${scores.hyperactivity}×0.15 = ${scores.overall}`;
 
   return [
     `MOXO Özeti (FocusPro): A: ${scores.attention}, T: ${scores.timing}, I: ${scores.impulsivity}, H: ${scores.hyperactivity}. ${genelCalc}. ${getOverallRiskText(scores.overall)}.`,
@@ -687,7 +687,7 @@ export const INDEX_DEFINITIONS = [
     "H — Hiperaktivite",
     "Mükerrer basış + boş ekran / yönerge dışı basış. Doğru veya yanlış simge fark etmez."
   ],
-  ["Genel skor", "A×0.25 + T×0.35 + I×0.25 + H×0.15"]
+  ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
 ];
 
 export const SDT_DEFINITIONS = [
