@@ -622,7 +622,7 @@ export const reportPdfStrings = {
         ["T — Timing", "T = (On-time Hit×0.40) + (RT Speed×0.25) + (Late Response×0.20) + (RT Stability×0.15). Omissions are scored under A."],
         ["I — Impulsivity", "Commission errors: first responses to non-target stimuli. Repeated presses are not in this index (they go to H)."],
         ["H — Hyperactivity", "Repeated presses + blank-screen / off-task presses. Correct vs incorrect symbol does not matter."],
-        ["Overall score", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
+        ["Overall score", "A×0.25 + T×0.35 + I×0.25 + H×0.15"]
       ],
       normLevels: [
         { level: 1, label: "Very good performance (Z ≥ 1.0)" },

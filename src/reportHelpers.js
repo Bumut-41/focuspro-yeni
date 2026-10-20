@@ -687,7 +687,7 @@ export const INDEX_DEFINITIONS = [
     "H — Hiperaktivite",
     "Mükerrer basış + boş ekran / yönerge dışı basış. Doğru veya yanlış simge fark etmez."
   ],
-  ["Genel skor", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
+  ["Genel skor", "A×0.25 + T×0.35 + I×0.25 + H×0.15"]
 ];
 
 export const SDT_DEFINITIONS = [
