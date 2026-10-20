@@ -88,6 +88,7 @@ export const en = {
     save: "Save",
     delete: "Delete",
     close: "Close",
+    cancel: "Cancel",
     you: "You",
     or: "or",
     select: "Select",
@@ -247,6 +248,7 @@ export const en = {
     name: "Full name",
     birth: "Date of birth",
     email: "Email",
+    emailOptional: "Email (optional)",
     save: "Save client",
     saved: "Client saved.",
     sendTest: "Email the test",
@@ -260,6 +262,7 @@ export const en = {
     startTest: "Start test",
     errPick: "Select a client to start the test.",
     errDuplicate: "You already have a client with this email.",
+    errEmailRequiredForSend: "An email address is required to send the test by email.",
     errSave: "The client could not be saved. Run the specialist_clients SQL once in Supabase if the table is missing."
   },
   test: {

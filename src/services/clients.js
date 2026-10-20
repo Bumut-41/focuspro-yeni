@@ -9,6 +9,11 @@ export async function fetchMyClients() {
   return data ?? [];
 }
 
+function normalizeClientEmail(email) {
+  const value = String(email ?? "").trim().toLowerCase();
+  return value || null;
+}
+
 export async function createClient(client) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
@@ -22,9 +27,22 @@ export async function createClient(client) {
       full_name: client.fullName.trim(),
       birth_date: client.birthDate,
       gender: client.gender,
-      email: client.email.trim().toLowerCase(),
+      email: normalizeClientEmail(client.email),
       guardian_consent: Boolean(client.guardianConsent)
     })
+    .select("id, full_name, birth_date, gender, email, guardian_consent, created_at")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateClientEmail(clientId, email) {
+  const normalized = normalizeClientEmail(email);
+  if (!normalized) throw new Error("invalid_email");
+  const { data, error } = await supabase
+    .from("specialist_clients")
+    .update({ email: normalized })
+    .eq("id", clientId)
     .select("id, full_name, birth_date, gender, email, guardian_consent, created_at")
     .single();
   if (error) throw error;

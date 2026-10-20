@@ -608,7 +608,7 @@ export default function TestFlowPage() {
                       />
                       <span>
                         <strong>{client.full_name}</strong>
-                        <small>{client.email}</small>
+                        {client.email ? <small>{client.email}</small> : null}
                       </span>
                     </label>
                   ))}

@@ -6,7 +6,7 @@ create table if not exists public.specialist_clients (
   full_name text not null,
   birth_date date not null,
   gender text not null check (gender in ('Kadın', 'Erkek')),
-  email text not null,
+  email text,
   guardian_consent boolean not null default false,
   created_at timestamptz not null default now(),
   constraint specialist_clients_email_lower check (email = lower(trim(email))),

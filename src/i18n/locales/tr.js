@@ -88,6 +88,7 @@ export const tr = {
     save: "Kaydet",
     delete: "Sil",
     close: "Kapat",
+    cancel: "İptal",
     you: "Siz",
     or: "veya",
     select: "Seçin",
@@ -247,6 +248,7 @@ export const tr = {
     name: "Ad soyad",
     birth: "Doğum tarihi",
     email: "E-posta",
+    emailOptional: "E-posta (isteğe bağlı)",
     save: "Danışanı kaydet",
     saved: "Danışan kaydedildi.",
     sendTest: "Testi e-posta ile gönder",
@@ -260,6 +262,7 @@ export const tr = {
     startTest: "Teste başla",
     errPick: "Testi başlatmak için bir danışan seçin.",
     errDuplicate: "Bu e-posta ile kayıtlı bir danışanınız zaten var.",
+    errEmailRequiredForSend: "Testi e-posta ile göndermek için e-posta adresi gerekli.",
     errSave: "Danışan kaydedilemedi. Supabase'de specialist_clients tablosu yoksa SQL dosyasını bir kez çalıştırın."
   },
   test: {
