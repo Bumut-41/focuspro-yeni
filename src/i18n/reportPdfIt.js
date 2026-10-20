@@ -286,7 +286,7 @@ export const reportPdfIt = {
       ["T — Tempismo", "T = (Centro in tempo×0.40) + (Velocità TR×0.25) + (Risposta tardiva×0.20) + (Stabilità TR×0.15). Le omissioni sono conteggiate in A."],
       ["I — Impulsività", "Errori di commissione: prime risposte a stimoli non target. Le pressioni ripetute non rientrano in questo indice (vanno in H)."],
       ["H — Iperattività", "Pressioni ripetute + pressioni a schermo vuoto / fuori compito. Non conta se il simbolo è corretto o errato."],
-      ["Punteggio complessivo", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
+      ["Punteggio complessivo", "A×0.25 + T×0.35 + I×0.25 + H×0.15"]
     ],
     normLevels: [
       { level: 1, label: "Prestazione molto buona (Z ≥ 1.0)" },

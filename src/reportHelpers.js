@@ -442,7 +442,7 @@ export function buildMoxoSummary(scores, metrics, profile, vigilance) {
   ].sort((a, b) => a.z - b.z)[0];
 
   const narrative = buildNarrativeComment(scores, z);
-  const genelCalc = `Genel Skor = ${scores.attention}×0.35 + ${scores.timing}×0.30 + ${scores.impulsivity}×0.20 + ${scores.hyperactivity}×0.15 = ${scores.overall}`;
+  const genelCalc = `Genel Skor = ${scores.attention}×0.25 + ${scores.timing}×0.35 + ${scores.impulsivity}×0.25 + ${scores.hyperactivity}×0.15 = ${scores.overall}`;
 
   return [
     `MOXO Özeti (FocusPro): A: ${scores.attention}, T: ${scores.timing}, I: ${scores.impulsivity}, H: ${scores.hyperactivity}. ${genelCalc}. ${getOverallRiskText(scores.overall)}.`,

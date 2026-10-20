@@ -1,5 +1,19 @@
 import { getStrings } from "./i18n/index.js";
 
+/** Genel skor ağırlıkları: Genel = 0.25A + 0.35T + 0.25I + 0.15H */
+export const OVERALL_WEIGHTS = {
+  attention: 0.25,
+  timing: 0.35,
+  impulsivity: 0.25,
+  hyperactivity: 0.15
+};
+
+export function formatOverallFormulaLabel(locale = "tr") {
+  if (locale === "en") return "A×0.25 + T×0.35 + I×0.25 + H×0.15";
+  if (locale === "it") return "A×0.25 + T×0.35 + I×0.25 + H×0.15";
+  return "A×0.25 + T×0.35 + I×0.25 + H×0.15";
+}
+
 function clamp(x, a = 0, b = 100) {
   return Math.max(a, Math.min(b, x));
 }
@@ -240,7 +254,12 @@ export function computeIndexScoresFromData(behaviors, rts, age, logs, pressTimel
     hyperactivity = 0;
   }
 
-  let overall = clamp(attention * 0.35 + timing * 0.3 + impulsivity * 0.2 + hyperactivity * 0.15);
+  let overall = clamp(
+    attention * OVERALL_WEIGHTS.attention +
+      timing * OVERALL_WEIGHTS.timing +
+      impulsivity * OVERALL_WEIGHTS.impulsivity +
+      hyperactivity * OVERALL_WEIGHTS.hyperactivity
+  );
   if (!engaged && behaviors.targets >= 5) {
     overall = Math.min(overall, 25);
   } else if (behaviors.targets > 0 && targetDetections === 0) {

@@ -288,7 +288,7 @@ export const reportPdfStrings = {
         ["T — Zamanlama", "T = (Zamanında İsabet×0.40) + (RT Hızı×0.25) + (Geç Yanıt×0.20) + (RT Stabilitesi×0.15). İhmal A'ya yazılır."],
         ["I — Dürtüsellik", "Commission errors: hedef dışı uyaranlara verilen ilk tepkiler. Mükerrer basış bu endekste değildir (H'ye gider)."],
         ["H — Hiperaktivite", "Mükerrer basış + boş ekran / yönerge dışı basış. Doğru veya yanlış simge fark etmez."],
-        ["Genel skor", "A×0.35 + T×0.30 + I×0.20 + H×0.15"]
+        ["Genel skor", "A×0.25 + T×0.35 + I×0.25 + H×0.15"]
       ],
       normLevels: [
         { level: 1, label: "Çok iyi performans (Z ≥ 1.0)" },
