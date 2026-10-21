@@ -333,8 +333,14 @@ export default function AdminPage() {
     setPdfBusy(busyId);
     setMsg("");
     try {
-      await sendSessionReportEmail(sessionRow.id, locale);
-      setMsg(t("admin.emailResendOk"));
+      if (!sessionRow.pdf_path) {
+        setMsg(t("admin.emailErr.pdf_not_ready"));
+        return;
+      }
+      const alreadySent = Boolean(sessionRow.report_email_sent_at || sessionRow.report_email_status === "sent");
+      const mail = await sendSessionReportEmail(sessionRow.id, locale, null, alreadySent);
+      const email = Array.isArray(mail?.emails) ? mail.emails[0] : mail?.to;
+      setMsg(email ? t("admin.emailSendOk", { email }) : t("admin.emailResendOk"));
       await load();
     } catch (e) {
       const code = e?.code;
@@ -1486,14 +1492,18 @@ export default function AdminPage() {
                   >
                     {pdfBusy?.startsWith(`${s.id}-basis`) ? "…" : s.admin_pdf_path ? t("admin.openPressReport") : t("admin.downloadPressReport")}
                   </Button>
-                  {s.pdf_path && !(s.report_email_sent_at || s.report_email_status === "sent") ? (
+                  {s.pdf_path ? (
                     <Button
-                      variant="ghost"
+                      variant="secondary"
                       size="sm"
                       disabled={pdfBusy?.startsWith(`${s.id}-mail`)}
                       onClick={() => resendReportEmail(s)}
                     >
-                      {pdfBusy?.startsWith(`${s.id}-mail`) ? "…" : t("admin.emailResend")}
+                      {pdfBusy?.startsWith(`${s.id}-mail`)
+                        ? "…"
+                        : s.report_email_sent_at || s.report_email_status === "sent"
+                          ? t("admin.emailResend")
+                          : t("admin.emailSendReport")}
                     </Button>
                   ) : null}
                   <Button variant="ghost" size="sm" onClick={() => openSession(s.id)}>

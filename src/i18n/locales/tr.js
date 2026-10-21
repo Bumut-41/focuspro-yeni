@@ -157,9 +157,9 @@ export const tr = {
     description: "Dikkat ve sürekli performans değerlendirmelerinizi buradan yönetin.",
     pdfAutoSave: "Test bittiğinde rapor PDF otomatik kaydedilir ve aşağıdaki listeden açılabilir.",
     resultsPrivate:
-      "Test bitince sonuç ekranda görünmez. Rapor, kayıtlı e-posta adresinize gönderilir.",
+      "Test bitince sonuç ekranda görünmez. Bireysel testte rapor e-postanıza gider; danışan testlerinde e-postayı panelden siz gönderirsiniz.",
     clientResultsHint:
-      "Yalnızca sizin eklediğiniz danışanların test raporları burada görünür. Basış raporuna bu panelden erişilmez.",
+      "Yalnızca sizin eklediğiniz danışanların test raporları burada görünür. Raporu oluşturduktan sonra «Raporu e-posta olarak gönder» ile iletebilirsiniz.",
     guideHint: "Asıl testten önce 30 saniyelik deneme yönergesi gösterilir. Deneme puanı değerlendirmeye girmez.",
     newTest: "Yeni test başlat",
     noTestCreditsTitle: "Test hakkınız kalmadı",
@@ -172,7 +172,8 @@ export const tr = {
     historyTitle: "Geçmiş testleriniz ({{count}})",
     historyTitleClients: "Danışan testleri ({{count}})",
     historyDesc: "Katılımcı test raporu PDF — panel üzerinden görüntülenir.",
-    historyDescClients: "Eklediğiniz danışanların test raporları. Basış raporu yalnızca yöneticidedir.",
+    historyDescClients:
+      "Eklediğiniz danışanların test raporları. Raporu oluşturun, değerlendirin, sonra «Raporu e-posta olarak gönder» ile iletin.",
     noTests: "Henüz kayıtlı test yok.",
     noTestsDesc: "İlk değerlendirmenizi başlatın.",
     date: "Tarih",
@@ -187,8 +188,10 @@ export const tr = {
     pdfPreparing: "PDF hazırlanıyor…",
     pdfOpenFailed: "PDF açılamadı.",
     pdfChunkFailed: "Rapor dosyası güncellendi. Sayfayı yenileyip raporu tekrar açın.",
-    reportSavedMailPending: "Rapor sisteme kaydedildi; e-posta henüz iletilemedi. «E-postayı yeniden gönder» ile deneyin.",
-    reportGeneratePartial: "Rapor indirildi ancak sistem kaydı/e-posta tamamlanamadı ({{reason}})."
+    reportSavedMailPending: "Rapor sisteme kaydedildi; e-posta henüz iletilemedi. «Raporu e-posta olarak gönder» ile deneyin.",
+    reportSavedSendEmailHint:
+      "Rapor sisteme kaydedildi. Değerlendirme sonrası «Raporu e-posta olarak gönder» ile danışana iletebilirsiniz.",
+    reportGeneratePartial: "Rapor indirildi ancak sistem kaydı tamamlanamadı ({{reason}})."
   },
   invite: {
     pageTitle: "Test daveti",
@@ -321,6 +324,9 @@ export const tr = {
     thankYouBody:
       "Kayıtlar güvenle saklanır ve test bittiğinde mail adresinize test raporu gönderilir. Uzman ile birlikte yaptığınız testler ayrıca uzman ekranında da görüntülenebilir.",
     reportWorking: "Test raporu PDF oluşturuluyor, kaydediliyor ve e-posta gönderiliyor… Lütfen bu sayfayı kapatmayın.",
+    reportWorkingPdfOnly: "Test raporu PDF oluşturuluyor ve kaydediliyor… Lütfen bu sayfayı kapatmayın.",
+    reportPdfSavedManual: "Rapor sisteme kaydedildi. Danışana e-postayı panelden gönderebilirsiniz.",
+    reportPdfSavedInvite: "Raporunuz kaydedildi. Uzmanınız değerlendirme sonrası e-posta ile iletebilir.",
     pdfSaved: "Test raporu PDF sisteme kaydedildi.",
     pdfFailed: "Test raporu PDF kaydedilemedi: {{reason}}. Panelden «Raporu oluştur» ile tekrar deneyin.",
     reportOk: "Test sonucunuz {{email}} adresine iletilmiştir.",
@@ -451,7 +457,7 @@ export const tr = {
     userDeleted: "{{name}} silindi.",
     sessionsTitle: "Tüm testler ({{count}})",
     sessionsDesc:
-      "Test bitince PDF kaydedilir ve rapor e-postaya gider. İletim durumu satırda görünür. Basış raporu yalnızca yöneticidedir.",
+      "Test bitince PDF kaydedilir. Danışan raporlarını «Raporu e-posta olarak gönder» ile iletebilirsiniz; bireysel testlerde mail otomatik gider. Basış raporu yalnızca yöneticidedir.",
     date: "Tarih",
     operator: "Uygulayan",
     participant: "Katılımcı",
@@ -463,9 +469,12 @@ export const tr = {
     emailDeliveredNoAddress: "Evet — {{date}} tarihinde iletildi (adres kaydı eksik)",
     emailNotDelivered: "İletilmedi — {{reason}}",
     emailPending: "Gönderim sürüyor…",
+    emailAwaitingManual: "Henüz gönderilmedi — panelden gönderin",
+    emailSendReport: "Raporu e-posta olarak gönder",
+    emailSendOk: "Rapor {{email}} adresine gönderildi.",
     emailResend: "E-postayı yeniden gönder",
     emailResendOk: "Rapor e-postası yeniden gönderildi.",
-    emailResendFailed: "E-posta yeniden gönderilemedi: {{reason}}",
+    emailResendFailed: "E-posta gönderilemedi: {{reason}}",
     emailErr: {
       pdf_not_saved: "Test raporu PDF sisteme kaydedilmedi",
       pdf_not_ready: "Test raporu PDF henüz hazır değil",

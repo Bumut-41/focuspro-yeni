@@ -100,7 +100,9 @@ export default function DashboardPage() {
         target: args.target,
         pressTimeline: args.pressTimeline,
         locale,
-        clientId
+        clientId,
+        // Rapor oluşturma mail göndermez; e-posta ayrı butonla
+        sendEmail: false
       });
       await load();
       if (delivery.ok || delivery.result?.testSaved) {
@@ -110,8 +112,7 @@ export default function DashboardPage() {
         if (pdfPath) {
           const url = await getReportPdfSignedUrl(pdfPath);
           await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
-          if (delivery.ok) setMsg(t("test.reportOk", { email: delivery.email || "—" }));
-          else setMsg(t("dashboard.reportSavedMailPending"));
+          setMsg(t("dashboard.reportSavedSendEmailHint"));
           return;
         }
       }
@@ -136,12 +137,18 @@ export default function DashboardPage() {
         return;
       }
       const clientId = await resolveClientIdForSession(session);
-      const mail = await sendSessionReportEmail(session.id, locale, clientId);
+      const alreadySent = Boolean(session.report_email_sent_at || session.report_email_status === "sent");
+      const mail = await sendSessionReportEmail(session.id, locale, clientId, alreadySent);
       await load();
       const email = Array.isArray(mail?.emails) ? mail.emails[0] : mail?.to;
-      setMsg(email ? t("test.reportOk", { email }) : t("test.reportOkNoEmail"));
+      setMsg(email ? t("admin.emailSendOk", { email }) : t("admin.emailResendOk"));
     } catch (e) {
-      setMsg(e?.message || t("admin.emailErr.send_failed"));
+      const code = e?.code;
+      const reason =
+        code && t(`admin.emailErr.${code}`) !== `admin.emailErr.${code}`
+          ? t(`admin.emailErr.${code}`)
+          : e?.message || t("admin.emailErr.send_failed");
+      setMsg(t("admin.emailResendFailed", { reason }));
     } finally {
       setPdfBusy(null);
     }
@@ -387,14 +394,18 @@ export default function DashboardPage() {
                         resolveReportEmailFallback(s, clients, invites)
                       )}
                     </span>
-                    {s.pdf_path && !(s.report_email_sent_at || s.report_email_status === "sent") ? (
+                    {s.pdf_path ? (
                       <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="sm"
                         disabled={pdfBusy === `${s.id}-mail`}
                         onClick={() => resendTestReportEmail(s)}
                       >
-                        {pdfBusy === `${s.id}-mail` ? "…" : t("admin.emailResend")}
+                        {pdfBusy === `${s.id}-mail`
+                          ? "…"
+                          : s.report_email_sent_at || s.report_email_status === "sent"
+                            ? t("admin.emailResend")
+                            : t("admin.emailSendReport")}
                       </Button>
                     ) : null}
                   </Stack>

@@ -157,9 +157,9 @@ export const en = {
     description: "Manage your attention and continuous performance assessments here.",
     pdfAutoSave: "When a test ends, the report PDF is saved automatically and can be opened from the list below.",
     resultsPrivate:
-      "Results are not shown on screen when the test ends. The report is sent to your registered email address.",
+      "Results are not shown on screen when the test ends. Individual tests are emailed automatically; for client tests you send the email from the panel.",
     clientResultsHint:
-      "Only test reports for clients you added appear here. The press report is not available in this panel.",
+      "Only test reports for clients you added appear here. After generating the report, use «Email the report» to send it.",
     guideHint: "A 30-second practice briefing is shown before the real test. Practice answers are not scored.",
     newTest: "Start new test",
     noTestCreditsTitle: "You have no tests left",
@@ -172,7 +172,8 @@ export const en = {
     historyTitle: "Your past tests ({{count}})",
     historyTitleClients: "Client tests ({{count}})",
     historyDesc: "Participant test report PDF — view from the dashboard.",
-    historyDescClients: "Test reports for the clients you added. The press report stays with administrators.",
+    historyDescClients:
+      "Test reports for the clients you added. Generate the report, review it, then send with «Email the report».",
     noTests: "No saved tests yet.",
     noTestsDesc: "Start your first assessment.",
     date: "Date",
@@ -187,8 +188,10 @@ export const en = {
     pdfPreparing: "Preparing PDF…",
     pdfOpenFailed: "Could not open PDF.",
     pdfChunkFailed: "The report file was updated. Refresh the page and open the report again.",
-    reportSavedMailPending: "Report saved; email not sent yet. Try «Resend email».",
-    reportGeneratePartial: "Report downloaded but save/email did not finish ({{reason}})."
+    reportSavedMailPending: "Report saved; email not sent yet. Try «Email the report».",
+    reportSavedSendEmailHint:
+      "Report saved. After your review, use «Email the report» to send it to the client.",
+    reportGeneratePartial: "Report downloaded but system save did not finish ({{reason}})."
   },
   invite: {
     pageTitle: "Test invitation",
@@ -318,6 +321,9 @@ export const en = {
     },
     thankYouTitle: "Thank you for your participation",
     reportWorking: "Creating and saving the test report PDF and sending email… Please do not close this page.",
+    reportWorkingPdfOnly: "Creating and saving the test report PDF… Please do not close this page.",
+    reportPdfSavedManual: "Report saved. You can email it to the client from the panel.",
+    reportPdfSavedInvite: "Your report was saved. Your specialist may email it after review.",
     pdfSaved: "Test report PDF saved to the system.",
     pdfFailed: "Test report PDF could not be saved: {{reason}}. Try «Generate report» from the panel.",
     reportOk: "Your test result has been sent to {{email}}.",
@@ -448,7 +454,7 @@ export const en = {
     userDeleted: "{{name}} deleted.",
     sessionsTitle: "All tests ({{count}})",
     sessionsDesc:
-      "When a test ends the PDF is saved and emailed. Delivery status appears on each row. The press report is admin-only.",
+      "When a test ends the PDF is saved. Email client reports with «Email the report»; individual tests are emailed automatically. The press report is admin-only.",
     date: "Date",
     operator: "Administered by",
     participant: "Participant",
@@ -460,9 +466,12 @@ export const en = {
     emailDeliveredNoAddress: "Yes — sent on {{date}} (recipient address not recorded)",
     emailNotDelivered: "Not sent — {{reason}}",
     emailPending: "Sending…",
+    emailAwaitingManual: "Not sent yet — send from the panel",
+    emailSendReport: "Email the report",
+    emailSendOk: "Report sent to {{email}}.",
     emailResend: "Resend email",
     emailResendOk: "The report email was sent again.",
-    emailResendFailed: "Could not resend the email: {{reason}}",
+    emailResendFailed: "Could not send the email: {{reason}}",
     emailErr: {
       pdf_not_saved: "The test report PDF was not saved",
       pdf_not_ready: "The test report PDF is not ready yet",

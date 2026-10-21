@@ -5,9 +5,9 @@ import { persistAllSessionPdfs } from "../lib/persistSessionPdfs.js";
  * Test raporu PDF'ini oturum sahibinin kayıtlı e-postasına gönderir.
  * Supabase Edge Function: send-report-email (Resend gerekir).
  */
-export async function sendSessionReportEmail(sessionId, locale = "tr", clientId = null) {
+export async function sendSessionReportEmail(sessionId, locale = "tr", clientId = null, forceResend = false) {
   const { data, error } = await supabase.functions.invoke("send-report-email", {
-    body: { sessionId, locale, clientId }
+    body: { sessionId, locale, clientId, forceResend: Boolean(forceResend) }
   });
 
   if (error) {
@@ -51,8 +51,9 @@ function pickDeliveredEmail(mail) {
 }
 
 /**
- * PDF kaydı + rapor e-postası. Başarı/başarısızlık test_sessions'a yazılır.
- * Test bitince PDF zorunlu: önce PDF (gerekirse 2 tur), sonra mail.
+ * PDF kaydı (+ isteğe bağlı rapor e-postası).
+ * sendEmail=false: yalnızca PDF (psikolog/uzman; mail panelden manuel).
+ * sendEmail=true: bireysel test — PDF sonrası otomatik mail.
  */
 export async function deliverSessionReport({
   userId,
@@ -63,12 +64,15 @@ export async function deliverSessionReport({
   target,
   pressTimeline = [],
   locale = "tr",
-  clientId = null
+  clientId = null,
+  sendEmail = true
 }) {
-  try {
-    await recordReportEmailStatus({ sessionId, status: "pending" });
-  } catch {
-    /* kolon/RPC henüz yoksa devam */
+  if (sendEmail) {
+    try {
+      await recordReportEmailStatus({ sessionId, status: "pending" });
+    } catch {
+      /* kolon/RPC henüz yoksa devam */
+    }
   }
 
   const persistArgs = {
@@ -92,15 +96,17 @@ export async function deliverSessionReport({
 
   if (!result.testSaved) {
     const detail = result.errors?.join(" ") || null;
-    try {
-      await recordReportEmailStatus({
-        sessionId,
-        status: "failed",
-        errorCode: "pdf_not_saved",
-        errorDetail: detail
-      });
-    } catch {
-      /* ignore */
+    if (sendEmail) {
+      try {
+        await recordReportEmailStatus({
+          sessionId,
+          status: "failed",
+          errorCode: "pdf_not_saved",
+          errorDetail: detail
+        });
+      } catch {
+        /* ignore */
+      }
     }
     return {
       ok: false,
@@ -108,6 +114,18 @@ export async function deliverSessionReport({
       code: "pdf_not_saved",
       detail,
       email: null,
+      emailSkipped: !sendEmail,
+      result
+    };
+  }
+
+  if (!sendEmail) {
+    return {
+      ok: true,
+      pdfSaved: true,
+      emailSkipped: true,
+      email: null,
+      mail: null,
       result
     };
   }
@@ -120,6 +138,7 @@ export async function deliverSessionReport({
       return {
         ok: true,
         pdfSaved: true,
+        emailSkipped: false,
         mail,
         email: pickDeliveredEmail(mail),
         result
@@ -151,7 +170,7 @@ export async function deliverSessionReport({
   } catch {
     /* edge function already wrote status */
   }
-  return { ok: false, pdfSaved: true, code, detail, email: null, result };
+  return { ok: false, pdfSaved: true, emailSkipped: false, code, detail, email: null, result };
 }
 
 /**
@@ -178,6 +197,10 @@ export function formatReportEmailStatus(session, t, dateLocale, fallbackEmail = 
 
   if (session?.report_email_status === "pending") {
     return t("admin.emailPending");
+  }
+
+  if (!session?.report_email_status && !session?.report_email_error_code) {
+    return t("admin.emailAwaitingManual");
   }
 
   const code = session?.report_email_error_code;

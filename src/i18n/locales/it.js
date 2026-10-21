@@ -157,9 +157,9 @@ export const it = {
     description: "Gestisci qui le valutazioni di attenzione e prestazione continua.",
     pdfAutoSave: "Al termine del test il PDF del report viene salvato automaticamente e si apre dall'elenco qui sotto.",
     resultsPrivate:
-      "Al termine del test il risultato non compare sullo schermo. Il report viene inviato all'indirizzo e-mail registrato.",
+      "Al termine del test il risultato non compare sullo schermo. Nei test individuali l'e-mail parte in automatico; per i clienti la invii dal pannello.",
     clientResultsHint:
-      "Qui compaiono solo i report dei clienti che hai aggiunto. Il report delle pressioni non è disponibile in questo pannello.",
+      "Qui compaiono solo i report dei clienti che hai aggiunto. Dopo aver generato il report, usa «Invia il report via e-mail».",
     guideHint: "Prima del test vero compare la prova di 30 secondi. Le risposte della prova non entrano nel punteggio.",
     newTest: "Avvia un nuovo test",
     noTestCreditsTitle: "Non hai più test",
@@ -172,7 +172,8 @@ export const it = {
     historyTitle: "I tuoi test precedenti ({{count}})",
     historyTitleClients: "Test dei clienti ({{count}})",
     historyDesc: "Report PDF del partecipante — visibile dal pannello.",
-    historyDescClients: "Report dei clienti che hai aggiunto. Il report delle pressioni resta agli amministratori.",
+    historyDescClients:
+      "Report dei clienti che hai aggiunto. Genera il report, valuta, poi invia con «Invia il report via e-mail».",
     noTests: "Nessun test salvato.",
     noTestsDesc: "Avvia la prima valutazione.",
     date: "Data",
@@ -187,8 +188,10 @@ export const it = {
     pdfPreparing: "Preparazione del PDF…",
     pdfOpenFailed: "Impossibile aprire il PDF.",
     pdfChunkFailed: "Il file del report è stato aggiornato. Aggiorna la pagina e apri di nuovo il report.",
-    reportSavedMailPending: "Report salvato; e-mail non ancora inviata. Prova «Reinvia e-mail».",
-    reportGeneratePartial: "Report scaricato ma salvataggio/e-mail non completati ({{reason}})."
+    reportSavedMailPending: "Report salvato; e-mail non ancora inviata. Prova «Invia il report via e-mail».",
+    reportSavedSendEmailHint:
+      "Report salvato. Dopo la valutazione puoi inviarlo al cliente con «Invia il report via e-mail».",
+    reportGeneratePartial: "Report scaricato ma salvataggio non completato ({{reason}})."
   },
   invite: {
     pageTitle: "Invito al test",
@@ -320,6 +323,9 @@ export const it = {
     thankYouBody:
       "I dati sono conservati in modo sicuro e, al termine del test, il report viene inviato al tuo indirizzo e-mail. I test svolti con uno specialista sono visibili anche nella sua schermata.",
     reportWorking: "Creazione e salvataggio del PDF del report e invio e-mail… Non chiudere questa pagina.",
+    reportWorkingPdfOnly: "Creazione e salvataggio del PDF del report… Non chiudere questa pagina.",
+    reportPdfSavedManual: "Report salvato. Puoi inviarlo via e-mail al cliente dal pannello.",
+    reportPdfSavedInvite: "Il report è stato salvato. Lo specialista potrà inviartelo via e-mail dopo la valutazione.",
     pdfSaved: "Il PDF del report del test è stato salvato nel sistema.",
     pdfFailed: "Impossibile salvare il PDF del report: {{reason}}. Prova «Genera report» dal pannello.",
     reportOk: "Il risultato del test è stato inviato a {{email}}.",
@@ -448,7 +454,7 @@ export const it = {
     userDeleted: "{{name}} eliminato.",
     sessionsTitle: "Tutti i test ({{count}})",
     sessionsDesc:
-      "A fine test il PDF viene salvato e inviato via e-mail. Lo stato di consegna compare nella riga. Il report pressioni è solo per admin.",
+      "A fine test il PDF viene salvato. Invia i report dei clienti con «Invia il report via e-mail»; nei test individuali l'e-mail parte in automatico. Il report pressioni è solo per admin.",
     date: "Data",
     operator: "Somministrato da",
     participant: "Partecipante",
@@ -460,9 +466,12 @@ export const it = {
     emailDeliveredNoAddress: "Sì — inviato il {{date}} (indirizzo non registrato)",
     emailNotDelivered: "Non inviato — {{reason}}",
     emailPending: "Invio in corso…",
+    emailAwaitingManual: "Non ancora inviato — invia dal pannello",
+    emailSendReport: "Invia il report via e-mail",
+    emailSendOk: "Report inviato a {{email}}.",
     emailResend: "Reinvia e-mail",
     emailResendOk: "L'e-mail del report è stata reinviata.",
-    emailResendFailed: "Impossibile reinviare l'e-mail: {{reason}}",
+    emailResendFailed: "Impossibile inviare l'e-mail: {{reason}}",
     emailErr: {
       pdf_not_saved: "Il PDF del report non è stato salvato",
       pdf_not_ready: "Il PDF del report non è ancora pronto",

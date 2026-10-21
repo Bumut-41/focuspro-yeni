@@ -195,6 +195,8 @@ export default function TestFlowPage() {
         }
 
         const clientId = reportClientIdRef.current;
+        // Psikolog / davet: PDF kaydet, mail panelden manuel. Bireysel: otomatik mail.
+        const autoEmail = !isPsychologist && !isInviteFlow;
         const expectedEmail = (() => {
           if (clientId) {
             const client = clients.find((row) => row.id === clientId);
@@ -213,9 +215,16 @@ export default function TestFlowPage() {
           target: targetSnap,
           pressTimeline: timeline ?? [],
           locale,
-          clientId
+          clientId,
+          sendEmail: autoEmail
         });
-        if (delivery.ok) {
+        if (delivery.ok && delivery.emailSkipped) {
+          setReportDelivery({
+            status: "pdf_saved",
+            pdfSaved: true,
+            emailSkipped: true
+          });
+        } else if (delivery.ok) {
           setReportDelivery({
             status: "ok",
             pdfSaved: true,
@@ -250,7 +259,23 @@ export default function TestFlowPage() {
         pdfSavedRef.current = false;
       }
     },
-    [profile, name, age, birth, gender, pkey, refreshProfile, t, locale, inviteId, user?.id, user?.email, clients]
+    [
+      profile,
+      name,
+      age,
+      birth,
+      gender,
+      pkey,
+      refreshProfile,
+      t,
+      locale,
+      inviteId,
+      user?.id,
+      user?.email,
+      clients,
+      isPsychologist,
+      isInviteFlow
+    ]
   );
 
   const handleTestFinished = useCallback(
@@ -861,7 +886,12 @@ export default function TestFlowPage() {
               <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
               {reportDelivery?.status === "working" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {t("test.reportWorking")}
+                  {isPsychologist || isInviteFlow ? t("test.reportWorkingPdfOnly") : t("test.reportWorking")}
+                </p>
+              )}
+              {reportDelivery?.status === "pdf_saved" && (
+                <p className="space-screen-win-sub" role="status" aria-live="polite">
+                  {isPsychologist ? t("test.reportPdfSavedManual") : t("test.reportPdfSavedInvite")}
                 </p>
               )}
               {reportDelivery?.status === "ok" && (
