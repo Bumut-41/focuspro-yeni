@@ -437,13 +437,13 @@ export function buildDocDefinition({
     chartFirst = false;
   }
   const indexCharts = [
-    ["attention", pdf.chartAttention],
-    ["timing", pdf.chartTiming],
-    ["impulsivity", pdf.chartImpulsivity],
-    ["hyperactivity", pdf.chartHyperactivity]
+    ["attention", pdf.chartAttention, pdf.chartAttentionDesc],
+    ["timing", pdf.chartTiming, pdf.chartTimingDesc],
+    ["impulsivity", pdf.chartImpulsivity, pdf.chartImpulsivityDesc],
+    ["hyperactivity", pdf.chartHyperactivity, pdf.chartHyperactivityDesc]
   ];
-  for (const [key, title] of indexCharts) {
-    const block = chartSectionBlock(title + pdf.chartSuffix, reportCharts[key], chartFirst);
+  for (const [key, title, desc] of indexCharts) {
+    const block = chartSectionBlock(title + pdf.chartSuffix, reportCharts[key], chartFirst, desc || null);
     if (block) {
       chartBlocks.push(block);
       chartFirst = false;

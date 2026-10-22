@@ -398,7 +398,7 @@ export const it = {
     attention: "A — Attenzione",
     timing: "T — Tempismo",
     impulsivity: "I — Impulsività",
-    hyperactivity: "H — Iperattività",
+    hyperactivity: "H — Controllo della risposta motoria",
     clinicalFlags: "Segnalazioni cliniche",
     validity: "Validità",
     pdfDownload: "Scarica PDF",

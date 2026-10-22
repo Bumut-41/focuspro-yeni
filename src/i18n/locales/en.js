@@ -398,7 +398,7 @@ export const en = {
     attention: "A — Attention",
     timing: "T — Timing",
     impulsivity: "I — Impulsivity",
-    hyperactivity: "H — Hyperactivity",
+    hyperactivity: "H — Motor Response Control",
     clinicalFlags: "Clinical Flags",
     validity: "Validity",
     pdfDownload: "Download PDF",

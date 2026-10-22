@@ -673,19 +673,19 @@ export function buildSmartComment(scores, metrics, profile) {
 export const INDEX_DEFINITIONS = [
   [
     "A — Dikkat",
-    "İhmal (hedef varken basmama). Yanlış basış I'ye, geç tepki T'ye yazılır; A ile karışmaz."
+    "Hedef uyaranları doğru fark etme ve kaçırmadan yanıt verebilme becerisi."
   ],
   [
     "T — Zamanlama",
-    "T = (Zamanında İsabet×0.40) + (RT Hızı×0.25) + (Geç Yanıt×0.20) + (RT Stabilitesi×0.15). İhmal A'ya yazılır."
+    "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi."
   ],
   [
     "I — Dürtüsellik",
-    "Commission errors: hedef dışı uyaranlara verilen ilk tepkiler. Mükerrer basış bu endekste değildir (H'ye gider)."
+    "Hedef dışı uyaranlara ve boş ekrana gereksiz yanıt vermeyi engelleyebilme becerisi."
   ],
   [
-    "H — Hiperaktivite",
-    "Mükerrer basış + boş ekran / yönerge dışı basış. Doğru veya yanlış simge fark etmez."
+    "H — Motor Yanıt Kontrolü",
+    "Aynı uyaran sırasında gereksiz ve tekrarlayan tuş basışlarını kontrol edebilme becerisi."
   ],
   ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
 ];

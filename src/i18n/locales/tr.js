@@ -399,7 +399,7 @@ export const tr = {
     attention: "A — Dikkat",
     timing: "T — Zamanlama",
     impulsivity: "I — Dürtüsellik",
-    hyperactivity: "H — Hiperaktivite",
+    hyperactivity: "H — Motor Yanıt Kontrolü",
     validity: "Geçerlilik",
     pdfDownload: "PDF indir",
     pdfSaveDownload: "PDF kaydet / indir",

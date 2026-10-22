@@ -52,9 +52,13 @@ export const reportPdfIt = {
   timingFormula:
     "T = (In tempo {{onTime}}×0.40) + (TR {{rtSpeed}}×0.25) + (Tardive {{late}}×0.20) + (Stab. {{stability}}×0.15) = {{total}}",
   chartAttention: "Attenzione (A)",
+  chartAttentionDesc: "Capacità di rilevare correttamente gli stimoli target e rispondere senza ometterli.",
   chartTiming: "Tempismo (T)",
+  chartTimingDesc: "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante.",
   chartImpulsivity: "Impulsività (I)",
-  chartHyperactivity: "Iperattività (H)",
+  chartImpulsivityDesc: "Capacità di inibire risposte non necessarie a stimoli non target e allo schermo vuoto.",
+  chartHyperactivity: "Controllo della risposta motoria (H)",
+  chartHyperactivityDesc: "Capacità di controllare pressioni ripetute e non necessarie durante lo stesso stimolo.",
   chartRadar: "Profilo di prestazione",
   chartRadarSubtitle: "Lo stesso punteggio totale può indicare un profilo diverso a seconda di come sono distribuite le aree.",
   chartCombined: "Quattro indici — Grafico per fase",
@@ -164,7 +168,7 @@ export const reportPdfIt = {
   indexes: {
     attention: {
       title: "A — ATTENZIONE",
-      definition: "L'indice di attenzione valuta il rilevamento degli stimoli target e il mantenimento dell'attenzione per tutto il compito.",
+      definition: "Capacità di rilevare correttamente gli stimoli target e rispondere senza ometterli.",
       c90: "Il partecipante ha mostrato una prestazione solida nel rilevare i target e nel mantenere la concentrazione per tutto il compito. La prestazione attentiva è stata in genere mantenuta.",
       c80: "Il partecipante ha discriminato correttamente la maggior parte degli stimoli target e ha mantenuto l'attenzione per tutto il compito. Non è stata osservata una difficoltà attentiva marcata.",
       c70: "Il partecipante ha in genere mantenuto l'attenzione durante il compito, anche se in alcune sezioni alcuni target sono stati mancati.",
@@ -173,7 +177,7 @@ export const reportPdfIt = {
     },
     timing: {
       title: "T — TEMPISMO",
-      definition: "L'indice di tempismo valuta la risposta agli stimoli corretti a una velocità adeguata e in modo costante.",
+      definition: "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante.",
       c90: "Il partecipante ha risposto ai target in modo rapido, costante e nei tempi appropriati. Non è stata osservata una variabilità marcata nella velocità di risposta.",
       c80: "Le risposte ai target sono state in genere tempestive e costanti.",
       c70: "È stata osservata una certa variabilità nella velocità di risposta, anche se la prestazione complessiva è stata mantenuta.",
@@ -182,7 +186,7 @@ export const reportPdfIt = {
     },
     impulsivity: {
       title: "I — IMPULSIVITÀ",
-      definition: "L'indice di impulsività valuta le risposte non necessarie agli stimoli non target (errori di commissione).",
+      definition: "Capacità di inibire risposte non necessarie a stimoli non target e allo schermo vuoto.",
       c90: "Il partecipante ha mantenuto in modo efficace il controllo della risposta rispetto agli stimoli non target.",
       c80: "Le risposte non necessarie sono rimaste a un livello basso per tutto il compito.",
       c70: "Sono state osservate occasionali risposte non necessarie agli stimoli non target.",
@@ -190,8 +194,8 @@ export const reportPdfIt = {
       cLow: "Le risposte frequenti agli stimoli non target suggeriscono una difficoltà marcata nel controllo degli impulsi."
     },
     hyperactivity: {
-      title: "H — IPERATTIVITÀ",
-      definition: "L'indice di iperattività valuta l'inibizione motoria e il controllo dell'uso non necessario del tasto.",
+      title: "H — CONTROLLO DELLA RISPOSTA MOTORIA",
+      definition: "Capacità di controllare pressioni ripetute e non necessarie durante lo stesso stimolo.",
       c90: "Il partecipante ha mantenuto risposte motorie controllate, senza uso non necessario del tasto.",
       c80: "La prestazione di controllo motorio è stata in genere mantenuta.",
       c70: "Sono state osservate occasionali risposte non necessarie o ripetute.",
@@ -282,10 +286,10 @@ export const reportPdfIt = {
       ["Linea di base - 2", "Prestazione continua — chiusura del test"]
     ],
     indexDefinitions: [
-      ["A — Attenzione", "Omissioni (non premere quando il target è presente). I falsi allarmi vanno in I; le risposte tardive in T; non si mescolano con A."],
-      ["T — Tempismo", "T = (Centro in tempo×0.40) + (Velocità TR×0.25) + (Risposta tardiva×0.20) + (Stabilità TR×0.15). Le omissioni sono conteggiate in A."],
-      ["I — Impulsività", "Errori di commissione: prime risposte a stimoli non target. Le pressioni ripetute non rientrano in questo indice (vanno in H)."],
-      ["H — Iperattività", "Pressioni ripetute + pressioni a schermo vuoto / fuori compito. Non conta se il simbolo è corretto o errato."],
+      ["A — Attenzione", "Capacità di rilevare correttamente gli stimoli target e rispondere senza ometterli."],
+      ["T — Tempismo", "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante."],
+      ["I — Impulsività", "Capacità di inibire risposte non necessarie a stimoli non target e allo schermo vuoto."],
+      ["H — Controllo della risposta motoria", "Capacità di controllare pressioni ripetute e non necessarie durante lo stesso stimolo."],
       ["Punteggio complessivo", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
     ],
     normLevels: [
