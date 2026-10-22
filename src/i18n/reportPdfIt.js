@@ -20,6 +20,30 @@ export const reportPdfIt = {
   generalResult: "Risultato complessivo",
   lowReliabilityWarnings: "Avvisi di bassa affidabilità",
   consistencyWarnings: "Coerenza della prestazione",
+  howToReadTitle: "Come leggere questo report",
+  guide: {
+    title: "Come leggere questo report",
+    intro:
+      "Questo report deriva dalle pressioni e dai tempi di reazione del test di prestazione continua. Segui quest'ordine:",
+    steps: [
+      "1) Validità del test — Affidabilità dei dati. Se bassa, interpreta i punteggi con cautela.",
+      "2) Punteggio complessivo (0–100) — Media ponderata: Attenzione 30%, Tempismo 25%, Impulsività 30%, Controllo motorio 15%.",
+      "3) Indici A / T / I / H — Ogni dominio è separato. Punteggi più alti = prestazione migliore (meno errori / più controllo).",
+      "4) Distrattori e sostenibilità — Effetto dei distrattori ambientali e della fatica verso la fine.",
+      "5) Confronto normativo — Posizione rispetto al riferimento per età (punteggio Z).",
+      "Importante: questa valutazione non diagnostica; va interpretata con colloquio clinico e altri dati."
+    ]
+  },
+  validityIntro:
+    "L'indice di validità verifica l'impegno nel compito, tempi di reazione plausibili e coerenza delle risposte. Valori 90–100 sono in genere adatti all'interpretazione.",
+  overallExplainTitle: "Come si calcola il punteggio complessivo",
+  overallExplain:
+    "Complessivo = (A × 0,30) + (T × 0,25) + (I × 0,30) + (H × 0,15). Questa sessione: ({{A}} × 0,30) + ({{T}} × 0,25) + ({{I}} × 0,30) + ({{H}} × 0,15) = {{overall}}.",
+  scoreScaleTitle: "Fasce di punteggio (0–100)",
+  scoreScale:
+    "90–100 Molto forte · 80–89 Forte · 70–79 Medio · 60–69 Basso · sotto 60 Difficoltà marcata. Per impulsività e iperattività, punteggio alto = miglior controllo.",
+  howCalculatedLabel: "Come si calcola",
+  meaningLabel: "Cosa significa",
   executiveSummary: "Sintesi esecutiva",
   overallScore: "Punteggio complessivo di prestazione",
   riskLevel: "Livello di rischio",
@@ -30,10 +54,16 @@ export const reportPdfIt = {
   clinicalFlags: "Segnalazioni cliniche",
   shortComment: "Commento breve",
   mainIndexes: "Indici principali di prestazione",
+  mainIndexesIntro:
+    "I quattro indici sotto sono calcolati in modo indipendente. Un punteggio basso in un dominio non abbassa automaticamente gli altri; il profilo conta per l'interpretazione.",
   commentLabel: "Commento",
   distractorAnalysis: "Analisi dei distrattori",
+  distractorIntro:
+    "A metà test compaiono distrattori visivi, uditivi o combinati. Un calo lieve rispetto alla baseline silenziosa indica prestazione mantenuta; un calo marcato suggerisce sensibilità agli stimoli ambientali.",
   distractorGeneral: "Risultato complessivo",
   sustainability: "Analisi dell'attenzione sostenuta",
+  sustainabilityIntro:
+    "Si confronta la prestazione complessiva delle prime sezioni con le ultime. Un calo marcato può indicare fatica o difficoltà a sostenere l'attenzione.",
   startPerf: "Prestazione iniziale",
   endPerf: "Prestazione finale",
   change: "Variazione",
@@ -64,7 +94,8 @@ export const reportPdfIt = {
   invalidNoReport:
     "Per questa sessione non è stato generato un report di prestazione. I risultati non devono essere usati per l'interpretazione clinica.",
   normComparison: "Confronto con le norme",
-  normIntro: "Confronto standardizzato della prestazione rispetto ai gruppi normativi di riferimento.",
+  normIntro:
+    "Il punteggio Z confronta il risultato con la media di riferimento dello stesso profilo di età. Z ≥ 1,0 è sopra il riferimento; 0–0,99 nella fascia standard; valori negativi sotto il riferimento. È una posizione relativa, non una diagnosi.",
   indexCol: "Indice",
   scoreCol: "Punteggio",
   normLevelCol: "Livello normativo",
@@ -164,7 +195,11 @@ export const reportPdfIt = {
   indexes: {
     attention: {
       title: "A — ATTENZIONE",
-      definition: "L'indice di attenzione valuta il rilevamento degli stimoli target e il mantenimento dell'attenzione per tutto il compito.",
+      definition:
+        "Rilevare i target e mantenere il focus. Solo le omissioni (nessuna pressione con target presente) abbassano questo indice; le pressioni errate vanno in I e le risposte tardive in T.",
+      howCalculated: "A = 100 − (omissioni / target × 100). Questa sessione: A = {{score}}/100.",
+      meaning:
+        "A alto: attenzione sostenuta senza perdere i target. A basso: omissioni frequenti / difficoltà a sostenere l'attenzione.",
       c90: "Il partecipante ha mostrato una prestazione solida nel rilevare i target e nel mantenere la concentrazione per tutto il compito. La prestazione attentiva è stata in genere mantenuta.",
       c80: "Il partecipante ha discriminato correttamente la maggior parte degli stimoli target e ha mantenuto l'attenzione per tutto il compito. Non è stata osservata una difficoltà attentiva marcata.",
       c70: "Il partecipante ha in genere mantenuto l'attenzione durante il compito, anche se in alcune sezioni alcuni target sono stati mancati.",
@@ -173,7 +208,12 @@ export const reportPdfIt = {
     },
     timing: {
       title: "T — TEMPISMO",
-      definition: "L'indice di tempismo valuta la risposta agli stimoli corretti a una velocità adeguata e in modo costante.",
+      definition:
+        "Rispondere ai target con velocità adeguata e in modo costante. Si combinano colpi in tempo, velocità TR (riferimento per età), risposte tardive e stabilità TR.",
+      howCalculated:
+        "T = (in tempo×0,40) + (velocità TR×0,25) + (tardive×0,20) + (stabilità TR×0,15). Questa sessione: ({{onTime}}×0,40)+({{rtSpeed}}×0,25)+({{late}}×0,20)+({{stability}}×0,15) = {{score}}.",
+      meaning:
+        "T alto: risposte tempestive e costanti. T basso: ritardi, fretta o tempi di reazione molto variabili.",
       c90: "Il partecipante ha risposto ai target in modo rapido, costante e nei tempi appropriati. Non è stata osservata una variabilità marcata nella velocità di risposta.",
       c80: "Le risposte ai target sono state in genere tempestive e costanti.",
       c70: "È stata osservata una certa variabilità nella velocità di risposta, anche se la prestazione complessiva è stata mantenuta.",
@@ -182,7 +222,12 @@ export const reportPdfIt = {
     },
     impulsivity: {
       title: "I — IMPULSIVITÀ",
-      definition: "L'indice di impulsività valuta le risposte non necessarie agli stimoli non target (errori di commissione).",
+      definition:
+        "Prime risposte non necessarie ai non-target (commissioni). Le pressioni ripetute non sono in questo indice; il controllo motorio è in H.",
+      howCalculated:
+        "I = 100 − (tasso di commissione × 5). Tasso = pressioni su non-target / prove non-target. Questa sessione: I = {{score}}/100.",
+      meaning:
+        "I alto: buon controllo degli impulsi. I basso: risposte frequenti ai non-target / tendenza impulsiva.",
       c90: "Il partecipante ha mantenuto in modo efficace il controllo della risposta rispetto agli stimoli non target.",
       c80: "Le risposte non necessarie sono rimaste a un livello basso per tutto il compito.",
       c70: "Sono state osservate occasionali risposte non necessarie agli stimoli non target.",
@@ -191,7 +236,12 @@ export const reportPdfIt = {
     },
     hyperactivity: {
       title: "H — IPERATTIVITÀ",
-      definition: "L'indice di iperattività valuta l'inibizione motoria e il controllo dell'uso non necessario del tasto.",
+      definition:
+        "Inibizione motoria: pressioni ripetute nella stessa prova e pressioni a schermo vuoto / fuori compito. Qui non si distingue simbolo corretto o errato.",
+      howCalculated:
+        "H deriva da pressioni multiple e idle (schermo vuoto); più eventi motori inutili abbassano il punteggio. Questa sessione: H = {{score}}/100.",
+      meaning:
+        "H alto: risposta motoria controllata. H basso: pressioni ripetute o fuori compito.",
       c90: "Il partecipante ha mantenuto risposte motorie controllate, senza uso non necessario del tasto.",
       c80: "La prestazione di controllo motorio è stata in genere mantenuta.",
       c70: "Sono state osservate occasionali risposte non necessarie o ripetute.",

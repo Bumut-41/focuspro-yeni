@@ -162,7 +162,14 @@ function scoreBox(title, value) {
 
 function indexSectionBlock(key, data, pdf, isFirst = false) {
   return [
-    ...(isFirst ? [sectionTitle(pdf.mainIndexes)] : []),
+    ...(isFirst
+      ? [
+          sectionTitle(pdf.mainIndexes),
+          ...(pdf.mainIndexesIntro
+            ? [{ text: pdf.mainIndexesIntro, fontSize: 9, color: SUB, lineHeight: 1.35, margin: [0, 0, 0, 10] }]
+            : [])
+        ]
+      : []),
     {
       text: data.title,
       bold: true,
@@ -182,8 +189,33 @@ function indexSectionBlock(key, data, pdf, isFirst = false) {
         {
           width: "*",
           stack: [
-            { text: data.definition, fontSize: 8, color: SUB, margin: [0, 0, 0, 6] },
-            { text: pdf.commentLabel + ": " + data.comment, fontSize: 9, lineHeight: 1.35, alignment: "justify" }
+            { text: data.definition, fontSize: 8, color: SUB, margin: [0, 0, 0, 4] },
+            ...(data.howCalculated
+              ? [
+                  {
+                    text: (pdf.howCalculatedLabel || "Nasıl hesaplanır?") + ": " + data.howCalculated,
+                    fontSize: 8,
+                    color: "#334155",
+                    margin: [0, 0, 0, 4]
+                  }
+                ]
+              : []),
+            ...(data.meaning
+              ? [
+                  {
+                    text: (pdf.meaningLabel || "Ne anlama gelir?") + ": " + data.meaning,
+                    fontSize: 8,
+                    color: "#334155",
+                    margin: [0, 0, 0, 4]
+                  }
+                ]
+              : []),
+            {
+              text: pdf.commentLabel + ": " + data.comment,
+              fontSize: 9,
+              lineHeight: 1.35,
+              alignment: "justify"
+            }
           ]
         }
       ],
@@ -423,7 +455,7 @@ export function buildDocDefinition({
   const distractor = buildDistractorAnalysisFriendly(logs, profile, age, pressTimeline, locale);
   const sustainability = buildSustainabilityReport(logs, profile, age, pressTimeline, locale);
   const zGlobal = getGlobalIndexZScores(scores, profileKey);
-  const indexComments = buildIndexClinicalComments(scores, locale, zGlobal);
+  const indexComments = buildIndexClinicalComments(scores, locale, zGlobal, metrics);
   const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale);
   const executive = buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale, profileKey);
   const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale, zGlobal);
@@ -500,7 +532,26 @@ export function buildDocDefinition({
         `${pdf.totalTrials}: ${metrics.totalTrials}`
       ]),
 
+      sectionTitle(pdf.guide?.title || pdf.howToReadTitle || "Bu raporu nasıl okumalı?"),
+      {
+        text: pdf.guide?.intro || "",
+        fontSize: 9,
+        color: SUB,
+        lineHeight: 1.35,
+        margin: [0, 0, 0, 6]
+      },
+      {
+        ul: (pdf.guide?.steps || []).map((s) => s),
+        fontSize: 9,
+        color: "#334155",
+        lineHeight: 1.35,
+        margin: [0, 0, 0, 12]
+      },
+
       sectionTitle(pdf.testValidity),
+      ...(pdf.validityIntro
+        ? [{ text: pdf.validityIntro, fontSize: 9, color: SUB, lineHeight: 1.35, margin: [0, 0, 0, 8] }]
+        : []),
       {
         table: {
           widths: ["*"],
@@ -597,6 +648,20 @@ export function buildDocDefinition({
         layout: "noBorders",
         margin: [0, 0, 0, 10]
       },
+      infoBox(
+        pdf.overallExplainTitle,
+        [
+          fillTemplate(pdf.overallExplain, {
+            A: scores.attention,
+            T: scores.timing,
+            I: scores.impulsivity,
+            H: scores.hyperactivity,
+            overall: scores.overall
+          }),
+          pdf.scoreScale
+        ],
+        "#eef2ff"
+      ),
       infoBox(pdf.strengths, executive.strengths.length ? executive.strengths.map((s) => "• " + s) : [pdf.noStrengths], "#ecfdf5"),
       infoBox(
         pdf.weaknesses,
@@ -630,6 +695,9 @@ export function buildDocDefinition({
       ...chartBlocks,
 
       sectionTitle(pdf.distractorAnalysis, true),
+      ...(pdf.distractorIntro
+        ? [{ text: pdf.distractorIntro, fontSize: 9, color: SUB, lineHeight: 1.35, margin: [0, 0, 0, 10] }]
+        : []),
       ...distractor.items.flatMap((item) => [
         pdfStatusLine(item.level ?? "green", `${item.title} — ${item.label}`, { fontSize: 11 }),
         { text: item.comment, fontSize: 9, lineHeight: 1.35, margin: [0, 0, 0, 12] }
@@ -637,6 +705,9 @@ export function buildDocDefinition({
       infoBox(pdf.distractorGeneral, [distractor.general], HEADER_LIGHT),
 
       sectionTitle(pdf.sustainability),
+      ...(pdf.sustainabilityIntro
+        ? [{ text: pdf.sustainabilityIntro, fontSize: 9, color: SUB, lineHeight: 1.35, margin: [0, 0, 0, 8] }]
+        : []),
       infoBox("", [
         `${pdf.startPerf}: ${sustainability.firstAvg ?? "—"}`,
         `${pdf.endPerf}: ${sustainability.lastAvg ?? "—"}`,

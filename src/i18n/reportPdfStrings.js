@@ -23,6 +23,30 @@ export const reportPdfStrings = {
     generalResult: "Genel Sonuç",
     lowReliabilityWarnings: "Düşük güvenilirlik uyarıları",
     consistencyWarnings: "Performans tutarlılığı",
+    howToReadTitle: "Bu raporu nasıl okumalı?",
+    guide: {
+      title: "Bu raporu nasıl okumalı?",
+      intro:
+        "Bu rapor, sürekli performans testindeki basış ve tepki sürelerinden üretilir. Aşağıdaki sıra okumayı kolaylaştırır:",
+      steps: [
+        "1) Test geçerliliği — Verinin güvenilir olup olmadığını gösterir. Düşükse skorlar temkinli yorumlanmalıdır.",
+        "2) Genel skor (0–100) — Dört endeksin ağırlıklı ortalamasıdır: Dikkat %30, Zamanlama %25, Dürtüsellik %30, Motor kontrol %15.",
+        "3) A / T / I / H endeksleri — Her alan ayrı ölçülür. Yüksek skor daha iyi performansı (daha az hata / daha iyi kontrol) ifade eder.",
+        "4) Çeldirici ve sürdürülebilirlik — Ortam dağıtıcıları ve test sonuna doğru yorgunluk etkisini gösterir.",
+        "5) Norm karşılaştırma — Skorun aynı yaş grubu referansına göre nerede durduğunu (Z puanı) gösterir.",
+        "Önemli: Bu değerlendirme tanı koymaz; klinik görüşme ve diğer verilerle birlikte yorumlanmalıdır."
+      ]
+    },
+    validityIntro:
+      "Geçerlilik endeksi, katılımcının göreve yeterince katılıp katılmadığını, tepki sürelerinin fizyolojik olarak anlamlı olup olmadığını ve yanıt örüntüsünün tutarlılığını kontrol eder. 90–100 aralığı genellikle yorum için uygundur.",
+    overallExplainTitle: "Genel skor nasıl hesaplanır?",
+    overallExplain:
+      "Genel = (A × 0,30) + (T × 0,25) + (I × 0,30) + (H × 0,15). Bu oturum: ({{A}} × 0,30) + ({{T}} × 0,25) + ({{I}} × 0,30) + ({{H}} × 0,15) = {{overall}}.",
+    scoreScaleTitle: "Skor bantları (0–100)",
+    scoreScale:
+      "90–100 Çok güçlü · 80–89 Güçlü · 70–79 Orta · 60–69 Düşük · 60 altı Belirgin güçlük. Dürtüsellik ve hiperaktivitede yüksek skor = daha iyi kontrol (daha az gereksiz tepki).",
+    howCalculatedLabel: "Nasıl hesaplanır?",
+    meaningLabel: "Ne anlama gelir?",
     executiveSummary: "Yönetici Özeti",
     overallScore: "Genel Performans Skoru",
     riskLevel: "Risk Düzeyi",
@@ -33,10 +57,16 @@ export const reportPdfStrings = {
     clinicalFlags: "Klinik Bayraklar",
     shortComment: "Kısa Yorum",
     mainIndexes: "Ana Performans Endeksleri",
+    mainIndexesIntro:
+      "Aşağıdaki dört endeks birbirinden bağımsız hesaplanır. Bir alandaki düşük skor diğer alanları otomatik düşürmez; profil dağılımı klinik yorum için önemlidir.",
     commentLabel: "Yorum",
     distractorAnalysis: "Çeldirici Analizi",
+    distractorIntro:
+      "Testin ortasında görsel, işitsel veya birleşik dikkat dağıtıcılar sunulur. Temel (sessiz) bölüme göre puan düşüşü azsa performans korunmuş sayılır; belirgin düşüş, çevresel uyaranlara hassasiyeti düşündürür.",
     distractorGeneral: "Genel Sonuç",
     sustainability: "Sürdürülebilir Dikkat Analizi",
+    sustainabilityIntro:
+      "Testin ilk bölümlerindeki genel performans ile son bölümler karşılaştırılır. Belirgin düşüş, dikkat yorgunluğu veya sürdürülebilirlikte zorlanma işareti olabilir.",
     startPerf: "Başlangıç Performansı",
     endPerf: "Kapanış Performansı",
     change: "Değişim",
@@ -66,7 +96,8 @@ export const reportPdfStrings = {
     invalidCritical: "Kritik bulgular",
     invalidNoReport: "Bu oturum için performans raporu üretilmemiştir. Sonuçlar klinik yorum için kullanılmamalıdır.",
     normComparison: "Norm Karşılaştırma",
-    normIntro: "Normatif referans gruplarına göre standartlaştırılmış performans karşılaştırması.",
+    normIntro:
+      "Z puanı, katılımcının skorunu aynı yaş profilindeki referans ortalamayla karşılaştırır. Z ≥ 1,0 referansın üzerinde; 0–0,99 standart bandında; negatif değerler referansın altında performans anlamına gelir. Bu tablo tanı değil, göreli konum bilgisidir.",
     indexCol: "İndeks",
     scoreCol: "Skor",
     normLevelCol: "Norm seviye",
@@ -166,7 +197,11 @@ export const reportPdfStrings = {
     indexes: {
       attention: {
         title: "A — DİKKAT",
-        definition: "Dikkat endeksi, hedef uyaranları fark etme ve görev boyunca dikkati sürdürebilme performansını değerlendirir.",
+        definition:
+          "Hedef uyaranları fark etme ve görev boyunca odağı sürdürme. Yalnızca ihmal (hedef varken basmama) bu endeksi düşürür; yanlış basış I’ye, geç tepki T’ye yazılır.",
+        howCalculated: "A = 100 − (ihmal / hedef sayısı × 100). Bu oturumda A = {{score}}/100.",
+        meaning:
+          "Yüksek A: hedefleri kaçırmadan sürdürülebilir dikkat. Düşük A: hedef uyaranları sık kaçırma / dikkat sürdürmede zorlanma.",
         c90: "Katılımcı hedef uyaranları fark etme ve görev boyunca odağını sürdürme konusunda güçlü bir performans göstermiştir. Test süresince dikkat performansı genel olarak korunmuştur.",
         c80: "Katılımcı hedef uyaranların büyük bölümünü doğru şekilde ayırt etmiş ve görev boyunca dikkatini sürdürebilmiştir. Belirgin dikkat güçlüğü izlenmemiştir.",
         c70: "Katılımcı görev boyunca genel olarak dikkatini koruyabilmiştir. Bununla birlikte bazı bölümlerde hedef uyaranların kaçırıldığı görülmüştür.",
@@ -175,7 +210,12 @@ export const reportPdfStrings = {
       },
       timing: {
         title: "T — ZAMANLAMA",
-        definition: "Zamanlama endeksi, doğru uyaranlara uygun hızda ve tutarlı şekilde tepki verebilme performansını değerlendirir.",
+        definition:
+          "Hedefe uygun hızda ve tutarlı tepki. Zamanında isabet, tepki hızı (yaşa göre referans), geç yanıt oranı ve RT stabilitesi birlikte değerlendirilir.",
+        howCalculated:
+          "T = (zamanında isabet×0,40) + (RT hızı×0,25) + (geç yanıt×0,20) + (RT stabilitesi×0,15). Bu oturum: ({{onTime}}×0,40)+({{rtSpeed}}×0,25)+({{late}}×0,20)+({{stability}}×0,15) = {{score}}.",
+        meaning:
+          "Yüksek T: hızlı, zamanında ve tutarlı tepkiler. Düşük T: gecikmeli, aceleci veya değişken tepki süreleri.",
         c90: "Katılımcı hedef uyaranlara hızlı, tutarlı ve uygun zamanda tepki vermiştir. Tepki hızında belirgin dalgalanma gözlenmemiştir.",
         c80: "Hedef uyaranlara verilen tepkiler genel olarak zamanında ve tutarlı bulunmuştur.",
         c70: "Tepki hızında zaman zaman değişkenlik gözlenmiş olmakla birlikte genel performans korunmuştur.",
@@ -184,7 +224,12 @@ export const reportPdfStrings = {
       },
       impulsivity: {
         title: "I — DÜRTÜSELLİK",
-        definition: "Dürtüsellik endeksi, hedef dışı uyaranlara gereksiz tepki verme eğilimini (commission errors) değerlendirir.",
+        definition:
+          "Hedef dışı uyaranlara verilen gereksiz ilk tepkiler (commission). Mükerrer basışlar bu endekste değildir; motor kontrol H’de değerlendirilir.",
+        howCalculated:
+          "I = 100 − (commission oranı × 5). Commission oranı = hedef dışıya basış / hedef dışı deneme. Bu oturumda I = {{score}}/100.",
+        meaning:
+          "Yüksek I: iyi dürtü kontrolü (az gereksiz basış). Düşük I: hedef dışı uyarana sık tepki / dürtüsel yanıt eğilimi.",
         c90: "Katılımcı hedef dışı uyaranlara karşı tepki kontrolünü etkili şekilde sürdürebilmiştir.",
         c80: "Görev boyunca gereksiz tepki verme eğilimi düşük düzeyde kalmıştır.",
         c70: "Hedef dışı uyaranlara zaman zaman gereksiz tepkiler verilmiştir.",
@@ -193,7 +238,12 @@ export const reportPdfStrings = {
       },
       hyperactivity: {
         title: "H — HİPERAKTİVİTE",
-        definition: "Hiperaktivite endeksi, motor tepkiyi durdurabilme ve gereksiz tuş kullanımını kontrol edebilme becerisini değerlendirir.",
+        definition:
+          "Motor tepkiyi durdurma: aynı denemede mükerrer basış ve boş ekran / yönerge dışı basışlar. Doğru veya yanlış simge ayrımı bu endekste yapılmaz.",
+        howCalculated:
+          "H, mükerrer basış oranı ve yönerge dışı (boş ekran) basışlardan hesaplanır; gereksiz motor olay arttıkça skor düşer. Bu oturumda H = {{score}}/100.",
+        meaning:
+          "Yüksek H: kontrollü, sakin motor yanıt. Düşük H: tekrarlayan veya görev dışı basışlarla motor kontrol güçlüğü.",
         c90: "Katılımcı motor tepkilerini kontrollü şekilde sürdürmüş ve gereksiz tuş kullanımı göstermemiştir.",
         c80: "Motor kontrol performansı genel olarak korunmuştur.",
         c70: "Zaman zaman gereksiz veya tekrarlayıcı tepkiler gözlenmiştir.",
@@ -357,6 +407,30 @@ export const reportPdfStrings = {
     generalResult: "Overall result",
     lowReliabilityWarnings: "Low-reliability warnings",
     consistencyWarnings: "Performance consistency",
+    howToReadTitle: "How to read this report",
+    guide: {
+      title: "How to read this report",
+      intro:
+        "This report is built from button presses and reaction times during the continuous performance test. Use this order:",
+      steps: [
+        "1) Test validity — Whether the data is reliable. If low, interpret scores cautiously.",
+        "2) Overall score (0–100) — Weighted mean of four indices: Attention 30%, Timing 25%, Impulsivity 30%, Motor control 15%.",
+        "3) A / T / I / H indices — Each domain is scored separately. Higher scores mean better performance (fewer errors / better control).",
+        "4) Distractors and sustainability — Effects of environmental distractors and fatigue toward the end of the test.",
+        "5) Norm comparison — Where the score sits versus the age-group reference (Z-score).",
+        "Important: This assessment does not diagnose; interpret with clinical interview and other data."
+      ]
+    },
+    validityIntro:
+      "The validity index checks task engagement, whether reaction times are physiologically plausible, and whether response patterns are consistent. Scores of 90–100 are generally suitable for interpretation.",
+    overallExplainTitle: "How the overall score is calculated",
+    overallExplain:
+      "Overall = (A × 0.30) + (T × 0.25) + (I × 0.30) + (H × 0.15). This session: ({{A}} × 0.30) + ({{T}} × 0.25) + ({{I}} × 0.30) + ({{H}} × 0.15) = {{overall}}.",
+    scoreScaleTitle: "Score bands (0–100)",
+    scoreScale:
+      "90–100 Very strong · 80–89 Strong · 70–79 Average · 60–69 Low · below 60 Marked difficulty. For impulsivity and hyperactivity, a higher score means better control (fewer unnecessary responses).",
+    howCalculatedLabel: "How it is calculated",
+    meaningLabel: "What it means",
     executiveSummary: "Executive Summary",
     overallScore: "Overall Performance Score",
     riskLevel: "Risk level",
@@ -367,10 +441,16 @@ export const reportPdfStrings = {
     clinicalFlags: "Clinical Flags",
     shortComment: "Brief comment",
     mainIndexes: "Core Performance Indices",
+    mainIndexesIntro:
+      "The four indices below are calculated independently. A low score in one domain does not automatically lower the others; the profile pattern matters for clinical interpretation.",
     commentLabel: "Comment",
     distractorAnalysis: "Distractor Analysis",
+    distractorIntro:
+      "In mid-test, visual, auditory, or combined distractors are presented. A small drop versus the quiet baseline means performance was maintained; a marked drop suggests sensitivity to environmental stimuli.",
     distractorGeneral: "Overall result",
     sustainability: "Sustained Attention Analysis",
+    sustainabilityIntro:
+      "Overall performance in the first sections is compared with the final sections. A marked drop may indicate fatigue or difficulty sustaining attention.",
     startPerf: "Initial performance",
     endPerf: "Final performance",
     change: "Change",
@@ -400,7 +480,8 @@ export const reportPdfStrings = {
     invalidCritical: "Critical findings",
     invalidNoReport: "No performance report was generated for this session. Results must not be used for clinical interpretation.",
     normComparison: "Norm Comparison",
-    normIntro: "Standardized performance comparison against normative reference groups.",
+    normIntro:
+      "The Z-score compares the participant's score with the reference mean for the same age profile. Z ≥ 1.0 is above reference; 0–0.99 is in the standard band; negative values are below reference. This table is relative positioning, not a diagnosis.",
     indexCol: "Index",
     scoreCol: "Score",
     normLevelCol: "Norm level",
@@ -500,7 +581,11 @@ export const reportPdfStrings = {
     indexes: {
       attention: {
         title: "A — ATTENTION",
-        definition: "The attention index evaluates detecting target stimuli and sustaining attention throughout the task.",
+        definition:
+          "Detecting targets and sustaining focus. Only omissions (no press when the target is present) lower this index; false presses go to I and late responses to T.",
+        howCalculated: "A = 100 − (omissions / targets × 100). This session: A = {{score}}/100.",
+        meaning:
+          "High A: sustained attention without missing targets. Low A: frequent omissions / difficulty sustaining attention.",
         c90: "The participant showed strong performance in detecting targets and sustaining focus throughout the task. Attention performance was generally maintained.",
         c80: "The participant correctly discriminated most target stimuli and maintained attention throughout the task. No marked attention difficulty was observed.",
         c70: "The participant generally maintained attention during the task, though some targets were missed in certain sections.",
@@ -509,7 +594,12 @@ export const reportPdfStrings = {
       },
       timing: {
         title: "T — TIMING",
-        definition: "The timing index evaluates responding to correct stimuli at an appropriate speed and consistently.",
+        definition:
+          "Responding to targets at an appropriate speed and consistently. On-time hits, RT speed (age reference), late-response rate, and RT stability are combined.",
+        howCalculated:
+          "T = (on-time hit×0.40) + (RT speed×0.25) + (late response×0.20) + (RT stability×0.15). This session: ({{onTime}}×0.40)+({{rtSpeed}}×0.25)+({{late}}×0.20)+({{stability}}×0.15) = {{score}}.",
+        meaning:
+          "High T: timely, consistent responses. Low T: delayed, rushed, or highly variable reaction times.",
         c90: "The participant responded to targets quickly, consistently, and at appropriate times. No marked variability in response speed was observed.",
         c80: "Responses to targets were generally timely and consistent.",
         c70: "Some variability in response speed was observed, though overall performance was maintained.",
@@ -518,7 +608,12 @@ export const reportPdfStrings = {
       },
       impulsivity: {
         title: "I — IMPULSIVITY",
-        definition: "The impulsivity index evaluates unnecessary responses to non-target stimuli (commission errors).",
+        definition:
+          "Unnecessary first responses to non-targets (commissions). Repeated presses are not in this index; motor control is scored under H.",
+        howCalculated:
+          "I = 100 − (commission rate × 5). Commission rate = presses on non-targets / non-target trials. This session: I = {{score}}/100.",
+        meaning:
+          "High I: good impulse control (few unnecessary presses). Low I: frequent responses to non-targets / impulsive responding.",
         c90: "The participant effectively maintained response control against non-target stimuli.",
         c80: "Unnecessary responding remained at a low level throughout the task.",
         c70: "Occasional unnecessary responses to non-target stimuli were observed.",
@@ -527,7 +622,12 @@ export const reportPdfStrings = {
       },
       hyperactivity: {
         title: "H — HYPERACTIVITY",
-        definition: "The hyperactivity index evaluates motor inhibition and control of unnecessary key use.",
+        definition:
+          "Motor inhibition: repeated presses in the same trial and blank-screen / off-task presses. Correct vs incorrect symbol is not separated here.",
+        howCalculated:
+          "H is derived from multi-press and idle (blank-screen) rates; more unnecessary motor events lower the score. This session: H = {{score}}/100.",
+        meaning:
+          "High H: controlled, calm motor responding. Low H: repeated or off-task presses suggesting motor-control difficulty.",
         c90: "The participant maintained controlled motor responses with no unnecessary key use.",
         c80: "Motor control performance was generally maintained.",
         c70: "Occasional unnecessary or repetitive responses were observed.",
