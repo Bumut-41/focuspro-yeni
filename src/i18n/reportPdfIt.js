@@ -289,7 +289,7 @@ export const reportPdfIt = {
       ["Punteggio complessivo", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
     ],
     normLevels: [
-      { level: 1, label: "Prestazione molto buona (Z ≥ 1.0)" },
+      { level: 1, label: "Buona prestazione (Z ≥ 1.0)" },
       { level: 2, label: "Prestazione standard (0 – 0.99)" },
       { level: 3, label: "Prestazione bassa (−1 – −0.01)" },
       { level: 4, label: "Difficoltà di prestazione (Z < −1)" },

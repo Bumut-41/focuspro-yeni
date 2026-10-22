@@ -699,7 +699,7 @@ export const SDT_DEFINITIONS = [
 ];
 
 export const NORM_LEVELS = [
-  { level: 1, label: "Çok iyi performans (Z ≥ 1.0)", color: "#0d9488" },
+  { level: 1, label: "İyi performans (Z ≥ 1.0)", color: "#0d9488" },
   { level: 2, label: "Standart performans (0 – 0.99)", color: "#86efac" },
   { level: 3, label: "Düşük performans (−1 – −0.01)", color: "#f59e0b" },
   { level: 4, label: "Performansta zorluk (Z < −1)", color: "#dc2626" },

@@ -74,7 +74,7 @@ export function normLevelFromZ(z) {
 
 export function normLevelTextFromZ(z) {
   const l = normLevelFromZ(z);
-  if (l === 1) return "Çok iyi performans";
+  if (l === 1) return "İyi performans";
   if (l === 2) return "Standart performans";
   if (l === 3) return "Düşük performans";
   if (l === 4) return "Performansta zorluk";

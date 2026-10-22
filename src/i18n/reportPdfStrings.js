@@ -291,7 +291,7 @@ export const reportPdfStrings = {
         ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
       ],
       normLevels: [
-        { level: 1, label: "Çok iyi performans (Z ≥ 1.0)" },
+        { level: 1, label: "İyi performans (Z ≥ 1.0)" },
         { level: 2, label: "Standart performans (0 – 0.99)" },
         { level: 3, label: "Düşük performans (−1 – −0.01)" },
         { level: 4, label: "Performansta zorluk (Z < −1)" },
@@ -625,7 +625,7 @@ export const reportPdfStrings = {
         ["Overall score", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
       ],
       normLevels: [
-        { level: 1, label: "Very good performance (Z ≥ 1.0)" },
+        { level: 1, label: "Good performance (Z ≥ 1.0)" },
         { level: 2, label: "Standard performance (0 – 0.99)" },
         { level: 3, label: "Low performance (−1 – −0.01)" },
         { level: 4, label: "Performance difficulty (Z < −1)" },
