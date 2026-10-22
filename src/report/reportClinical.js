@@ -401,25 +401,16 @@ export function buildSustainabilityReport(logs, profile, age = null, pressTimeli
   return { ...sust, comment };
 }
 
-export function buildIndexClinicalComments(scores, locale = "tr", z = null, metrics = null) {
+export function buildIndexClinicalComments(scores, locale = "tr", z = null) {
   const I = getReportPdfStrings(locale).indexes;
   const mk = (key, score) => {
     const zv = z?.[key];
     const useNorm = zv != null && Number.isFinite(zv);
-    const vars = {
-      score,
-      onTime: metrics?.timingOnTimeHit ?? "—",
-      rtSpeed: metrics?.timingRtSpeed ?? "—",
-      late: metrics?.timingLateResponse ?? "—",
-      stability: metrics?.timingRtStability ?? "—"
-    };
     return {
       score,
       title: I[key].title,
       level: useNorm ? indexLevelLabelFromZ(zv, locale) : indexLevelLabel(score, locale),
       definition: I[key].definition,
-      howCalculated: I[key].howCalculated ? fillTemplate(I[key].howCalculated, vars) : null,
-      meaning: I[key].meaning || null,
       comment: useNorm ? commentForNormZ(I[key], zv) : indexComment(I[key], score)
     };
   };
