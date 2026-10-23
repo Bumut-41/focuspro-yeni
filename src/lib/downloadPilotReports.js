@@ -9,7 +9,10 @@ function sleep(ms) {
 
 /**
  * Yerel indirme sırası:
- * 1) V1 resmi rapor → 2) V1/V2 karşılaştırma → 3) V2 deneme raporu
+ * 1) V1 resmi rapor
+ * 2) V1/V2/V3 karşılaştırma
+ * 3) V2 deneme raporu
+ * 4) V3 deneme raporu
  * Kayıtlı/e-posta PDF'si ayrı olarak yalnızca V1 kalır.
  */
 export async function downloadV1ComparisonV2Reports({
@@ -34,11 +37,18 @@ export async function downloadV1ComparisonV2Reports({
 
   onStep?.("v2");
   await downloadPdf({ ...base, scoringVersion: "v2" });
+  await sleep(gapMs);
+
+  onStep?.("v3");
+  await downloadPdf({ ...base, scoringVersion: "v3" });
   onStep?.("done");
 }
 
+/** @deprecated alias — aynı paket (V1 + karşılaştırma + V2 + V3) */
+export const downloadPilotReportBundle = downloadV1ComparisonV2Reports;
+
 /**
- * Sistemdeki eski oturumdan logs ile V1 → karşılaştırma → V2 üretir ve indirir.
+ * Sistemdeki eski oturumdan logs ile V1 → karşılaştırma → V2 → V3 üretir ve indirir.
  * Storage’daki kayıtlı V1 PDF’e dokunmaz.
  */
 export async function downloadPilotReportsFromSessionId(sessionId, locale = "tr", onStep = null) {

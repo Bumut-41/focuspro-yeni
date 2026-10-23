@@ -24,9 +24,14 @@ function deltaCell(d) {
   return r > 0 ? `+${r}` : String(r);
 }
 
+function timingCell(pack) {
+  if (!pack) return "—";
+  if (pack.timingUnavailable) return timingUnavailableLabel(pack.timingReason);
+  return cell(pack.timing);
+}
+
 /**
- * V1/V2 skor karşılaştırma paneli — mevcut V1 sonuçlarını değiştirmez.
- * sessions: listeden id + metrics + participant_name + profile_key + participant_age
+ * V1/V2/V3 skor karşılaştırma paneli — mevcut V1 sonuçlarını değiştirmez.
  */
 export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) {
   const [rows, setRows] = useState([]);
@@ -90,7 +95,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
         }
       }
       setRows(out);
-      setMsg(`${out.filter((r) => !r.error).length} oturum karşılaştırıldı.`);
+      setMsg(`${out.filter((r) => !r.error).length} oturum karşılaştırıldı (V1/V2/V3).`);
     } finally {
       setBusy(false);
     }
@@ -114,7 +119,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
         pressTimeline: row.timeline,
         locale: "tr"
       });
-      setMsg(`${row.name}: V1 → karşılaştırma → V2 indirildi.`);
+      setMsg(`${row.name}: V1 → karşılaştırma → V2 → V3 indirildi.`);
     } catch (e) {
       setMsg(e?.message || "PDF indirme başarısız");
     } finally {
@@ -125,8 +130,8 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
   return (
     <Card>
       <CardHeader
-        title="V1 / V2 skor karşılaştırma (pilot)"
-        description="V1 resmi algoritma değişmez. V2 yalnızca T formülünü yeniden tanımlar (RT hızı %40 + stabilite %40 + geç yanıt %20; merkez 450 ms). Özellikle genel 77 / 85 / 94 / 99 civarı oturumlar vurgulanır."
+        title="V1 / V2 / V3 skor karşılaştırma (pilot)"
+        description="V1 resmi. V2: T’de 450 ms hız cezası (pilot). V3: hız puanı yok; ham medyan RT + yaş bandı tanımlayıcı; stabilite CV exploratory (K=100). I/H aynı. 77/85/94/99 civarı vurgulanır."
         action={
           <Stack gap={8} wrap>
             <label style={{ fontSize: "0.8125rem", display: "flex", alignItems: "center", gap: 6 }}>
@@ -146,25 +151,24 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
       {msg && <Alert variant="info">{msg}</Alert>}
       {rows.length > 0 && (
         <div style={{ overflowX: "auto" }}>
-          <table className="fp-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8125rem" }}>
+          <table className="fp-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.75rem" }}>
             <thead>
               <tr>
-                <th align="left">Katılımcı</th>
-                <th>A V1</th>
-                <th>A V2</th>
+                <th align="left">Katılımcı / yaş</th>
+                <th>A</th>
+                <th>I</th>
+                <th>H</th>
                 <th>T V1</th>
                 <th>T V2</th>
-                <th>I V1</th>
-                <th>I V2</th>
-                <th>H V1</th>
-                <th>H V2</th>
+                <th>T V3</th>
                 <th>Gen V1</th>
                 <th>Gen V2</th>
-                <th>Δ Gen</th>
+                <th>Gen V3</th>
+                <th>ΔT V3−V2</th>
                 <th>Med RT</th>
-                <th>RT SD</th>
                 <th>CV</th>
                 <th>İhmal</th>
+                <th>Geç</th>
                 <th>FA</th>
                 <th>Multi</th>
                 <th>Idle</th>
@@ -176,16 +180,12 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                 if (r.error) {
                   return (
                     <tr key={r.id}>
-                      <td colSpan={20} style={{ color: "var(--fp-danger, #dc2626)" }}>
+                      <td colSpan={19} style={{ color: "var(--fp-danger, #dc2626)" }}>
                         {r.name}: {r.error}
                       </td>
                     </tr>
                   );
                 }
-                const t2 =
-                  r.v2.timingUnavailable
-                    ? timingUnavailableLabel(r.v2.timingReason)
-                    : cell(r.v2.timing);
                 return (
                   <tr
                     key={r.id}
@@ -193,34 +193,36 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                   >
                     <td>
                       <div style={{ fontWeight: 600 }}>{r.name}</div>
-                      <div style={{ color: "var(--fp-text-muted)", fontSize: "0.75rem" }}>
-                        {r.createdAt ? new Date(r.createdAt).toLocaleString(dateLocale) : ""}
-                        {r.highlight ? " · hedef skor" : ""}
+                      <div style={{ color: "var(--fp-text-muted)", fontSize: "0.7rem" }}>
+                        {r.age != null ? `yaş ${r.age}` : "—"}
+                        {r.v3?.ageBandLabel ? ` · ${r.v3.ageBandLabel}` : ""}
+                        {r.highlight ? " · hedef" : ""}
                       </div>
                     </td>
                     <td align="center">{cell(r.v1.attention)}</td>
-                    <td align="center">{cell(r.v2.attention)}</td>
+                    <td align="center">{cell(r.v1.impulsivity)}</td>
+                    <td align="center">{cell(r.v1.hyperactivity)}</td>
                     <td align="center">{cell(r.v1.timing)}</td>
                     <td align="center" title={r.v2.timingReason || ""}>
-                      {t2}
+                      {timingCell(r.v2)}
                     </td>
-                    <td align="center">{cell(r.v1.impulsivity)}</td>
-                    <td align="center">{cell(r.v2.impulsivity)}</td>
-                    <td align="center">{cell(r.v1.hyperactivity)}</td>
-                    <td align="center">{cell(r.v2.hyperactivity)}</td>
+                    <td align="center" title={r.v3?.timingReason || ""}>
+                      {timingCell(r.v3)}
+                    </td>
                     <td align="center" style={{ fontWeight: 700 }}>
                       {cell(r.v1.overall)}
                     </td>
                     <td align="center" style={{ fontWeight: 700 }}>
                       {cell(r.v2.overall)}
                     </td>
-                    <td align="center">{deltaCell(r.delta.overall)}</td>
-                    <td align="center">
-                      {r.v2.medianRt != null ? r.v2.medianRt : cell(r.v1.medianRt)}
+                    <td align="center" style={{ fontWeight: 700 }}>
+                      {cell(r.v3?.overall)}
                     </td>
-                    <td align="center">{r.v2.rtStd != null ? r.v2.rtStd : cell(r.v1.rtStd)}</td>
-                    <td align="center">{r.v2.cv != null ? r.v2.cv : "—"}</td>
+                    <td align="center">{deltaCell(r.delta?.v3v2?.timing)}</td>
+                    <td align="center">{r.v3?.medianRt ?? r.v2.medianRt ?? cell(r.v1.medianRt)}</td>
+                    <td align="center">{r.v3?.cv ?? r.v2.cv ?? "—"}</td>
                     <td align="center">{r.counts.omissions}</td>
+                    <td align="center">{r.counts.late}</td>
                     <td align="center">{r.counts.falseAlarms}</td>
                     <td align="center">
                       {r.counts.multiTrials}/{r.counts.multiPresses}
@@ -228,7 +230,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                     <td align="center">{r.counts.idlePresses}</td>
                     <td>
                       <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => downloadOne(r)}>
-                        3 PDF
+                        4 PDF
                       </Button>
                     </td>
                   </tr>

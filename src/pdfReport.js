@@ -6,6 +6,7 @@ import { getShapeSvg } from "./shapeUtils.jsx";
 import {
   computeDetailedMetrics,
   computeDetailedMetricsV2,
+  computeDetailedMetricsV3,
   formatDurationSeconds,
   getDistractorSummaryMatrix,
   getGlobalIndexZScores,
@@ -70,10 +71,9 @@ function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = 
 
 function coverHeader(locale = "tr", scoringVersion = "v1") {
   const pdf = getReportPdfStrings(locale);
-  const subtitle =
-    scoringVersion === "v2"
-      ? `${pdf.coverSubtitle} — V2 deneme algoritması (pilot)`
-      : pdf.coverSubtitle;
+  let subtitle = pdf.coverSubtitle;
+  if (scoringVersion === "v2") subtitle = `${pdf.coverSubtitle} — V2 deneme algoritması (pilot)`;
+  else if (scoringVersion === "v3") subtitle = `${pdf.coverSubtitle} — V3 deneme algoritması (pilot)`;
   return {
     margin: [-36, -36, 16, 20],
     table: {
@@ -425,12 +425,16 @@ export function buildDocDefinition({
   const dateLoc = dateLocaleForPdf(locale);
   const metricOpts = { pressTimeline, age, locale };
   const isV2 = scoringVersion === "v2";
-  const metrics = isV2
-    ? computeDetailedMetricsV2(logs, profile.lateResponseMs, metricOpts)
-    : computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
+  const isV3 = scoringVersion === "v3";
+  const isPilot = isV2 || isV3;
+  const metrics = isV3
+    ? computeDetailedMetricsV3(logs, profile.lateResponseMs, metricOpts)
+    : isV2
+      ? computeDetailedMetricsV2(logs, profile.lateResponseMs, metricOpts)
+      : computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
   const scores = getScores(metrics);
-  // Geçerlilik her zaman V1 metrikleriyle (mevcut kurallar); V2 raporu da aynı geçerlilik kapısını kullanır
-  const validityBase = isV2
+  // Geçerlilik her zaman V1 metrikleriyle (mevcut kurallar); pilot raporlar aynı kapıyı kullanır
+  const validityBase = isPilot
     ? computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts)
     : metrics;
   const validity = computeTestValidity(logs, validityBase, profile, pressTimeline, age, locale);
@@ -473,17 +477,24 @@ export function buildDocDefinition({
   }
 
   const durationMin = Math.round(profile.durationMs / 60000);
-  const timingFormula = isV2
-    ? metrics.timingUnavailable
+  let timingFormula;
+  if (isV3) {
+    timingFormula = metrics.timingUnavailable
+      ? `V3 T: hesaplanamadı (${metrics.timingReason || "yetersiz RT"})`
+      : `V3 T = (Stab. ${metrics.timingRtStability ?? "—"}×0.55) + (Geç ${metrics.timingLateResponse ?? "—"}×0.45) = ${scores.timing ?? "—"} · ham medyan RT ${metrics.medianReaction ?? "—"} ms · yaş bandı ${metrics.ageBandLabel || "—"} (ref ${metrics.ageReferenceRtMs ?? "—"} ms, skor değil) · CV ${metrics.cv ?? "—"} · K=${metrics.stabilityK ?? "—"} exploratory`;
+  } else if (isV2) {
+    timingFormula = metrics.timingUnavailable
       ? `V2 T: hesaplanamadı (${metrics.timingReason || "yetersiz RT"})`
-      : `V2 T = (RT hızı ${metrics.timingRtSpeed ?? "—"}×0.40) + (Stab. ${metrics.timingRtStability ?? "—"}×0.40) + (Geç ${metrics.timingLateResponse ?? "—"}×0.20) = ${scores.timing ?? "—"} · medyan RT ${metrics.medianReaction ?? "—"} ms (pilot merkez 450 ms)`
-    : fillTemplate(pdf.timingFormula, {
-        onTime: metrics.timingOnTimeHit ?? "—",
-        rtSpeed: metrics.timingRtSpeed ?? "—",
-        late: metrics.timingLateResponse ?? "—",
-        stability: metrics.timingRtStability ?? "—",
-        total: scores.timing
-      });
+      : `V2 T = (RT hızı ${metrics.timingRtSpeed ?? "—"}×0.40) + (Stab. ${metrics.timingRtStability ?? "—"}×0.40) + (Geç ${metrics.timingLateResponse ?? "—"}×0.20) = ${scores.timing ?? "—"} · medyan RT ${metrics.medianReaction ?? "—"} ms (pilot merkez 450 ms)`;
+  } else {
+    timingFormula = fillTemplate(pdf.timingFormula, {
+      onTime: metrics.timingOnTimeHit ?? "—",
+      rtSpeed: metrics.timingRtSpeed ?? "—",
+      late: metrics.timingLateResponse ?? "—",
+      stability: metrics.timingRtStability ?? "—",
+      total: scores.timing
+    });
+  }
   const deltaStr =
     sustainability.delta != null
       ? (sustainability.delta > 0 ? "+" : "") + sustainability.delta + " " + pdf.points
@@ -524,6 +535,27 @@ export function buildDocDefinition({
               ? [
                   {
                     text: `V2 T hesaplanamadı (${metrics.timingReason || "yetersiz veri"}). Genel skor üretilmedi.`,
+                    fontSize: 9,
+                    color: "#dc2626",
+                    margin: [0, 0, 0, 10]
+                  }
+                ]
+              : [])
+          ]
+        : []),
+      ...(isV3
+        ? [
+            {
+              text:
+                "Bu rapor V3 deneme algoritmasıdır. RT hız puanı yoktur (yaş normu oluşana kadar ham medyan RT gösterilir). Stabilite CV katsayısı exploratory’dir; klinik karar için V1 resmi rapor kullanılır.",
+              fontSize: 8,
+              color: "#b45309",
+              margin: [0, 0, 0, 10]
+            },
+            ...(metrics.timingUnavailable
+              ? [
+                  {
+                    text: `V3 T hesaplanamadı (${metrics.timingReason || "yetersiz veri"}). Genel skor üretilmedi.`,
                     fontSize: 9,
                     color: "#dc2626",
                     margin: [0, 0, 0, 10]
@@ -811,7 +843,8 @@ export async function downloadPdf(args) {
       ),
     args.logoDataUrl ?? getPdfLogoDataUrl()
   ]);
-  const version = args.scoringVersion === "v2" ? "v2" : "v1";
+  const version =
+    args.scoringVersion === "v3" ? "v3" : args.scoringVersion === "v2" ? "v2" : "v1";
   const doc = buildDocDefinition({ ...args, scoringVersion: version, reportCharts, logoDataUrl });
   const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
   const filename = `FocusProLab_${safeName}_${version}_${Date.now()}.pdf`;

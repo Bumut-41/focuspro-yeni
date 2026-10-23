@@ -220,7 +220,7 @@ export default function TestFlowPage() {
           sendEmail: autoEmail
         });
 
-        // Yerel: V1 → V1/V2 karşılaştırma → V2 (kayıtlı/e-posta PDF yalnızca V1)
+        // Yerel: V1 → V1/V2/V3 karşılaştırma → V2 → V3 (kayıtlı/e-posta PDF yalnızca V1)
         try {
           setReportDelivery((prev) => ({ ...(prev || {}), status: "pilot_pdfs", pdfSaved: delivery.pdfSaved || delivery.ok }));
           await downloadV1ComparisonV2Reports({
@@ -908,7 +908,7 @@ export default function TestFlowPage() {
               )}
               {reportDelivery?.status === "pilot_pdfs" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  V1 rapor → karşılaştırma → V2 rapor indiriliyor…
+                  V1 → karşılaştırma → V2 → V3 raporları indiriliyor…
                 </p>
               )}
               {reportDelivery?.status === "pdf_saved" && (

@@ -130,13 +130,13 @@ export default function DashboardPage() {
     }
   }
 
-  /** Eski oturumlar: V1 → V1/V2 karşılaştırma → V2 (logs’tan yeniden üretir). */
+  /** Eski oturumlar: V1 → karşılaştırma → V2 → V3 (logs’tan yeniden üretir). */
   async function downloadPilotReportTrio(session) {
     setPdfBusy(`${session.id}-pilot`);
     setMsg("");
     try {
       await downloadPilotReportsFromSessionId(session.id, locale);
-      setMsg("V1 rapor → karşılaştırma → V2 rapor indirildi.");
+      setMsg("V1 → karşılaştırma → V2 → V3 raporları indirildi.");
     } catch (e) {
       if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
       setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
@@ -394,11 +394,11 @@ export default function DashboardPage() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      title="V1 rapor → V1/V2 karşılaştırma → V2 rapor"
+                      title="V1 → V1/V2/V3 karşılaştırma → V2 → V3"
                       disabled={pdfBusy === `${s.id}-test` || pdfBusy === `${s.id}-pilot`}
                       onClick={() => downloadPilotReportTrio(s)}
                     >
-                      {pdfBusy === `${s.id}-pilot` ? "…" : "V1 + V2 (3 PDF)"}
+                      {pdfBusy === `${s.id}-pilot` ? "…" : "V1+V2+V3 (4 PDF)"}
                     </Button>
                   </Stack>
                 )

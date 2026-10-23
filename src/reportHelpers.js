@@ -18,6 +18,7 @@ import {
   riskLabel
 } from "./metrics.js";
 import { computeMetricsV2 } from "./metricsV2.js";
+import { computeMetricsV3 } from "./metricsV3.js";
 import { buildReportPhaseBuckets, logsForBucket } from "./report/phaseBuckets.js";
 import { normLevelFromZ, normLevelTextFromZ, normZScore } from "./reportNorms.js";
 
@@ -118,6 +119,43 @@ export function computeDetailedMetricsV2(logs, lateMs, metricOptions = null, age
     rushUnder150: v2.rushUnder150,
     version: "v2",
     flags: [...(v1.flags || []), ...(v2.flags || [])]
+  };
+}
+
+/**
+ * V3 deneme metrikleri — keyfî RT hız merkezi yok; ham medyan RT + yaş bandı tanımlayıcı.
+ */
+export function computeDetailedMetricsV3(logs, lateMs, metricOptions = null, age = null) {
+  const opts = normalizeMetricOptions(metricOptions, age);
+  const v1 = computeDetailedMetrics(logs, lateMs, opts, age);
+  const v3 = computeMetricsV3(logs, lateMs, opts.pressTimeline ?? [], opts.age ?? age);
+  return {
+    ...v1,
+    attentionScore: v3.attentionScore,
+    impulseScore: v3.impulseScore,
+    speedScore: v3.speedScore,
+    consistencyScore: v3.consistencyScore,
+    overallScore: v3.overallScore,
+    timingOnTimeHit: null,
+    timingRtSpeed: null,
+    timingLateResponse: v3.timingLateResponse,
+    timingRtStability: v3.timingRtStability,
+    avgReaction: v3.meanRt ?? v1.avgReaction,
+    medianReaction: v3.medianRt ?? v1.medianReaction,
+    rtStd: v3.rtStd ?? v1.rtStd,
+    timingUnavailable: v3.timingUnavailable,
+    timingReason: v3.timingReason,
+    overallUnavailable: v3.overallUnavailable,
+    rushUnder150: v3.rushUnder150,
+    ageBand: v3.ageBand,
+    ageBandLabel: v3.ageBandLabel,
+    ageReferenceRtMs: v3.ageReferenceRtMs,
+    stabilityK: v3.stabilityK,
+    rtSpeedScored: false,
+    overlap: v3.overlap,
+    cv: v3.cv,
+    version: "v3",
+    flags: [...(v1.flags || []), ...(v3.flags || [])]
   };
 }
 
