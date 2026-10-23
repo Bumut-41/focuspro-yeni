@@ -88,6 +88,18 @@ export function AdminPressTimeline({
                 {pdfBusy ? "PDF…" : "Test raporu PDF"}
               </Button>
             )}
+            {onDownloadPilotTrio && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                title="V1 rapor → V1/V2 karşılaştırma → V2 rapor"
+                disabled={pdfBusy || !logsOk}
+                onClick={onDownloadPilotTrio}
+              >
+                {pdfBusy ? "PDF…" : "V1 + V2 (3 PDF)"}
+              </Button>
+            )}
             {onDownloadPressPdf && (
               <Button
                 type="button"
