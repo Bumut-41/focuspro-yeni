@@ -80,7 +80,7 @@ export function ReportPanel({
         ].map(([label, value]) => (
           <div key={label} className="fp-score-tile">
             <div className="fp-score-tile-label">{label}</div>
-            <div className="fp-score-tile-value">{value}</div>
+            <div className="fp-score-tile-value">{value == null ? "—" : value}</div>
           </div>
         ))}
       </div>

@@ -20,6 +20,7 @@ import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../serv
 import { fetchMyClients } from "../services/clients.js";
 import { saveTestSession } from "../services/sessions.js";
 import { deliverSessionReport } from "../services/emailReport.js";
+import { downloadV1ComparisonV2Reports } from "../lib/downloadPilotReports.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
@@ -218,6 +219,22 @@ export default function TestFlowPage() {
           clientId,
           sendEmail: autoEmail
         });
+
+        // Yerel: V1 → V1/V2 karşılaştırma → V2 (kayıtlı/e-posta PDF yalnızca V1)
+        try {
+          setReportDelivery((prev) => ({ ...(prev || {}), status: "pilot_pdfs", pdfSaved: delivery.pdfSaved || delivery.ok }));
+          await downloadV1ComparisonV2Reports({
+            participant: participantSnap,
+            profile,
+            logs: snapshot,
+            target: targetSnap,
+            pressTimeline: timeline ?? [],
+            locale
+          });
+        } catch (pilotErr) {
+          console.warn("pilot_report_sequence_failed", pilotErr);
+        }
+
         if (delivery.ok && delivery.emailSkipped) {
           setReportDelivery({
             status: "pdf_saved",
@@ -887,6 +904,11 @@ export default function TestFlowPage() {
               {reportDelivery?.status === "working" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
                   {isPsychologist || isInviteFlow ? t("test.reportWorkingPdfOnly") : t("test.reportWorking")}
+                </p>
+              )}
+              {reportDelivery?.status === "pilot_pdfs" && (
+                <p className="space-screen-win-sub" role="status" aria-live="polite">
+                  V1 rapor → karşılaştırma → V2 rapor indiriliyor…
                 </p>
               )}
               {reportDelivery?.status === "pdf_saved" && (

@@ -58,11 +58,15 @@ function indexComment(block, score) {
 }
 
 function globalIndexZ(scores, profileKey = "adult") {
+  const zOrNull = (score, indexKey) =>
+    score == null || Number.isNaN(Number(score))
+      ? null
+      : normZScore(score, profileKey, "global", indexKey);
   return {
-    attention: normZScore(scores.attention, profileKey, "global", "attention"),
-    timing: normZScore(scores.timing, profileKey, "global", "timing"),
-    impulsivity: normZScore(scores.impulsivity, profileKey, "global", "impulsivity"),
-    hyperactivity: normZScore(scores.hyperactivity, profileKey, "global", "hyperactivity")
+    attention: zOrNull(scores.attention, "attention"),
+    timing: zOrNull(scores.timing, "timing"),
+    impulsivity: zOrNull(scores.impulsivity, "impulsivity"),
+    hyperactivity: zOrNull(scores.hyperactivity, "hyperactivity")
   };
 }
 
@@ -92,45 +96,66 @@ export function pickTierComment(block, score) {
 export function buildGeneralShortComment(scores, distractor, locale = "tr", z = null) {
   const G = getReportPdfStrings(locale).generalComments;
   const { attention: A, timing: T, impulsivity: I, hyperactivity: H } = scores;
-  const marked = z && ["attention", "timing", "impulsivity", "hyperactivity"].some((key) => normLevelFromZ(z[key]) >= 4);
+  const hasNum = (v) => v != null && Number.isFinite(Number(v));
+  const marked =
+    z &&
+    ["attention", "timing", "impulsivity", "hyperactivity"].some(
+      (key) => hasNum(z[key]) && normLevelFromZ(z[key]) >= 4
+    );
 
-  if (!marked && A >= 90 && T >= 85 && I >= 80 && H >= 90) return G.profile1;
-  if (!marked && A >= 85 && T < 65 && I >= 75 && H >= 90) return G.profile2;
-  if (!marked && A >= 85 && T >= 80 && I < 60 && H >= 90) return G.profile3;
+  if (hasNum(A) && hasNum(T) && hasNum(I) && hasNum(H)) {
+    if (!marked && A >= 90 && T >= 85 && I >= 80 && H >= 90) return G.profile1;
+    if (!marked && A >= 85 && T < 65 && I >= 75 && H >= 90) return G.profile2;
+    if (!marked && A >= 85 && T >= 80 && I < 60 && H >= 90) return G.profile3;
+  }
 
   const parts = [];
   const strongCore = z
-    ? ["attention", "timing", "impulsivity", "hyperactivity"].every((key) => normLevelFromZ(z[key]) <= 2)
-    : A >= 80 && T >= 75 && I >= 75 && H >= 80;
+    ? ["attention", "timing", "impulsivity", "hyperactivity"].every(
+        (key) => hasNum(z[key]) && normLevelFromZ(z[key]) <= 2
+      )
+    : hasNum(A) && hasNum(T) && hasNum(I) && hasNum(H) && A >= 80 && T >= 75 && I >= 75 && H >= 80;
   if (strongCore) {
     parts.push(G.partStrongCore);
   } else if (z) {
-    const att = normLevelFromZ(z.attention);
-    if (att >= 5) parts.push(G.partAttLow);
-    else if (att >= 3) parts.push(G.partAttMid);
-    else parts.push(G.partAttOk);
+    if (hasNum(z.attention)) {
+      const att = normLevelFromZ(z.attention);
+      if (att >= 5) parts.push(G.partAttLow);
+      else if (att >= 3) parts.push(G.partAttMid);
+      else parts.push(G.partAttOk);
+    }
 
-    const tim = normLevelFromZ(z.timing);
-    if (tim >= 5) parts.push(G.partTimLow);
-    else if (tim >= 3) parts.push(G.partTimMid);
+    if (hasNum(z.timing)) {
+      const tim = normLevelFromZ(z.timing);
+      if (tim >= 5) parts.push(G.partTimLow);
+      else if (tim >= 3) parts.push(G.partTimMid);
+    }
 
-    const imp = normLevelFromZ(z.impulsivity);
-    if (imp >= 5) parts.push(G.partImpLow);
-    else if (imp >= 3) parts.push(G.partImpMid);
+    if (hasNum(z.impulsivity)) {
+      const imp = normLevelFromZ(z.impulsivity);
+      if (imp >= 5) parts.push(G.partImpLow);
+      else if (imp >= 3) parts.push(G.partImpMid);
+    }
 
-    if (normLevelFromZ(z.hyperactivity) >= 4) parts.push(G.partHypLow);
+    if (hasNum(z.hyperactivity) && normLevelFromZ(z.hyperactivity) >= 4) parts.push(G.partHypLow);
   } else {
-    if (A < 60) parts.push(G.partAttLow);
-    else if (A < 70) parts.push(G.partAttMid);
-    else parts.push(G.partAttOk);
+    if (hasNum(A)) {
+      if (A < 60) parts.push(G.partAttLow);
+      else if (A < 70) parts.push(G.partAttMid);
+      else parts.push(G.partAttOk);
+    }
 
-    if (T < 60) parts.push(G.partTimLow);
-    else if (T < 70) parts.push(G.partTimMid);
+    if (hasNum(T)) {
+      if (T < 60) parts.push(G.partTimLow);
+      else if (T < 70) parts.push(G.partTimMid);
+    }
 
-    if (I < 60) parts.push(G.partImpLow);
-    else if (I < 75) parts.push(G.partImpMid);
+    if (hasNum(I)) {
+      if (I < 60) parts.push(G.partImpLow);
+      else if (I < 75) parts.push(G.partImpMid);
+    }
 
-    if (H < 60) parts.push(G.partHypLow);
+    if (hasNum(H) && H < 60) parts.push(G.partHypLow);
   }
 
   if (distractor?.anyAffected) parts.push(G.partDistractor);
@@ -404,6 +429,18 @@ export function buildSustainabilityReport(logs, profile, age = null, pressTimeli
 export function buildIndexClinicalComments(scores, locale = "tr", z = null) {
   const I = getReportPdfStrings(locale).indexes;
   const mk = (key, score) => {
+    if (score == null || Number.isNaN(Number(score))) {
+      return {
+        score: null,
+        title: I[key].title,
+        level: "—",
+        definition: I[key].definition,
+        comment:
+          key === "timing"
+            ? "T puanı hesaplanamadı (yetersiz / geçersiz RT verisi)."
+            : "Skor üretilemedi."
+      };
+    }
     const zv = z?.[key];
     const useNorm = zv != null && Number.isFinite(zv);
     return {
@@ -451,7 +488,10 @@ export function buildClinicalFlags(scores, metrics, validity, distractor, sustai
 
 export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale = "tr", profileKey = "adult") {
   const St = getReportPdfStrings(locale).strengths;
-  const risk = getOverallRiskText(scores.overall, locale);
+  const risk =
+    scores.overall == null || Number.isNaN(Number(scores.overall))
+      ? "Genel skor üretilemedi"
+      : getOverallRiskText(scores.overall, locale);
   const z = globalIndexZ(scores, profileKey);
 
   const strengths = [];
@@ -463,6 +503,7 @@ export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, 
     ["hyperactivity", scores.hyperactivity, St.motor]
   ];
   for (const [key, score, label] of fields) {
+    if (score == null || Number.isNaN(Number(score)) || z[key] == null) continue;
     const level = normLevelFromZ(z[key]);
     if (level <= 2 && score >= CLINICAL_THRESHOLDS.strength) strengths.push(label);
     if (level >= 4) weaknesses.push(label);

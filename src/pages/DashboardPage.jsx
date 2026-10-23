@@ -20,6 +20,7 @@ import { RecordFilters } from "../components/RecordFilters.jsx";
 import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
 import { SpecialistClientsPanel } from "../components/SpecialistClientsPanel.jsx";
 import { MyPurchasesPanel } from "../components/MyPurchasesPanel.jsx";
+import { ScoringComparisonPanel } from "../components/ScoringComparisonPanel.jsx";
 import {
   Alert,
   Badge,
@@ -291,6 +292,10 @@ export default function DashboardPage() {
 
       {isPsychologist && <SpecialistClientsPanel />}
       {isPsychologist && <PsychologistInvitesPanel />}
+
+      {canViewSessions && (
+        <ScoringComparisonPanel sessions={filteredSessions} dateLocale={dateLocale} />
+      )}
 
       {canViewSessions && (
       <Card>

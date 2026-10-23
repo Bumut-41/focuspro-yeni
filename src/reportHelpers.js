@@ -17,6 +17,7 @@ import {
   getOverallRiskText,
   riskLabel
 } from "./metrics.js";
+import { computeMetricsV2 } from "./metricsV2.js";
 import { buildReportPhaseBuckets, logsForBucket } from "./report/phaseBuckets.js";
 import { normLevelFromZ, normLevelTextFromZ, normZScore } from "./reportNorms.js";
 
@@ -87,6 +88,37 @@ export function timelineForBucket(pressTimeline, bucket) {
 /** Katılımcı raporu — tek kaynak (UI, PDF, DB). */
 export function computeReportMetrics(logs, lateMs, metricOptions = null, age = null) {
   return computeDetailedMetrics(logs, lateMs, metricOptions, age);
+}
+
+/**
+ * V2 deneme metrikleri — V1 computeDetailedMetrics üzerine T/overall (ve ortak A/I/H) V2 ile yazılır.
+ * Faz grafikleri / klinik anlatım V1 yapısını kullanmaya devam edebilir; ana skorlar V2 olur.
+ */
+export function computeDetailedMetricsV2(logs, lateMs, metricOptions = null, age = null) {
+  const opts = normalizeMetricOptions(metricOptions, age);
+  const v1 = computeDetailedMetrics(logs, lateMs, opts, age);
+  const v2 = computeMetricsV2(logs, lateMs, opts.pressTimeline ?? []);
+  return {
+    ...v1,
+    attentionScore: v2.attentionScore,
+    impulseScore: v2.impulseScore,
+    speedScore: v2.speedScore,
+    consistencyScore: v2.consistencyScore,
+    overallScore: v2.overallScore,
+    timingOnTimeHit: null,
+    timingRtSpeed: v2.timingRtSpeed,
+    timingLateResponse: v2.timingLateResponse,
+    timingRtStability: v2.timingRtStability,
+    avgReaction: v2.meanRt ?? v1.avgReaction,
+    medianReaction: v2.medianRt ?? v1.medianReaction,
+    rtStd: v2.rtStd ?? v1.rtStd,
+    timingUnavailable: v2.timingUnavailable,
+    timingReason: v2.timingReason,
+    overallUnavailable: v2.overallUnavailable,
+    rushUnder150: v2.rushUnder150,
+    version: "v2",
+    flags: [...(v1.flags || []), ...(v2.flags || [])]
+  };
 }
 
 /** Genişletilmiş metrikler (d-prime, davranış sayımları, dört endeks). */
@@ -282,12 +314,13 @@ export function formatRate(v) {
 }
 
 export function getScores(m) {
+  const roundOrNull = (v) => (v == null || Number.isNaN(Number(v)) ? null : Math.round(Number(v)));
   return {
-    overall: Math.round(m.overallScore),
-    attention: Math.round(m.attentionScore),
-    timing: Math.round(m.speedScore),
-    impulsivity: Math.round(m.impulseScore),
-    hyperactivity: Math.round(m.consistencyScore)
+    overall: roundOrNull(m.overallScore),
+    attention: roundOrNull(m.attentionScore) ?? 0,
+    timing: roundOrNull(m.speedScore),
+    impulsivity: roundOrNull(m.impulseScore) ?? 0,
+    hyperactivity: roundOrNull(m.consistencyScore) ?? 0
   };
 }
 
@@ -312,6 +345,7 @@ export function getImpulsivityIndexText(score) {
 }
 
 export function getScoreColor(score) {
+  if (score == null || Number.isNaN(Number(score))) return "#64748b";
   const level = getLevel(score);
   if (level === 1) return "#0d9488";
   if (level === 2) return "#65a30d";
@@ -325,11 +359,15 @@ export function pseudoZScore(score) {
 }
 
 export function getGlobalIndexZScores(scores, profileKey) {
+  const zOrNull = (score, indexKey) =>
+    score == null || Number.isNaN(Number(score))
+      ? null
+      : normZScore(score, profileKey, "global", indexKey);
   return {
-    attention: normZScore(scores.attention, profileKey, "global", "attention"),
-    timing: normZScore(scores.timing, profileKey, "global", "timing"),
-    impulsivity: normZScore(scores.impulsivity, profileKey, "global", "impulsivity"),
-    hyperactivity: normZScore(scores.hyperactivity, profileKey, "global", "hyperactivity")
+    attention: zOrNull(scores.attention, "attention"),
+    timing: zOrNull(scores.timing, "timing"),
+    impulsivity: zOrNull(scores.impulsivity, "impulsivity"),
+    hyperactivity: zOrNull(scores.hyperactivity, "hyperactivity")
   };
 }
 

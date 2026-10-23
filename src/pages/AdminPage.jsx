@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { profileLabel } from "../i18n/index.js";
 import { AdminPressTimeline } from "../components/AdminPressTimeline.jsx";
+import { ScoringComparisonPanel } from "../components/ScoringComparisonPanel.jsx";
 import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession
@@ -1370,6 +1371,7 @@ export default function AdminPage() {
 
       {section === "/admin/testler" && (
       <>
+      <ScoringComparisonPanel sessions={filteredSessions} dateLocale={dateLocale} />
       <Card>
         <CardHeader
           title={t("admin.sessionsTitle", { count: filteredSessions.length })}
