@@ -11,6 +11,7 @@ import {
   downloadPressReportFromSession,
   sessionToParticipantReportArgs
 } from "../lib/adminSessionPdf.js";
+import { downloadPilotReportsFromSessionId } from "../lib/downloadPilotReports.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import { deliverSessionReport, formatReportEmailStatus, sendSessionReportEmail } from "../services/emailReport.js";
 import { getProfile } from "../profiles.js";
@@ -82,7 +83,7 @@ export default function DashboardPage() {
         await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
         return;
       }
-      // PDF yoksa: yeniden üret, sisteme kaydet, mail dene — sonra indir
+      // PDF yoksa: yeniden üret, sisteme kaydet — sonra indir
       const detail = await fetchSessionDetail(session.id);
       const timeline = await fetchAdminPressTimeline(session.id).catch(() => []);
       const ownerId = detail.owner_id;
@@ -121,6 +122,21 @@ export default function DashboardPage() {
       if (!delivery.ok) {
         setMsg(t("dashboard.reportGeneratePartial", { reason: delivery.code || "pdf_not_saved" }));
       }
+    } catch (e) {
+      if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
+      setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+
+  /** Eski oturumlar: V1 → V1/V2 karşılaştırma → V2 (logs’tan yeniden üretir). */
+  async function downloadPilotReportTrio(session) {
+    setPdfBusy(`${session.id}-pilot`);
+    setMsg("");
+    try {
+      await downloadPilotReportsFromSessionId(session.id, locale);
+      setMsg("V1 rapor → karşılaştırma → V2 rapor indirildi.");
     } catch (e) {
       if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
       setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
@@ -362,18 +378,29 @@ export default function DashboardPage() {
               {
                 label: t("dashboard.testReport"),
                 render: (s) => (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    disabled={pdfBusy === `${s.id}-test`}
-                    onClick={() => downloadTestReport(s)}
-                  >
-                    {pdfBusy === `${s.id}-test`
-                      ? "…"
-                      : s.pdf_path
-                        ? t("dashboard.downloadReport")
-                        : t("dashboard.generateReport")}
-                  </Button>
+                  <Stack gap={6} wrap>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      disabled={pdfBusy === `${s.id}-test` || pdfBusy === `${s.id}-pilot`}
+                      onClick={() => downloadTestReport(s)}
+                    >
+                      {pdfBusy === `${s.id}-test`
+                        ? "…"
+                        : s.pdf_path
+                          ? t("dashboard.downloadReport")
+                          : t("dashboard.generateReport")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      title="V1 rapor → V1/V2 karşılaştırma → V2 rapor"
+                      disabled={pdfBusy === `${s.id}-test` || pdfBusy === `${s.id}-pilot`}
+                      onClick={() => downloadPilotReportTrio(s)}
+                    >
+                      {pdfBusy === `${s.id}-pilot` ? "…" : "V1 + V2 (3 PDF)"}
+                    </Button>
+                  </Stack>
                 )
               },
               {

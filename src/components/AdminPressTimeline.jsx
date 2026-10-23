@@ -54,6 +54,7 @@ export function AdminPressTimeline({
   timeline,
   target,
   onDownloadTestPdf,
+  onDownloadPilotTrio,
   onDownloadPressPdf,
   pdfBusy = false
 }) {
