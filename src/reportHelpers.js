@@ -749,7 +749,7 @@ export function buildSmartComment(scores, metrics, profile) {
 export const INDEX_DEFINITIONS = [
   [
     "A — Dikkat",
-    "Hedef uyaranları doğru fark etme ve kaçırmadan yanıt verebilme becerisi."
+    "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi."
   ],
   [
     "T — Zamanlama",
@@ -757,11 +757,11 @@ export const INDEX_DEFINITIONS = [
   ],
   [
     "I — Dürtüsellik",
-    "Hedef dışı uyaranlara ve boş ekrana gereksiz yanıt vermeyi engelleyebilme becerisi."
+    "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi."
   ],
   [
     "H — Motor Yanıt Kontrolü",
-    "Aynı uyaran sırasında gereksiz ve tekrarlayan tuş basışlarını kontrol edebilme becerisi."
+    "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi."
   ],
   ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
 ];

@@ -178,11 +178,8 @@ export function computeTimingComponents(behaviors, onTimeRts, refRt) {
   let rtSpeed = 0;
   if (onTimeRts.length > 0) {
     const rtMean = mean(onTimeRts);
-    if (rtMean < TIMING_RUSH_MS) {
-      rtSpeed = 30;
-    } else {
-      rtSpeed = clamp((refRt / rtMean) * 100);
-    }
+    // Hedef (mavi üçgen) üzerinde hızlı basış T'de cezalandırılmaz; düşük RT → yüksek hız puanı (max 100).
+    rtSpeed = clamp((refRt / Math.max(rtMean, 1)) * 100);
   }
 
   const lateResponse = clamp(100 - safeDiv(late, targets) * 100);
@@ -348,8 +345,7 @@ export function computeMetrics(logs, lateMs, metricOptions = null, ageArg = null
   else if (indices.attention < 70) flags.push(m.flagAttentionLow);
   if (indices.timing < 70) flags.push(m.flagTiming);
   if (lateR >= 25) flags.push(m.flagLate);
-  const rushedHits = rts.filter((rt) => rt < TIMING_RUSH_MS).length;
-  if (behaviors.hits > 0 && rushedHits / behaviors.hits >= 0.25) flags.push(m.flagRush);
+  // Hedefte <150 ms basışlar T skoru / T bayrağı ile cezalandırılmaz (geçerlilik ayrı bakılabilir).
   if (rts.length >= 5 && refRt > 0 && rtStd / refRt >= 0.45) flags.push(m.flagVariability);
   if (indices.impulsivity < 60) flags.push(m.flagImpulseMarked);
   else if (indices.impulsivity < 75) flags.push(m.flagImpulseMild);

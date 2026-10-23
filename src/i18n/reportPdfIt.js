@@ -52,13 +52,13 @@ export const reportPdfIt = {
   timingFormula:
     "T = (In tempo {{onTime}}×0.40) + (TR {{rtSpeed}}×0.25) + (Tardive {{late}}×0.20) + (Stab. {{stability}}×0.15) = {{total}}",
   chartAttention: "Attenzione (A)",
-  chartAttentionDesc: "Capacità di rilevare correttamente gli stimoli target e rispondere senza ometterli.",
+  chartAttentionDesc: "Capacità di notare gli stimoli target e rispondere senza ometterli.",
   chartTiming: "Tempismo (T)",
   chartTimingDesc: "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante.",
   chartImpulsivity: "Impulsività (I)",
-  chartImpulsivityDesc: "Capacità di inibire risposte non necessarie a stimoli non target e allo schermo vuoto.",
+  chartImpulsivityDesc: "Capacità di inibire le prime risposte non necessarie agli stimoli non target.",
   chartHyperactivity: "Controllo della risposta motoria (H)",
-  chartHyperactivityDesc: "Capacità di controllare pressioni ripetute e non necessarie durante lo stesso stimolo.",
+  chartHyperactivityDesc: "Capacità di controllare pressioni inutili a schermo vuoto e pressioni ripetute durante lo stesso stimolo.",
   chartRadar: "Profilo di prestazione",
   chartRadarSubtitle: "Lo stesso punteggio totale può indicare un profilo diverso a seconda di come sono distribuite le aree.",
   chartCombined: "Quattro indici — Grafico per fase",
@@ -168,7 +168,7 @@ export const reportPdfIt = {
   indexes: {
     attention: {
       title: "A — ATTENZIONE",
-      definition: "Capacità di rilevare correttamente gli stimoli target e rispondere senza ometterli.",
+      definition: "Capacità di notare gli stimoli target e rispondere senza ometterli.",
       c90: "Il partecipante ha mostrato una prestazione solida nel rilevare i target e nel mantenere la concentrazione per tutto il compito. La prestazione attentiva è stata in genere mantenuta.",
       c80: "Il partecipante ha discriminato correttamente la maggior parte degli stimoli target e ha mantenuto l'attenzione per tutto il compito. Non è stata osservata una difficoltà attentiva marcata.",
       c70: "Il partecipante ha in genere mantenuto l'attenzione durante il compito, anche se in alcune sezioni alcuni target sono stati mancati.",
@@ -186,7 +186,7 @@ export const reportPdfIt = {
     },
     impulsivity: {
       title: "I — IMPULSIVITÀ",
-      definition: "Capacità di inibire risposte non necessarie a stimoli non target e allo schermo vuoto.",
+      definition: "Capacità di inibire le prime risposte non necessarie agli stimoli non target.",
       c90: "Il partecipante ha mantenuto in modo efficace il controllo della risposta rispetto agli stimoli non target.",
       c80: "Le risposte non necessarie sono rimaste a un livello basso per tutto il compito.",
       c70: "Sono state osservate occasionali risposte non necessarie agli stimoli non target.",
@@ -195,7 +195,7 @@ export const reportPdfIt = {
     },
     hyperactivity: {
       title: "H — CONTROLLO DELLA RISPOSTA MOTORIA",
-      definition: "Capacità di controllare pressioni ripetute e non necessarie durante lo stesso stimolo.",
+      definition: "Capacità di controllare pressioni inutili a schermo vuoto e pressioni ripetute durante lo stesso stimolo.",
       c90: "Il partecipante ha mantenuto risposte motorie controllate, senza uso non necessario del tasto.",
       c80: "La prestazione di controllo motorio è stata in genere mantenuta.",
       c70: "Sono state osservate occasionali risposte non necessarie o ripetute.",
@@ -286,10 +286,10 @@ export const reportPdfIt = {
       ["Linea di base - 2", "Prestazione continua — chiusura del test"]
     ],
     indexDefinitions: [
-      ["A — Attenzione", "Capacità di rilevare correttamente gli stimoli target e rispondere senza ometterli."],
+      ["A — Attenzione", "Capacità di notare gli stimoli target e rispondere senza ometterli."],
       ["T — Tempismo", "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante."],
-      ["I — Impulsività", "Capacità di inibire risposte non necessarie a stimoli non target e allo schermo vuoto."],
-      ["H — Controllo della risposta motoria", "Capacità di controllare pressioni ripetute e non necessarie durante lo stesso stimolo."],
+      ["I — Impulsività", "Capacità di inibire le prime risposte non necessarie agli stimoli non target."],
+      ["H — Controllo della risposta motoria", "Capacità di controllare pressioni inutili a schermo vuoto e pressioni ripetute durante lo stesso stimolo."],
       ["Punteggio complessivo", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
     ],
     normLevels: [

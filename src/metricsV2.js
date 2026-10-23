@@ -53,8 +53,9 @@ function percentile(sorted, p) {
 }
 
 /**
- * Zamanında + geçerli RT'ler (≥150 ms, ≤ lateMs).
- * 150 ms altı RT analizine girmez; geçerlilikte ayrıca sayılır.
+ * Zamanında + geçerli RT'ler (hedef isabet, ≤ lateMs).
+ * Hedef (mavi üçgen) üzerinde <150 ms basışlar T analizine dahildir ve cezalandırılmaz;
+ * yalnızca bilgilendirme için rushUnder150 sayılır.
  */
 export function collectValidOnTimeRts(logs, lateMs) {
   const allOnTime = [];
@@ -63,10 +64,7 @@ export function collectValidOnTimeRts(logs, lateMs) {
     if (!t.isTarget || !t.responded) continue;
     const rt = t.reactionTime;
     if (!(rt > 0) || rt > lateMs) continue;
-    if (rt < TIMING_RUSH_MS) {
-      rushUnder150.push(rt);
-      continue;
-    }
+    if (rt < TIMING_RUSH_MS) rushUnder150.push(rt);
     allOnTime.push(rt);
   }
   return { onTimeRts: allOnTime, rushUnder150 };
@@ -127,7 +125,8 @@ export function computeTimingComponentsV2(behaviors, onTimeRts) {
   const rtStd = stdDev(cleaned);
   const cv = rtMean > 0 ? rtStd / rtMean : null;
 
-  const rtSpeed = clamp(100 - Math.abs(med - V2_RT_CENTER_MS) / V2_RT_SPEED_DIVISOR);
+  // Yalnızca merkezden yavaş sapma cezalandırılır; hedefte hızlı basış cezası yok.
+  const rtSpeed = clamp(100 - Math.max(0, med - V2_RT_CENTER_MS) / V2_RT_SPEED_DIVISOR);
   const rtStability =
     cv == null || !Number.isFinite(cv) ? null : clamp(100 - V2_STABILITY_K * cv);
 
@@ -312,6 +311,7 @@ export function computeMetricsV2(logs, lateMs, pressTimeline = []) {
     outliersRemoved: indices.outliersRemoved,
     behaviors,
     version: "v2",
-    flags: indices.rushUnder150 > 0 ? [`Aşırı hızlı yanıt (<${TIMING_RUSH_MS} ms): ${indices.rushUnder150}`] : []
+    // Hedefte hızlı basış T bayrağı üretmez (bilgi: rushUnder150 alanı karşılaştırma paneline kalır).
+    flags: []
   };
 }

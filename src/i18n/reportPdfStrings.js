@@ -55,13 +55,13 @@ export const reportPdfStrings = {
     timingFormula:
       "T = (Zİ {{onTime}}×0.40) + (RT {{rtSpeed}}×0.25) + (Geç {{late}}×0.20) + (Stab. {{stability}}×0.15) = {{total}}",
     chartAttention: "Dikkat (A)",
-    chartAttentionDesc: "Hedef uyaranları doğru fark etme ve kaçırmadan yanıt verebilme becerisi.",
+    chartAttentionDesc: "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi.",
     chartTiming: "Zamanlama (T)",
     chartTimingDesc: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
     chartImpulsivity: "Dürtüsellik (I)",
-    chartImpulsivityDesc: "Hedef dışı uyaranlara ve boş ekrana gereksiz yanıt vermeyi engelleyebilme becerisi.",
+    chartImpulsivityDesc: "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi.",
     chartHyperactivity: "Motor Yanıt Kontrolü (H)",
-    chartHyperactivityDesc: "Aynı uyaran sırasında gereksiz ve tekrarlayan tuş basışlarını kontrol edebilme becerisi.",
+    chartHyperactivityDesc: "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi.",
     chartRadar: "Performans Profili",
     chartRadarSubtitle: "Aynı toplam puan, alanların dağılımına göre farklı bir profil anlamına gelir.",
     chartCombined: "Dört İndeks — Faz Grafiği",
@@ -170,7 +170,7 @@ export const reportPdfStrings = {
     indexes: {
       attention: {
         title: "A — DİKKAT",
-        definition: "Hedef uyaranları doğru fark etme ve kaçırmadan yanıt verebilme becerisi.",
+        definition: "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi.",
         c90: "Katılımcı hedef uyaranları fark etme ve görev boyunca odağını sürdürme konusunda güçlü bir performans göstermiştir. Test süresince dikkat performansı genel olarak korunmuştur.",
         c80: "Katılımcı hedef uyaranların büyük bölümünü doğru şekilde ayırt etmiş ve görev boyunca dikkatini sürdürebilmiştir. Belirgin dikkat güçlüğü izlenmemiştir.",
         c70: "Katılımcı görev boyunca genel olarak dikkatini koruyabilmiştir. Bununla birlikte bazı bölümlerde hedef uyaranların kaçırıldığı görülmüştür.",
@@ -188,7 +188,7 @@ export const reportPdfStrings = {
       },
       impulsivity: {
         title: "I — DÜRTÜSELLİK",
-        definition: "Hedef dışı uyaranlara ve boş ekrana gereksiz yanıt vermeyi engelleyebilme becerisi.",
+        definition: "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi.",
         c90: "Katılımcı hedef dışı uyaranlara karşı tepki kontrolünü etkili şekilde sürdürebilmiştir.",
         c80: "Görev boyunca gereksiz tepki verme eğilimi düşük düzeyde kalmıştır.",
         c70: "Hedef dışı uyaranlara zaman zaman gereksiz tepkiler verilmiştir.",
@@ -197,7 +197,7 @@ export const reportPdfStrings = {
       },
       hyperactivity: {
         title: "H — MOTOR YANIT KONTROLÜ",
-        definition: "Aynı uyaran sırasında gereksiz ve tekrarlayan tuş basışlarını kontrol edebilme becerisi.",
+        definition: "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi.",
         c90: "Katılımcı motor tepkilerini kontrollü şekilde sürdürmüş ve gereksiz tuş kullanımı göstermemiştir.",
         c80: "Motor kontrol performansı genel olarak korunmuştur.",
         c70: "Zaman zaman gereksiz veya tekrarlayıcı tepkiler gözlenmiştir.",
@@ -288,10 +288,10 @@ export const reportPdfStrings = {
         ["Temel - 2", "Sürekli performans — test kapanışı"]
       ],
       indexDefinitions: [
-        ["A — Dikkat", "Hedef uyaranları doğru fark etme ve kaçırmadan yanıt verebilme becerisi."],
+        ["A — Dikkat", "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi."],
         ["T — Zamanlama", "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi."],
-        ["I — Dürtüsellik", "Hedef dışı uyaranlara ve boş ekrana gereksiz yanıt vermeyi engelleyebilme becerisi."],
-        ["H — Motor Yanıt Kontrolü", "Aynı uyaran sırasında gereksiz ve tekrarlayan tuş basışlarını kontrol edebilme becerisi."],
+        ["I — Dürtüsellik", "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi."],
+        ["H — Motor Yanıt Kontrolü", "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi."],
         ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
       ],
       normLevels: [
@@ -393,13 +393,13 @@ export const reportPdfStrings = {
     timingFormula:
       "T = (On-time {{onTime}}×0.40) + (RT {{rtSpeed}}×0.25) + (Late {{late}}×0.20) + (Stab. {{stability}}×0.15) = {{total}}",
     chartAttention: "Attention (A)",
-    chartAttentionDesc: "Ability to correctly detect target stimuli and respond without missing them.",
+    chartAttentionDesc: "Ability to notice target stimuli and respond without missing them.",
     chartTiming: "Timing (T)",
     chartTimingDesc: "Ability to respond to targets correctly in a timely, fast, and consistent manner.",
     chartImpulsivity: "Impulsivity (I)",
-    chartImpulsivityDesc: "Ability to withhold unnecessary responses to non-targets and blank screens.",
+    chartImpulsivityDesc: "Ability to withhold unnecessary first responses to non-target stimuli.",
     chartHyperactivity: "Motor Response Control (H)",
-    chartHyperactivityDesc: "Ability to control unnecessary and repeated key presses during the same stimulus.",
+    chartHyperactivityDesc: "Ability to control unnecessary blank-screen presses and repeated key presses during the same stimulus.",
     chartRadar: "Performance profile",
     chartRadarSubtitle: "The same total score can mean a different profile depending on how the areas are distributed.",
     chartCombined: "Four Indices — Phase Chart",
@@ -508,7 +508,7 @@ export const reportPdfStrings = {
     indexes: {
       attention: {
         title: "A — ATTENTION",
-        definition: "Ability to correctly detect target stimuli and respond without missing them.",
+        definition: "Ability to notice target stimuli and respond without missing them.",
         c90: "The participant showed strong performance in detecting targets and sustaining focus throughout the task. Attention performance was generally maintained.",
         c80: "The participant correctly discriminated most target stimuli and maintained attention throughout the task. No marked attention difficulty was observed.",
         c70: "The participant generally maintained attention during the task, though some targets were missed in certain sections.",
@@ -526,7 +526,7 @@ export const reportPdfStrings = {
       },
       impulsivity: {
         title: "I — IMPULSIVITY",
-        definition: "Ability to withhold unnecessary responses to non-targets and blank screens.",
+        definition: "Ability to withhold unnecessary first responses to non-target stimuli.",
         c90: "The participant effectively maintained response control against non-target stimuli.",
         c80: "Unnecessary responding remained at a low level throughout the task.",
         c70: "Occasional unnecessary responses to non-target stimuli were observed.",
@@ -535,7 +535,7 @@ export const reportPdfStrings = {
       },
       hyperactivity: {
         title: "H — MOTOR RESPONSE CONTROL",
-        definition: "Ability to control unnecessary and repeated key presses during the same stimulus.",
+        definition: "Ability to control unnecessary blank-screen presses and repeated key presses during the same stimulus.",
         c90: "The participant maintained controlled motor responses with no unnecessary key use.",
         c80: "Motor control performance was generally maintained.",
         c70: "Occasional unnecessary or repetitive responses were observed.",
@@ -626,10 +626,10 @@ export const reportPdfStrings = {
         ["Baseline - 2", "Continuous performance — test closure"]
       ],
       indexDefinitions: [
-        ["A — Attention", "Ability to correctly detect target stimuli and respond without missing them."],
+        ["A — Attention", "Ability to notice target stimuli and respond without missing them."],
         ["T — Timing", "Ability to respond to targets correctly in a timely, fast, and consistent manner."],
-        ["I — Impulsivity", "Ability to withhold unnecessary responses to non-targets and blank screens."],
-        ["H — Motor Response Control", "Ability to control unnecessary and repeated key presses during the same stimulus."],
+        ["I — Impulsivity", "Ability to withhold unnecessary first responses to non-target stimuli."],
+        ["H — Motor Response Control", "Ability to control unnecessary blank-screen presses and repeated key presses during the same stimulus."],
         ["Overall score", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
       ],
       normLevels: [

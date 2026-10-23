@@ -15,7 +15,6 @@
 
 import {
   OVERALL_WEIGHTS,
-  TIMING_RUSH_MS,
   computeHyperactivityScore,
   countHyperMotorStats,
   countTrialBehaviors,
@@ -359,11 +358,9 @@ export function computeMetricsV3(logs, lateMs, pressTimeline = [], age = null) {
     behaviors,
     version: "v3",
     flags: [
-      ...(indices.rushUnder150 > 0
-        ? [`Aşırı hızlı yanıt (<${TIMING_RUSH_MS} ms): ${indices.rushUnder150}`]
-        : []),
       "V3: RT hız puanı yok (yaş normu oluşana kadar ham medyan RT gösterilir).",
-      `V3 stabilite K=${V3_STABILITY_K_EXPLORATORY} exploratory (doğrulanmış norm değil).`
+      `V3 stabilite K=${V3_STABILITY_K_EXPLORATORY} exploratory (doğrulanmış norm değil).`,
+      "V3: Hedef (mavi üçgen) üzerinde hızlı basış T'de cezalandırılmaz."
     ]
   };
 }
