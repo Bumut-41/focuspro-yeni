@@ -24,8 +24,10 @@ import {
   buildIndexClinicalComments,
   buildProfessionalNarrative,
   buildSustainabilityReport,
-  computeTestValidity
+  computeTestValidity,
+  DATA_QUALITY_SCORE_RULES
 } from "./report/reportClinical.js";
+import { describeRtFiltering } from "./metricsV2.js";
 import { normLevelTextFromZ } from "./reportNorms.js";
 import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { buildReportChartImages } from "./reportCharts.js";
@@ -169,6 +171,8 @@ function scoreBox(title, value) {
 }
 
 function indexSectionBlock(key, data, pdf, isFirst = false) {
+  const scoreText =
+    data.score == null || Number.isNaN(Number(data.score)) ? "—" : `${data.score}\u00A0/\u00A0100`;
   return [
     ...(isFirst ? [sectionTitle(pdf.mainIndexes)] : []),
     {
@@ -181,13 +185,14 @@ function indexSectionBlock(key, data, pdf, isFirst = false) {
     {
       columns: [
         {
-          width: 80,
+          width: 92,
           stack: [
             {
-              text: data.score == null || Number.isNaN(Number(data.score)) ? "—" : `${data.score}/100`,
-              fontSize: 22,
+              text: scoreText,
+              fontSize: 20,
               bold: true,
-              color: getScoreColor(data.score)
+              color: getScoreColor(data.score),
+              noWrap: true
             },
             { text: data.level, fontSize: 10, color: SUB, margin: [0, 4, 0, 0] }
           ]
@@ -200,6 +205,7 @@ function indexSectionBlock(key, data, pdf, isFirst = false) {
           ]
         }
       ],
+      columnGap: 10,
       margin: [0, 0, 0, 8]
     }
   ];
@@ -304,6 +310,33 @@ function clinicalFlagsSection(clinicalFlags, pdf) {
 
 function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion = "v1") {
   const pdf = getReportPdfStrings(locale);
+
+  // V4: doğrulanmamış Z / klinik norm karşılaştırması gösterilmez
+  if (scoringVersion === "v4") {
+    return [
+      {
+        text:
+          "Normatif Z-puanı karşılaştırması geçici olarak kaldırılmıştır (doğrulanmış örneklem normu yok). Sınıflamalar geçici algoritmiktir.",
+        fontSize: 8,
+        color: "#b45309",
+        margin: [0, 8, 0, 8]
+      },
+      {
+        ul: getIndexDefinitions(locale, scoringVersion).map(([t, d]) => ({
+          text: [{ text: `${t}: `, bold: true }, d],
+          fontSize: 8,
+          margin: [0, 2, 0, 0]
+        }))
+      },
+      {
+        text: pdf.algorithmCategoryNote || "",
+        fontSize: 8,
+        color: "#b45309",
+        margin: [0, 8, 0, 0]
+      }
+    ];
+  }
+
   const NORM_LEVELS = getNormLevels(locale);
   const z = getGlobalIndexZScores(scores, profileKey);
   const indices = [
@@ -365,7 +398,7 @@ function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion =
       margin: [0, 2, 0, 0]
     }))
   });
-  if (scoringVersion === "v3" || scoringVersion === "v4") {
+  if (scoringVersion === "v3") {
     blocks.push({
       text: pdf.algorithmCategoryNote || "",
       fontSize: 8,
@@ -465,16 +498,37 @@ export function buildDocDefinition({
 
   const distractor = buildDistractorAnalysisFriendly(logs, profile, age, pressTimeline, locale);
   const sustainability = buildSustainabilityReport(logs, profile, age, pressTimeline, locale);
-  const zGlobal = getGlobalIndexZScores(scores, profileKey);
+  const skipNormZ = isV4;
+  const zGlobal = skipNormZ ? null : getGlobalIndexZScores(scores, profileKey);
   const indexComments = buildIndexClinicalComments(scores, locale, zGlobal, {
     noSpeedTiming,
+    skipNormZ,
     metrics
   });
   const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale);
-  const executive = buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale, profileKey);
-  const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale, zGlobal);
+  const executive = buildExecutiveSummary(
+    scores,
+    metrics,
+    validity,
+    clinicalFlags,
+    distractor,
+    locale,
+    profileKey,
+    { skipNormZ }
+  );
+  const professional = buildProfessionalNarrative(
+    scores,
+    metrics,
+    validity,
+    distractor,
+    sustainability,
+    locale,
+    zGlobal
+  );
   const sections = getSectionSummaries(logs, profile, age, pressTimeline, locale);
   const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline, locale);
+  const rtFilter = describeRtFiltering(logs, profile.lateResponseMs);
+  const rtAppendix = getReportPdfStrings(locale).technical?.rtFilterAppendix;
 
   const chartBlocks = [];
   let chartFirst = true;
@@ -687,6 +741,39 @@ export function buildDocDefinition({
                         { text: pdf.consistencyWarnings + ":", bold: true, fontSize: 9, margin: [0, 8, 0, 4] },
                         ...validity.level3Consistency.map((w) => ({ text: "• " + w, fontSize: 8 }))
                       ]
+                    : []),
+                  ...(isV4
+                    ? [
+                        {
+                          text: "Teknik puan kuralları (başlangıç 100):",
+                          bold: true,
+                          fontSize: 8,
+                          margin: [0, 10, 0, 4]
+                        },
+                        ...DATA_QUALITY_SCORE_RULES.map((r) => ({
+                          text: `• ${r.tr} → ${r.delta}`,
+                          fontSize: 7,
+                          color: "#475569",
+                          margin: [0, 0, 0, 2]
+                        })),
+                        ...(validity.deductions?.length
+                          ? [
+                              {
+                                text: `Bu oturumda uygulanan düşümler: ${validity.deductions.join("; ") || "yok"}`,
+                                fontSize: 7,
+                                color: "#64748b",
+                                margin: [0, 4, 0, 0]
+                              }
+                            ]
+                          : [
+                              {
+                                text: "Bu oturumda puan düşümü uygulanmadı (100/100).",
+                                fontSize: 7,
+                                color: "#64748b",
+                                margin: [0, 4, 0, 0]
+                              }
+                            ])
+                      ]
                     : [])
                 ],
                 fillColor: validity.band.fill,
@@ -794,6 +881,48 @@ export function buildDocDefinition({
         color: SUB,
         margin: [0, 0, 0, 10]
       },
+      ...(rtAppendix
+        ? [
+            { text: rtAppendix.title, bold: true, fontSize: 10, color: HEADER, margin: [0, 4, 0, 4] },
+            { text: rtAppendix.intro, fontSize: 8, color: SUB, margin: [0, 0, 0, 4] },
+            { text: rtAppendix.iqr, fontSize: 8, color: SUB, margin: [0, 0, 0, 4] },
+            {
+              text: fillTemplate(rtAppendix.summary, {
+                raw: rtFilter.rawN,
+                cleaned: rtFilter.cleanedN,
+                outliers: rtFilter.outliersRemoved,
+                lateMs: rtFilter.lateMs,
+                rush: rtFilter.rushUnder150
+              }),
+              fontSize: 8,
+              color: "#0f172a",
+              margin: [0, 0, 0, 4]
+            },
+            ...(rtFilter.outlierValues?.length
+              ? [
+                  {
+                    text: `Dışlanan aykırı RT örnekleri (ms): ${rtFilter.outlierValues.join(", ")}${
+                      rtFilter.outliersRemoved > rtFilter.outlierValues.length ? "…" : ""
+                    }${
+                      rtFilter.bounds
+                        ? ` · IQR bandı ≈ [${rtFilter.bounds.lo}, ${rtFilter.bounds.hi}]`
+                        : ""
+                    }`,
+                    fontSize: 7,
+                    color: "#64748b",
+                    margin: [0, 0, 0, 4]
+                  }
+                ]
+              : []),
+            {
+              ul: rtFilter.rules,
+              fontSize: 7,
+              color: SUB,
+              margin: [0, 0, 0, 4]
+            },
+            { text: rtAppendix.note, fontSize: 7, color: "#b45309", margin: [0, 0, 0, 10] }
+          ]
+        : []),
       {
         table: {
           headerRows: 1,

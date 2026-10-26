@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { getProfile } from "../profiles.js";
 import { buildScoreComparison, formatScoreCell, timingUnavailableLabel } from "../scoreComparison.js";
 import { downloadV1ComparisonV2Reports } from "../lib/downloadPilotReports.js";
+import { DATA_QUALITY_SCORE_RULES } from "../report/reportClinical.js";
 import { fetchAdminPressTimeline, fetchSessionDetail } from "../services/sessions.js";
 import { Alert, Button, Card, CardHeader, Stack } from "./ui.jsx";
 
@@ -128,11 +129,45 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
     }
   }, []);
 
+  const pilotStats = useMemo(() => {
+    const ok = rows.filter((r) => !r.error && r.v4);
+    const cvs = ok.map((r) => r.v4?.cv).filter((v) => v != null && Number.isFinite(Number(v))).map(Number);
+    const ts = ok
+      .map((r) => r.v4?.timing)
+      .filter((v) => v != null && Number.isFinite(Number(v)))
+      .map(Number);
+    const mean = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : null);
+    const sorted = (a) => [...a].sort((x, y) => x - y);
+    const pct = (a, p) => {
+      if (!a.length) return null;
+      const s = sorted(a);
+      const i = (p / 100) * (s.length - 1);
+      const lo = Math.floor(i);
+      const hi = Math.ceil(i);
+      return lo === hi ? s[lo] : s[lo] * (1 - (i - lo)) + s[hi] * (i - lo);
+    };
+    return {
+      n: ok.length,
+      cvMean: mean(cvs),
+      cvP25: pct(cvs, 25),
+      cvP50: pct(cvs, 50),
+      cvP75: pct(cvs, 75),
+      tMean: mean(ts),
+      tP25: pct(ts, 25),
+      tP50: pct(ts, 50),
+      tP75: pct(ts, 75),
+      tMin: ts.length ? Math.min(...ts) : null,
+      tMax: ts.length ? Math.max(...ts) : null
+    };
+  }, [rows]);
+
+  const fmt = (v, d = 3) => (v == null || Number.isNaN(v) ? "—" : Number(v).toFixed(d));
+
   return (
     <Card>
       <CardHeader
         title="V1 / V2 / V3 / V4 skor karşılaştırma (pilot)"
-        description="V1 resmi. V2: 450 ms hız (pilot). V3/V4 skor aynı (hız yok; CV K=100 exploratory). V4 farkı: rapor dili, faz sırası, oturum veri kalitesi. I/H aynı. 77/85/94/99 civarı vurgulanır."
+        description="V1–V3 hesapları saklanır. Raporlama V4 üzerinden (skor=V3). Yeni puanlama modeli (V5+) yok. CV K=100 exploratory. 77/85/94/99 civarı vurgulanır."
         action={
           <Stack gap={8} wrap>
             <label style={{ fontSize: "0.8125rem", display: "flex", alignItems: "center", gap: 6 }}>
@@ -149,7 +184,51 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
           </Stack>
         }
       />
+      <details style={{ margin: "8px 0 12px", fontSize: "0.8125rem", color: "var(--fp-text-muted)" }}>
+        <summary style={{ cursor: "pointer", fontWeight: 600, color: "var(--fp-text)" }}>
+          Veri kalitesi 100/100 — teknik puan kuralları
+        </summary>
+        <p style={{ margin: "8px 0 4px" }}>Başlangıç 100. Uygulanan düşümler:</p>
+        <ul style={{ margin: 0, paddingLeft: 18 }}>
+          {DATA_QUALITY_SCORE_RULES.map((r) => (
+            <li key={r.id}>
+              {r.tr} → <strong>{r.delta}</strong>
+            </li>
+          ))}
+        </ul>
+        <p style={{ margin: "8px 0 0" }}>
+          V4’te hızlı hedef basışı tek başına kritik geçersizlik sayılmaz; sayısal düşüm yine uygulanabilir. Bu endeks
+          normatif klinik uygunluk iddiası değildir.
+        </p>
+      </details>
       {msg && <Alert variant="info">{msg}</Alert>}
+      {rows.length > 0 && pilotStats.n > 0 && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: "10px 12px",
+            background: "var(--fp-surface-2, #f8fafc)",
+            borderRadius: 8,
+            fontSize: "0.8125rem"
+          }}
+        >
+          <strong>V4 pilot dağılım (n={pilotStats.n})</strong>
+          <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
+            <div>
+              CV — ort {fmt(pilotStats.cvMean, 4)} · P25 {fmt(pilotStats.cvP25, 4)} · P50 {fmt(pilotStats.cvP50, 4)} ·
+              P75 {fmt(pilotStats.cvP75, 4)}
+            </div>
+            <div>
+              T V4 — ort {fmt(pilotStats.tMean, 1)} · P25 {fmt(pilotStats.tP25, 1)} · P50 {fmt(pilotStats.tP50, 1)} ·
+              P75 {fmt(pilotStats.tP75, 1)} · min {fmt(pilotStats.tMin, 0)} · max {fmt(pilotStats.tMax, 0)}
+            </div>
+            <div style={{ color: "var(--fp-text-muted)", fontSize: "0.75rem" }}>
+              Exploratory: ayırt edicilik / test–tekrar / yaş farkı için örneklem genişletilmeli; skor algoritması henüz
+              kesinleştirilmedi.
+            </div>
+          </div>
+        </div>
+      )}
       {rows.length > 0 && (
         <div style={{ overflowX: "auto" }}>
           <table className="fp-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.75rem" }}>

@@ -82,6 +82,46 @@ export function removeRtOutliersIqr(rts) {
   return rts.filter((r) => r >= lo && r <= hi);
 }
 
+/** Teknik ek: hangi RT’ler dahil / IQR ile dışlandı. */
+export function describeRtFiltering(logs, lateMs) {
+  const { onTimeRts, rushUnder150 } = collectValidOnTimeRts(logs, lateMs);
+  let bounds = null;
+  let removed = [];
+  if (onTimeRts.length >= 4) {
+    const sorted = [...onTimeRts].sort((x, y) => x - y);
+    const q1 = percentile(sorted, 25);
+    const q3 = percentile(sorted, 75);
+    const iqr = q3 - q1;
+    const lo = q1 - 1.5 * iqr;
+    const hi = q3 + 1.5 * iqr;
+    bounds = { lo: Math.round(lo), hi: Math.round(hi), q1: Math.round(q1), q3: Math.round(q3) };
+    removed = onTimeRts.filter((r) => r < lo || r > hi);
+  }
+  const cleaned = removeRtOutliersIqr(onTimeRts);
+  const lateExcluded = logs.filter(
+    (t) => t.isTarget && t.responded && t.reactionTime > lateMs
+  ).length;
+  const omissions = logs.filter((t) => t.isTarget && !t.responded).length;
+  return {
+    lateMs,
+    rawN: onTimeRts.length,
+    cleanedN: cleaned.length,
+    outliersRemoved: removed.length,
+    outlierValues: removed.slice(0, 12).map((r) => Math.round(r)),
+    bounds,
+    rushUnder150: rushUnder150.length,
+    lateExcluded,
+    omissions,
+    rules: [
+      "Yalnızca hedef isabet + RT > 0 + RT ≤ lateMs (zamanında)",
+      "İhmal (yanıtsız hedef) medyan/CV örneğine dahil edilmez",
+      "Geç yanıt (RT > lateMs) medyan/CV örneğine dahil edilmez; T’de geç bileşeninde puanlanır",
+      "1,5×IQR dışı aykırılar medyan/CV’den çıkarılır (N<4 ise uygulanmaz)",
+      "<150 ms hedef basış T hız cezası almaz (V3/V4’te hız puanı yok); sayım bilgi amaçlıdır"
+    ]
+  };
+}
+
 /**
  * V2 T alt bileşenleri.
  * Zİ (zamanında isabet oranı) T'de yok — A zaten ihmal üzerinden ölçülüyor.

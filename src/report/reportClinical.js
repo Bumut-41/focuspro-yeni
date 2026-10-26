@@ -2,14 +2,24 @@ import {
   computeDetailedMetrics,
   computeSustainabilityIndex,
   formatDurationSeconds,
-  getScores
+  getScores,
+  scoresForPhaseBucket
 } from "../reportHelpers.js";
 import { buildReportPhaseBuckets, logsForBucket } from "./phaseBuckets.js";
+import { distractorLevelFromScores } from "./phaseComments.js";
 import { getOverallRiskText, riskLabel } from "../metrics.js";
 import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
 import { normLevelFromZ, normZScore } from "../reportNorms.js";
-import { CLINICAL_THRESHOLDS, DISTRACTOR_DROP, TIERS, distractorImpactLevel } from "./scoreTiers.js";
-import { timelineForLogs } from "./timelineFilter.js";
+import { CLINICAL_THRESHOLDS, TIERS } from "./scoreTiers.js";
+
+/** Veri kalitesi 100/100 puan düşüm kuralları (yönetici paneli + teknik ek). */
+export const DATA_QUALITY_SCORE_RULES = [
+  { id: "fast_rt", delta: -40, tr: "Ortalama RT < 150 ms veya hedef isabetlerin ≥%25’i <150 ms" },
+  { id: "omission", delta: -20, tr: "İhmal oranı > %40" },
+  { id: "multi", delta: -15, tr: "Çoklu basış oranı > %20" },
+  { id: "rt_sd_low", delta: -15, tr: "RT SD < 20 ms (≥5 hedef isabet)" },
+  { id: "commission", delta: -10, tr: "Commission (hedef dışı ilk tepki) > %25" }
+];
 
 function clamp(x, a = 0, b = 100) {
   return Math.max(a, Math.min(b, x));
@@ -17,10 +27,6 @@ function clamp(x, a = 0, b = 100) {
 
 function mean(a) {
   return a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
-}
-
-function phaseLogs(logs, matcher) {
-  return logs.filter((t) => matcher((t.section || "").toLowerCase()));
 }
 
 export function indexLevelLabel(score, locale = "tr") {
@@ -376,62 +382,60 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
   };
 }
 
-function distractorPhaseScore(logs, profile, age, pressTimeline, matcher, locale) {
-  const list = phaseLogs(logs, matcher);
-  if (!list.length) return null;
-  const late = profile.lateResponseMs;
-  const tl = timelineForLogs(pressTimeline, list);
-  return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }));
-}
-
-/** Görsel / işitsel / kombine — anlaşılır çeldirici analizi. */
+/** Görsel / işitsel / kombine — faz kovalarıyla aynı ham veri (sayfa 9 ile çelişmesin). */
 export function buildDistractorAnalysisFriendly(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const D = getReportPdfStrings(locale).distractor;
-  const baseline = distractorPhaseScore(
-    logs,
-    profile,
-    age,
-    pressTimeline,
-    (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses"),
-    locale
-  );
+  const buckets = buildReportPhaseBuckets(profile, locale);
+  const byKind = (kind) => buckets.find((b) => b.kind === kind);
+  const baseline = scoresForPhaseBucket(logs, profile, byKind("temel"), age, pressTimeline, locale);
   const types = [
-    { key: "visual", title: D.visual, scores: distractorPhaseScore(logs, profile, age, pressTimeline, (s) => s.includes("sessiz gif") && !s.includes("sesli"), locale) },
-    { key: "auditory", title: D.auditory, scores: distractorPhaseScore(logs, profile, age, pressTimeline, (s) => s.includes("sadece ses"), locale) },
-    {
-      key: "combined",
-      title: D.combined,
-      scores: distractorPhaseScore(
-        logs,
-        profile,
-        age,
-        pressTimeline,
-        (s) => s.includes("sessiz + sesli") || s.includes("sesli gif"),
-        locale
-      )
-    }
+    { key: "visual", title: D.visual, scores: scoresForPhaseBucket(logs, profile, byKind("gorsel"), age, pressTimeline, locale) },
+    { key: "auditory", title: D.auditory, scores: scoresForPhaseBucket(logs, profile, byKind("isitsel"), age, pressTimeline, locale) },
+    { key: "combined", title: D.combined, scores: scoresForPhaseBucket(logs, profile, byKind("kombine"), age, pressTimeline, locale) }
   ];
 
   const analyze = (title, distScores, key) => {
     if (!distScores || !baseline) {
       return { title, level: "gray", emoji: "—", label: D.noData, comment: D.noDataComment };
     }
-    const baseOverall = baseline.overall;
-    const distOverall = distScores.overall;
-    const drop = baseOverall - distOverall;
-    const level = distractorImpactLevel(drop);
+    const { level, weak, maxDrop } = distractorLevelFromScores(baseline, distScores);
 
-    if (drop <= DISTRACTOR_DROP.none) {
+    if (level === "green") {
       const comment = key === "visual" ? D.visualOk : key === "auditory" ? D.auditoryOk : D.combinedOk;
-      return { title, level: "green", emoji: "🟢", label: D.preserved, comment };
+      return { title, level: "green", emoji: "🟢", label: D.preserved, comment, maxDrop, weak };
     }
     if (level === "yellow") {
-      return { title, level: "yellow", emoji: "🟡", label: D.mild, comment: fillTemplate(D.mildComment, { title }) };
+      const weakNote = weak.length ? ` (zayıf: ${weak.map((w) => `${w.label}=${w.score}`).join(", ")})` : "";
+      return {
+        title,
+        level: "yellow",
+        emoji: "🟡",
+        label: D.mild,
+        comment: fillTemplate(D.mildComment, { title }) + weakNote,
+        maxDrop,
+        weak
+      };
     }
     if (level === "orange") {
-      return { title, level: "orange", emoji: "🟠", label: D.moderate, comment: fillTemplate(D.moderateComment, { title }) };
+      return {
+        title,
+        level: "orange",
+        emoji: "🟠",
+        label: D.moderate,
+        comment: fillTemplate(D.moderateComment, { title }),
+        maxDrop,
+        weak
+      };
     }
-    return { title, level: "red", emoji: "🔴", label: D.marked, comment: fillTemplate(D.markedComment, { title }) };
+    return {
+      title,
+      level: "red",
+      emoji: "🔴",
+      label: D.marked,
+      comment: fillTemplate(D.markedComment, { title }),
+      maxDrop,
+      weak
+    };
   };
 
   const items = types.map((t) => analyze(t.title, t.scores, t.key));
@@ -451,9 +455,33 @@ export function buildSustainabilityReport(logs, profile, age = null, pressTimeli
   return { ...sust, comment };
 }
 
+function hyperactivityCommentFromPresses(block, score, metrics) {
+  const idle = Number(metrics?.idlePresses ?? 0);
+  const multi =
+    Number(metrics?.multiPresses ?? 0) ||
+    Number(metrics?.extraPresses ?? 0) ||
+    (Number(metrics?.multiPressRate ?? 0) > 0 ? 1 : 0);
+  const hasExtra = idle > 0 || multi > 0;
+  let comment = indexComment(block, score);
+  if (hasExtra) {
+    if (score >= TIERS.veryGood && block.c90limited) comment = block.c90limited;
+    else if (score >= TIERS.good && block.c80limited) comment = block.c80limited;
+    else if (score >= TIERS.good) {
+      comment =
+        "Motor kontrol kabul edilebilir düzeydedir; sınırlı sayıda gereksiz basış gözlenmiştir.";
+    }
+    const counts = ` (boş ekran: ${idle}, mükerrer/ekstra: ${multi})`;
+    if (!comment.includes("boş ekran")) comment = `${comment}${counts}`;
+  } else if (score >= TIERS.good) {
+    comment = block.c90 || comment;
+  }
+  return comment;
+}
+
 export function buildIndexClinicalComments(scores, locale = "tr", z = null, options = {}) {
   const I = getReportPdfStrings(locale).indexes;
   const noSpeed = Boolean(options?.noSpeedTiming);
+  const skipNormZ = Boolean(options?.skipNormZ);
   const metrics = options?.metrics || null;
   const mk = (key, score) => {
     const definition =
@@ -473,8 +501,13 @@ export function buildIndexClinicalComments(scores, locale = "tr", z = null, opti
       };
     }
     const zv = z?.[key];
-    const useNorm = zv != null && Number.isFinite(zv);
-    let comment = useNorm ? commentForNormZ(I[key], zv) : indexComment(I[key], score);
+    const useNorm = !skipNormZ && zv != null && Number.isFinite(zv);
+    let comment;
+    if (key === "hyperactivity" && metrics) {
+      comment = hyperactivityCommentFromPresses(I[key], score, metrics);
+    } else {
+      comment = useNorm ? commentForNormZ(I[key], zv) : indexComment(I[key], score);
+    }
     if (key === "timing" && noSpeed && metrics) {
       const stab = metrics.timingRtStability;
       const late = metrics.timingLateResponse;
@@ -532,13 +565,23 @@ export function buildClinicalFlags(scores, metrics, validity, distractor, sustai
   return flags;
 }
 
-export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale = "tr", profileKey = "adult") {
+export function buildExecutiveSummary(
+  scores,
+  metrics,
+  validity,
+  clinicalFlags,
+  distractor,
+  locale = "tr",
+  profileKey = "adult",
+  options = {}
+) {
   const St = getReportPdfStrings(locale).strengths;
   const risk =
     scores.overall == null || Number.isNaN(Number(scores.overall))
       ? "Genel skor üretilemedi"
       : getOverallRiskText(scores.overall, locale);
-  const z = globalIndexZ(scores, profileKey);
+  const skipNormZ = Boolean(options?.skipNormZ);
+  const z = skipNormZ ? null : globalIndexZ(scores, profileKey);
 
   const strengths = [];
   const weaknesses = [];
@@ -549,7 +592,13 @@ export function buildExecutiveSummary(scores, metrics, validity, clinicalFlags, 
     ["hyperactivity", scores.hyperactivity, St.motor]
   ];
   for (const [key, score, label] of fields) {
-    if (score == null || Number.isNaN(Number(score)) || z[key] == null) continue;
+    if (score == null || Number.isNaN(Number(score))) continue;
+    if (skipNormZ) {
+      if (score >= CLINICAL_THRESHOLDS.strength) strengths.push(label);
+      if (score < CLINICAL_THRESHOLDS.weakness) weaknesses.push(label);
+      continue;
+    }
+    if (z?.[key] == null) continue;
     const level = normLevelFromZ(z[key]);
     if (level <= 2 && score >= CLINICAL_THRESHOLDS.strength) strengths.push(label);
     if (level >= 4) weaknesses.push(label);

@@ -313,7 +313,7 @@ export function computeMetricsV3(logs, lateMs, pressTimeline = [], age = null) {
   const behaviors = countTrialBehaviors(logs, lateMs);
   const indices = computeIndexScoresV3(behaviors, logs, pressTimeline, lateMs, age);
   const hyperMotor = countHyperMotorStats(logs, pressTimeline);
-  const idlePresses = pressTimeline.filter((p) => p.errorType === "idle").length;
+  const idlePresses = hyperMotor.idlePresses;
 
   return {
     totalTrials: behaviors.totalTrials,
@@ -328,6 +328,8 @@ export function computeMetricsV3(logs, lateMs, pressTimeline = [], age = null) {
     falseAlarmRate: safeDiv(behaviors.falseAlarms, behaviors.nonTargets) * 100,
     lateRate: safeDiv(behaviors.late, behaviors.targets) * 100,
     multiPressRate: hyperMotor.multiTrialRate,
+    multiPresses: hyperMotor.multiPresses,
+    extraPresses: hyperMotor.extraPresses,
     idlePresses,
     attentionScore: indices.attention,
     impulseScore: indices.impulsivity,

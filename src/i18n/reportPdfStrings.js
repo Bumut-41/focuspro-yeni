@@ -217,7 +217,11 @@ export const reportPdfStrings = {
         title: "H — MOTOR YANIT KONTROLÜ",
         definition: "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi.",
         c90: "Katılımcı motor tepkilerini kontrollü şekilde sürdürmüş ve gereksiz tuş kullanımı göstermemiştir.",
+        c90limited:
+          "Motor kontrol genel olarak iyidir; bununla birlikte sınırlı sayıda gereksiz basış (boş ekran veya mükerrer tuş) gözlenmiştir.",
         c80: "Motor kontrol performansı genel olarak korunmuştur.",
+        c80limited:
+          "Motor kontrol kabul edilebilir düzeydedir; sınırlı sayıda gereksiz basış gözlenmiştir.",
         c70: "Zaman zaman gereksiz veya tekrarlayıcı tepkiler gözlenmiştir.",
         c60: "Görev boyunca mükerrer ve gereksiz tepkilerde artış izlenmiştir.",
         cLow: "Motor tepkileri düzenleme alanında belirgin güçlük gözlenmiştir. Görev sırasında sık tekrarlayıcı ve yönerge dışı tepkiler verilmiştir."
@@ -355,13 +359,46 @@ export const reportPdfStrings = {
         partialData: "Kısmi veri (erken faz)"
       },
       phaseComments: {
-        good: "Performans bu fazda genel olarak korunmuştur.",
+        good: "Bu fazda A/T/I/H alt endeksleri yeterli düzeydedir; başlangıca göre belirgin düşüş izlenmemiştir.",
         average: "Bu fazda performans kabul edilebilir düzeydedir.",
+        weak:
+          "Genel puan yüksek görünse bile alt endekslerde zayıflık vardır ({{indices}}). Performansın tüm alanlarda korunduğu söylenemez.",
+        weakWithDrop:
+          "Alt endekslerde zayıflık ({{indices}}) ve başlangıca göre düşüş ({{drops}}) gözlenmiştir.",
+        mildDrop: "Başlangıç bölümüne göre sınırlı düşüş izlenmiştir ({{drops}}).",
+        markedDrop: "Başlangıç bölümüne göre belirgin düşüş izlenmiştir ({{drops}}).",
+        combinedOk: "Kombine çeldirici fazında A/T/I/H yeterli düzeyde korunmuştur.",
+        visualOk: "Görsel çeldirici fazında A/T/I/H yeterli düzeyde korunmuştur.",
+        auditoryOk: "İşitsel çeldirici fazında A/T/I/H yeterli düzeyde korunmuştur.",
+        closingOk: "Kapanış fazında A/T/I/H yeterli düzeyde korunmuştur.",
         combined: "Birleşik çeldiriciler altında dikkat ve dürtü kontrolü zorlanmış olabilir.",
         visual: "Görsel çeldiriciler altında dikkat performansı etkilenmiş olabilir.",
         auditory: "İşitsel çeldiriciler altında performans etkilenmiş olabilir.",
         fatigue: "Testin son bölümünde yorgunluk etkisi görülebilir.",
-        default: "Bu fazda performansta düşüş izlenmiştir."
+        default: "Bu fazda alt endekslerde performans düşüşü veya zayıflık izlenmiştir."
+      },
+      rtFilterAppendix: {
+        title: "RT filtreleme (teknik)",
+        intro:
+          "Zamanlama (T) için medyan RT, ortalama, SD ve CV yalnızca hedef isabetlerinde, geç eşiği (≤ lateMs) içindeki tepki sürelerinden hesaplanır. İhmal ve geç yanıtlar bu örneğe dahil edilmez (geç yanıt ayrı bileşende puanlanır).",
+        iqr:
+          "Aykırı değer temizliği: 1,5×IQR kuralı. Q1−1,5×IQR altı veya Q3+1,5×IQR üstü RT’ler medyan/CV hesabından çıkarılır (N<4 ise temizleme uygulanmaz).",
+        summary:
+          "Ham geçerli RT: {{raw}} · IQR sonrası: {{cleaned}} · Dışlanan aykırı: {{outliers}} · Geç eşiği: {{lateMs}} ms · <150 ms hedef basış (bilgi): {{rush}}",
+        note:
+          "Bu filtreleme skorlama teknik adımıdır; klinik norm dışı bırakma değildir. V3/V4’te hız puanı yoktur."
+      },
+      dataQualityRules: {
+        title: "Veri kalitesi endeksi (0–100) — teknik kurallar",
+        start: "Başlangıç puanı 100.",
+        rules: [
+          "Ortalama RT < 150 ms veya hedef isabetlerin ≥%25’i <150 ms → −40",
+          "İhmal oranı > %40 → −20",
+          "Çoklu basış oranı > %20 → −15",
+          "RT SD < 20 ms (≥5 hedef isabet) → −15",
+          "Commission (hedef dışı ilk tepki) > %25 → −10",
+          "Puan 0–100 aralığına sıkıştırılır. V4’te hızlı hedef basışı tek başına kritik geçersizlik sayılmaz; skor düşümü yine uygulanabilir."
+        ]
       }
     }
   },
@@ -562,7 +599,11 @@ export const reportPdfStrings = {
         title: "H — MOTOR RESPONSE CONTROL",
         definition: "Ability to control unnecessary blank-screen presses and repeated key presses during the same stimulus.",
         c90: "The participant maintained controlled motor responses with no unnecessary key use.",
+        c90limited:
+          "Motor control is generally good; however, a limited number of unnecessary presses (blank screen or repeats) were observed.",
         c80: "Motor control performance was generally maintained.",
+        c80limited:
+          "Motor control is acceptable; a limited number of unnecessary presses were observed.",
         c70: "Occasional unnecessary or repetitive responses were observed.",
         c60: "An increase in repeated and unnecessary responses was observed during the task.",
         cLow: "Marked difficulty in regulating motor responses was observed, with frequent repetitive and off-task presses."
@@ -693,13 +734,45 @@ export const reportPdfStrings = {
         partialData: "Partial data (early phase)"
       },
       phaseComments: {
-        good: "Performance was generally maintained in this phase.",
+        good: "A/T/I/H sub-indices are adequate in this phase; no marked drop vs baseline.",
         average: "Performance was at an acceptable level in this phase.",
+        weak:
+          "Even if overall looks high, sub-indices are weak ({{indices}}). Performance was not preserved across all domains.",
+        weakWithDrop:
+          "Weak sub-indices ({{indices}}) and drops vs baseline ({{drops}}) were observed.",
+        mildDrop: "A limited drop vs baseline was observed ({{drops}}).",
+        markedDrop: "A marked drop vs baseline was observed ({{drops}}).",
+        combinedOk: "A/T/I/H remained adequate under combined distractors.",
+        visualOk: "A/T/I/H remained adequate under visual distractors.",
+        auditoryOk: "A/T/I/H remained adequate under auditory distractors.",
+        closingOk: "A/T/I/H remained adequate in the closing phase.",
         combined: "Attention and impulse control may have been strained under combined distractors.",
         visual: "Attention performance may have been affected under visual distractors.",
         auditory: "Performance may have been affected under auditory distractors.",
         fatigue: "Fatigue effects may be seen in the final section of the test.",
-        default: "A performance decline was observed in this phase."
+        default: "A sub-index weakness or performance decline was observed in this phase."
+      },
+      rtFilterAppendix: {
+        title: "RT filtering (technical)",
+        intro:
+          "Median RT, mean, SD and CV for timing (T) use only on-time target hits (RT ≤ lateMs). Omissions and late responses are excluded from this sample (late is scored separately).",
+        iqr:
+          "Outlier cleaning: 1.5×IQR. RTs below Q1−1.5×IQR or above Q3+1.5×IQR are removed from median/CV (no cleaning if N<4).",
+        summary:
+          "Raw valid RT: {{raw}} · After IQR: {{cleaned}} · Outliers removed: {{outliers}} · Late threshold: {{lateMs}} ms · <150 ms target presses (info): {{rush}}",
+        note: "This is a scoring technical step, not clinical exclusion. V3/V4 have no speed score."
+      },
+      dataQualityRules: {
+        title: "Data quality index (0–100) — technical rules",
+        start: "Starting score 100.",
+        rules: [
+          "Mean RT < 150 ms or ≥25% of target hits <150 ms → −40",
+          "Omission rate > 40% → −20",
+          "Multi-press rate > 20% → −15",
+          "RT SD < 20 ms (≥5 target hits) → −15",
+          "Commission > 25% → −10",
+          "Clamped to 0–100. In V4, fast target presses alone are not critical invalidity; score deduction may still apply."
+        ]
       }
     }
   },
@@ -785,24 +858,32 @@ export function getSeverityLevels(locale = "tr") {
   }));
 }
 
-export function getPhaseComment(sectionName, scores, locale = "tr") {
+/** @deprecated Use buildPhaseComment from report/phaseComments.js (avoids circular import). */
+export function getPhaseComment(sectionName, scores, locale = "tr", ctx = {}) {
   const P = getReportPdfStrings(locale).technical.phaseComments;
   const overall = typeof scores === "number" ? scores : scores?.overall ?? 0;
-  const attention = typeof scores === "object" ? scores.attention ?? overall : overall;
-  const timing = typeof scores === "object" ? scores.timing ?? overall : overall;
-  const impulsivity = typeof scores === "object" ? scores.impulsivity ?? overall : overall;
-  const hyperactivity = typeof scores === "object" ? scores.hyperactivity ?? overall : overall;
-
-  if (attention >= 75 && timing >= 70 && impulsivity >= 60 && hyperactivity >= 60) return P.good;
-  if (overall >= 75) return P.good;
-  if (attention >= 65 && timing >= 65 && impulsivity >= 60 && hyperactivity >= 55) return P.average;
-
-  const s = sectionName.toLowerCase();
-  if (s.includes("sessiz + sesli") || s.includes("sesli gif")) return P.combined;
-  if (s.includes("sessiz gif")) return P.visual;
-  if (s.includes("sadece ses")) return P.auditory;
-  if (/11–|12–|13–|14–|15–|11-|12-|13-|14-|15-/.test(s)) return P.fatigue;
-  return P.default;
+  const attention = typeof scores === "object" ? scores?.attention ?? overall : overall;
+  const timing = typeof scores === "object" ? scores?.timing ?? overall : overall;
+  const impulsivity = typeof scores === "object" ? scores?.impulsivity ?? overall : overall;
+  const hyperactivity = typeof scores === "object" ? scores?.hyperactivity ?? overall : overall;
+  // Strict: never "good/preserved" if any sub-index is weak (e.g. I=64)
+  if (attention < 75 || timing < 70 || impulsivity < 70 || hyperactivity < 70) {
+    return (P.weak || P.default).replace(
+      "{{indices}}",
+      [
+        attention < 75 ? `A=${Math.round(attention)}` : null,
+        timing < 70 ? `T=${Math.round(timing)}` : null,
+        impulsivity < 70 ? `I=${Math.round(impulsivity)}` : null,
+        hyperactivity < 70 ? `H=${Math.round(hyperactivity)}` : null
+      ]
+        .filter(Boolean)
+        .join(", ")
+    );
+  }
+  if (ctx?.baseline) {
+    // Prefer buildPhaseComment for full baseline logic; this is a safe fallback.
+  }
+  return P.good;
 }
 
 export function getDistractorMatrixLabels(locale = "tr") {

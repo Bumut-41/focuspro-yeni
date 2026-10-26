@@ -3,10 +3,10 @@ import {
   fillTemplate,
   getDistractorMatrixLabels,
   getEffectBandLabels,
-  getPhaseComment as getPhaseCommentForLocale,
   getSustainCellLabels,
   localizePhaseSectionName
 } from "./i18n/reportPdfStrings.js";
+import { buildPhaseComment } from "./report/phaseComments.js";
 import { distractorEffectBand } from "./report/scoreTiers.js";
 import { timelineForLogs } from "./report/timelineFilter.js";
 import {
@@ -453,8 +453,18 @@ export function severityLevel(score) {
   return 4;
 }
 
-export function getPhaseComment(sectionName, scores, locale = "tr") {
-  return getPhaseCommentForLocale(sectionName, scores, locale);
+export function getPhaseComment(sectionName, scores, locale = "tr", ctx = {}) {
+  return buildPhaseComment(sectionName, scores, locale, ctx);
+}
+
+/** Ortak faz skoru — çeldirici analizi ve faz tablosu aynı kaynaktan. */
+export function scoresForPhaseBucket(logs, profile, bucket, age = null, pressTimeline = [], locale = "tr") {
+  if (!bucket) return null;
+  const list = logsForBucket(logs, bucket);
+  if (!list.length) return null;
+  const late = profile.lateResponseMs;
+  const tl = timelineForBucket(pressTimeline, bucket);
+  return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }));
 }
 
 export function getBehaviorRates(behaviors) {
@@ -483,7 +493,16 @@ export function getBehaviorRates(behaviors) {
 /** 8 faz × davranış türleri tablosu. */
 export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const late = profile.lateResponseMs;
-  return buildReportPhaseBuckets(profile, locale).map((bucket) => {
+  const buckets = buildReportPhaseBuckets(profile, locale);
+  const baseline = scoresForPhaseBucket(
+    logs,
+    profile,
+    buckets.find((b) => b.kind === "temel"),
+    age,
+    pressTimeline,
+    locale
+  );
+  return buckets.map((bucket) => {
     const list = logsForBucket(logs, bucket);
     const behaviors = countTrialBehaviors(list, late);
     const rates = getBehaviorRates(behaviors);
@@ -500,7 +519,7 @@ export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTime
       timing: sc.timing,
       impulsivity: sc.impulsivity,
       hyperactivity: sc.hyperactivity,
-      comment: getPhaseComment(bucket.label, sc, locale)
+      comment: getPhaseComment(bucket.label, sc, locale, { baseline, kind: bucket.kind })
     };
   });
 }
@@ -590,13 +609,23 @@ export const FULL_PHASE_LEGEND = [
 
 export function getSectionSummaries(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const late = profile.lateResponseMs;
-  return buildReportPhaseBuckets(profile, locale).map((bucket) => {
+  const buckets = buildReportPhaseBuckets(profile, locale);
+  const baseline = scoresForPhaseBucket(
+    logs,
+    profile,
+    buckets.find((b) => b.kind === "temel"),
+    age,
+    pressTimeline,
+    locale
+  );
+  return buckets.map((bucket) => {
     const list = logsForBucket(logs, bucket);
     if (!list.length) {
       return {
         section: bucket.label,
         shortLabel: bucket.label,
         axisLabel: bucket.axisLabel,
+        kind: bucket.kind,
         totalTrials: 0,
         attentionScore: null,
         timingScore: null,
@@ -620,6 +649,7 @@ export function getSectionSummaries(logs, profile, age = null, pressTimeline = [
       section: bucket.label,
       shortLabel: bucket.label,
       axisLabel: bucket.axisLabel,
+      kind: bucket.kind,
       totalTrials: m.totalTrials,
       attentionScore: sc.attention,
       timingScore: sc.timing,
@@ -631,7 +661,7 @@ export function getSectionSummaries(logs, profile, age = null, pressTimeline = [
       omissionRate: rates.omissionRate,
       falseAlarmRate: rates.falseAlarmRate,
       medianReaction: m.medianReaction,
-      comment: getPhaseComment(bucket.label, sc, locale)
+      comment: getPhaseComment(bucket.label, sc, locale, { baseline, kind: bucket.kind })
     };
   });
 }
@@ -658,10 +688,6 @@ export function getChartPhaseScores(logs, profile) {
       hyperactivity: sc.hyperactivity
     };
   }).filter((row) => row.attention != null);
-}
-
-function phaseLogs(logs, matcher) {
-  return logs.filter((t) => matcher((t.section || "").toLowerCase()));
 }
 
 function distractorEffectCell(temelScore, celdiriciScore, locale = "tr") {
@@ -701,31 +727,29 @@ function sustainabilityCell(logs, profile, age, pressTimeline, key, locale = "tr
   return { text, color };
 }
 
-/** Dört endeks × çeldirici özeti — yüzde etki bantları. */
+/** Dört endeks × çeldirici özeti — faz kovalarıyla aynı ham veri. */
 export function getDistractorSummaryMatrix(logs, profile, age = null, pressTimeline = [], locale = "tr") {
-  const late = profile.lateResponseMs;
-  const opts = { pressTimeline, age, locale };
   const R = getDistractorMatrixLabels(locale);
-  const baseline = phaseLogs(
-    logs,
-    (s) => /0–1|1–2|2–3|0-1|1-2|2-3/.test(s) && !s.includes("gif") && !s.includes("ses")
-  );
-  const visual = phaseLogs(logs, (s) => s.includes("sessiz gif") && !s.includes("sesli"));
-  const auditory = phaseLogs(logs, (s) => s.includes("sadece ses"));
-  const combined = phaseLogs(logs, (s) => s.includes("sessiz + sesli") || s.includes("sesli gif"));
-  const allDistractors = [...visual, ...auditory, ...combined];
+  const buckets = buildReportPhaseBuckets(profile, locale);
+  const byKind = (kind) => buckets.find((b) => b.kind === kind);
+  const baseSc = scoresForPhaseBucket(logs, profile, byKind("temel"), age, pressTimeline, locale);
+  const visSc = scoresForPhaseBucket(logs, profile, byKind("gorsel"), age, pressTimeline, locale);
+  const audSc = scoresForPhaseBucket(logs, profile, byKind("isitsel"), age, pressTimeline, locale);
+  const combSc = scoresForPhaseBucket(logs, profile, byKind("kombine"), age, pressTimeline, locale);
 
-  const scoreOf = (list) => {
-    if (!list.length) return null;
-    const tl = timelineForLogs(pressTimeline, list);
-    return getScores(computeDetailedMetrics(list, late, { ...opts, pressTimeline: tl }));
-  };
-
-  const baseSc = scoreOf(baseline);
-  const visSc = scoreOf(visual);
-  const audSc = scoreOf(auditory);
-  const combSc = scoreOf(combined);
-  const loadSc = scoreOf(allDistractors);
+  const loadLogs = ["gorsel", "isitsel", "kombine"].flatMap((k) => {
+    const b = byKind(k);
+    return b ? logsForBucket(logs, b) : [];
+  });
+  const loadSc = loadLogs.length
+    ? getScores(
+        computeDetailedMetrics(loadLogs, profile.lateResponseMs, {
+          pressTimeline: timelineForLogs(pressTimeline, loadLogs),
+          age,
+          locale
+        })
+      )
+    : null;
 
   const effect = (distSc, key) => distractorEffectCell(baseSc?.[key], distSc?.[key], locale);
 
