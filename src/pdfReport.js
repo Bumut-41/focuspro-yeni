@@ -32,6 +32,7 @@ import { normLevelTextFromZ } from "./reportNorms.js";
 import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { buildReportChartImages } from "./reportCharts.js";
 import { buildPdfLogoBackground, getPdfLogoDataUrl } from "./lib/pdfLogoWatermark.js";
+import { ACTIVE_REPORT_SCORING_VERSION, resolveReportScoringVersion } from "./scoringVersion.js";
 
 const HEADER = "#4c1d95";
 const HEADER_LIGHT = "#ede9fe";
@@ -72,12 +73,13 @@ function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = 
   };
 }
 
-function coverHeader(locale = "tr", scoringVersion = "v1") {
+function coverHeader(locale = "tr", scoringVersion = ACTIVE_REPORT_SCORING_VERSION) {
   const pdf = getReportPdfStrings(locale);
   let subtitle = pdf.coverSubtitle;
-  if (scoringVersion === "v2") subtitle = `${pdf.coverSubtitle} — V2 deneme algoritması (pilot)`;
-  else if (scoringVersion === "v3") subtitle = `${pdf.coverSubtitle} — V3 deneme algoritması (pilot)`;
-  else if (scoringVersion === "v4") subtitle = `${pdf.coverSubtitle} — V4 deneme algoritması (pilot)`;
+  if (scoringVersion === "v2") subtitle = `${pdf.coverSubtitle} — V2 (dahili / arşiv)`;
+  else if (scoringVersion === "v3") subtitle = `${pdf.coverSubtitle} — V3 (dahili / arşiv)`;
+  else if (scoringVersion === "v4") subtitle = pdf.coverSubtitle;
+  else if (scoringVersion === "v1") subtitle = `${pdf.coverSubtitle} — V1 (dahili / arşiv)`;
   return {
     margin: [-36, -36, 16, 20],
     table: {
@@ -462,7 +464,7 @@ export function buildDocDefinition({
   reportCharts = {},
   locale = "tr",
   logoDataUrl = null,
-  scoringVersion = "v1"
+  scoringVersion = ACTIVE_REPORT_SCORING_VERSION
 }) {
   const profileKey = profile.key ?? "adult";
   const profileDisplay = profileLabel(profileKey, locale) || profile.label;
@@ -648,7 +650,7 @@ export function buildDocDefinition({
         ? [
             {
               text:
-                "Bu rapor V4 deneme paketidir (skor V3 ile aynı: hız puanı yok). Faz sırası kronolojik; oturum veri kalitesi dili kullanılır. Sınıflamalar geçici algoritmiktir. Klinik karar için V1 resmi rapor kullanılır.",
+                "Bu rapor FocusProLab güncel rapor paketidir (V4). Zamanlama skorunda hız puanı yoktur; sınıflandırmalar doğrulanmış norm oluşana kadar geçici algoritmiktir. Tek başına tanı koymaz.",
               fontSize: 8,
               color: "#b45309",
               margin: [0, 0, 0, 10]
@@ -656,7 +658,7 @@ export function buildDocDefinition({
             ...(metrics.timingUnavailable
               ? [
                   {
-                    text: `V4 T hesaplanamadı (${metrics.timingReason || "yetersiz veri"}). Genel skor üretilmedi.`,
+                    text: `T hesaplanamadı (${metrics.timingReason || "yetersiz veri"}). Genel skor üretilmedi.`,
                     fontSize: 9,
                     color: "#dc2626",
                     margin: [0, 0, 0, 10]
@@ -992,8 +994,13 @@ export async function createPdfBlob(args) {
       ),
     args.logoDataUrl ?? getPdfLogoDataUrl()
   ]);
-  // Kayıtlı / e-posta raporu her zaman V1 (resmi algoritma)
-  const doc = buildDocDefinition({ ...args, scoringVersion: "v1", reportCharts, logoDataUrl });
+  // Kayıtlı / e-posta — her zaman aktif rapor sürümü (V4); legacy istenmez
+  const doc = buildDocDefinition({
+    ...args,
+    scoringVersion: ACTIVE_REPORT_SCORING_VERSION,
+    reportCharts,
+    logoDataUrl
+  });
   return new Promise((resolve, reject) => {
     try {
       pdfMake.createPdf(doc).getBlob((blob) => {
@@ -1019,10 +1026,11 @@ export async function downloadPdf(args) {
       ),
     args.logoDataUrl ?? getPdfLogoDataUrl()
   ]);
-  const version = ["v4", "v3", "v2"].includes(args.scoringVersion) ? args.scoringVersion : "v1";
+  const version = resolveReportScoringVersion(args.scoringVersion ?? ACTIVE_REPORT_SCORING_VERSION);
   const doc = buildDocDefinition({ ...args, scoringVersion: version, reportCharts, logoDataUrl });
   const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
-  const filename = `FocusProLab_${safeName}_${version}_${Date.now()}.pdf`;
+  const tag = version === ACTIVE_REPORT_SCORING_VERSION ? "rapor" : version;
+  const filename = `FocusProLab_${safeName}_${tag}_${Date.now()}.pdf`;
   return new Promise((resolve, reject) => {
     try {
       pdfMake.createPdf(doc).getBlob((blob) => {

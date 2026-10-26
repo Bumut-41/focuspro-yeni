@@ -89,8 +89,9 @@ export function timelineForBucket(pressTimeline, bucket) {
 }
 
 /** Katılımcı raporu — tek kaynak (UI, PDF, DB). */
+/** Kullanıcıya sunulan metrikler — aktif rapor sürümü (V4). V1–V3 motorları saklı kalır. */
 export function computeReportMetrics(logs, lateMs, metricOptions = null, age = null) {
-  return computeDetailedMetrics(logs, lateMs, metricOptions, age);
+  return computeDetailedMetricsV4(logs, lateMs, metricOptions, age);
 }
 
 /**

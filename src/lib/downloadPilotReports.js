@@ -1,5 +1,6 @@
 import { downloadPdf } from "../pdfReport.js";
 import { downloadComparisonPdf } from "../pdfScoreComparison.js";
+import { ACTIVE_REPORT_SCORING_VERSION } from "../scoringVersion.js";
 import { sessionToParticipantReportArgs } from "./adminSessionPdf.js";
 import { fetchAdminPressTimeline, fetchSessionDetail } from "../services/sessions.js";
 
@@ -8,15 +9,19 @@ function sleep(ms) {
 }
 
 /**
- * Yerel indirme sırası:
- * 1) V1 resmi rapor
- * 2) V1/V2/V3 karşılaştırma (yönetici karşılaştırma özelliği)
- * 3) V2 deneme raporu
- * 4) V3 deneme raporu
- * 5) V4 deneme raporu (V3 skor + rapor düzeltmeleri)
- * Kayıtlı/e-posta PDF'si ayrı olarak yalnızca V1 kalır.
+ * Kullanıcıya sunulan rapor indirme — yalnızca V4.
  */
-export async function downloadV1ComparisonV2Reports({
+export async function downloadActiveReport(args) {
+  const { onStep = null, ...rest } = args;
+  onStep?.(ACTIVE_REPORT_SCORING_VERSION);
+  await downloadPdf({ ...rest, scoringVersion: ACTIVE_REPORT_SCORING_VERSION });
+  onStep?.("done");
+}
+
+/**
+ * @deprecated Kullanıcı akışında kullanılmaz. V1–V4 paketini yalnızca dahili araştırma için saklar.
+ */
+export async function downloadLegacyScoringBundle({
   participant,
   profile,
   logs,
@@ -49,13 +54,15 @@ export async function downloadV1ComparisonV2Reports({
   onStep?.("done");
 }
 
-/** @deprecated alias — aynı paket (V1 + karşılaştırma + V2 + V3 + V4) */
-export const downloadPilotReportBundle = downloadV1ComparisonV2Reports;
+/** @deprecated alias — artık yalnızca V4 indirir */
+export async function downloadV1ComparisonV2Reports(args) {
+  return downloadActiveReport(args);
+}
 
-/**
- * Sistemdeki eski oturumdan logs ile V1 → karşılaştırma → V2 → V3 → V4 üretir ve indirir.
- * Storage’daki kayıtlı V1 PDF’e dokunmaz; ham veri / kayıtlı skor değişmez.
- */
+/** @deprecated alias */
+export const downloadPilotReportBundle = downloadActiveReport;
+
+/** Oturumdan aktif (V4) rapor üretip indirir. */
 export async function downloadPilotReportsFromSessionId(sessionId, locale = "tr", onStep = null) {
   const [detail, timeline] = await Promise.all([
     fetchSessionDetail(sessionId),
@@ -63,6 +70,6 @@ export async function downloadPilotReportsFromSessionId(sessionId, locale = "tr"
   ]);
   if (!detail) throw new Error("Oturum bulunamadı.");
   const args = sessionToParticipantReportArgs(detail, timeline ?? []);
-  await downloadV1ComparisonV2Reports({ ...args, locale, onStep });
+  await downloadActiveReport({ ...args, locale, onStep });
   return detail;
 }

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { getProfile } from "../profiles.js";
 import { buildScoreComparison, formatScoreCell, timingUnavailableLabel } from "../scoreComparison.js";
-import { downloadV1ComparisonV2Reports } from "../lib/downloadPilotReports.js";
+import { downloadActiveReport } from "../lib/downloadPilotReports.js";
 import { DATA_QUALITY_SCORE_RULES } from "../report/reportClinical.js";
 import { fetchAdminPressTimeline, fetchSessionDetail } from "../services/sessions.js";
 import { Alert, Button, Card, CardHeader, Stack } from "./ui.jsx";
@@ -32,8 +32,8 @@ function timingCell(pack) {
 }
 
 /**
- * V1/V2/V3/V4 skor karşılaştırma paneli — mevcut V1 sonuçlarını değiştirmez.
- * V4 skor = V3; V4 farkı rapor dili / faz sırası / veri kalitesi.
+ * Dahili araştırma: V1–V4 skor karşılaştırma (kullanıcıya rapor olarak sunulmaz).
+ * Kullanıcı rapor çıktısı yalnızca V4’tür.
  */
 export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) {
   const [rows, setRows] = useState([]);
@@ -108,7 +108,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
     setBusy(true);
     setMsg("");
     try {
-      await downloadV1ComparisonV2Reports({
+      await downloadActiveReport({
         participant: {
           name: row.detail.participant_name,
           age: row.detail.participant_age,
@@ -121,7 +121,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
         pressTimeline: row.timeline,
         locale: "tr"
       });
-      setMsg(`${row.name}: V1 → karşılaştırma → V2 → V3 → V4 indirildi.`);
+      setMsg(`${row.name}: V4 rapor indirildi.`);
     } catch (e) {
       setMsg(e?.message || "PDF indirme başarısız");
     } finally {
@@ -166,8 +166,8 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
   return (
     <Card>
       <CardHeader
-        title="V1 / V2 / V3 / V4 skor karşılaştırma (pilot)"
-        description="V1–V3 hesapları saklanır. Raporlama V4 üzerinden (skor=V3). Yeni puanlama modeli (V5+) yok. CV K=100 exploratory. 77/85/94/99 civarı vurgulanır."
+        title="Skor karşılaştırma (dahili — kullanıcıya gösterilmez)"
+        description="Yalnızca yönetici araştırması. Kullanıcıya giden rapor yalnızca V4. V1–V3 motorları saklı; V4 skor=V3. CV K=100 exploratory."
         action={
           <Stack gap={8} wrap>
             <label style={{ fontSize: "0.8125rem", display: "flex", alignItems: "center", gap: 6 }}>
@@ -322,7 +322,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                     <td align="center">{r.counts.idlePresses}</td>
                     <td>
                       <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => downloadOne(r)}>
-                        5 PDF
+                        V4 PDF
                       </Button>
                     </td>
                   </tr>

@@ -9,7 +9,6 @@ import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession
 } from "../lib/adminSessionPdf.js";
-import { downloadPilotReportsFromSessionId } from "../lib/downloadPilotReports.js";
 import { includesText, inDateRange } from "../lib/listFilters.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import {
@@ -291,30 +290,13 @@ export default function AdminPage() {
   }
 
   async function openOrDownloadTestReport(sessionRow) {
-    if (sessionRow.pdf_path) {
-      await openStoredPdf(sessionRow.pdf_path, `${sessionRow.id}-test-open`, `FocusProLab_${sessionRow.participant_name ?? "report"}.pdf`);
-      return;
-    }
+    // Kullanıcıya / admin indirmeye her zaman güncel V4 (eski storage V1 sunulmaz)
     const busyId = `${sessionRow.id}-test`;
     setPdfBusy(busyId);
     setMsg("");
     try {
       const { sess, tl } = await loadSessionBundle(sessionRow.id);
       await downloadParticipantReportFromSession(sess, tl, locale);
-    } catch (e) {
-      setMsg(e.message || t("admin.testPdfFailed"));
-    } finally {
-      setPdfBusy(null);
-    }
-  }
-
-  async function downloadPilotReportTrio(sessionRow) {
-    const busyId = `${sessionRow.id}-pilot`;
-    setPdfBusy(busyId);
-    setMsg("");
-    try {
-      await downloadPilotReportsFromSessionId(sessionRow.id, locale);
-      setMsg("V1 → karşılaştırma → V2 → V3 → V4 raporları indirildi.");
     } catch (e) {
       setMsg(e.message || t("admin.testPdfFailed"));
     } finally {
@@ -1496,19 +1478,10 @@ export default function AdminPage() {
                   <Button
                     variant="primary"
                     size="sm"
-                    disabled={pdfBusy?.startsWith(`${s.id}-test`) || pdfBusy === `${s.id}-pilot`}
+                    disabled={pdfBusy?.startsWith(`${s.id}-test`)}
                     onClick={() => openOrDownloadTestReport(s)}
                   >
-                    {pdfBusy?.startsWith(`${s.id}-test`) ? "…" : s.pdf_path ? t("admin.openTestReport") : t("admin.downloadTestReport")}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    title="V1 → V1/V2/V3 karşılaştırma → V2 → V3 → V4"
-                    disabled={pdfBusy?.startsWith(`${s.id}-test`) || pdfBusy === `${s.id}-pilot`}
-                    onClick={() => downloadPilotReportTrio(s)}
-                  >
-                    {pdfBusy === `${s.id}-pilot` ? "…" : "V1…V4 (5 PDF)"}
+                    {pdfBusy?.startsWith(`${s.id}-test`) ? "…" : t("admin.downloadTestReport")}
                   </Button>
                   <Button
                     variant="secondary"
@@ -1556,17 +1529,6 @@ export default function AdminPage() {
             setPdfBusy(`${detail.id}-detail-test`);
             try {
               await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
-            } catch (e) {
-              setMsg(e.message || t("admin.testPdfFailed"));
-            } finally {
-              setPdfBusy(null);
-            }
-          }}
-          onDownloadPilotTrio={async () => {
-            setPdfBusy(`${detail.id}-pilot`);
-            try {
-              await downloadPilotReportsFromSessionId(detail.id, locale);
-              setMsg("V1 → karşılaştırma → V2 → V3 → V4 raporları indirildi.");
             } catch (e) {
               setMsg(e.message || t("admin.testPdfFailed"));
             } finally {

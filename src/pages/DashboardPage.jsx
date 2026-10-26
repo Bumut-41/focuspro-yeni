@@ -11,7 +11,6 @@ import {
   downloadPressReportFromSession,
   sessionToParticipantReportArgs
 } from "../lib/adminSessionPdf.js";
-import { downloadPilotReportsFromSessionId } from "../lib/downloadPilotReports.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import { deliverSessionReport, formatReportEmailStatus, sendSessionReportEmail } from "../services/emailReport.js";
 import { getProfile } from "../profiles.js";
@@ -21,7 +20,6 @@ import { RecordFilters } from "../components/RecordFilters.jsx";
 import { PsychologistInvitesPanel } from "../components/PsychologistInvitesPanel.jsx";
 import { SpecialistClientsPanel } from "../components/SpecialistClientsPanel.jsx";
 import { MyPurchasesPanel } from "../components/MyPurchasesPanel.jsx";
-import { ScoringComparisonPanel } from "../components/ScoringComparisonPanel.jsx";
 import {
   Alert,
   Badge,
@@ -78,65 +76,33 @@ export default function DashboardPage() {
     setPdfBusy(`${session.id}-test`);
     setMsg("");
     try {
-      if (session.pdf_path) {
-        const url = await getReportPdfSignedUrl(session.pdf_path);
-        await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
-        return;
-      }
-      // PDF yoksa: yeniden üret, sisteme kaydet — sonra indir
+      // Kullanıcıya her zaman güncel V4 (eski storage V1 PDF’leri sunulmaz)
       const detail = await fetchSessionDetail(session.id);
       const timeline = await fetchAdminPressTimeline(session.id).catch(() => []);
       const ownerId = detail.owner_id;
-      if (!ownerId) {
-        await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
-        return;
-      }
-      const clientId = await resolveClientIdForSession(detail);
-      const args = sessionToParticipantReportArgs(detail, timeline ?? []);
-      const delivery = await deliverSessionReport({
-        userId: ownerId,
-        sessionId: detail.id,
-        participant: args.participant,
-        profile: args.profile || getProfile(detail.profile_key ?? "adult"),
-        logs: args.logs,
-        target: args.target,
-        pressTimeline: args.pressTimeline,
-        locale,
-        clientId,
-        // Rapor oluşturma mail göndermez; e-posta ayrı butonla
-        sendEmail: false
-      });
-      await load();
-      if (delivery.ok || delivery.result?.testSaved) {
-        const path = detail.pdf_path;
-        const fresh = await fetchSessionDetail(session.id).catch(() => null);
-        const pdfPath = fresh?.pdf_path || path;
-        if (pdfPath) {
-          const url = await getReportPdfSignedUrl(pdfPath);
-          await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}.pdf`);
+      if (ownerId) {
+        const clientId = await resolveClientIdForSession(detail);
+        const args = sessionToParticipantReportArgs(detail, timeline ?? []);
+        const delivery = await deliverSessionReport({
+          userId: ownerId,
+          sessionId: detail.id,
+          participant: args.participant,
+          profile: args.profile || getProfile(detail.profile_key ?? "adult"),
+          logs: args.logs,
+          target: args.target,
+          pressTimeline: args.pressTimeline,
+          locale,
+          clientId,
+          sendEmail: false
+        });
+        await load();
+        if (!delivery.ok) {
+          setMsg(t("dashboard.reportGeneratePartial", { reason: delivery.code || "pdf_not_saved" }));
+        } else {
           setMsg(t("dashboard.reportSavedSendEmailHint"));
-          return;
         }
       }
       await downloadParticipantReportFromSession(detail, timeline ?? [], locale);
-      if (!delivery.ok) {
-        setMsg(t("dashboard.reportGeneratePartial", { reason: delivery.code || "pdf_not_saved" }));
-      }
-    } catch (e) {
-      if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
-      setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
-    } finally {
-      setPdfBusy(null);
-    }
-  }
-
-  /** Eski oturumlar: V1 → karşılaştırma → V2 → V3 → V4 (logs’tan yeniden üretir; kayıtlı V1 değişmez). */
-  async function downloadPilotReportTrio(session) {
-    setPdfBusy(`${session.id}-pilot`);
-    setMsg("");
-    try {
-      await downloadPilotReportsFromSessionId(session.id, locale);
-      setMsg("V1 → karşılaştırma → V2 → V3 → V4 raporları indirildi.");
     } catch (e) {
       if (isStaleChunkError(e) && reloadStaleChunk(e)) return;
       setMsg(isStaleChunkError(e) ? t("dashboard.pdfChunkFailed") : e.message || t("dashboard.pdfOpenFailed"));
@@ -310,10 +276,6 @@ export default function DashboardPage() {
       {isPsychologist && <PsychologistInvitesPanel />}
 
       {canViewSessions && (
-        <ScoringComparisonPanel sessions={filteredSessions} dateLocale={dateLocale} />
-      )}
-
-      {canViewSessions && (
       <Card>
         <CardHeader
           title={
@@ -382,7 +344,7 @@ export default function DashboardPage() {
                     <Button
                       variant="primary"
                       size="sm"
-                      disabled={pdfBusy === `${s.id}-test` || pdfBusy === `${s.id}-pilot`}
+                      disabled={pdfBusy === `${s.id}-test`}
                       onClick={() => downloadTestReport(s)}
                     >
                       {pdfBusy === `${s.id}-test`
@@ -390,15 +352,6 @@ export default function DashboardPage() {
                         : s.pdf_path
                           ? t("dashboard.downloadReport")
                           : t("dashboard.generateReport")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      title="V1 → V1/V2/V3 karşılaştırma → V2 → V3 → V4"
-                      disabled={pdfBusy === `${s.id}-test` || pdfBusy === `${s.id}-pilot`}
-                      onClick={() => downloadPilotReportTrio(s)}
-                    >
-                      {pdfBusy === `${s.id}-pilot` ? "…" : "V1…V4 (5 PDF)"}
                     </Button>
                   </Stack>
                 )

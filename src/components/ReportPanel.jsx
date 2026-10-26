@@ -32,7 +32,12 @@ export function ReportPanel({
 
   const metrics = logs.length ? computeReportMetrics(logs, profile.lateResponseMs, metricOpts) : null;
   const scores = metrics ? getScores(metrics) : null;
-  const validity = metrics && logs.length ? computeTestValidity(logs, metrics, profile, pressTimeline, participant.age, locale) : null;
+  const validity =
+    metrics && logs.length
+      ? computeTestValidity(logs, metrics, profile, pressTimeline, participant.age, locale, {
+          dataQualityMode: true
+        })
+      : null;
   const distractor = metrics && logs.length ? buildDistractorAnalysisFriendly(logs, profile, participant.age, pressTimeline, locale) : null;
   const sustainability = metrics && logs.length ? buildSustainabilityReport(logs, profile, participant.age, pressTimeline, locale) : null;
   const clinicalFlags =
@@ -41,7 +46,16 @@ export function ReportPanel({
       : null;
   const executive =
     scores && validity && clinicalFlags && distractor
-      ? buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale, profile.key ?? profile.profileKey ?? "adult")
+      ? buildExecutiveSummary(
+          scores,
+          metrics,
+          validity,
+          clinicalFlags,
+          distractor,
+          locale,
+          profile.key ?? profile.profileKey ?? "adult",
+          { skipNormZ: true }
+        )
       : null;
   const series = logs.length ? scoreSeries(logs, profile.lateResponseMs, metricOpts) : null;
 

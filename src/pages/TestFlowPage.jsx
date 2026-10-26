@@ -20,7 +20,7 @@ import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../serv
 import { fetchMyClients } from "../services/clients.js";
 import { saveTestSession } from "../services/sessions.js";
 import { deliverSessionReport } from "../services/emailReport.js";
-import { downloadV1ComparisonV2Reports } from "../lib/downloadPilotReports.js";
+import { downloadActiveReport } from "../lib/downloadPilotReports.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
@@ -220,10 +220,10 @@ export default function TestFlowPage() {
           sendEmail: autoEmail
         });
 
-        // Yerel: V1 → V1/V2/V3 karşılaştırma → V2 → V3 (kayıtlı/e-posta PDF yalnızca V1)
+        // Yerel indirme: yalnızca aktif V4 rapor
         try {
           setReportDelivery((prev) => ({ ...(prev || {}), status: "pilot_pdfs", pdfSaved: delivery.pdfSaved || delivery.ok }));
-          await downloadV1ComparisonV2Reports({
+          await downloadActiveReport({
             participant: participantSnap,
             profile,
             logs: snapshot,
@@ -232,7 +232,7 @@ export default function TestFlowPage() {
             locale
           });
         } catch (pilotErr) {
-          console.warn("pilot_report_sequence_failed", pilotErr);
+          console.warn("active_report_download_failed", pilotErr);
         }
 
         if (delivery.ok && delivery.emailSkipped) {
@@ -908,7 +908,7 @@ export default function TestFlowPage() {
               )}
               {reportDelivery?.status === "pilot_pdfs" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  V1 → karşılaştırma → V2 → V3 → V4 raporları indiriliyor…
+                  Rapor indiriliyor…
                 </p>
               )}
               {reportDelivery?.status === "pdf_saved" && (
