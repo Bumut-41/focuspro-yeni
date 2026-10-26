@@ -314,7 +314,7 @@ export default function AdminPage() {
     setMsg("");
     try {
       await downloadPilotReportsFromSessionId(sessionRow.id, locale);
-      setMsg("V1 → karşılaştırma → V2 → V3 raporları indirildi.");
+      setMsg("V1 → karşılaştırma → V2 → V3 → V4 raporları indirildi.");
     } catch (e) {
       setMsg(e.message || t("admin.testPdfFailed"));
     } finally {
@@ -1504,11 +1504,11 @@ export default function AdminPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    title="V1 → V1/V2/V3 karşılaştırma → V2 → V3"
+                    title="V1 → V1/V2/V3 karşılaştırma → V2 → V3 → V4"
                     disabled={pdfBusy?.startsWith(`${s.id}-test`) || pdfBusy === `${s.id}-pilot`}
                     onClick={() => downloadPilotReportTrio(s)}
                   >
-                    {pdfBusy === `${s.id}-pilot` ? "…" : "V1+V2+V3 (4 PDF)"}
+                    {pdfBusy === `${s.id}-pilot` ? "…" : "V1…V4 (5 PDF)"}
                   </Button>
                   <Button
                     variant="secondary"
@@ -1566,7 +1566,7 @@ export default function AdminPage() {
             setPdfBusy(`${detail.id}-pilot`);
             try {
               await downloadPilotReportsFromSessionId(detail.id, locale);
-              setMsg("V1 → karşılaştırma → V2 → V3 raporları indirildi.");
+              setMsg("V1 → karşılaştırma → V2 → V3 → V4 raporları indirildi.");
             } catch (e) {
               setMsg(e.message || t("admin.testPdfFailed"));
             } finally {

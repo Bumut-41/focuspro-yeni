@@ -908,7 +908,7 @@ export default function TestFlowPage() {
               )}
               {reportDelivery?.status === "pilot_pdfs" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  V1 → karşılaştırma → V2 → V3 raporları indiriliyor…
+                  V1 → karşılaştırma → V2 → V3 → V4 raporları indiriliyor…
                 </p>
               )}
               {reportDelivery?.status === "pdf_saved" && (

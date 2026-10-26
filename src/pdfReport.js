@@ -7,6 +7,7 @@ import {
   computeDetailedMetrics,
   computeDetailedMetricsV2,
   computeDetailedMetricsV3,
+  computeDetailedMetricsV4,
   formatDurationSeconds,
   getDistractorSummaryMatrix,
   getGlobalIndexZScores,
@@ -74,6 +75,7 @@ function coverHeader(locale = "tr", scoringVersion = "v1") {
   let subtitle = pdf.coverSubtitle;
   if (scoringVersion === "v2") subtitle = `${pdf.coverSubtitle} — V2 deneme algoritması (pilot)`;
   else if (scoringVersion === "v3") subtitle = `${pdf.coverSubtitle} — V3 deneme algoritması (pilot)`;
+  else if (scoringVersion === "v4") subtitle = `${pdf.coverSubtitle} — V4 deneme algoritması (pilot)`;
   return {
     margin: [-36, -36, 16, 20],
     table: {
@@ -300,7 +302,7 @@ function clinicalFlagsSection(clinicalFlags, pdf) {
   ];
 }
 
-function buildNormComparison(scores, profileKey, locale = "tr") {
+function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion = "v1") {
   const pdf = getReportPdfStrings(locale);
   const NORM_LEVELS = getNormLevels(locale);
   const z = getGlobalIndexZScores(scores, profileKey);
@@ -357,8 +359,20 @@ function buildNormComparison(scores, profileKey, locale = "tr") {
   ];
 
   blocks.push({
-    ul: getIndexDefinitions(locale).map(([t, d]) => ({ text: [{ text: `${t}: `, bold: true }, d], fontSize: 8, margin: [0, 2, 0, 0] }))
+    ul: getIndexDefinitions(locale, scoringVersion).map(([t, d]) => ({
+      text: [{ text: `${t}: `, bold: true }, d],
+      fontSize: 8,
+      margin: [0, 2, 0, 0]
+    }))
   });
+  if (scoringVersion === "v3" || scoringVersion === "v4") {
+    blocks.push({
+      text: pdf.algorithmCategoryNote || "",
+      fontSize: 8,
+      color: "#b45309",
+      margin: [0, 8, 0, 0]
+    });
+  }
 
   return blocks;
 }
@@ -381,11 +395,11 @@ function phaseSectionsTableBlock(sections, pdf) {
         ],
         ...sections.map((s) => [
           s.shortLabel,
-          s.attentionScore,
-          s.timingScore,
-          s.impulsivityScore,
-          s.hyperactivityScore,
-          `${s.medianReaction} ms`,
+          s.attentionScore == null ? "—" : s.attentionScore,
+          s.timingScore == null ? "—" : s.timingScore,
+          s.impulsivityScore == null ? "—" : s.impulsivityScore,
+          s.hyperactivityScore == null ? "—" : s.hyperactivityScore,
+          s.medianReaction == null ? "—" : `${s.medianReaction} ms`,
           { text: s.comment, fontSize: 8 }
         ])
       ]
@@ -395,9 +409,9 @@ function phaseSectionsTableBlock(sections, pdf) {
   };
 }
 
-function normAndPhaseBlock(sections, scores, profileKey, locale) {
+function normAndPhaseBlock(sections, scores, profileKey, locale, scoringVersion = "v1") {
   const phaseTable = phaseSectionsTableBlock(sections, getReportPdfStrings(locale));
-  const normBlocks = buildNormComparison(scores, profileKey, locale);
+  const normBlocks = buildNormComparison(scores, profileKey, locale, scoringVersion);
   if (!phaseTable && !normBlocks.length) return null;
   return {
     unbreakable: true,
@@ -426,18 +440,24 @@ export function buildDocDefinition({
   const metricOpts = { pressTimeline, age, locale };
   const isV2 = scoringVersion === "v2";
   const isV3 = scoringVersion === "v3";
-  const isPilot = isV2 || isV3;
-  const metrics = isV3
-    ? computeDetailedMetricsV3(logs, profile.lateResponseMs, metricOpts)
-    : isV2
-      ? computeDetailedMetricsV2(logs, profile.lateResponseMs, metricOpts)
-      : computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
+  const isV4 = scoringVersion === "v4";
+  const isPilot = isV2 || isV3 || isV4;
+  const noSpeedTiming = isV3 || isV4;
+  const metrics = isV4
+    ? computeDetailedMetricsV4(logs, profile.lateResponseMs, metricOpts)
+    : isV3
+      ? computeDetailedMetricsV3(logs, profile.lateResponseMs, metricOpts)
+      : isV2
+        ? computeDetailedMetricsV2(logs, profile.lateResponseMs, metricOpts)
+        : computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
   const scores = getScores(metrics);
-  // Geçerlilik her zaman V1 metrikleriyle (mevcut kurallar); pilot raporlar aynı kapıyı kullanır
+  // Geçerlilik tabanı V1 metrikleri; V4'te oturum veri kalitesi dili kullanılır
   const validityBase = isPilot
     ? computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts)
     : metrics;
-  const validity = computeTestValidity(logs, validityBase, profile, pressTimeline, age, locale);
+  const validity = computeTestValidity(logs, validityBase, profile, pressTimeline, age, locale, {
+    dataQualityMode: isV4
+  });
 
   if (validity.shouldBlockReport) {
     return buildInvalidDocDefinition({ participant, profile, validity, locale, logoDataUrl });
@@ -446,7 +466,10 @@ export function buildDocDefinition({
   const distractor = buildDistractorAnalysisFriendly(logs, profile, age, pressTimeline, locale);
   const sustainability = buildSustainabilityReport(logs, profile, age, pressTimeline, locale);
   const zGlobal = getGlobalIndexZScores(scores, profileKey);
-  const indexComments = buildIndexClinicalComments(scores, locale, zGlobal);
+  const indexComments = buildIndexClinicalComments(scores, locale, zGlobal, {
+    noSpeedTiming,
+    metrics
+  });
   const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale);
   const executive = buildExecutiveSummary(scores, metrics, validity, clinicalFlags, distractor, locale, profileKey);
   const professional = buildProfessionalNarrative(scores, metrics, validity, distractor, sustainability, locale, zGlobal);
@@ -459,9 +482,11 @@ export function buildDocDefinition({
     chartBlocks.push(chartSectionBlock(pdf.chartRadar, reportCharts.radar, true, pdf.chartRadarSubtitle, 420));
     chartFirst = false;
   }
+  const timingChartDesc =
+    noSpeedTiming ? pdf.chartTimingDesc : pdf.chartTimingDescV1 || pdf.chartTimingDesc;
   const indexCharts = [
     ["attention", pdf.chartAttention, pdf.chartAttentionDesc],
-    ["timing", pdf.chartTiming, pdf.chartTimingDesc],
+    ["timing", pdf.chartTiming, timingChartDesc],
     ["impulsivity", pdf.chartImpulsivity, pdf.chartImpulsivityDesc],
     ["hyperactivity", pdf.chartHyperactivity, pdf.chartHyperactivityDesc]
   ];
@@ -478,10 +503,11 @@ export function buildDocDefinition({
 
   const durationMin = Math.round(profile.durationMs / 60000);
   let timingFormula;
-  if (isV3) {
+  if (isV4 || isV3) {
+    const tag = isV4 ? "V4" : "V3";
     timingFormula = metrics.timingUnavailable
-      ? `V3 T: hesaplanamadı (${metrics.timingReason || "yetersiz RT"})`
-      : `V3 T = (Stab. ${metrics.timingRtStability ?? "—"}×0.55) + (Geç ${metrics.timingLateResponse ?? "—"}×0.45) = ${scores.timing ?? "—"} · ham medyan RT ${metrics.medianReaction ?? "—"} ms · yaş bandı ${metrics.ageBandLabel || "—"} (ref ${metrics.ageReferenceRtMs ?? "—"} ms, skor değil) · CV ${metrics.cv ?? "—"} · K=${metrics.stabilityK ?? "—"} exploratory`;
+      ? `${tag} T: hesaplanamadı (${metrics.timingReason || "yetersiz RT"})`
+      : `${tag} T = (Stab. ${metrics.timingRtStability ?? "—"}×0.55) + (Geç ${metrics.timingLateResponse ?? "—"}×0.45) = ${scores.timing ?? "—"} · ham medyan RT ${metrics.medianReaction ?? "—"} ms · ort ${metrics.avgReaction ?? "—"} · SD ${metrics.rtStd ?? "—"} · CV ${metrics.cv ?? "—"} · yaş bandı ${metrics.ageBandLabel || "—"} (ref ${metrics.ageReferenceRtMs ?? "—"} ms, skor değil) · K=${metrics.stabilityK ?? "—"} exploratory`;
   } else if (isV2) {
     timingFormula = metrics.timingUnavailable
       ? `V2 T: hesaplanamadı (${metrics.timingReason || "yetersiz RT"})`
@@ -564,6 +590,27 @@ export function buildDocDefinition({
               : [])
           ]
         : []),
+      ...(isV4
+        ? [
+            {
+              text:
+                "Bu rapor V4 deneme paketidir (skor V3 ile aynı: hız puanı yok). Faz sırası kronolojik; oturum veri kalitesi dili kullanılır. Sınıflamalar geçici algoritmiktir. Klinik karar için V1 resmi rapor kullanılır.",
+              fontSize: 8,
+              color: "#b45309",
+              margin: [0, 0, 0, 10]
+            },
+            ...(metrics.timingUnavailable
+              ? [
+                  {
+                    text: `V4 T hesaplanamadı (${metrics.timingReason || "yetersiz veri"}). Genel skor üretilmedi.`,
+                    fontSize: 9,
+                    color: "#dc2626",
+                    margin: [0, 0, 0, 10]
+                  }
+                ]
+              : [])
+          ]
+        : []),
 
       sectionTitle(pdf.participantInfo),
       infoBox("", [
@@ -576,7 +623,7 @@ export function buildDocDefinition({
         `${pdf.totalTrials}: ${metrics.totalTrials}`
       ]),
 
-      sectionTitle(pdf.testValidity),
+      sectionTitle(isV4 ? pdf.sessionDataQuality || pdf.testValidity : pdf.testValidity),
       {
         table: {
           widths: ["*"],
@@ -585,7 +632,7 @@ export function buildDocDefinition({
               {
                 stack: [
                   {
-                    text: `${pdf.validityIndex}: ${validity.score}/100`,
+                    text: `${isV4 ? pdf.dataQualityIndex || pdf.validityIndex : pdf.validityIndex}: ${validity.score}/100`,
                     bold: true,
                     fontSize: 14,
                     color: validity.band.color,
@@ -771,7 +818,7 @@ export function buildDocDefinition({
         layout: tableLayout(),
         margin: [0, 0, 0, 10]
       },
-      normAndPhaseBlock(sections, scores, profileKey, locale),
+      normAndPhaseBlock(sections, scores, profileKey, locale, scoringVersion),
 
       ...clinicalFlagsSection(clinicalFlags, pdf),
 
@@ -843,8 +890,7 @@ export async function downloadPdf(args) {
       ),
     args.logoDataUrl ?? getPdfLogoDataUrl()
   ]);
-  const version =
-    args.scoringVersion === "v3" ? "v3" : args.scoringVersion === "v2" ? "v2" : "v1";
+  const version = ["v4", "v3", "v2"].includes(args.scoringVersion) ? args.scoringVersion : "v1";
   const doc = buildDocDefinition({ ...args, scoringVersion: version, reportCharts, logoDataUrl });
   const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
   const filename = `FocusProLab_${safeName}_${version}_${Date.now()}.pdf`;

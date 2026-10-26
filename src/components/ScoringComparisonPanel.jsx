@@ -119,7 +119,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
         pressTimeline: row.timeline,
         locale: "tr"
       });
-      setMsg(`${row.name}: V1 → karşılaştırma → V2 → V3 indirildi.`);
+      setMsg(`${row.name}: V1 → karşılaştırma → V2 → V3 → V4 indirildi.`);
     } catch (e) {
       setMsg(e?.message || "PDF indirme başarısız");
     } finally {
@@ -230,7 +230,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                     <td align="center">{r.counts.idlePresses}</td>
                     <td>
                       <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => downloadOne(r)}>
-                        4 PDF
+                        5 PDF
                       </Button>
                     </td>
                   </tr>

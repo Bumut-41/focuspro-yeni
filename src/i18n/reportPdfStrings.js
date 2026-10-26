@@ -57,11 +57,16 @@ export const reportPdfStrings = {
     chartAttention: "Dikkat (A)",
     chartAttentionDesc: "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi.",
     chartTiming: "Zamanlama (T)",
-    chartTimingDesc: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
+    chartTimingDesc: "Hedef uyaranlara verilen doğru yanıtların zamanlama tutarlılığını ve geç yanıt sıklığını değerlendirir.",
+    chartTimingDescV1: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
     chartImpulsivity: "Dürtüsellik (I)",
     chartImpulsivityDesc: "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi.",
     chartHyperactivity: "Motor Yanıt Kontrolü (H)",
     chartHyperactivityDesc: "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi.",
+    sessionDataQuality: "Oturum Veri Kalitesi",
+    dataQualityIndex: "Veri Kalitesi Endeksi",
+    algorithmCategoryNote:
+      "“Belirgin güçlük”, “çok güçlü” gibi sınıflandırmalar doğrulanmış normlar oluşana kadar geçici algoritmik kategorilerdir.",
     chartRadar: "Performans Profili",
     chartRadarSubtitle: "Aynı toplam puan, alanların dağılımına göre farklı bir profil anlamına gelir.",
     chartCombined: "Dört İndeks — Faz Grafiği",
@@ -104,11 +109,22 @@ export const reportPdfStrings = {
       check_clinicalOk: "Sonuçlar klinik yorumlama için uygundur",
       check_caution: "Sonuçlar dikkatli yorumlanmalıdır",
       check_invalid: "Sonuçlar yorumlanmamalıdır",
+      check_dataOk: "Göreve katılım ve kayıt bütünlüğü analiz için yeterli görünmektedir",
+      check_dataCaution: "Olağan dışı tepki örüntüleri nedeniyle dikkatli inceleme önerilir",
+      check_dataLimited: "Veri kalitesi sınırlıdır; destekleyici bilgilerle birlikte ele alınmalıdır",
       summary_invalid: "TEST GEÇERSİZ — Kritik geçersizlik bulguları nedeniyle rapor klinik yorum için uygun değildir.",
       summary_valid: "Test sonuçları geçerli kabul edilmiş ve yorumlamaya uygun bulunmuştur.",
       summary_acceptable: "Test sonuçları kabul edilebilir düzeydedir; bazı faktörler yorumu etkileyebilir.",
       summary_caution: "Sonuçlar yorumlanabilir ancak test performansını etkileyebilecek faktörler gözlenmiştir.",
-      summary_low: "Düşük güvenilirlik — sonuçlar dikkatli ve destekleyici verilerle birlikte yorumlanmalıdır."
+      summary_low: "Düşük güvenilirlik — sonuçlar dikkatli ve destekleyici verilerle birlikte yorumlanmalıdır.",
+      summary_data_ok:
+        "Oturum veri kalitesi: göreve katılım, teknik kayıt bütünlüğü ve yanıt örneklemi analiz için yeterli görünmektedir. Bu, normatif doğrulama veya kesin klinik uygunluk iddiası değildir.",
+      summary_data_acceptable:
+        "Oturum veri kalitesi kabul edilebilir düzeydedir; bazı uyarılar dikkatle incelenmelidir. Normatif doğrulama yapılmadan kesin klinik uygunluk iddiası kullanılmamalıdır.",
+      summary_data_caution:
+        "Oturum veri kalitesinde dikkat gerektiren bulgular vardır. Sonuçlar pilot/ön değerlendirme bağlamında ele alınmalıdır.",
+      summary_data_low:
+        "Oturum veri kalitesi düşüktür. Bulgular temkinli yorumlanmalı; kesin klinik uygunluk ifadesi kullanılmamalıdır."
     },
     levels: {
       veryGood: "Çok Güçlü",
@@ -141,20 +157,21 @@ export const reportPdfStrings = {
       mild: "Hafif Etkilenme",
       moderate: "Orta Düzeyde Etkilenme",
       marked: "Belirgin Etkilenme",
-      visualOk: "Katılımcının görsel dikkat dağıtıcılardan belirgin şekilde etkilenmediği görülmüştür.",
-      auditoryOk: "İşitsel uyaranlar sırasında performansta anlamlı düşüş gözlenmemiştir.",
-      combinedOk: "Görsel ve işitsel çeldiricilerin birlikte sunulduğu koşullarda performans genel olarak korunmuştur.",
-      mildComment: "{{title}} altında performansta hafif düzeyde düşüş izlenmiştir.",
-      moderateComment: "{{title}} altında dikkat performansında belirgin etkilenme gözlenmiştir.",
-      markedComment: "{{title}} altında performans belirgin şekilde düşmüştür.",
-      generalAffected: "Katılımcı bazı çeldirici koşullarda performans kaybı göstermiştir.",
-      generalOk: "Katılımcının çevresel dikkat dağıtıcılara karşı performansı korunmuştur."
+      visualOk: "Görsel çeldirici bölümünde belirgin performans düşüşü gözlenmemiştir.",
+      auditoryOk: "İşitsel çeldirici bölümünde belirgin performans düşüşü gözlenmemiştir.",
+      combinedOk: "Kombine çeldirici bölümünde belirgin performans düşüşü gözlenmemiştir.",
+      mildComment: "{{title}} bölümünde performansta hafif düzeyde düşüş gözlendi. Bölüm sırası ve uyaran temposu da katkıda bulunabilir; düşüş doğrudan yalnızca çeldiriciye bağlanmamalıdır.",
+      moderateComment: "{{title}} bölümünde performans düşüşü gözlendi. Çeldirici etkisi olasıdır; tempo/sıra etkisi ayrıştırılmadan kesin neden atfedilmemelidir.",
+      markedComment: "{{title}} bölümünde belirgin performans düşüşü gözlendi. Bulgu tanımlayıcıdır; tek başına çeldirici nedenselliği kanıtlamaz.",
+      generalAffected: "Bazı çeldirici bölümlerinde performans düşüşü gözlenmiştir (tanımlayıcı).",
+      generalOk: "Çeldirici bölümlerinde belirgin performans düşüşü gözlenmemiştir."
     },
     sustainability: {
-      noData: "Yeterli faz verisi bulunmamaktadır.",
-      stable: "Test süresince performans büyük ölçüde korunmuştur. Belirgin dikkat yorgunluğu veya performans çöküşü izlenmemiştir.",
-      mild: "Test sonuna doğru hafif düzeyde performans düşüşü gözlenmiştir.",
-      marked: "Test sonuna doğru belirgin performans düşüşü izlenmiştir; sürdürülebilir dikkat alanı değerlendirilmelidir."
+      noData: "Başlangıç (temel) veya kapanış bölümünde yeterli veri bulunamadı; sürdürülebilirlik hesaplanamadı.",
+      stable: "Başlangıç ve kapanış performansları arasındaki fark küçüktür; performansın büyük ölçüde korunduğu görülmektedir.",
+      mild: "Kapanışta başlangıca göre hafif performans azalması gözlenmiştir.",
+      marked: "Kapanışta başlangıca göre belirgin performans azalması gözlenmiştir.",
+      increase: "Kapanışta başlangıca göre performans artışı gözlenmiştir."
     },
     executive: {
       line1ok: "Katılımcının dikkat performansı genel olarak yeterli düzeydedir.",
@@ -179,12 +196,13 @@ export const reportPdfStrings = {
       },
       timing: {
         title: "T — ZAMANLAMA",
-        definition: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
-        c90: "Katılımcı hedef uyaranlara hızlı, tutarlı ve uygun zamanda tepki vermiştir. Tepki hızında belirgin dalgalanma gözlenmemiştir.",
-        c80: "Hedef uyaranlara verilen tepkiler genel olarak zamanında ve tutarlı bulunmuştur.",
-        c70: "Tepki hızında zaman zaman değişkenlik gözlenmiş olmakla birlikte genel performans korunmuştur.",
-        c60: "Hedef uyaranlara verilen tepkilerde gecikmeler ve zamanlama tutarsızlıkları izlenmiştir.",
-        cLow: "Görev boyunca tepki zamanlamasında belirgin düzensizlikler ve gecikmeler gözlenmiştir."
+        definition: "Hedef uyaranlara verilen doğru yanıtların zamanlama tutarlılığını ve geç yanıt sıklığını değerlendirir.",
+        definitionV1: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
+        c90: "Doğru yanıtlarda zamanlama tutarlılığı yüksek ve geç yanıt oranı düşüktür.",
+        c80: "Zamanlama tutarlılığı genel olarak korunmuş; geç yanıtlar sınırlı düzeydedir.",
+        c70: "Zamanlama tutarlılığında orta düzeyde değişkenlik veya geç yanıtlarda hafif artış izlenmiştir.",
+        c60: "Geç yanıt artışı ve/veya RT değişkenliği (CV) zamanlama puanını düşürmüştür.",
+        cLow: "Geç yanıt sıklığı ve/veya düşük zamanlama tutarlılığı belirgindir."
       },
       impulsivity: {
         title: "I — DÜRTÜSELLİK",
@@ -288,6 +306,13 @@ export const reportPdfStrings = {
         ["Temel - 2", "Sürekli performans — test kapanışı"]
       ],
       indexDefinitions: [
+        ["A — Dikkat", "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi."],
+        ["T — Zamanlama", "Hedef uyaranlara verilen doğru yanıtların zamanlama tutarlılığını ve geç yanıt sıklığını değerlendirir."],
+        ["I — Dürtüsellik", "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi."],
+        ["H — Motor Yanıt Kontrolü", "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi."],
+        ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
+      ],
+      indexDefinitionsV1: [
         ["A — Dikkat", "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi."],
         ["T — Zamanlama", "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi."],
         ["I — Dürtüsellik", "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi."],
@@ -738,8 +763,12 @@ export function getFullPhaseLegend(locale = "tr") {
   return getReportPdfStrings(locale).technical.phaseLegend;
 }
 
-export function getIndexDefinitions(locale = "tr") {
-  return getReportPdfStrings(locale).technical.indexDefinitions;
+export function getIndexDefinitions(locale = "tr", scoringVersion = "v1") {
+  const tech = getReportPdfStrings(locale).technical;
+  if ((scoringVersion === "v1" || scoringVersion === "v2") && tech.indexDefinitionsV1) {
+    return tech.indexDefinitionsV1;
+  }
+  return tech.indexDefinitions;
 }
 
 export function getNormLevels(locale = "tr") {

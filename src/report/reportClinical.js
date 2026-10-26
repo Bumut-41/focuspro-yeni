@@ -164,8 +164,12 @@ export function buildGeneralShortComment(scores, distractor, locale = "tr", z = 
   return parts.filter(Boolean).join(" ");
 }
 
-/** Seviye 1–3 geçerlilik + Geçerlilik Endeksi (0–100). */
-export function computeTestValidity(logs, metrics, profile, pressTimeline = [], age = null, locale = "tr") {
+/**
+ * Seviye 1–3 geçerlilik / oturum veri kalitesi (0–100).
+ * @param {{ dataQualityMode?: boolean }} [options] dataQualityMode: V4 — hedefte hızlı basışı kritik sayma; temkinli özet.
+ */
+export function computeTestValidity(logs, metrics, profile, pressTimeline = [], age = null, locale = "tr", options = {}) {
+  const dataQualityMode = Boolean(options?.dataQualityMode);
   const V = getReportPdfStrings(locale).validity;
   const late = profile.lateResponseMs;
   const level1Critical = [];
@@ -176,10 +180,15 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
   const fastHits = targetHits.filter((t) => t.reactionTime < 150);
   const fastRate = targetHits.length ? (fastHits.length / targetHits.length) * 100 : 0;
 
-  if (metrics.avgReaction > 0 && metrics.avgReaction < 150) {
-    level1Critical.push(V.l1_avgRt);
-  } else if (targetHits.length >= 5 && fastRate >= 25) {
-    level1Critical.push(fillTemplate(V.l1_fastRate, { rate: fastRate.toFixed(0) }));
+  // V4: hedef (mavi üçgen) üzerinde hızlı basış T'de cezalandırılmaz; kritik geçersizlik sayılmaz.
+  if (!dataQualityMode) {
+    if (metrics.avgReaction > 0 && metrics.avgReaction < 150) {
+      level1Critical.push(V.l1_avgRt);
+    } else if (targetHits.length >= 5 && fastRate >= 25) {
+      level1Critical.push(fillTemplate(V.l1_fastRate, { rate: fastRate.toFixed(0) }));
+    }
+  } else if (targetHits.length >= 5 && fastRate >= 40) {
+    level2Warnings.push(fillTemplate(V.l1_fastRate, { rate: fastRate.toFixed(0) }));
   }
 
   if (metrics.omissionRate > 60) {
@@ -320,7 +329,15 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     level: metrics.rtStd >= 20 && metrics.rtStd <= 350 ? "green" : "yellow",
     text: metrics.rtStd >= 20 && metrics.rtStd <= 350 ? V.check_patternOk : V.check_patternBad
   });
-  if (!isInvalid && score >= 75) {
+  if (dataQualityMode) {
+    if (!isInvalid && score >= 75) {
+      checklist.push({ level: "green", text: V.check_dataOk || V.check_caution });
+    } else if (!isInvalid) {
+      checklist.push({ level: "yellow", text: V.check_dataCaution || V.check_caution });
+    } else {
+      checklist.push({ level: "red", text: V.check_dataLimited || V.check_invalid });
+    }
+  } else if (!isInvalid && score >= 75) {
     checklist.push({ level: "green", text: V.check_clinicalOk });
   } else if (!isInvalid) {
     checklist.push({ level: "yellow", text: V.check_caution });
@@ -329,7 +346,13 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
   }
 
   let summary;
-  if (isInvalid) summary = V.summary_invalid;
+  if (dataQualityMode) {
+    if (isInvalid) summary = V.summary_invalid;
+    else if (score >= 90) summary = V.summary_data_ok || V.summary_acceptable;
+    else if (score >= 75) summary = V.summary_data_acceptable || V.summary_acceptable;
+    else if (score >= 60) summary = V.summary_data_caution || V.summary_caution;
+    else summary = V.summary_data_low || V.summary_low;
+  } else if (isInvalid) summary = V.summary_invalid;
   else if (score >= 90) summary = V.summary_valid;
   else if (score >= 75) summary = V.summary_acceptable;
   else if (score >= 60) summary = V.summary_caution;
@@ -346,6 +369,7 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     summary,
     isInvalid,
     shouldBlockReport: hasCritical,
+    dataQualityMode,
     cooperationOk: metrics.omissionRate <= 40,
     rtConsistent: metrics.rtStd >= 20 && metrics.rtStd <= 350,
     patternConsistent: !hasCritical && fastRate < 25
@@ -420,21 +444,28 @@ export function buildSustainabilityReport(logs, profile, age = null, pressTimeli
   const sust = computeSustainabilityIndex(logs, profile, age, pressTimeline, locale);
   let comment;
   if (sust.delta == null) comment = S.noData;
+  else if (sust.delta >= 5) comment = S.increase || S.stable;
   else if (sust.delta >= -5) comment = S.stable;
   else if (sust.delta >= -15) comment = S.mild;
   else comment = S.marked;
   return { ...sust, comment };
 }
 
-export function buildIndexClinicalComments(scores, locale = "tr", z = null) {
+export function buildIndexClinicalComments(scores, locale = "tr", z = null, options = {}) {
   const I = getReportPdfStrings(locale).indexes;
+  const noSpeed = Boolean(options?.noSpeedTiming);
+  const metrics = options?.metrics || null;
   const mk = (key, score) => {
+    const definition =
+      key === "timing" && !noSpeed && I[key].definitionV1
+        ? I[key].definitionV1
+        : I[key].definition;
     if (score == null || Number.isNaN(Number(score))) {
       return {
         score: null,
         title: I[key].title,
         level: "—",
-        definition: I[key].definition,
+        definition,
         comment:
           key === "timing"
             ? "T puanı hesaplanamadı (yetersiz / geçersiz RT verisi)."
@@ -443,12 +474,27 @@ export function buildIndexClinicalComments(scores, locale = "tr", z = null) {
     }
     const zv = z?.[key];
     const useNorm = zv != null && Number.isFinite(zv);
+    let comment = useNorm ? commentForNormZ(I[key], zv) : indexComment(I[key], score);
+    if (key === "timing" && noSpeed && metrics) {
+      const stab = metrics.timingRtStability;
+      const late = metrics.timingLateResponse;
+      const parts = [];
+      if (stab != null) parts.push(`stabilite ${stab}`);
+      if (late != null) parts.push(`geç-yanıt puanı ${late}`);
+      if (parts.length) {
+        comment = `${comment} (V3/V4 alt bileşenler: ${parts.join(", ")}; hız puanı yok.)`;
+      }
+    }
+    let level = useNorm ? indexLevelLabelFromZ(zv, locale) : indexLevelLabel(score, locale);
+    if (noSpeed && level && level !== "—") {
+      level = `${level} (geçici algoritmik)`;
+    }
     return {
       score,
       title: I[key].title,
-      level: useNorm ? indexLevelLabelFromZ(zv, locale) : indexLevelLabel(score, locale),
-      definition: I[key].definition,
-      comment: useNorm ? commentForNormZ(I[key], zv) : indexComment(I[key], score)
+      level,
+      definition,
+      comment
     };
   };
   return {

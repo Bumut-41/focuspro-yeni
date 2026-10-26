@@ -19,6 +19,8 @@ import {
 } from "./metrics.js";
 import { computeMetricsV2 } from "./metricsV2.js";
 import { computeMetricsV3 } from "./metricsV3.js";
+import { computeMetricsV4 } from "./metricsV4.js";
+import { getBaselineAndClosingBuckets } from "./report/phaseBuckets.js";
 import { buildReportPhaseBuckets, logsForBucket } from "./report/phaseBuckets.js";
 import { normLevelFromZ, normLevelTextFromZ, normZScore } from "./reportNorms.js";
 
@@ -156,6 +158,24 @@ export function computeDetailedMetricsV3(logs, lateMs, metricOptions = null, age
     cv: v3.cv,
     version: "v3",
     flags: [...(v1.flags || []), ...(v3.flags || [])]
+  };
+}
+
+/** V4 — skor V3 ile aynı; rapor katmanı (pdf) V4 metinlerini kullanır. */
+export function computeDetailedMetricsV4(logs, lateMs, metricOptions = null, age = null) {
+  const opts = normalizeMetricOptions(metricOptions, age);
+  const base = computeDetailedMetricsV3(logs, lateMs, opts, age);
+  const v4 = computeMetricsV4(logs, lateMs, opts.pressTimeline ?? [], opts.age ?? age);
+  return {
+    ...base,
+    ...v4,
+    attentionScore: v4.attentionScore,
+    impulseScore: v4.impulseScore,
+    speedScore: v4.speedScore,
+    consistencyScore: v4.consistencyScore,
+    overallScore: v4.overallScore,
+    version: "v4",
+    flags: [...(base.flags || []).filter((f) => !String(f).startsWith("V3:")), ...(v4.flags || [])]
   };
 }
 
@@ -299,8 +319,8 @@ export function computeValidityFlags(logs, metrics, profile, locale = "tr") {
 
 export function computeSustainabilityIndex(logs, profile, age = null, pressTimeline = [], locale = "tr") {
   const sm = getStrings(locale).metrics;
-  const buckets = buildReportPhaseBuckets(profile);
-  if (buckets.length < 4) {
+  const { baseline, closing } = getBaselineAndClosingBuckets(profile, locale);
+  if (!baseline || !closing) {
     return { delta: null, firstAvg: null, lastAvg: null, label: sm.insufficientData };
   }
   const late = profile.lateResponseMs;
@@ -308,15 +328,23 @@ export function computeSustainabilityIndex(logs, profile, age = null, pressTimel
     const list = logsForBucket(logs, bucket);
     if (!list.length) return null;
     const tl = timelineForBucket(pressTimeline, bucket);
-    return computeDetailedMetrics(list, late, { pressTimeline: tl, age }).overallScore;
+    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age });
+    // overall null olabilir (V3/V4 T yok); A ağırlıklı vekil kullan
+    if (m.overallScore != null && !Number.isNaN(Number(m.overallScore))) return m.overallScore;
+    const sc = getScores(m);
+    if (sc.attention == null) return null;
+    return (
+      (sc.attention ?? 0) * 0.3 +
+      (sc.timing ?? 0) * 0.25 +
+      (sc.impulsivity ?? 0) * 0.3 +
+      (sc.hyperactivity ?? 0) * 0.15
+    );
   };
-  const firstScores = buckets.slice(0, 2).map(scoreOf).filter((v) => v != null);
-  const lastScores = buckets.slice(-2).map(scoreOf).filter((v) => v != null);
-  if (!firstScores.length || !lastScores.length) {
+  const firstAvg = scoreOf(baseline);
+  const lastAvg = scoreOf(closing);
+  if (firstAvg == null || lastAvg == null) {
     return { delta: null, firstAvg: null, lastAvg: null, label: sm.insufficientData };
   }
-  const firstAvg = firstScores.reduce((a, b) => a + b, 0) / firstScores.length;
-  const lastAvg = lastScores.reduce((a, b) => a + b, 0) / lastScores.length;
   const delta = lastAvg - firstAvg;
   let label;
   if (delta >= 5) label = sm.sustainWarmup;
@@ -564,6 +592,25 @@ export function getSectionSummaries(logs, profile, age = null, pressTimeline = [
   const late = profile.lateResponseMs;
   return buildReportPhaseBuckets(profile, locale).map((bucket) => {
     const list = logsForBucket(logs, bucket);
+    if (!list.length) {
+      return {
+        section: bucket.label,
+        shortLabel: bucket.label,
+        axisLabel: bucket.axisLabel,
+        totalTrials: 0,
+        attentionScore: null,
+        timingScore: null,
+        impulsivityScore: null,
+        hyperactivityScore: null,
+        behaviors: null,
+        rates: null,
+        accuracy: null,
+        omissionRate: null,
+        falseAlarmRate: null,
+        medianReaction: null,
+        comment: "Bu bölümde deneme kaydı yok (veri eşleşmedi veya boş)."
+      };
+    }
     const tl = timelineForBucket(pressTimeline, bucket);
     const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale });
     const sc = getScores(m);
@@ -753,7 +800,7 @@ export const INDEX_DEFINITIONS = [
   ],
   [
     "T — Zamanlama",
-    "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi."
+    "Hedef uyaranlara verilen doğru yanıtların zamanlama tutarlılığını ve geç yanıt sıklığını değerlendirir."
   ],
   [
     "I — Dürtüsellik",
