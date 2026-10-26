@@ -29,15 +29,16 @@ export function buildComparisonDocDefinition({
   const lateMs = profile.lateResponseMs;
   const age = participant?.age ?? null;
   const cmp = buildScoreComparison(logs, lateMs, age, pressTimeline);
-  const { v1, v2, v3, counts, delta } = cmp;
+  const { v1, v2, v3, v4, counts, delta } = cmp;
 
-  const row = (label, a, b, c) => [
+  const row = (label, a, b, c, d) => [
     cell(label, { bold: true }),
     cell(label.startsWith("T") ? (v1.timing == null ? "—" : formatScoreCell(a)) : formatScoreCell(a), {
       alignment: "center"
     }),
     cell(label.startsWith("T") ? timingCell(v2) : formatScoreCell(b), { alignment: "center" }),
-    cell(label.startsWith("T") ? timingCell(v3) : formatScoreCell(c), { alignment: "center" })
+    cell(label.startsWith("T") ? timingCell(v3) : formatScoreCell(c), { alignment: "center" }),
+    cell(label.startsWith("T") ? timingCell(v4 || v3) : formatScoreCell(d), { alignment: "center" })
   ];
 
   return {
@@ -54,14 +55,14 @@ export function buildComparisonDocDefinition({
         margin: [0, 0, 0, 4]
       },
       {
-        text: "V1 / V2 / V3 Skor Karşılaştırma (deneme)",
+        text: "V1 / V2 / V3 / V4 Skor Karşılaştırma (deneme)",
         fontSize: 14,
         color: HEADER,
         margin: [0, 0, 0, 8]
       },
       {
         text:
-          "V1 resmi referanstır. V2: T’de 450 ms merkezli hız (pilot). V3: hız puanı yok; ham medyan RT + yaş bandı tanımlayıcı; stabilite CV exploratory (K=100). Klinik karar için V1 kullanılır.",
+          "V1 resmi. V2: 450 ms hız (pilot). V3/V4 skor aynı (hız yok; K=100 exploratory). V4 farkı rapor dili/faz/veri kalitesi. Klinik karar için V1 kullanılır.",
         fontSize: 8,
         color: "#b45309",
         margin: [0, 0, 0, 12]
@@ -80,19 +81,20 @@ export function buildComparisonDocDefinition({
       {
         table: {
           headerRows: 1,
-          widths: ["*", 55, 55, 55],
+          widths: ["*", 48, 48, 48, 48],
           body: [
             [
               { text: "Ölçüm", bold: true, color: "#fff", fillColor: HEADER, fontSize: 8 },
               { text: "V1", bold: true, color: "#fff", fillColor: HEADER, alignment: "center", fontSize: 8 },
               { text: "V2", bold: true, color: "#fff", fillColor: HEADER, alignment: "center", fontSize: 8 },
-              { text: "V3", bold: true, color: "#fff", fillColor: HEADER, alignment: "center", fontSize: 8 }
+              { text: "V3", bold: true, color: "#fff", fillColor: HEADER, alignment: "center", fontSize: 8 },
+              { text: "V4", bold: true, color: "#fff", fillColor: HEADER, alignment: "center", fontSize: 8 }
             ],
-            row("A — Dikkat", v1.attention, v2.attention, v3.attention),
-            row("T — Zamanlama", v1.timing, v2.timing, v3.timing),
-            row("I — Dürtüsellik", v1.impulsivity, v2.impulsivity, v3.impulsivity),
-            row("H — Motor", v1.hyperactivity, v2.hyperactivity, v3.hyperactivity),
-            row("Genel", v1.overall, v2.overall, v3.overall)
+            row("A — Dikkat", v1.attention, v2.attention, v3.attention, v4?.attention),
+            row("T — Zamanlama", v1.timing, v2.timing, v3.timing, v4?.timing),
+            row("I — Dürtüsellik", v1.impulsivity, v2.impulsivity, v3.impulsivity, v4?.impulsivity),
+            row("H — Motor", v1.hyperactivity, v2.hyperactivity, v3.hyperactivity, v4?.hyperactivity),
+            row("Genel", v1.overall, v2.overall, v3.overall, v4?.overall)
           ]
         },
         layout: {
@@ -104,7 +106,7 @@ export function buildComparisonDocDefinition({
         margin: [0, 0, 0, 10]
       },
       {
-        text: `Δ T (V2−V1): ${delta.timing == null ? "—" : Math.round(delta.timing)} · Δ T (V3−V1): ${delta.v3?.timing == null ? "—" : Math.round(delta.v3.timing)} · Δ T (V3−V2): ${delta.v3v2?.timing == null ? "—" : Math.round(delta.v3v2.timing)}`,
+        text: `Δ T (V2−V1): ${delta.timing == null ? "—" : Math.round(delta.timing)} · Δ T (V3−V2): ${delta.v3v2?.timing == null ? "—" : Math.round(delta.v3v2.timing)} · V4 skor = V3`,
         fontSize: 8,
         color: SUB,
         margin: [0, 0, 0, 12]
@@ -163,5 +165,5 @@ export async function createComparisonPdfBlob(args) {
 export async function downloadComparisonPdf(args) {
   const blob = await createComparisonPdfBlob(args);
   const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
-  triggerBlobDownload(blob, `FocusProLab_${safeName}_V1-V2-V3_karsilastirma_${Date.now()}.pdf`);
+  triggerBlobDownload(blob, `FocusProLab_${safeName}_V1-V2-V3-V4_karsilastirma_${Date.now()}.pdf`);
 }

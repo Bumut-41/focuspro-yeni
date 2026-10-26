@@ -31,7 +31,8 @@ function timingCell(pack) {
 }
 
 /**
- * V1/V2/V3 skor karşılaştırma paneli — mevcut V1 sonuçlarını değiştirmez.
+ * V1/V2/V3/V4 skor karşılaştırma paneli — mevcut V1 sonuçlarını değiştirmez.
+ * V4 skor = V3; V4 farkı rapor dili / faz sırası / veri kalitesi.
  */
 export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) {
   const [rows, setRows] = useState([]);
@@ -95,7 +96,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
         }
       }
       setRows(out);
-      setMsg(`${out.filter((r) => !r.error).length} oturum karşılaştırıldı (V1/V2/V3).`);
+      setMsg(`${out.filter((r) => !r.error).length} oturum karşılaştırıldı (V1/V2/V3/V4).`);
     } finally {
       setBusy(false);
     }
@@ -130,8 +131,8 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
   return (
     <Card>
       <CardHeader
-        title="V1 / V2 / V3 skor karşılaştırma (pilot)"
-        description="V1 resmi. V2: T’de 450 ms hız cezası (pilot). V3: hız puanı yok; ham medyan RT + yaş bandı tanımlayıcı; stabilite CV exploratory (K=100). I/H aynı. 77/85/94/99 civarı vurgulanır."
+        title="V1 / V2 / V3 / V4 skor karşılaştırma (pilot)"
+        description="V1 resmi. V2: 450 ms hız (pilot). V3/V4 skor aynı (hız yok; CV K=100 exploratory). V4 farkı: rapor dili, faz sırası, oturum veri kalitesi. I/H aynı. 77/85/94/99 civarı vurgulanır."
         action={
           <Stack gap={8} wrap>
             <label style={{ fontSize: "0.8125rem", display: "flex", alignItems: "center", gap: 6 }}>
@@ -161,9 +162,11 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                 <th>T V1</th>
                 <th>T V2</th>
                 <th>T V3</th>
+                <th>T V4</th>
                 <th>Gen V1</th>
                 <th>Gen V2</th>
                 <th>Gen V3</th>
+                <th>Gen V4</th>
                 <th>ΔT V3−V2</th>
                 <th>Med RT</th>
                 <th>CV</th>
@@ -180,7 +183,7 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                 if (r.error) {
                   return (
                     <tr key={r.id}>
-                      <td colSpan={19} style={{ color: "var(--fp-danger, #dc2626)" }}>
+                      <td colSpan={21} style={{ color: "var(--fp-danger, #dc2626)" }}>
                         {r.name}: {r.error}
                       </td>
                     </tr>
@@ -195,7 +198,9 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                       <div style={{ fontWeight: 600 }}>{r.name}</div>
                       <div style={{ color: "var(--fp-text-muted)", fontSize: "0.7rem" }}>
                         {r.age != null ? `yaş ${r.age}` : "—"}
-                        {r.v3?.ageBandLabel ? ` · ${r.v3.ageBandLabel}` : ""}
+                        {(r.v4?.ageBandLabel || r.v3?.ageBandLabel)
+                          ? ` · ${r.v4?.ageBandLabel || r.v3.ageBandLabel}`
+                          : ""}
                         {r.highlight ? " · hedef" : ""}
                       </div>
                     </td>
@@ -209,6 +214,9 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                     <td align="center" title={r.v3?.timingReason || ""}>
                       {timingCell(r.v3)}
                     </td>
+                    <td align="center" title={r.v4?.timingReason || "V4 skor = V3"}>
+                      {timingCell(r.v4)}
+                    </td>
                     <td align="center" style={{ fontWeight: 700 }}>
                       {cell(r.v1.overall)}
                     </td>
@@ -218,9 +226,14 @@ export function ScoringComparisonPanel({ sessions = [], dateLocale = "tr-TR" }) 
                     <td align="center" style={{ fontWeight: 700 }}>
                       {cell(r.v3?.overall)}
                     </td>
+                    <td align="center" style={{ fontWeight: 700 }}>
+                      {cell(r.v4?.overall)}
+                    </td>
                     <td align="center">{deltaCell(r.delta?.v3v2?.timing)}</td>
-                    <td align="center">{r.v3?.medianRt ?? r.v2.medianRt ?? cell(r.v1.medianRt)}</td>
-                    <td align="center">{r.v3?.cv ?? r.v2.cv ?? "—"}</td>
+                    <td align="center">
+                      {r.v4?.medianRt ?? r.v3?.medianRt ?? r.v2.medianRt ?? cell(r.v1.medianRt)}
+                    </td>
+                    <td align="center">{r.v4?.cv ?? r.v3?.cv ?? r.v2.cv ?? "—"}</td>
                     <td align="center">{r.counts.omissions}</td>
                     <td align="center">{r.counts.late}</td>
                     <td align="center">{r.counts.falseAlarms}</td>

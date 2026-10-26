@@ -1,9 +1,11 @@
 /**
- * V1 / V2 / V3 skor karşılaştırma — mevcut V1 raporlarını değiştirmez.
+ * V1 / V2 / V3 / V4 skor karşılaştırma — mevcut V1 raporlarını değiştirmez.
+ * V4 skor motoru V3 ile aynıdır; rapor katmanı farklıdır.
  */
 import { computeMetrics, countHyperMotorStats, countTrialBehaviors } from "./metrics.js";
 import { computeMetricsV2 } from "./metricsV2.js";
 import { computeMetricsV3 } from "./metricsV3.js";
+import { computeMetricsV4 } from "./metricsV4.js";
 
 function safeNum(v) {
   return v == null || Number.isNaN(Number(v)) ? null : Number(v);
@@ -49,32 +51,33 @@ function packV2(v2) {
   };
 }
 
-function packV3(v3) {
+function packV3orV4(v, version) {
   return {
-    attention: v3.attentionScore,
-    timing: v3.speedScore,
-    impulsivity: v3.impulseScore,
-    hyperactivity: v3.consistencyScore,
-    overall: v3.overallScore,
-    timingUnavailable: v3.timingUnavailable,
-    timingReason: v3.timingReason,
+    attention: v.attentionScore,
+    timing: v.speedScore,
+    impulsivity: v.impulseScore,
+    hyperactivity: v.consistencyScore,
+    overall: v.overallScore,
+    timingUnavailable: v.timingUnavailable,
+    timingReason: v.timingReason,
     timingRtSpeed: null,
-    timingRtStability: v3.timingRtStability,
-    timingLateResponse: v3.timingLateResponse,
-    medianRt: v3.medianRt,
-    meanRt: v3.meanRt,
-    rtStd: v3.rtStd,
-    cv: v3.cv,
-    rushUnder150: v3.rushUnder150,
-    rtN: v3.rtN,
-    rtNRaw: v3.rtNRaw,
-    outliersRemoved: v3.outliersRemoved,
-    ageBand: v3.ageBand,
-    ageBandLabel: v3.ageBandLabel,
-    ageReferenceRtMs: v3.ageReferenceRtMs,
-    stabilityK: v3.stabilityK,
+    timingRtStability: v.timingRtStability,
+    timingLateResponse: v.timingLateResponse,
+    medianRt: v.medianRt,
+    meanRt: v.meanRt,
+    rtStd: v.rtStd,
+    cv: v.cv,
+    rushUnder150: v.rushUnder150,
+    rtN: v.rtN,
+    rtNRaw: v.rtNRaw,
+    outliersRemoved: v.outliersRemoved,
+    ageBand: v.ageBand,
+    ageBandLabel: v.ageBandLabel,
+    ageReferenceRtMs: v.ageReferenceRtMs,
+    stabilityK: v.stabilityK,
     rtSpeedScored: false,
-    overlap: v3.overlap
+    overlap: v.overlap,
+    version
   };
 }
 
@@ -96,15 +99,18 @@ export function buildScoreComparison(logs, lateMs, age = null, pressTimeline = [
   const v1m = computeMetrics(logs ?? [], lateMs, { pressTimeline, age, locale: "tr" });
   const v2m = computeMetricsV2(logs ?? [], lateMs, pressTimeline ?? []);
   const v3m = computeMetricsV3(logs ?? [], lateMs, pressTimeline ?? [], age);
+  const v4m = computeMetricsV4(logs ?? [], lateMs, pressTimeline ?? [], age);
 
   const v1 = packV1(v1m);
   const v2 = packV2(v2m);
-  const v3 = packV3(v3m);
+  const v3 = packV3orV4(v3m, "v3");
+  const v4 = packV3orV4(v4m, "v4");
 
   return {
     v1,
     v2,
     v3,
+    v4,
     counts: {
       targets: behaviors.targets,
       omissions: behaviors.omissions,
@@ -135,6 +141,11 @@ export function buildScoreComparison(logs, lateMs, age = null, pressTimeline = [
       v3v2: {
         timing: deltaTiming(v2.timing, v3.timingUnavailable, v3.timing),
         overall: deltaOverall(v2.overall, v3.overallUnavailable ?? v3.timingUnavailable, v3.overall)
+      },
+      // V4 − V3 (skor aynı olmalı; rapor farkı)
+      v4v3: {
+        timing: deltaTiming(v3.timing, v4.timingUnavailable, v4.timing),
+        overall: deltaOverall(v3.overall, v4.overallUnavailable ?? v4.timingUnavailable, v4.overall)
       }
     }
   };
