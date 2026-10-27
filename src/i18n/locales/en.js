@@ -227,7 +227,7 @@ export const en = {
     colStatus: "Status",
     colEmailDelivery: "Invite email",
     colExpires: "Expires",
-    emailDelivered: "Yes — sent on {{date}} to {{email}}",
+    emailDelivered: "Delivered on {{date}} to {{email}}",
     emailNotDelivered: "Not sent — {{reason}}",
     emailPending: "Sending…",
     emailNotAttempted: "Not sent yet",

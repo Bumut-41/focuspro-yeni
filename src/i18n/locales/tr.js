@@ -227,7 +227,7 @@ export const tr = {
     colStatus: "Durum",
     colEmailDelivery: "Davet e-postası",
     colExpires: "Son geçerlilik",
-    emailDelivered: "Evet — {{date}} tarihinde {{email}} adresine iletildi",
+    emailDelivered: "{{date}} tarihinde {{email}} adresine iletildi",
     emailNotDelivered: "İletilmedi — {{reason}}",
     emailPending: "Gönderim sürüyor…",
     emailNotAttempted: "Henüz gönderilmedi",

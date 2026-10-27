@@ -3,6 +3,9 @@
 export function inviteEmailStatusColor(invite) {
   const status = invite?.invite_email_status;
   if (status === "sent" || invite?.invite_email_sent_at) return "var(--fp-success)";
+  if (!status && (invite?.status === "accepted" || invite?.status === "completed")) {
+    return "var(--fp-success)";
+  }
   if (status === "failed") return "var(--fp-danger)";
   if (status === "pending") return "var(--fp-primary)";
   return "var(--fp-text-secondary)";
@@ -15,11 +18,13 @@ export function inviteEmailStatusColor(invite) {
  */
 export function formatInviteEmailStatus(invite, t, dateLocale) {
   const status = invite?.invite_email_status;
+  const email = invite?.recipient_email || "—";
+
   if (status === "sent" || invite?.invite_email_sent_at) {
     const when = invite.invite_email_sent_at
       ? new Date(invite.invite_email_sent_at).toLocaleString(dateLocale)
       : "—";
-    return t("invite.emailDelivered", { date: when, email: invite.recipient_email || "—" });
+    return t("invite.emailDelivered", { date: when, email });
   }
   if (status === "pending") {
     return t("invite.emailPending");
@@ -35,6 +40,15 @@ export function formatInviteEmailStatus(invite, t, dateLocale) {
     }
     return t("invite.emailNotDelivered", { reason });
   }
+
+  // İzleme kolonlarından önce oluşturulmuş, kullanılmış davetler
+  if (invite?.status === "accepted" || invite?.status === "completed") {
+    const when = invite.created_at
+      ? new Date(invite.created_at).toLocaleString(dateLocale)
+      : "—";
+    return t("invite.emailDelivered", { date: when, email });
+  }
+
   return t("invite.emailNotAttempted");
 }
 

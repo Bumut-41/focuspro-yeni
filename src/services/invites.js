@@ -61,20 +61,74 @@ export async function fetchAllInvites(limit = 100) {
   return data ?? [];
 }
 
+/** Davet e-posta iletim durumunu DB'ye yazar (psikolog/admin). */
+export async function recordInviteEmailStatus({
+  inviteId,
+  status,
+  errorCode = null,
+  errorDetail = null,
+  providerId = null
+}) {
+  const { error } = await supabase.rpc("record_invite_email_status", {
+    p_invite_id: inviteId,
+    p_status: status,
+    p_error_code: errorCode,
+    p_error_detail: errorDetail,
+    p_provider_id: providerId
+  });
+  if (error) throw error;
+}
+
 export async function sendTestInviteEmail({ inviteId, locale = "tr" }) {
+  try {
+    await recordInviteEmailStatus({ inviteId, status: "pending" });
+  } catch {
+    /* RPC yoksa edge yine de dener */
+  }
+
   const { data, error } = await supabase.functions.invoke("send-test-invite", {
     body: { inviteId, locale, siteUrl: window.location.origin }
   });
   if (error) {
+    try {
+      await recordInviteEmailStatus({
+        inviteId,
+        status: "failed",
+        errorCode: "invoke_failed",
+        errorDetail: error.message
+      });
+    } catch {
+      /* ignore */
+    }
     throw Object.assign(new Error(error.message || "E-posta gönderilemedi."), {
       code: "invoke_failed"
     });
   }
   if (data?.error) {
+    try {
+      await recordInviteEmailStatus({
+        inviteId,
+        status: "failed",
+        errorCode: data.error,
+        errorDetail: data.detail || null
+      });
+    } catch {
+      /* ignore */
+    }
     throw Object.assign(new Error(data.detail || data.error), {
       code: data.error,
       detail: data.detail || null
     });
+  }
+
+  try {
+    await recordInviteEmailStatus({
+      inviteId,
+      status: "sent",
+      providerId: data?.providerId || null
+    });
+  } catch {
+    /* edge zaten yazdıysa sorun değil */
   }
   return data;
 }

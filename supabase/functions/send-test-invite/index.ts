@@ -112,7 +112,10 @@ async function markEmailStatus(
     patch.invite_email_error_detail = (errorDetail || "").slice(0, 500);
   }
   if (providerId) patch.invite_email_provider_id = providerId;
-  await admin.from("test_invites").update(patch).eq("id", inviteId);
+  const { error } = await admin.from("test_invites").update(patch).eq("id", inviteId);
+  if (error) {
+    console.error("invite_email_status_update_failed", inviteId, status, error.message);
+  }
 }
 
 Deno.serve(async (req) => {

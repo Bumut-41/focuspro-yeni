@@ -227,7 +227,7 @@ export const it = {
     colStatus: "Stato",
     colEmailDelivery: "E-mail di invito",
     colExpires: "Scadenza",
-    emailDelivered: "Sì — inviato il {{date}} a {{email}}",
+    emailDelivered: "Inviato il {{date}} a {{email}}",
     emailNotDelivered: "Non inviato — {{reason}}",
     emailPending: "Invio in corso…",
     emailNotAttempted: "Non ancora inviato",
