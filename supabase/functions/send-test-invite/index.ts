@@ -179,7 +179,9 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const isAdmin = caller?.role === "admin" || caller?.role === "super_admin";
-    const isOwner = invite.psychologist_id === user.id && caller?.role === "psychologist";
+    // Daveti oluşturan psikolog (owner) gönderebilir — yalnızca role === 'psychologist'
+    // şartı bazı oturumlarda yanlışlıkla forbidden üretiyordu; admin yeniden gönderince çalışıyordu.
+    const isOwner = invite.psychologist_id === user.id;
     if (!isAdmin && !isOwner) {
       return json({ error: "forbidden" }, 403);
     }

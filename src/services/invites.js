@@ -79,45 +79,74 @@ export async function recordInviteEmailStatus({
   if (error) throw error;
 }
 
+async function invokeSendTestInvite(inviteId, locale) {
+  const { data, error } = await supabase.functions.invoke("send-test-invite", {
+    body: { inviteId, locale, siteUrl: window.location.origin }
+  });
+  // Non-2xx olsa bile gövde çoğu zaman data'da gelir
+  if (data?.error) {
+    return {
+      ok: false,
+      code: data.error,
+      detail: data.detail || null,
+      message: data.detail || data.error
+    };
+  }
+  if (error) {
+    let detail = error.message || null;
+    try {
+      const ctx = error.context;
+      if (ctx && typeof ctx.json === "function") {
+        const body = await ctx.json();
+        if (body?.error) {
+          return {
+            ok: false,
+            code: body.error,
+            detail: body.detail || null,
+            message: body.detail || body.error
+          };
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    return { ok: false, code: "invoke_failed", detail, message: detail || "E-posta gönderilemedi." };
+  }
+  return { ok: true, data };
+}
+
 export async function sendTestInviteEmail({ inviteId, locale = "tr" }) {
+  if (!inviteId) {
+    throw Object.assign(new Error("inviteId required"), { code: "invite_not_found" });
+  }
+
   try {
     await recordInviteEmailStatus({ inviteId, status: "pending" });
   } catch {
     /* RPC yoksa edge yine de dener */
   }
 
-  const { data, error } = await supabase.functions.invoke("send-test-invite", {
-    body: { inviteId, locale, siteUrl: window.location.origin }
-  });
-  if (error) {
-    try {
-      await recordInviteEmailStatus({
-        inviteId,
-        status: "failed",
-        errorCode: "invoke_failed",
-        errorDetail: error.message
-      });
-    } catch {
-      /* ignore */
-    }
-    throw Object.assign(new Error(error.message || "E-posta gönderilemedi."), {
-      code: "invoke_failed"
-    });
+  let result = await invokeSendTestInvite(inviteId, locale);
+  // Geçici ağ / cold start: bir kez daha dene
+  if (!result.ok && (result.code === "invoke_failed" || result.code === "unexpected")) {
+    await new Promise((r) => setTimeout(r, 800));
+    result = await invokeSendTestInvite(inviteId, locale);
   }
-  if (data?.error) {
+
+  if (!result.ok) {
     try {
       await recordInviteEmailStatus({
         inviteId,
         status: "failed",
-        errorCode: data.error,
-        errorDetail: data.detail || null
+        errorCode: result.code || "send_failed",
+        errorDetail: result.detail
       });
     } catch {
       /* ignore */
     }
-    throw Object.assign(new Error(data.detail || data.error), {
-      code: data.error,
-      detail: data.detail || null
+    throw Object.assign(new Error(result.message || "E-posta gönderilemedi."), {
+      code: result.code || "send_failed",
+      detail: result.detail || null
     });
   }
 
@@ -125,12 +154,12 @@ export async function sendTestInviteEmail({ inviteId, locale = "tr" }) {
     await recordInviteEmailStatus({
       inviteId,
       status: "sent",
-      providerId: data?.providerId || null
+      providerId: result.data?.providerId || null
     });
   } catch {
     /* edge zaten yazdıysa sorun değil */
   }
-  return data;
+  return result.data;
 }
 
 export function inviteErrorMessage(code, t) {

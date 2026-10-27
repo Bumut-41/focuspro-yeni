@@ -98,11 +98,16 @@ export function SpecialistClientsPanel() {
     setMsg("");
     try {
       const created = await createTestInvite(email);
-      await sendTestInviteEmail({ inviteId: created.id, locale });
       await refreshProfile();
-      setEmailPrompt(null);
-      setMsgVariant("success");
-      setMsg(t("clients.sent", { email }));
+      try {
+        await sendTestInviteEmail({ inviteId: created.id, locale });
+        setEmailPrompt(null);
+        setMsgVariant("success");
+        setMsg(t("clients.sent", { email }));
+      } catch (mailErr) {
+        setMsgVariant("error");
+        setMsg(t("invite.emailSendFailedAfterCreate", { reason: parseRpcError(mailErr, t) }));
+      }
       await load();
     } catch (e) {
       setMsgVariant("error");
