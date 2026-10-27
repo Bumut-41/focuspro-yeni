@@ -165,7 +165,7 @@ export function renderProfileRadar(scores, locale = "tr") {
     value: clampScore(scores[axis.key])
   }));
   const width = 920;
-  const height = 760;
+  const height = 820;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -173,9 +173,10 @@ export function renderProfileRadar(scores, locale = "tr") {
   ctx.fillStyle = "#f8fafc";
   ctx.fillRect(0, 0, width, height);
 
+  // Merkez ve yarıçap: etiketler için eşit boşluk (üst/alt/yan)
   const cx = width / 2;
-  const cy = height / 2 + 8;
-  const radius = 210;
+  const cy = height / 2;
+  const radius = 200;
 
   ctx.strokeStyle = "#e2e8f0";
   ctx.lineWidth = 1.5;
@@ -221,17 +222,17 @@ export function renderProfileRadar(scores, locale = "tr") {
     ctx.fill();
   });
 
+  // Tüm eksen etiketleri aynı merkez noktasında ortalanır (H/I çarpıklığını giderir)
   axes.forEach((axis, index) => {
-    const point = radarPoint(cx, cy, index, radius + 54);
-    const align = index === 0 ? "center" : index === 1 || index === 2 ? "left" : "right";
-    ctx.textAlign = align;
+    const point = radarPoint(cx, cy, index, radius + 62);
+    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = axis.color;
-    ctx.font = "800 28px sans-serif";
-    ctx.fillText(axis.code, point.x, point.y - 16);
-    ctx.font = "700 15px sans-serif";
+    ctx.font = "800 26px sans-serif";
+    ctx.fillText(axis.code, point.x, point.y - 14);
+    ctx.font = "700 14px sans-serif";
     axis.lines.forEach((line, lineIndex) => {
-      ctx.fillText(line, point.x, point.y + 12 + lineIndex * 18);
+      ctx.fillText(line, point.x, point.y + 10 + lineIndex * 16);
     });
   });
 

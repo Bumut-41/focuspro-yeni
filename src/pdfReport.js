@@ -51,13 +51,12 @@ function sectionTitle(text, pageBreak = false) {
   };
 }
 
-/** Başlık + grafik tek blokta kalsın; sayfa ortasında boşluk oluşmasın. */
+/** Başlık + grafik. unbreakable kapalı — sayfada büyük boşluk bırakmasın. */
 function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = null, imageWidth = 515) {
   if (!imageSrc) return null;
   return {
-    unbreakable: true,
     pageBreak: pageBreakBefore ? "before" : undefined,
-    margin: [0, pageBreakBefore ? 4 : 14, 0, 0],
+    margin: [0, pageBreakBefore ? 4 : 10, 0, 0],
     stack: [
       {
         columns: [
@@ -65,10 +64,10 @@ function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = 
           { width: "*", stack: [{ text: title, fontSize: 15, bold: true, color: HEADER, margin: [10, 2, 0, 0] }] }
         ],
         columnGap: 0,
-        margin: [0, 0, 0, subtitle ? 4 : 8]
+        margin: [0, 0, 0, subtitle ? 4 : 6]
       },
-      ...(subtitle ? [{ text: subtitle, fontSize: 10, color: SUB, margin: [15, 0, 0, 8] }] : []),
-      { image: imageSrc, width: imageWidth, alignment: "center", margin: [0, 0, 0, 12] }
+      ...(subtitle ? [{ text: subtitle, fontSize: 10, color: SUB, margin: [15, 0, 0, 6] }] : []),
+      { image: imageSrc, width: imageWidth, alignment: "center", margin: [0, 0, 0, 10] }
     ]
   };
 }
@@ -158,17 +157,30 @@ function scoreBox(title, value) {
         [
           {
             stack: [
-              { text: title, color: "#fff", bold: true, fontSize: 10 },
-              { text: display, color: "#fff", bold: true, fontSize: 22, margin: [0, 6, 0, 0] }
+              {
+                text: title,
+                color: "#fff",
+                bold: true,
+                fontSize: 9,
+                alignment: "center",
+                noWrap: true
+              },
+              {
+                text: display,
+                color: "#fff",
+                bold: true,
+                fontSize: 22,
+                alignment: "center",
+                margin: [0, 8, 0, 0]
+              }
             ],
             fillColor: getScoreColor(value),
-            margin: [8, 10, 8, 10]
+            margin: [6, 12, 6, 12]
           }
         ]
       ]
     },
-    layout: "noBorders",
-    margin: [0, 0, 4, 0]
+    layout: "noBorders"
   };
 }
 
@@ -313,30 +325,9 @@ function clinicalFlagsSection(clinicalFlags, pdf) {
 function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion = "v1") {
   const pdf = getReportPdfStrings(locale);
 
-  // V4: doğrulanmamış Z / klinik norm karşılaştırması gösterilmez
+  // V4: Z tablosu, indeks tanımları listesi ve geçici-algoritma notları gösterilmez
   if (scoringVersion === "v4") {
-    return [
-      {
-        text:
-          "Normatif Z-puanı karşılaştırması geçici olarak kaldırılmıştır (doğrulanmış örneklem normu yok). Sınıflamalar geçici algoritmiktir.",
-        fontSize: 8,
-        color: "#b45309",
-        margin: [0, 8, 0, 8]
-      },
-      {
-        ul: getIndexDefinitions(locale, scoringVersion).map(([t, d]) => ({
-          text: [{ text: `${t}: `, bold: true }, d],
-          fontSize: 8,
-          margin: [0, 2, 0, 0]
-        }))
-      },
-      {
-        text: pdf.algorithmCategoryNote || "",
-        fontSize: 8,
-        color: "#b45309",
-        margin: [0, 8, 0, 0]
-      }
-    ];
+    return [];
   }
 
   const NORM_LEVELS = getNormLevels(locale);
@@ -448,8 +439,11 @@ function normAndPhaseBlock(sections, scores, profileKey, locale, scoringVersion 
   const phaseTable = phaseSectionsTableBlock(sections, getReportPdfStrings(locale));
   const normBlocks = buildNormComparison(scores, profileKey, locale, scoringVersion);
   if (!phaseTable && !normBlocks.length) return null;
+  // Faz tablosu tek başına kalsın; gereksiz unbreakable boş sayfa üretmesin
+  if (!normBlocks.length) {
+    return phaseTable ? { ...phaseTable, margin: [0, 0, 0, 12] } : null;
+  }
   return {
-    unbreakable: true,
     margin: [0, 0, 0, 12],
     stack: [phaseTable, ...normBlocks].filter(Boolean)
   };
@@ -535,7 +529,7 @@ export function buildDocDefinition({
   const chartBlocks = [];
   let chartFirst = true;
   if (reportCharts.radar) {
-    chartBlocks.push(chartSectionBlock(pdf.chartRadar, reportCharts.radar, true, pdf.chartRadarSubtitle, 420));
+    chartBlocks.push(chartSectionBlock(pdf.chartRadar, reportCharts.radar, true, pdf.chartRadarSubtitle, 460));
     chartFirst = false;
   }
   const timingChartDesc =
@@ -834,27 +828,28 @@ export function buildDocDefinition({
       ),
       infoBox(pdf.shortComment, [executive.shortComment], "#f8fafc"),
 
-      ...indexSectionBlock("attention", indexComments.attention, pdf, true),
-      ...indexSectionBlock("timing", indexComments.timing, pdf),
-      ...indexSectionBlock("impulsivity", indexComments.impulsivity, pdf),
-      ...indexSectionBlock("hyperactivity", indexComments.hyperactivity, pdf),
-
+      // Skor kutuları üstte (eşit genişlik) — altta boş sayfa bırakmasın
       {
         columns: [
-          scoreBox(report.attention, scores.attention),
-          scoreBox(report.timing, scores.timing),
-          scoreBox(report.impulsivity, scores.impulsivity),
-          scoreBox(report.hyperactivity, scores.hyperactivity)
+          scoreBox("A — Dikkat", scores.attention),
+          scoreBox("T — Zamanlama", scores.timing),
+          scoreBox("I — Dürtüsellik", scores.impulsivity),
+          scoreBox("H — Motor", scores.hyperactivity)
         ],
-        columnGap: 2,
-        margin: [0, 0, 0, 6]
+        columnGap: 8,
+        margin: [0, 4, 0, 8]
       },
       {
         text: timingFormula,
         fontSize: 7,
         color: "#64748b",
-        margin: [0, 0, 0, 14]
+        margin: [0, 0, 0, 10]
       },
+
+      ...indexSectionBlock("attention", indexComments.attention, pdf, true),
+      ...indexSectionBlock("timing", indexComments.timing, pdf),
+      ...indexSectionBlock("impulsivity", indexComments.impulsivity, pdf),
+      ...indexSectionBlock("hyperactivity", indexComments.hyperactivity, pdf),
 
       ...chartBlocks,
 
