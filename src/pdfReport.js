@@ -24,8 +24,7 @@ import {
   buildIndexClinicalComments,
   buildProfessionalNarrative,
   buildSustainabilityReport,
-  computeTestValidity,
-  DATA_QUALITY_SCORE_RULES
+  computeTestValidity
 } from "./report/reportClinical.js";
 import { describeRtFiltering } from "./metricsV2.js";
 import { normLevelTextFromZ } from "./reportNorms.js";
@@ -51,23 +50,24 @@ function sectionTitle(text, pageBreak = false) {
   };
 }
 
-/** Başlık + grafik. unbreakable kapalı — sayfada büyük boşluk bırakmasın. */
-function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = null, imageWidth = 515) {
+/** Başlık + alt yazı + grafik tek parça — sayfa ortasında kopmasın. */
+function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = null, imageWidth = 480) {
   if (!imageSrc) return null;
   return {
+    unbreakable: true,
     pageBreak: pageBreakBefore ? "before" : undefined,
-    margin: [0, pageBreakBefore ? 4 : 10, 0, 0],
+    margin: [0, pageBreakBefore ? 2 : 8, 0, 4],
     stack: [
       {
         columns: [
-          { width: 5, canvas: [{ type: "rect", x: 0, y: 0, w: 5, h: 22, color: HEADER }] },
-          { width: "*", stack: [{ text: title, fontSize: 15, bold: true, color: HEADER, margin: [10, 2, 0, 0] }] }
+          { width: 5, canvas: [{ type: "rect", x: 0, y: 0, w: 5, h: 20, color: HEADER }] },
+          { width: "*", stack: [{ text: title, fontSize: 14, bold: true, color: HEADER, margin: [10, 1, 0, 0] }] }
         ],
         columnGap: 0,
-        margin: [0, 0, 0, subtitle ? 4 : 6]
+        margin: [0, 0, 0, subtitle ? 3 : 4]
       },
-      ...(subtitle ? [{ text: subtitle, fontSize: 10, color: SUB, margin: [15, 0, 0, 6] }] : []),
-      { image: imageSrc, width: imageWidth, alignment: "center", margin: [0, 0, 0, 10] }
+      ...(subtitle ? [{ text: subtitle, fontSize: 9, color: SUB, margin: [15, 0, 0, 4] }] : []),
+      { image: imageSrc, width: imageWidth, alignment: "center", margin: [0, 0, 0, 6] }
     ]
   };
 }
@@ -190,37 +190,47 @@ function indexSectionBlock(key, data, pdf, isFirst = false) {
   return [
     ...(isFirst ? [sectionTitle(pdf.mainIndexes)] : []),
     {
-      text: data.title,
-      bold: true,
-      fontSize: 12,
-      color: HEADER,
-      margin: [0, isFirst ? 0 : 12, 0, 6]
-    },
-    {
-      columns: [
+      unbreakable: true,
+      margin: [0, isFirst ? 0 : 10, 0, 6],
+      stack: [
         {
-          width: 92,
-          stack: [
-            {
-              text: scoreText,
-              fontSize: 20,
-              bold: true,
-              color: getScoreColor(data.score),
-              noWrap: true
-            },
-            { text: data.level, fontSize: 10, color: SUB, margin: [0, 4, 0, 0] }
-          ]
+          text: data.title,
+          bold: true,
+          fontSize: 12,
+          color: HEADER,
+          margin: [0, 0, 0, 6]
         },
         {
-          width: "*",
-          stack: [
-            { text: data.definition, fontSize: 8, color: SUB, margin: [0, 0, 0, 6] },
-            { text: pdf.commentLabel + ": " + data.comment, fontSize: 9, lineHeight: 1.35, alignment: "justify" }
-          ]
+          columns: [
+            {
+              width: 92,
+              stack: [
+                {
+                  text: scoreText,
+                  fontSize: 20,
+                  bold: true,
+                  color: getScoreColor(data.score),
+                  noWrap: true
+                },
+                { text: data.level, fontSize: 10, color: SUB, margin: [0, 4, 0, 0] }
+              ]
+            },
+            {
+              width: "*",
+              stack: [
+                { text: data.definition, fontSize: 8, color: SUB, margin: [0, 0, 0, 6] },
+                {
+                  text: pdf.commentLabel + ": " + data.comment,
+                  fontSize: 9,
+                  lineHeight: 1.35,
+                  alignment: "justify"
+                }
+              ]
+            }
+          ],
+          columnGap: 10
         }
-      ],
-      columnGap: 10,
-      margin: [0, 0, 0, 8]
+      ]
     }
   ];
 }
@@ -439,11 +449,13 @@ function normAndPhaseBlock(sections, scores, profileKey, locale, scoringVersion 
   const phaseTable = phaseSectionsTableBlock(sections, getReportPdfStrings(locale));
   const normBlocks = buildNormComparison(scores, profileKey, locale, scoringVersion);
   if (!phaseTable && !normBlocks.length) return null;
-  // Faz tablosu tek başına kalsın; gereksiz unbreakable boş sayfa üretmesin
   if (!normBlocks.length) {
-    return phaseTable ? { ...phaseTable, margin: [0, 0, 0, 12] } : null;
+    return phaseTable
+      ? { unbreakable: true, ...phaseTable, margin: [0, 0, 0, 12] }
+      : null;
   }
   return {
+    unbreakable: true,
     margin: [0, 0, 0, 12],
     stack: [phaseTable, ...normBlocks].filter(Boolean)
   };
@@ -526,11 +538,10 @@ export function buildDocDefinition({
   const rtFilter = describeRtFiltering(logs, profile.lateResponseMs);
   const rtAppendix = getReportPdfStrings(locale).technical?.rtFilterAppendix;
 
+  // Grafikler: zorunlu pageBreak yok (boş sayfa üretmesin); unbreakable başlık+grafiği bir arada tutar
   const chartBlocks = [];
-  let chartFirst = true;
   if (reportCharts.radar) {
-    chartBlocks.push(chartSectionBlock(pdf.chartRadar, reportCharts.radar, true, pdf.chartRadarSubtitle, 460));
-    chartFirst = false;
+    chartBlocks.push(chartSectionBlock(pdf.chartRadar, reportCharts.radar, true, pdf.chartRadarSubtitle, 420));
   }
   const timingChartDesc =
     noSpeedTiming ? pdf.chartTimingDesc : pdf.chartTimingDescV1 || pdf.chartTimingDesc;
@@ -541,14 +552,13 @@ export function buildDocDefinition({
     ["hyperactivity", pdf.chartHyperactivity, pdf.chartHyperactivityDesc]
   ];
   for (const [key, title, desc] of indexCharts) {
-    const block = chartSectionBlock(title + pdf.chartSuffix, reportCharts[key], chartFirst, desc || null);
-    if (block) {
-      chartBlocks.push(block);
-      chartFirst = false;
-    }
+    const block = chartSectionBlock(title + pdf.chartSuffix, reportCharts[key], false, desc || null, 480);
+    if (block) chartBlocks.push(block);
   }
   if (reportCharts.combined) {
-    chartBlocks.push(chartSectionBlock(pdf.chartCombined, reportCharts.combined, true, pdf.chartCombinedTitle));
+    chartBlocks.push(
+      chartSectionBlock(pdf.chartCombined, reportCharts.combined, false, pdf.chartCombinedTitle, 480)
+    );
   }
 
   const durationMin = Math.round(profile.durationMs / 60000);
@@ -726,39 +736,6 @@ export function buildDocDefinition({
                         { text: pdf.consistencyWarnings + ":", bold: true, fontSize: 9, margin: [0, 8, 0, 4] },
                         ...validity.level3Consistency.map((w) => ({ text: "• " + w, fontSize: 8 }))
                       ]
-                    : []),
-                  ...(isV4
-                    ? [
-                        {
-                          text: "Teknik puan kuralları (başlangıç 100):",
-                          bold: true,
-                          fontSize: 8,
-                          margin: [0, 10, 0, 4]
-                        },
-                        ...DATA_QUALITY_SCORE_RULES.map((r) => ({
-                          text: `• ${r.tr} → ${r.delta}`,
-                          fontSize: 7,
-                          color: "#475569",
-                          margin: [0, 0, 0, 2]
-                        })),
-                        ...(validity.deductions?.length
-                          ? [
-                              {
-                                text: `Bu oturumda uygulanan düşümler: ${validity.deductions.join("; ") || "yok"}`,
-                                fontSize: 7,
-                                color: "#64748b",
-                                margin: [0, 4, 0, 0]
-                              }
-                            ]
-                          : [
-                              {
-                                text: "Bu oturumda puan düşümü uygulanmadı (100/100).",
-                                fontSize: 7,
-                                color: "#64748b",
-                                margin: [0, 4, 0, 0]
-                              }
-                            ])
-                      ]
                     : [])
                 ],
                 fillColor: validity.band.fill,
@@ -826,14 +803,19 @@ export function buildDocDefinition({
           scoreBox("H — Motor", scores.hyperactivity)
         ],
         columnGap: 8,
-        margin: [0, 4, 0, 8]
+        margin: [0, 4, 0, isV4 ? 12 : 8]
       },
-      {
-        text: timingFormula,
-        fontSize: 7,
-        color: "#64748b",
-        margin: [0, 0, 0, 10]
-      },
+      // V4 kullanıcı raporunda formül satırı yok (kurumsal görünüm)
+      ...(!isV4
+        ? [
+            {
+              text: timingFormula,
+              fontSize: 7,
+              color: "#64748b",
+              margin: [0, 0, 0, 10]
+            }
+          ]
+        : []),
 
       ...indexSectionBlock("attention", indexComments.attention, pdf, true),
       ...indexSectionBlock("timing", indexComments.timing, pdf),
@@ -867,7 +849,8 @@ export function buildDocDefinition({
         color: SUB,
         margin: [0, 0, 0, 10]
       },
-      ...(rtAppendix
+      // V4: RT filtreleme teknik eki kullanıcı raporunda yok
+      ...(!isV4 && rtAppendix
         ? [
             { text: rtAppendix.title, bold: true, fontSize: 10, color: HEADER, margin: [0, 4, 0, 4] },
             { text: rtAppendix.intro, fontSize: 8, color: SUB, margin: [0, 0, 0, 4] },
@@ -910,6 +893,7 @@ export function buildDocDefinition({
           ]
         : []),
       {
+        unbreakable: true,
         table: {
           headerRows: 1,
           widths: ["*", 80, 80, 80, 80],

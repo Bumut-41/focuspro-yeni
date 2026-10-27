@@ -66,7 +66,7 @@ export function getProfilePhaseSeries(logs, profile) {
   return getReportPhaseChartScores(logs, profile);
 }
 
-function renderChart(config, width = 520, height = 300) {
+function renderChart(config, width = 520, height = 250) {
   if (typeof document === "undefined") return null;
   const canvas = document.createElement("canvas");
   canvas.width = width;

@@ -508,20 +508,7 @@ export function buildIndexClinicalComments(scores, locale = "tr", z = null, opti
     } else {
       comment = useNorm ? commentForNormZ(I[key], zv) : indexComment(I[key], score);
     }
-    if (key === "timing" && noSpeed && metrics) {
-      const stab = metrics.timingRtStability;
-      const late = metrics.timingLateResponse;
-      const parts = [];
-      if (stab != null) parts.push(`stabilite ${stab}`);
-      if (late != null) parts.push(`geç-yanıt puanı ${late}`);
-      if (parts.length) {
-        comment = `${comment} (V3/V4 alt bileşenler: ${parts.join(", ")}; hız puanı yok.)`;
-      }
-    }
     let level = useNorm ? indexLevelLabelFromZ(zv, locale) : indexLevelLabel(score, locale);
-    if (noSpeed && level && level !== "—") {
-      level = `${level} (geçici algoritmik)`;
-    }
     return {
       score,
       title: I[key].title,
