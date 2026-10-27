@@ -341,7 +341,7 @@ export const en = {
     reportWorking: "Creating and saving the test report PDF and sending email… Please do not close this page.",
     reportWorkingPdfOnly: "Creating and saving the test report PDF… Please do not close this page.",
     reportPdfSavedManual: "Report saved. You can email it to the client from the panel.",
-    reportPdfSavedInvite: "Your report was saved. Your specialist may email it after review.",
+    reportPdfSavedInvite: "Report saved; if email delivery failed, your specialist can resend from the panel.",
     pdfSaved: "Test report PDF saved to the system.",
     pdfFailed: "Test report PDF could not be saved: {{reason}}. Try «Generate report» from the panel.",
     reportOk: "Your test result has been sent to {{email}}.",

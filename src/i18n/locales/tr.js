@@ -344,7 +344,7 @@ export const tr = {
     reportWorking: "Test raporu PDF oluşturuluyor, kaydediliyor ve e-posta gönderiliyor… Lütfen bu sayfayı kapatmayın.",
     reportWorkingPdfOnly: "Test raporu PDF oluşturuluyor ve kaydediliyor… Lütfen bu sayfayı kapatmayın.",
     reportPdfSavedManual: "Rapor sisteme kaydedildi. Danışana e-postayı panelden gönderebilirsiniz.",
-    reportPdfSavedInvite: "Raporunuz kaydedildi. Uzmanınız değerlendirme sonrası e-posta ile iletebilir.",
+    reportPdfSavedInvite: "Rapor kaydedildi; e-posta gönderimi tamamlanamadıysa uzmanınız panelden yeniden gönderebilir.",
     pdfSaved: "Test raporu PDF sisteme kaydedildi.",
     pdfFailed: "Test raporu PDF kaydedilemedi: {{reason}}. Panelden «Raporu oluştur» ile tekrar deneyin.",
     reportOk: "Test sonucunuz {{email}} adresine iletilmiştir.",

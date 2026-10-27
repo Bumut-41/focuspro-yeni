@@ -343,7 +343,7 @@ export const it = {
     reportWorking: "Creazione e salvataggio del PDF del report e invio e-mail… Non chiudere questa pagina.",
     reportWorkingPdfOnly: "Creazione e salvataggio del PDF del report… Non chiudere questa pagina.",
     reportPdfSavedManual: "Report salvato. Puoi inviarlo via e-mail al cliente dal pannello.",
-    reportPdfSavedInvite: "Il report è stato salvato. Lo specialista potrà inviartelo via e-mail dopo la valutazione.",
+    reportPdfSavedInvite: "Report salvato; se l'e-mail non è arrivata, lo specialista può reinviarla dal pannello.",
     pdfSaved: "Il PDF del report del test è stato salvato nel sistema.",
     pdfFailed: "Impossibile salvare il PDF del report: {{reason}}. Prova «Genera report» dal pannello.",
     reportOk: "Il risultato del test è stato inviato a {{email}}.",

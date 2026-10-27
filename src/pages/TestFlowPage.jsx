@@ -205,8 +205,9 @@ export default function TestFlowPage() {
         }
 
         const clientId = reportClientIdRef.current;
-        // Psikolog / davet: PDF kaydet, mail panelden manuel. Bireysel: otomatik mail.
-        const autoEmail = !isPsychologist && !isInviteFlow;
+        // Psikolog (yanında test): PDF kaydet, mail panelden. Bireysel + davet: otomatik mail.
+        // Davetli katılımcıya tarayıcıdan PDF indirme yok.
+        const shouldAutoEmail = Boolean(isInviteFlow || !isPsychologist);
         const expectedEmail = (() => {
           if (clientId) {
             const client = clients.find((row) => row.id === clientId);
@@ -226,22 +227,28 @@ export default function TestFlowPage() {
           pressTimeline: timeline ?? [],
           locale,
           clientId,
-          sendEmail: autoEmail
+          sendEmail: shouldAutoEmail
         });
 
-        // Yerel indirme: yalnızca aktif V4 rapor
-        try {
-          setReportDelivery((prev) => ({ ...(prev || {}), status: "pilot_pdfs", pdfSaved: delivery.pdfSaved || delivery.ok }));
-          await downloadActiveReport({
-            participant: participantSnap,
-            profile,
-            logs: snapshot,
-            target: targetSnap,
-            pressTimeline: timeline ?? [],
-            locale
-          });
-        } catch (pilotErr) {
-          console.warn("active_report_download_failed", pilotErr);
+        // Yerel V4 indirme yalnızca uzman yanında testte (davetli / bireysel otomatik mail alır)
+        if (isPsychologist && !isInviteFlow) {
+          try {
+            setReportDelivery((prev) => ({
+              ...(prev || {}),
+              status: "pilot_pdfs",
+              pdfSaved: delivery.pdfSaved || delivery.ok
+            }));
+            await downloadActiveReport({
+              participant: participantSnap,
+              profile,
+              logs: snapshot,
+              target: targetSnap,
+              pressTimeline: timeline ?? [],
+              locale
+            });
+          } catch (pilotErr) {
+            console.warn("active_report_download_failed", pilotErr);
+          }
         }
 
         if (delivery.ok && delivery.emailSkipped) {
@@ -912,7 +919,7 @@ export default function TestFlowPage() {
               <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
               {reportDelivery?.status === "working" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {isPsychologist || isInviteFlow ? t("test.reportWorkingPdfOnly") : t("test.reportWorking")}
+                  {isPsychologist && !isInviteFlow ? t("test.reportWorkingPdfOnly") : t("test.reportWorking")}
                 </p>
               )}
               {reportDelivery?.status === "pilot_pdfs" && (
@@ -922,7 +929,9 @@ export default function TestFlowPage() {
               )}
               {reportDelivery?.status === "pdf_saved" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {isPsychologist ? t("test.reportPdfSavedManual") : t("test.reportPdfSavedInvite")}
+                  {isPsychologist && !isInviteFlow
+                    ? t("test.reportPdfSavedManual")
+                    : t("test.reportPdfSavedInvite")}
                 </p>
               )}
               {reportDelivery?.status === "ok" && (
