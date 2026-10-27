@@ -49,6 +49,7 @@ import {
   downloadSessionsCsv,
   downloadSpecialistApplicationsCsv
 } from "../services/adminExport.js";
+import { AdminInvitesPanel } from "../components/AdminInvitesPanel.jsx";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
@@ -466,6 +467,7 @@ export default function AdminPage() {
     "/admin/uzman",
     "/admin/iletisim",
     "/admin/kullanicilar",
+    "/admin/davetler",
     "/admin/testler",
     ...(isSuperAdmin ? ["/admin/promosyon"] : [])
   ]);
@@ -547,6 +549,7 @@ export default function AdminPage() {
             <Link to="/admin/uzman">{t("admin.specialistApplicationsTitle", { count: specialistApplications.length })}</Link>
             <Link to="/admin/iletisim">{t("admin.contactMessagesTitle", { count: contactMessages.length })}</Link>
             <Link to="/admin/kullanicilar">{t("admin.usersTitle", { count: filteredUsers.length })}</Link>
+            <Link to="/admin/davetler">{t("admin.invitesNav")}</Link>
             <Link to="/admin/testler">{t("admin.sessionsTitle", { count: filteredSessions.length })}</Link>
             {isSuperAdmin ? (
               <Link to="/admin/promosyon">{t("admin.promoTitle", { count: promoCodes.length })}</Link>
@@ -1365,6 +1368,8 @@ export default function AdminPage() {
         )}
       </Card>
       )}
+
+      {section === "/admin/davetler" && <AdminInvitesPanel />}
 
       {section === "/admin/testler" && (
       <>

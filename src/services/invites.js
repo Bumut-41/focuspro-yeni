@@ -26,13 +26,38 @@ export async function createTestInvite(recipientEmail) {
   return data;
 }
 
+const INVITE_SELECT =
+  "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
+
 export async function fetchMyInvites(limit = 50) {
   const { data, error } = await supabase
     .from("test_invites")
-    .select("id, token, recipient_email, status, expires_at, created_at, completed_at, session_id")
+    .select(INVITE_SELECT)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
+  return data ?? [];
+}
+
+/** Admin: tüm psikolog davetleri (e-posta durumu dahil). */
+export async function fetchAllInvites(limit = 100) {
+  const { data, error } = await supabase
+    .from("test_invites")
+    .select(
+      `${INVITE_SELECT}, psychologist:profiles!test_invites_psychologist_id_fkey(full_name)`
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    // FK alias yoksa düz sorgu
+    const fallback = await supabase
+      .from("test_invites")
+      .select(INVITE_SELECT)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (fallback.error) throw fallback.error;
+    return fallback.data ?? [];
+  }
   return data ?? [];
 }
 
@@ -40,8 +65,17 @@ export async function sendTestInviteEmail({ inviteId, locale = "tr" }) {
   const { data, error } = await supabase.functions.invoke("send-test-invite", {
     body: { inviteId, locale, siteUrl: window.location.origin }
   });
-  if (error) throw error;
-  if (data?.error) throw new Error(data.error);
+  if (error) {
+    throw Object.assign(new Error(error.message || "E-posta gönderilemedi."), {
+      code: "invoke_failed"
+    });
+  }
+  if (data?.error) {
+    throw Object.assign(new Error(data.detail || data.error), {
+      code: data.error,
+      detail: data.detail || null
+    });
+  }
   return data;
 }
 
@@ -57,14 +91,25 @@ export function inviteErrorMessage(code, t) {
     invite_taken: t("invite.errTaken"),
     no_credits: t("invite.errNoCredits"),
     invalid_email: t("invite.errInvalidEmail"),
-    forbidden: t("invite.errForbidden")
+    forbidden: t("invite.errForbidden"),
+    email_not_configured: t("invite.emailErr.email_not_configured"),
+    send_failed: t("invite.emailErr.send_failed"),
+    invite_invalid_status: t("invite.emailErr.invite_invalid_status"),
+    invoke_failed: t("invite.emailErr.invoke_failed"),
+    unauthorized: t("invite.emailErr.unauthorized"),
+    unexpected: t("invite.emailErr.unexpected")
   };
   return map[code] || code;
 }
 
 export function parseRpcError(err, t) {
-  const msg = err?.message || "";
-  const code = msg.match(/^([a-z_]+)/)?.[1];
-  if (code && t) return inviteErrorMessage(code, t);
-  return msg || t?.("common.error") || "Error";
+  const code = err?.code || String(err?.message || "").match(/^([a-z_]+)/)?.[1];
+  if (code && t) {
+    const mapped = inviteErrorMessage(code, t);
+    if (mapped && mapped !== code) {
+      if (err?.detail) return `${mapped} (${String(err.detail).slice(0, 100)})`;
+      return mapped;
+    }
+  }
+  return err?.message || t?.("common.error") || "Error";
 }

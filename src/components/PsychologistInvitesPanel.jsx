@@ -2,18 +2,22 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import {
+  canResendInviteEmail,
+  formatInviteEmailStatus,
+  inviteEmailStatusColor
+} from "../lib/inviteEmailStatus.js";
+import {
   createTestInvite,
   fetchMyInvites,
   parseRpcError,
   sendTestInviteEmail
 } from "../services/invites.js";
-import { Alert, Badge, Button, Card, CardHeader, DataTable, EmptyState, Field, Input } from "./ui.jsx";
+import { Alert, Badge, Button, Card, CardHeader, DataTable, EmptyState, Field, Input, Stack } from "./ui.jsx";
 
 function statusVariant(status) {
-  if (status === "completed") return "success";
+  if (status === "completed") return "primary";
   if (status === "pending" || status === "accepted") return "primary";
-  if (status === "expired" || status === "cancelled") return "muted";
-  return "default";
+  return "neutral";
 }
 
 function isVisibleInvite(row, now = Date.now()) {
@@ -30,6 +34,7 @@ export function PsychologistInvitesPanel() {
   const [msg, setMsg] = useState("");
   const [msgVariant, setMsgVariant] = useState("error");
   const [busy, setBusy] = useState(false);
+  const [resendBusy, setResendBusy] = useState(null);
 
   const loadInvites = useCallback(async () => {
     try {
@@ -50,17 +55,39 @@ export function PsychologistInvitesPanel() {
     setMsg("");
     try {
       const created = await createTestInvite(email);
-      await sendTestInviteEmail({ inviteId: created.id, locale });
       setEmail("");
-      setMsgVariant("success");
-      setMsg(t("invite.sentSuccess", { email: created.recipient_email }));
       await refreshProfile();
+      try {
+        await sendTestInviteEmail({ inviteId: created.id, locale });
+        setMsgVariant("success");
+        setMsg(t("invite.sentSuccess", { email: created.recipient_email }));
+      } catch (mailErr) {
+        setMsgVariant("error");
+        setMsg(t("invite.emailSendFailedAfterCreate", { reason: parseRpcError(mailErr, t) }));
+      }
       await loadInvites();
     } catch (e) {
       setMsgVariant("error");
       setMsg(parseRpcError(e, t));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function resendEmail(invite) {
+    setResendBusy(invite.id);
+    setMsg("");
+    try {
+      await sendTestInviteEmail({ inviteId: invite.id, locale });
+      setMsgVariant("success");
+      setMsg(t("invite.emailResendOk"));
+      await loadInvites();
+    } catch (e) {
+      setMsgVariant("error");
+      setMsg(parseRpcError(e, t));
+      await loadInvites();
+    } finally {
+      setResendBusy(null);
     }
   }
 
@@ -115,6 +142,38 @@ export function PsychologistInvitesPanel() {
                 label: t("invite.colStatus"),
                 render: (row) => (
                   <Badge variant={statusVariant(row.status)}>{t(`invite.status.${row.status}`)}</Badge>
+                )
+              },
+              {
+                label: t("invite.colEmailDelivery"),
+                render: (row) => (
+                  <Stack gap={6}>
+                    <span
+                      style={{
+                        display: "block",
+                        maxWidth: 260,
+                        fontSize: "0.8125rem",
+                        lineHeight: 1.45,
+                        color: inviteEmailStatusColor(row)
+                      }}
+                    >
+                      {formatInviteEmailStatus(row, t, dateLocale)}
+                    </span>
+                    {canResendInviteEmail(row) ? (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={resendBusy === row.id}
+                        onClick={() => resendEmail(row)}
+                      >
+                        {resendBusy === row.id
+                          ? "…"
+                          : row.invite_email_status === "sent" || row.invite_email_sent_at
+                            ? t("invite.emailResend")
+                            : t("invite.emailSend")}
+                      </Button>
+                    ) : null}
+                  </Stack>
                 )
               },
               {

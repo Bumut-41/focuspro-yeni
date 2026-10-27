@@ -87,10 +87,41 @@ function allowedSiteUrl(requested: string, fallback: string) {
   return fallback.replace(/\/$/, "");
 }
 
+async function markEmailStatus(
+  admin: ReturnType<typeof createClient>,
+  inviteId: string,
+  status: "pending" | "sent" | "failed",
+  errorCode: string | null = null,
+  errorDetail: string | null = null,
+  providerId: string | null = null
+) {
+  const patch: Record<string, unknown> = {
+    invite_email_status: status
+  };
+  if (status === "sent") {
+    patch.invite_email_sent_at = new Date().toISOString();
+    patch.invite_email_error_code = null;
+    patch.invite_email_error_detail = null;
+  }
+  if (status === "pending") {
+    patch.invite_email_error_code = null;
+    patch.invite_email_error_detail = null;
+  }
+  if (status === "failed") {
+    patch.invite_email_error_code = (errorCode || "send_failed").slice(0, 120);
+    patch.invite_email_error_detail = (errorDetail || "").slice(0, 500);
+  }
+  if (providerId) patch.invite_email_provider_id = providerId;
+  await admin.from("test_invites").update(patch).eq("id", inviteId);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: cors });
   }
+
+  let inviteIdForFail: string | null = null;
+  let adminClient: ReturnType<typeof createClient> | null = null;
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -123,8 +154,11 @@ Deno.serve(async (req) => {
     if (!inviteId) {
       return json({ error: "inviteId required" }, 400);
     }
+    inviteIdForFail = inviteId;
 
     const admin = createClient(supabaseUrl, serviceKey);
+    adminClient = admin;
+
     const { data: invite, error: invErr } = await admin
       .from("test_invites")
       .select("id, token, recipient_email, psychologist_id, expires_at, status")
@@ -134,31 +168,42 @@ Deno.serve(async (req) => {
     if (invErr || !invite) {
       return json({ error: "invite_not_found" }, 404);
     }
-    if (invite.psychologist_id !== user.id) {
-      return json({ error: "forbidden" }, 403);
-    }
-    if (invite.status !== "pending") {
-      return json({ error: "invite_invalid_status" }, 400);
-    }
 
-    const { data: psych } = await admin
+    const { data: caller } = await admin
       .from("profiles")
       .select("full_name, role")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (psych?.role !== "psychologist") {
+    const isAdmin = caller?.role === "admin" || caller?.role === "super_admin";
+    const isOwner = invite.psychologist_id === user.id && caller?.role === "psychologist";
+    if (!isAdmin && !isOwner) {
       return json({ error: "forbidden" }, 403);
     }
+
+    if (invite.status !== "pending") {
+      await markEmailStatus(admin, inviteId, "failed", "invite_invalid_status", invite.status);
+      return json({ error: "invite_invalid_status" }, 400);
+    }
+
+    await markEmailStatus(admin, inviteId, "pending");
 
     const resendKey = Deno.env.get("RESEND_API_KEY");
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") ?? "FocusProLab <onboarding@resend.dev>";
     if (!resendKey) {
+      await markEmailStatus(admin, inviteId, "failed", "email_not_configured", null);
       return json({ error: "email_not_configured" }, 503);
     }
 
+    const { data: psych } = await admin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", invite.psychologist_id)
+      .maybeSingle();
+
     const inviteUrl = `${siteUrl.replace(/\/$/, "")}/davet/${invite.token}`;
-    const psychologistName = psych.full_name || (locale === "it" ? "Il tuo specialista" : "Uzmanınız");
+    const psychologistName =
+      psych?.full_name || (locale === "it" ? "Il tuo specialista" : "Uzmanınız");
     const { subject, html } = emailContent(locale, psychologistName, inviteUrl, invite.expires_at);
 
     const mailRes = await fetch("https://api.resend.com/emails", {
@@ -177,11 +222,28 @@ Deno.serve(async (req) => {
 
     if (!mailRes.ok) {
       const errText = await mailRes.text();
+      await markEmailStatus(admin, inviteId, "failed", "send_failed", errText.slice(0, 500));
       return json({ error: "send_failed", detail: errText }, 502);
     }
 
-    return json({ ok: true, email: invite.recipient_email });
+    let providerId: string | null = null;
+    try {
+      const mailJson = await mailRes.json();
+      providerId = mailJson?.id ? String(mailJson.id) : null;
+    } catch {
+      /* ignore */
+    }
+
+    await markEmailStatus(admin, inviteId, "sent", null, null, providerId);
+    return json({ ok: true, email: invite.recipient_email, providerId });
   } catch (e) {
+    if (adminClient && inviteIdForFail) {
+      try {
+        await markEmailStatus(adminClient, inviteIdForFail, "failed", "unexpected", String(e).slice(0, 500));
+      } catch {
+        /* ignore */
+      }
+    }
     return json({ error: "unexpected", detail: String(e) }, 500);
   }
 });
