@@ -20,7 +20,6 @@ import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../serv
 import { fetchMyClients } from "../services/clients.js";
 import { saveTestSession } from "../services/sessions.js";
 import { deliverSessionReport } from "../services/emailReport.js";
-import { downloadActiveReport } from "../lib/downloadPilotReports.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
 import {
@@ -205,9 +204,9 @@ export default function TestFlowPage() {
         }
 
         const clientId = reportClientIdRef.current;
-        // Psikolog (yanında test): PDF kaydet, mail panelden. Bireysel + davet: otomatik mail.
-        // Davetli katılımcıya tarayıcıdan PDF indirme yok.
-        const shouldAutoEmail = Boolean(isInviteFlow || !isPsychologist);
+        // Psikolog / davet: PDF yalnızca sisteme; mail uzman onayından sonra panelden.
+        // Bireysel: otomatik mail. Test bitiminde kimseye tarayıcıdan PDF indirme yok.
+        const shouldAutoEmail = !isPsychologist && !isInviteFlow;
         const expectedEmail = (() => {
           if (clientId) {
             const client = clients.find((row) => row.id === clientId);
@@ -229,27 +228,6 @@ export default function TestFlowPage() {
           clientId,
           sendEmail: shouldAutoEmail
         });
-
-        // Yerel V4 indirme yalnızca uzman yanında testte (davetli / bireysel otomatik mail alır)
-        if (isPsychologist && !isInviteFlow) {
-          try {
-            setReportDelivery((prev) => ({
-              ...(prev || {}),
-              status: "pilot_pdfs",
-              pdfSaved: delivery.pdfSaved || delivery.ok
-            }));
-            await downloadActiveReport({
-              participant: participantSnap,
-              profile,
-              logs: snapshot,
-              target: targetSnap,
-              pressTimeline: timeline ?? [],
-              locale
-            });
-          } catch (pilotErr) {
-            console.warn("active_report_download_failed", pilotErr);
-          }
-        }
 
         if (delivery.ok && delivery.emailSkipped) {
           setReportDelivery({
@@ -916,15 +894,12 @@ export default function TestFlowPage() {
             <div className="space-screen-win">
               <span className="space-screen-win-check">✓</span>
               <h2 className="space-screen-win-title">{t("test.thankYouTitle")}</h2>
-              <p className="space-screen-win-sub">{t("test.thankYouBody")}</p>
+              <p className="space-screen-win-sub">
+                {isInviteFlow || isPsychologist ? t("test.thankYouBodySpecialist") : t("test.thankYouBody")}
+              </p>
               {reportDelivery?.status === "working" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {isPsychologist && !isInviteFlow ? t("test.reportWorkingPdfOnly") : t("test.reportWorking")}
-                </p>
-              )}
-              {reportDelivery?.status === "pilot_pdfs" && (
-                <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  Rapor indiriliyor…
+                  {isPsychologist || isInviteFlow ? t("test.reportWorkingPdfOnly") : t("test.reportWorking")}
                 </p>
               )}
               {reportDelivery?.status === "pdf_saved" && (
@@ -934,14 +909,14 @@ export default function TestFlowPage() {
                     : t("test.reportPdfSavedInvite")}
                 </p>
               )}
-              {reportDelivery?.status === "ok" && (
+              {reportDelivery?.status === "ok" && !(isPsychologist || isInviteFlow) && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
                   {reportDelivery.email
                     ? t("test.reportOk", { email: reportDelivery.email })
                     : t("test.reportOkNoEmail")}
                 </p>
               )}
-              {/* PDF/mail teknik hataları katılımcıya gösterilmez; panelden tamamlanır. */}
+              {/* PDF/mail teknik hataları ve skorlar katılımcıya gösterilmez; uzman panelinden. */}
               {saveError && (
                 <p className="space-screen-error" role="alert">
                   {saveError}

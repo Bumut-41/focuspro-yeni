@@ -340,10 +340,12 @@ export const it = {
     thankYouTitle: "Grazie per la partecipazione",
     thankYouBody:
       "I dati sono conservati in modo sicuro e, al termine del test, il report viene inviato al tuo indirizzo e-mail. I test svolti con uno specialista sono visibili anche nella sua schermata.",
+    thankYouBodySpecialist:
+      "La partecipazione è stata registrata. I risultati sono condivisi solo con lo specialista; il report può essere inviato via e-mail dopo la sua approvazione. Nessun punteggio o download su questa schermata.",
     reportWorking: "Creazione e salvataggio del PDF del report e invio e-mail… Non chiudere questa pagina.",
-    reportWorkingPdfOnly: "Creazione e salvataggio del PDF del report… Non chiudere questa pagina.",
-    reportPdfSavedManual: "Report salvato. Puoi inviarlo via e-mail al cliente dal pannello.",
-    reportPdfSavedInvite: "Report salvato; se l'e-mail non è arrivata, lo specialista può reinviarla dal pannello.",
+    reportWorkingPdfOnly: "Salvataggio del test in corso… Non chiudere questa pagina.",
+    reportPdfSavedManual: "Report salvato. Puoi inviarlo via e-mail al cliente dal pannello dopo approvazione.",
+    reportPdfSavedInvite: "Grazie. I risultati sono stati inviati allo specialista; il report potrà arrivare via e-mail dopo la sua approvazione.",
     pdfSaved: "Il PDF del report del test è stato salvato nel sistema.",
     pdfFailed: "Impossibile salvare il PDF del report: {{reason}}. Prova «Genera report» dal pannello.",
     reportOk: "Il risultato del test è stato inviato a {{email}}.",

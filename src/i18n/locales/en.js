@@ -339,9 +339,9 @@ export const en = {
     },
     thankYouTitle: "Thank you for your participation",
     reportWorking: "Creating and saving the test report PDF and sending email… Please do not close this page.",
-    reportWorkingPdfOnly: "Creating and saving the test report PDF… Please do not close this page.",
-    reportPdfSavedManual: "Report saved. You can email it to the client from the panel.",
-    reportPdfSavedInvite: "Report saved; if email delivery failed, your specialist can resend from the panel.",
+    reportWorkingPdfOnly: "Finishing your test record… Please do not close this page.",
+    reportPdfSavedManual: "Report saved. You can email it to the client from the panel after your approval.",
+    reportPdfSavedInvite: "Thank you. Your results were sent to your specialist; the report may be emailed after they approve.",
     pdfSaved: "Test report PDF saved to the system.",
     pdfFailed: "Test report PDF could not be saved: {{reason}}. Try «Generate report» from the panel.",
     reportOk: "Your test result has been sent to {{email}}.",
@@ -349,6 +349,8 @@ export const en = {
     reportFailed: "Email could not be delivered: {{reason}}. If the PDF is saved, you can resend from the panel.",
     thankYouBody:
       "Records are stored securely and the test report is emailed to you when the test ends. Tests taken with a specialist can also be viewed on the specialist's screen.",
+    thankYouBodySpecialist:
+      "Your participation was recorded. Results are shared only with your specialist; the report may be emailed after they approve. No scores or downloads on this screen.",
     qaHint:
       "Temporary mode: silent GIF and silent+audio GIF sections only (~6 min). Audio-only, baseline, and closing disabled.",
     participantGuide: {

@@ -341,10 +341,12 @@ export const tr = {
     thankYouTitle: "Katılımınız için teşekkürler",
     thankYouBody:
       "Kayıtlar güvenle saklanır ve test bittiğinde mail adresinize test raporu gönderilir. Uzman ile birlikte yaptığınız testler ayrıca uzman ekranında da görüntülenebilir.",
+    thankYouBodySpecialist:
+      "Katılımınız kaydedildi. Sonuçlar yalnızca uzmanınızla paylaşılır; rapor uzmanınız onayladıktan sonra e-posta ile iletilebilir. Bu ekranda skor veya indirme yoktur.",
     reportWorking: "Test raporu PDF oluşturuluyor, kaydediliyor ve e-posta gönderiliyor… Lütfen bu sayfayı kapatmayın.",
-    reportWorkingPdfOnly: "Test raporu PDF oluşturuluyor ve kaydediliyor… Lütfen bu sayfayı kapatmayın.",
-    reportPdfSavedManual: "Rapor sisteme kaydedildi. Danışana e-postayı panelden gönderebilirsiniz.",
-    reportPdfSavedInvite: "Rapor kaydedildi; e-posta gönderimi tamamlanamadıysa uzmanınız panelden yeniden gönderebilir.",
+    reportWorkingPdfOnly: "Test kaydı tamamlanıyor… Lütfen bu sayfayı kapatmayın.",
+    reportPdfSavedManual: "Rapor sisteme kaydedildi. Danışana e-postayı panelden, onayınızla gönderebilirsiniz.",
+    reportPdfSavedInvite: "Teşekkürler. Sonuçlarınız uzmanınıza iletildi; rapor uzman onayı sonrası e-posta ile gelebilir.",
     pdfSaved: "Test raporu PDF sisteme kaydedildi.",
     pdfFailed: "Test raporu PDF kaydedilemedi: {{reason}}. Panelden «Raporu oluştur» ile tekrar deneyin.",
     reportOk: "Test sonucunuz {{email}} adresine iletilmiştir.",
