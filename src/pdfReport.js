@@ -640,25 +640,14 @@ export function buildDocDefinition({
               : [])
           ]
         : []),
-      ...(isV4
+      ...(isV4 && metrics.timingUnavailable
         ? [
             {
-              text:
-                "Bu rapor FocusProLab güncel rapor paketidir (V4). Zamanlama skorunda hız puanı yoktur; sınıflandırmalar doğrulanmış norm oluşana kadar geçici algoritmiktir. Tek başına tanı koymaz.",
-              fontSize: 8,
-              color: "#b45309",
+              text: `T hesaplanamadı (${metrics.timingReason || "yetersiz veri"}). Genel skor üretilmedi.`,
+              fontSize: 9,
+              color: "#dc2626",
               margin: [0, 0, 0, 10]
-            },
-            ...(metrics.timingUnavailable
-              ? [
-                  {
-                    text: `T hesaplanamadı (${metrics.timingReason || "yetersiz veri"}). Genel skor üretilmedi.`,
-                    fontSize: 9,
-                    color: "#dc2626",
-                    margin: [0, 0, 0, 10]
-                  }
-                ]
-              : [])
+            }
           ]
         : []),
 
