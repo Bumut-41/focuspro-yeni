@@ -1,5 +1,5 @@
--- Her davet bağlantısı tek kullanımlık. Aynı kişiye yeni davet açılabilir; her açılış 1 kredi düşer.
--- Supabase SQL Editor'da FocusPro-Yeni projesinde bir kez çalıştırın.
+-- Aynı e-postaya kredi kadar çoklu davet; her link tek kullanımlık.
+-- Önceki "bir kez tamamlandıysa bitti" tuzağını kaldırır.
 
 create or replace function public.create_test_invite(p_recipient_email text)
 returns jsonb
@@ -33,6 +33,7 @@ begin
     raise exception 'no_credits';
   end if;
 
+  -- Her gönderim 1 kredi; aynı mail'e tekrar gönderime izin (unique yok)
   update public.profiles set test_credits = test_credits - 1 where id = v_uid;
 
   insert into public.credit_transactions (user_id, delta, reason)
@@ -86,6 +87,10 @@ begin
     raise exception 'invite_cancelled';
   end if;
 
+  if v_inv.status = 'expired' then
+    raise exception 'invite_expired';
+  end if;
+
   select lower(email) into v_user_email from auth.users where id = v_uid;
   if v_user_email is distinct from v_inv.recipient_email then
     raise exception 'email_mismatch';
@@ -103,7 +108,7 @@ begin
     return jsonb_build_object('ok', true, 'invite_id', v_inv.id);
   end if;
 
-  if v_inv.status not in ('pending', 'accepted') then
+  if v_inv.status <> 'pending' then
     raise exception 'invite_invalid_status';
   end if;
 
@@ -115,6 +120,7 @@ begin
 end;
 $$;
 
+-- Eski tamamlanmış davet, yeni daveti engellemez
 create or replace function public.get_active_invite_for_user()
 returns jsonb
 language plpgsql
@@ -138,12 +144,6 @@ begin
   limit 1;
 
   if not found then
-    if exists (
-      select 1 from public.test_invites
-      where taker_id = v_uid and status = 'completed'
-    ) then
-      return jsonb_build_object('completed', true);
-    end if;
     return null;
   end if;
 
@@ -157,96 +157,6 @@ begin
 end;
 $$;
 
-create or replace function public.complete_test_session(
-  p_participant_name text,
-  p_participant_age integer,
-  p_participant_birth_date date,
-  p_participant_gender text,
-  p_profile_key text,
-  p_logs jsonb,
-  p_metrics jsonb,
-  p_target jsonb,
-  p_press_timeline jsonb default '[]'::jsonb,
-  p_invite_id uuid default null
-)
-returns jsonb
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_uid uuid := auth.uid();
-  v_id uuid;
-  v_owner uuid;
-  v_inv public.test_invites%rowtype;
-begin
-  if v_uid is null then
-    raise exception 'not_authenticated';
-  end if;
-
-  if not exists (select 1 from public.profiles where id = v_uid) then
-    raise exception 'profile_not_found';
-  end if;
-
-  v_owner := v_uid;
-
-  if p_invite_id is not null then
-    select * into v_inv from public.test_invites where id = p_invite_id for update;
-    if not found then
-      raise exception 'invite_not_found';
-    end if;
-    if v_inv.taker_id is distinct from v_uid then
-      raise exception 'forbidden';
-    end if;
-    if v_inv.status not in ('accepted') then
-      raise exception 'invite_invalid_status';
-    end if;
-    if v_inv.expires_at < now() then
-      raise exception 'invite_expired';
-    end if;
-    v_owner := v_inv.psychologist_id;
-  end if;
-
-  insert into public.test_sessions (
-    owner_id,
-    taker_id,
-    invite_id,
-    participant_name,
-    participant_age,
-    participant_birth_date,
-    participant_gender,
-    profile_key,
-    logs,
-    metrics,
-    target
-  )
-  values (
-    v_owner,
-    case when p_invite_id is not null then v_uid else null end,
-    p_invite_id,
-    p_participant_name,
-    p_participant_age,
-    p_participant_birth_date,
-    p_participant_gender,
-    p_profile_key,
-    p_logs,
-    p_metrics,
-    p_target
-  )
-  returning id into v_id;
-
-  if p_press_timeline is not null and jsonb_array_length(p_press_timeline) > 0 then
-    insert into public.test_press_timelines (session_id, timeline)
-    values (v_id, p_press_timeline)
-    on conflict (session_id) do update set timeline = excluded.timeline;
-  end if;
-
-  if p_invite_id is not null then
-    update public.test_invites
-    set status = 'completed', session_id = v_id, completed_at = now()
-    where id = p_invite_id;
-  end if;
-
-  return jsonb_build_object('id', v_id, 'owner_id', v_owner);
-end;
-$$;
+grant execute on function public.create_test_invite(text) to authenticated;
+grant execute on function public.accept_test_invite(text) to authenticated;
+grant execute on function public.get_active_invite_for_user() to authenticated;

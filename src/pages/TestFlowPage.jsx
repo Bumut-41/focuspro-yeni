@@ -113,22 +113,31 @@ export default function TestFlowPage() {
         const tokenFromUrl = searchParams.get("invite") || searchParams.get("davet");
         const token = tokenFromUrl || getStoredInviteToken();
         try {
+          let acceptedInviteId = null;
           if (token) {
             try {
-              await acceptTestInvite(token);
+              const accepted = await acceptTestInvite(token);
+              acceptedInviteId = accepted?.invite_id || accepted?.id || null;
             } catch (acceptError) {
               const message = acceptError?.message || "";
               if (message.includes("invite_already_used") || message.includes("test_already_completed")) {
                 clearStoredInviteToken();
                 if (tokenFromUrl && !cancelled) setInviteUsed(true);
+              } else if (tokenFromUrl && !cancelled) {
+                // Yeni davet kabul edilemezse sessizce geçme — kullanıcıya göster
+                setInviteError(parseRpcError(acceptError, t));
               }
             }
           }
-          const active = await getActiveInviteForUser();
+          const active = await getActiveInviteForUser().catch(() => null);
           if (cancelled) return;
-          if (active?.id && !active.completed) {
-            setInviteId(active.id);
+          // Önce yeni kabul edilen davet; eski RPC "completed:true" yeni daveti engellemesin
+          const resolvedId =
+            acceptedInviteId || (active?.id && !active.completed ? active.id : null);
+          if (resolvedId) {
+            setInviteId(resolvedId);
             setIsInviteFlow(true);
+            setInviteUsed(false);
           }
           setInviteReady(true);
       } catch (e) {

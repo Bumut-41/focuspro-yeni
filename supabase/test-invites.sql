@@ -130,7 +130,8 @@ drop policy if exists invites_psychologist_select on public.test_invites;
 create policy invites_psychologist_select on public.test_invites
   for select using (public.is_admin() or psychologist_id = auth.uid());
 
--- Davet oluştur (1 kredi düşer, 3 gün geçerli)
+-- Davet oluştur (1 kredi düşer, 3 gün geçerli).
+-- Aynı e-postaya tekrar gönderilebilir; her link tek kullanımlık, her gönderim 1 kredi.
 create or replace function public.create_test_invite(p_recipient_email text)
 returns jsonb
 language plpgsql
@@ -253,6 +254,10 @@ begin
     raise exception 'invite_cancelled';
   end if;
 
+  if v_inv.status = 'expired' then
+    raise exception 'invite_expired';
+  end if;
+
   select lower(email) into v_user_email from auth.users where id = v_uid;
   if v_user_email is distinct from v_inv.recipient_email then
     raise exception 'email_mismatch';
@@ -270,7 +275,7 @@ begin
     return jsonb_build_object('ok', true, 'invite_id', v_inv.id);
   end if;
 
-  if v_inv.status not in ('pending', 'accepted') then
+  if v_inv.status <> 'pending' then
     raise exception 'invite_invalid_status';
   end if;
 
@@ -320,6 +325,11 @@ end;
 $$;
 
 -- Test oturumu kaydet (davet destekli)
+-- Eski çift imzayı kaldır (PGRST203 hatası)
+drop function if exists public.complete_test_session(text, integer, date, text, text, jsonb, jsonb, jsonb);
+drop function if exists public.complete_test_session(text, integer, date, text, text, jsonb, jsonb, jsonb, jsonb);
+drop function if exists public.complete_test_session(text, integer, date, text, text, jsonb, jsonb, jsonb, jsonb, uuid);
+
 create or replace function public.complete_test_session(
   p_participant_name text,
   p_participant_age integer,
