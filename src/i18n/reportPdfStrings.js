@@ -118,13 +118,13 @@ export const reportPdfStrings = {
       summary_caution: "Sonuçlar yorumlanabilir ancak test performansını etkileyebilecek faktörler gözlenmiştir.",
       summary_low: "Düşük güvenilirlik — sonuçlar dikkatli ve destekleyici verilerle birlikte yorumlanmalıdır.",
       summary_data_ok:
-        "Oturum veri kalitesi: göreve katılım, teknik kayıt bütünlüğü ve yanıt örneklemi analiz için yeterli görünmektedir. Bu, normatif doğrulama veya kesin klinik uygunluk iddiası değildir.",
+        "Oturum veri kalitesi: göreve katılım, teknik kayıt bütünlüğü ve yanıt örneklemi analiz için yeterli görünmektedir.",
       summary_data_acceptable:
-        "Oturum veri kalitesi kabul edilebilir düzeydedir; bazı uyarılar dikkatle incelenmelidir. Normatif doğrulama yapılmadan kesin klinik uygunluk iddiası kullanılmamalıdır.",
+        "Oturum veri kalitesi kabul edilebilir düzeydedir; bazı uyarılar dikkatle incelenmelidir.",
       summary_data_caution:
-        "Oturum veri kalitesinde dikkat gerektiren bulgular vardır. Sonuçlar pilot/ön değerlendirme bağlamında ele alınmalıdır.",
+        "Oturum veri kalitesinde dikkat gerektiren bulgular vardır.",
       summary_data_low:
-        "Oturum veri kalitesi düşüktür. Bulgular temkinli yorumlanmalı; kesin klinik uygunluk ifadesi kullanılmamalıdır."
+        "Oturum veri kalitesi düşüktür; bulgular temkinli yorumlanmalıdır."
     },
     levels: {
       veryGood: "Çok Güçlü",
@@ -160,10 +160,10 @@ export const reportPdfStrings = {
       visualOk: "Görsel çeldirici bölümünde belirgin performans düşüşü gözlenmemiştir.",
       auditoryOk: "İşitsel çeldirici bölümünde belirgin performans düşüşü gözlenmemiştir.",
       combinedOk: "Kombine çeldirici bölümünde belirgin performans düşüşü gözlenmemiştir.",
-      mildComment: "{{title}} bölümünde performansta hafif düzeyde düşüş gözlendi. Bölüm sırası ve uyaran temposu da katkıda bulunabilir; düşüş doğrudan yalnızca çeldiriciye bağlanmamalıdır.",
-      moderateComment: "{{title}} bölümünde performans düşüşü gözlendi. Çeldirici etkisi olasıdır; tempo/sıra etkisi ayrıştırılmadan kesin neden atfedilmemelidir.",
-      markedComment: "{{title}} bölümünde belirgin performans düşüşü gözlendi. Bulgu tanımlayıcıdır; tek başına çeldirici nedenselliği kanıtlamaz.",
-      generalAffected: "Bazı çeldirici bölümlerinde performans düşüşü gözlenmiştir (tanımlayıcı).",
+      mildComment: "{{title}} bölümünde performansta hafif düzeyde düşüş gözlendi.",
+      moderateComment: "{{title}} bölümünde performans düşüşü gözlendi.",
+      markedComment: "{{title}} bölümünde belirgin performans düşüşü gözlendi.",
+      generalAffected: "Bazı çeldirici bölümlerinde performans düşüşü gözlenmiştir.",
       generalOk: "Çeldirici bölümlerinde belirgin performans düşüşü gözlenmemiştir."
     },
     sustainability: {
@@ -508,7 +508,13 @@ export const reportPdfStrings = {
       summary_valid: "Test results are considered valid and suitable for interpretation.",
       summary_acceptable: "Test results are acceptable; some factors may affect interpretation.",
       summary_caution: "Results can be interpreted, but factors affecting performance were observed.",
-      summary_low: "Low reliability — interpret results carefully with supporting data."
+      summary_low: "Low reliability — interpret results carefully with supporting data.",
+      summary_data_ok:
+        "Session data quality: task engagement, recording integrity, and response sample appear sufficient for analysis.",
+      summary_data_acceptable:
+        "Session data quality is acceptable; some warnings should be reviewed carefully.",
+      summary_data_caution: "Session data quality findings require careful review.",
+      summary_data_low: "Session data quality is low; findings should be interpreted cautiously."
     },
     levels: {
       veryGood: "Very Strong",

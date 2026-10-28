@@ -40,11 +40,14 @@ const TABLE_HEAD = "#142440";
 
 function sectionTitle(text, pageBreak = false) {
   return {
-    margin: [0, pageBreak ? 4 : 14, 0, 10],
+    margin: [0, pageBreak ? 6 : 16, 0, 12],
     pageBreak: pageBreak ? "before" : undefined,
     columns: [
       { width: 5, canvas: [{ type: "rect", x: 0, y: 0, w: 5, h: 22, color: HEADER }] },
-      { width: "*", stack: [{ text, fontSize: 15, bold: true, color: HEADER, margin: [10, 2, 0, 0] }] }
+      {
+        width: "*",
+        stack: [{ text, fontSize: 14, bold: true, color: HEADER, margin: [12, 3, 0, 0] }]
+      }
     ],
     columnGap: 0
   };
@@ -106,6 +109,7 @@ function coverHeader(locale = "tr", scoringVersion = ACTIVE_REPORT_SCORING_VERSI
 }
 
 function infoBox(title, lines, fill = "#f8fafc") {
+  const heading = String(title || "").trim();
   return {
     table: {
       widths: ["*"],
@@ -113,17 +117,19 @@ function infoBox(title, lines, fill = "#f8fafc") {
         [
           {
             stack: [
-              { text: title, bold: true, fontSize: 11, color: HEADER, margin: [0, 0, 0, 8] },
-              ...lines.map((t) => ({ text: t, fontSize: 9, color: SUB, margin: [0, 0, 0, 4] }))
+              ...(heading
+                ? [{ text: heading, bold: true, fontSize: 11, color: HEADER, margin: [0, 0, 0, 8] }]
+                : []),
+              ...lines.map((t) => ({ text: t, fontSize: 9, color: SUB, margin: [0, 0, 0, 4], lineHeight: 1.35 }))
             ],
             fillColor: fill,
-            margin: [12, 10, 12, 10]
+            margin: [14, 12, 14, 12]
           }
         ]
       ]
     },
     layout: "noBorders",
-    margin: [0, 0, 0, 12]
+    margin: [0, 0, 0, 14]
   };
 }
 
@@ -242,7 +248,7 @@ function buildInvalidDocDefinition({ participant, profile, validity, locale = "t
   const dateLoc = dateLocaleForPdf(locale);
   return {
     pageSize: "A4",
-    pageMargins: [36, 36, 36, 48],
+    pageMargins: [42, 40, 42, 52],
     defaultStyle: { font: "Roboto", fontSize: 10 },
     background: buildPdfLogoBackground(logoDataUrl),
     content: [
@@ -586,14 +592,14 @@ export function buildDocDefinition({
 
   return {
     pageSize: "A4",
-    pageMargins: [36, 36, 36, 48],
+    pageMargins: [42, 40, 42, 52],
     defaultStyle: { font: "Roboto", fontSize: 10 },
     background: buildPdfLogoBackground(logoDataUrl),
     footer: (currentPage, pageCount) => ({
-      margin: [36, 0, 36, 20],
+      margin: [42, 0, 42, 22],
       stack: [
         {
-          canvas: [{ type: "line", x1: 0, y1: 0, x2: 523, y2: 0, lineWidth: 0.5, lineColor: "#cbd5e1" }],
+          canvas: [{ type: "line", x1: 0, y1: 0, x2: 511, y2: 0, lineWidth: 0.5, lineColor: "#cbd5e1" }],
           margin: [0, 0, 0, 6]
         },
         {
@@ -824,18 +830,32 @@ export function buildDocDefinition({
 
       sectionTitle(pdf.distractorAnalysis, true),
       ...distractor.items.flatMap((item) => [
-        pdfStatusLine(item.level ?? "green", `${item.title} — ${item.label}`, { fontSize: 11 }),
-        { text: item.comment, fontSize: 9, lineHeight: 1.35, margin: [0, 0, 0, 12] }
+        pdfStatusLine(item.level ?? "green", `${item.title} — ${item.label}`, {
+          fontSize: 11,
+          margin: [0, 0, 0, 4]
+        }),
+        {
+          text: item.comment,
+          fontSize: 9,
+          color: SUB,
+          lineHeight: 1.4,
+          margin: [18, 0, 0, 14]
+        }
       ]),
       infoBox(pdf.distractorGeneral, [distractor.general], HEADER_LIGHT),
 
-      sectionTitle(pdf.sustainability),
-      infoBox("", [
-        `${pdf.startPerf}: ${sustainability.firstAvg ?? "—"}`,
-        `${pdf.endPerf}: ${sustainability.lastAvg ?? "—"}`,
-        `${pdf.change}: ${deltaStr}`,
-        `${pdf.commentLabel}: ${sustainability.comment}`
-      ]),
+      {
+        unbreakable: true,
+        stack: [
+          sectionTitle(pdf.sustainability),
+          infoBox("", [
+            `${pdf.startPerf}: ${sustainability.firstAvg ?? "—"}`,
+            `${pdf.endPerf}: ${sustainability.lastAvg ?? "—"}`,
+            `${pdf.change}: ${deltaStr}`,
+            `${pdf.commentLabel}: ${sustainability.comment}`
+          ])
+        ]
+      },
 
       sectionTitle(pdf.professionalTitle, true),
       { text: professional, lineHeight: 1.4, alignment: "justify", margin: [0, 0, 0, 16] },
