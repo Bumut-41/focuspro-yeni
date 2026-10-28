@@ -7,13 +7,21 @@ import { fetchAdminPressTimeline, fetchSessionDetail } from "../services/session
 import { Alert, Badge, Button, Card, CardHeader, Stack } from "./ui.jsx";
 
 function cell(v) {
-  if (v == null || Number.isNaN(Number(v))) return "—";
+  if (v == null || (typeof v === "number" && Number.isNaN(v))) return "—";
   return String(v);
 }
 
-function passBadge(passFail) {
-  if (passFail === "PASS") return <Badge variant="primary">PASS</Badge>;
+function statusBadge(status) {
+  if (status === "PASS") return <Badge variant="primary">PASS</Badge>;
+  if (status === "NOT_VERIFIED") return <Badge variant="neutral">NOT VERIFIED</Badge>;
   return <Badge variant="neutral">FAIL</Badge>;
+}
+
+function severityColor(severity) {
+  if (severity === "fail") return "var(--fp-danger)";
+  if (severity === "unverified") return "#b45309";
+  if (severity === "pass") return "#15803d";
+  return "var(--fp-text-secondary)";
 }
 
 function RtTable({ slice }) {
@@ -29,13 +37,13 @@ function RtTable({ slice }) {
             <th>Sürüm</th>
             <th>RT ham</th>
             <th>Dahil</th>
-            <th>Dışlanan</th>
+            <th>Dışlanan (IQR)</th>
             <th>Ort</th>
             <th>Medyan</th>
             <th>SD</th>
             <th>CV</th>
             <th>Geç n</th>
-            <th>Geç %</th>
+            <th>Geç % (payda)</th>
             <th>Stab</th>
             <th>Geç alt</th>
             <th>T</th>
@@ -52,7 +60,12 @@ function RtTable({ slice }) {
             <td>{cell(rt.sd)}</td>
             <td>{rt.cv != null ? Number(rt.cv).toFixed(3) : "—"}</td>
             <td>{cell(late.count)}</td>
-            <td>{late.ratePct != null ? `${late.ratePct}%` : "—"}</td>
+            <td>
+              {late.ratePct != null ? `${late.ratePct}%` : "—"}
+              <div className="fp-hint" style={{ margin: 0 }}>
+                {late.formula || "geç / hedef"}
+              </div>
+            </td>
             <td>{cell(t.stability)}</td>
             <td>{cell(t.lateSubscore)}</td>
             <td>
@@ -63,6 +76,10 @@ function RtTable({ slice }) {
       </table>
       <p className="fp-hint" style={{ margin: "6px 0 0" }}>
         {t.formula}
+        {late.denominatorLabel ? ` · Payda: ${late.denominatorLabel}` : ""}
+        {late.respondedOnlyPct != null
+          ? ` · Bilgi: yanıtlanan hedefe göre %${late.respondedOnlyPct}`
+          : ""}
       </p>
     </div>
   );
@@ -70,16 +87,16 @@ function RtTable({ slice }) {
 
 function SessionAuditCard({ row, dateLocale }) {
   const [open, setOpen] = useState(false);
-  if (row.checks && !row.overall && row.passFail === "FAIL") {
+  if (row.checks && !row.overall && (row.passFail === "FAIL" || row.passFail === "NOT_VERIFIED")) {
     return (
       <Card style={{ marginTop: 12, padding: 12 }}>
         <Stack gap={8} wrap>
-          {passBadge(row.passFail)}
+          {statusBadge(row.passFail)}
           <strong>{row.name || row.sessionId}</strong>
         </Stack>
         <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: "0.85rem" }}>
           {(row.checks || []).map((c, i) => (
-            <li key={i} style={{ color: c.severity === "fail" ? "var(--fp-danger)" : undefined }}>
+            <li key={i} style={{ color: severityColor(c.severity) }}>
               [{c.code}] {c.message}
             </li>
           ))}
@@ -88,11 +105,14 @@ function SessionAuditCard({ row, dateLocale }) {
     );
   }
 
+  const mismatches = row.rtCompare?.mismatches || [];
+  const onlyOverall = row.rtCompare?.onlyInOverall || [];
+
   return (
     <Card style={{ marginTop: 12, padding: 12 }}>
       <Stack gap={10} wrap style={{ justifyContent: "space-between" }}>
         <Stack gap={8} wrap>
-          {passBadge(row.passFail)}
+          {statusBadge(row.passFail)}
           <strong>{row.name}</strong>
           <span style={{ color: "var(--fp-text-secondary)", fontSize: "0.85rem" }}>
             {row.profileKey} · yaş {row.age ?? "—"} ·{" "}
@@ -100,7 +120,7 @@ function SessionAuditCard({ row, dateLocale }) {
           </span>
           <Badge variant="primary">algo {row.algorithmVersion}</Badge>
           <span style={{ fontSize: "0.8rem" }}>
-            fail {row.failCount ?? 0} · info {row.infoCount ?? 0}
+            fail {row.failCount ?? 0} · not verified {row.unverifiedCount ?? 0} · pass {row.passCount ?? 0}
           </span>
         </Stack>
         <Button type="button" variant="secondary" size="sm" onClick={() => setOpen((v) => !v)}>
@@ -110,7 +130,33 @@ function SessionAuditCard({ row, dateLocale }) {
 
       {!open ? null : (
         <div style={{ marginTop: 14 }}>
-          <h3 style={{ fontSize: "0.95rem", margin: "0 0 6px" }}>1) Genel T (tüm oturum ham veri)</h3>
+          <h3 style={{ fontSize: "0.95rem", margin: "0 0 6px" }}>Kontrol özeti (ayrı PASS/FAIL/NOT VERIFIED)</h3>
+          <div style={{ overflowX: "auto" }}>
+            <table className="fp-table" style={{ fontSize: "0.78rem", width: "100%" }}>
+              <thead>
+                <tr>
+                  <th>Kontrol</th>
+                  <th>Sonuç</th>
+                  <th>fail</th>
+                  <th>not verified</th>
+                  <th>pass</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(row.checkGroups || []).map((g) => (
+                  <tr key={g.id}>
+                    <td>{g.label}</td>
+                    <td>{statusBadge(g.passFail)}</td>
+                    <td>{g.failCount}</td>
+                    <td>{g.unverifiedCount}</td>
+                    <td>{g.passCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>1) Genel T (tüm oturum)</h3>
           <RtTable slice={row.overall?.v4} />
           <p className="fp-hint" style={{ marginTop: 8 }}>
             PDF A/T/I/H/G: {cell(row.overall?.pdfScores?.attention)} / {cell(row.overall?.pdfScores?.timing)} /{" "}
@@ -122,7 +168,52 @@ function SessionAuditCard({ row, dateLocale }) {
             {cell(row.overall?.storedScores?.overall)}
           </p>
 
-          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>Faz T (V1 = PDF faz yolu · V4 = genel ile aynı formül dilimde)</h3>
+          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>
+            RT genel ↔ faz ({row.rtCompare?.overallIncludedN ?? "—"} / {row.rtCompare?.phaseIncludedSum ?? "—"})
+          </h3>
+          <p className="fp-hint">{row.rtCompare?.note}</p>
+          {mismatches.length || onlyOverall.length ? (
+            <div style={{ overflowX: "auto", maxHeight: 220, overflowY: "auto" }}>
+              <table className="fp-table" style={{ fontSize: "0.75rem", width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th>eventId</th>
+                    <th>Faz</th>
+                    <th>RT</th>
+                    <th>Genel</th>
+                    <th>Faz</th>
+                    <th>Açıklama</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mismatches.map((m) => (
+                    <tr key={`m-${m.eventId}-${m.phase}`}>
+                      <td>{m.eventId}</td>
+                      <td>{m.phase}</td>
+                      <td>{cell(m.rtMs)}</td>
+                      <td>{m.overallReason}</td>
+                      <td>{m.phaseReason}</td>
+                      <td>{m.detail}</td>
+                    </tr>
+                  ))}
+                  {onlyOverall.map((m) => (
+                    <tr key={`o-${m.eventId}`}>
+                      <td>{m.eventId}</td>
+                      <td>—</td>
+                      <td>{cell(m.rtMs)}</td>
+                      <td>{m.overallReason}</td>
+                      <td>—</td>
+                      <td>{m.detail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="fp-hint">Event düzeyinde genel/faz dahil farkı yok.</p>
+          )}
+
+          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>Faz dilimleri (rapor yolu = V4)</h3>
           {(row.phases || []).map((p) =>
             p.empty ? (
               <p key={p.label} className="fp-hint">
@@ -132,21 +223,19 @@ function SessionAuditCard({ row, dateLocale }) {
               <div key={p.label} style={{ marginBottom: 12, borderTop: "1px solid var(--fp-border)", paddingTop: 8 }}>
                 <Stack gap={6} wrap>
                   <strong>{p.label}</strong>
-                  {p.tMismatch ? <Badge variant="neutral">T V1≠V4</Badge> : <Badge variant="primary">T uyumlu</Badge>}
+                  <Badge variant="primary">V4</Badge>
                   <span className="fp-hint">{p.trialCount} deneme</span>
+                  <span className="fp-hint">{p.lateFormula}</span>
                 </Stack>
-                <p style={{ fontSize: "0.8rem", margin: "4px 0" }}>PDF faz yolu (V1)</p>
-                <RtTable slice={p.v1} />
-                <p style={{ fontSize: "0.8rem", margin: "8px 0 0" }}>Aynı dilim V4 formülü</p>
                 <RtTable slice={p.v4} />
               </div>
             )
           )}
 
-          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>2) Çeldirici yorumları</h3>
+          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>2) Çeldirici Δ (V4 faz − temel)</h3>
           <p className="fp-hint">
             Eşikler: etki yok ≤{row.constants?.distractorDrop?.none}, hafif ≤{row.constants?.distractorDrop?.mild}, orta ≤
-            {row.constants?.distractorDrop?.moderate} (puan düşüşü)
+            {row.constants?.distractorDrop?.moderate}. Δ = faz − temel (negatif = düşüş). Tetikleyen = maxDrop endeksi.
           </p>
           <div style={{ overflowX: "auto" }}>
             <table className="fp-table" style={{ fontSize: "0.78rem", width: "100%" }}>
@@ -158,13 +247,14 @@ function SessionAuditCard({ row, dateLocale }) {
                   <th>ΔT</th>
                   <th>ΔI</th>
                   <th>ΔH</th>
-                  <th>maxDrop V4</th>
-                  <th>Sorun</th>
+                  <th>maxDrop</th>
+                  <th>Tetikleyen</th>
+                  <th>Durum</th>
                 </tr>
               </thead>
               <tbody>
                 {(row.distractor?.items || []).map((it) => (
-                  <tr key={it.key}>
+                  <tr key={it.key || it.title}>
                     <td>{it.title}</td>
                     <td>
                       {it.reportLabel} ({it.reportLevel})
@@ -174,8 +264,15 @@ function SessionAuditCard({ row, dateLocale }) {
                     <td>{cell(it.deltasV4?.impulsivity)}</td>
                     <td>{cell(it.deltasV4?.hyperactivity)}</td>
                     <td>{cell(it.dropFromBaselineV4 != null ? Math.round(it.dropFromBaselineV4) : null)}</td>
+                    <td>
+                      {it.triggerIndex
+                        ? `${it.triggerIndex.label} (−${cell(it.triggerIndex.drop)})`
+                        : it.dataStatus === "unverified"
+                          ? "NOT VERIFIED"
+                          : "—"}
+                    </td>
                     <td style={{ color: it.issues?.length ? "var(--fp-danger)" : undefined }}>
-                      {it.issues?.length ? it.issues.map((x) => x.code).join(", ") : "—"}
+                      {it.issues?.length ? it.issues.map((x) => x.code).join(", ") : "OK"}
                     </td>
                   </tr>
                 ))}
@@ -183,7 +280,7 @@ function SessionAuditCard({ row, dateLocale }) {
             </table>
           </div>
 
-          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>3) A/I/H basış sınıflandırması</h3>
+          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>3) A/I/H bağımsız ham kontrol</h3>
           <div style={{ overflowX: "auto" }}>
             <table className="fp-table" style={{ fontSize: "0.78rem", width: "100%" }}>
               <thead>
@@ -205,28 +302,27 @@ function SessionAuditCard({ row, dateLocale }) {
             </table>
           </div>
           <p style={{ fontSize: "0.8rem", marginTop: 8 }}>
-            Hesaplanan A/T/I/H: {cell(row.classification?.computedScores?.A)} /{" "}
-            {cell(row.classification?.computedScores?.T)} / {cell(row.classification?.computedScores?.I)} /{" "}
-            {cell(row.classification?.computedScores?.H)}
+            Bağımsız A/I/H: {cell(row.classification?.independent?.scores?.A)} /{" "}
+            {cell(row.classification?.independent?.scores?.I)} / {cell(row.classification?.independent?.scores?.H)}
             {" · PDF: "}
-            {cell(row.classification?.pdfScores?.A)} / {cell(row.classification?.pdfScores?.T)} /{" "}
-            {cell(row.classification?.pdfScores?.I)} / {cell(row.classification?.pdfScores?.H)}
-            {" · Δ kayıt: "}
-            {cell(row.classification?.diffs?.A)} / {cell(row.classification?.diffs?.T)} /{" "}
-            {cell(row.classification?.diffs?.I)} / {cell(row.classification?.diffs?.H)}
+            {cell(row.classification?.pdfScores?.A)} / {cell(row.classification?.pdfScores?.I)} /{" "}
+            {cell(row.classification?.pdfScores?.H)}
           </p>
+          <p className="fp-hint">
+            {row.classification?.independent?.formulas?.A}
+            {" · "}
+            {row.classification?.independent?.formulas?.I}
+            {" · "}
+            {row.classification?.independent?.formulas?.H}
+          </p>
+          <p className="fp-hint">{row.classification?.independent?.timelineNote}</p>
 
           <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>Bulgular</h3>
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: "0.85rem" }}>
             {(row.checks || []).map((c, i) => (
-              <li
-                key={`${c.code}-${i}`}
-                style={{
-                  color: c.severity === "fail" ? "var(--fp-danger)" : "var(--fp-text-secondary)",
-                  marginBottom: 4
-                }}
-              >
-                <strong>[{c.severity}]</strong> {c.code}: {c.message}
+              <li key={`${c.code}-${i}`} style={{ color: severityColor(c.severity), marginBottom: 4 }}>
+                <strong>[{c.severity}]</strong> {c.group ? `${c.group} · ` : ""}
+                {c.code}: {c.message}
               </li>
             ))}
           </ul>
@@ -267,7 +363,9 @@ export function AlgorithmAuditPanel({ sessions = [], dateLocale = "tr-TR", local
       });
       setRows(out);
       const fails = out.filter((r) => r.passFail === "FAIL").length;
-      setMsg(`${out.length} oturum denetlendi · ${fails} FAIL · ${out.length - fails} PASS`);
+      const unver = out.filter((r) => r.passFail === "NOT_VERIFIED").length;
+      const passes = out.filter((r) => r.passFail === "PASS").length;
+      setMsg(`${out.length} oturum · ${passes} PASS · ${unver} NOT VERIFIED · ${fails} FAIL`);
     } catch (e) {
       setMsg(e.message || String(e));
       setRows([]);
@@ -280,16 +378,12 @@ export function AlgorithmAuditPanel({ sessions = [], dateLocale = "tr-TR", local
     <Card>
       <CardHeader
         title="Algoritma Doğrulama (V4)"
-        description="Salt okunur denetim. Genel ve faz skorları V4 motorundan; V1 yalnızca referans karşılaştırma. Genel T tüm oturum ham verisinden hesaplanır."
+        description="Salt okunur. V4 ağırlıkları değişmez. RT event farkları, geç % paydası, çeldirici Δ, ayrı kontrol sonuçları ve bağımsız A/I/H burada."
       />
       <Stack gap={12} wrap>
         <label className="fp-field" style={{ minWidth: 140 }}>
           <span className="fp-label">Profil</span>
-          <select
-            className="fp-select"
-            value={profileKey}
-            onChange={(e) => setProfileKey(e.target.value)}
-          >
+          <select className="fp-select" value={profileKey} onChange={(e) => setProfileKey(e.target.value)}>
             <option value="adult">Yetişkin</option>
             <option value="teen">Ergen</option>
             <option value="child">Çocuk</option>
@@ -313,8 +407,8 @@ export function AlgorithmAuditPanel({ sessions = [], dateLocale = "tr-TR", local
         </Alert>
       ) : null}
       <Alert variant="info" style={{ marginTop: 12 }}>
-        Grafik ve faz skorları V4 ile hizalandı. FAIL artık kayıtlı metrik sapması veya çeldirici yorum tutarsızlığı için
-        beklenir.
+        PASS yalnızca tüm alt kontroller geçince. Veri/timeline yoksa NOT VERIFIED (PASS sayılmaz). V4 skor formülü
+        değiştirilmez.
       </Alert>
       {rows.map((row) => (
         <SessionAuditCard key={row.sessionId || row.name} row={row} dateLocale={dateLocale} />

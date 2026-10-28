@@ -396,17 +396,18 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
 
   const analyze = (title, distScores, key) => {
     if (!distScores || !baseline) {
-      return { title, level: "gray", emoji: "—", label: D.noData, comment: D.noDataComment };
+      return { key, title, level: "gray", emoji: "—", label: D.noData, comment: D.noDataComment };
     }
     const { level, weak, maxDrop } = distractorLevelFromScores(baseline, distScores);
 
     if (level === "green") {
       const comment = key === "visual" ? D.visualOk : key === "auditory" ? D.auditoryOk : D.combinedOk;
-      return { title, level: "green", emoji: "🟢", label: D.preserved, comment, maxDrop, weak };
+      return { key, title, level: "green", emoji: "🟢", label: D.preserved, comment, maxDrop, weak };
     }
     if (level === "yellow") {
       const weakNote = weak.length ? ` (zayıf: ${weak.map((w) => `${w.label}=${w.score}`).join(", ")})` : "";
       return {
+        key,
         title,
         level: "yellow",
         emoji: "🟡",
@@ -418,6 +419,7 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
     }
     if (level === "orange") {
       return {
+        key,
         title,
         level: "orange",
         emoji: "🟠",
@@ -428,6 +430,7 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
       };
     }
     return {
+      key,
       title,
       level: "red",
       emoji: "🔴",
