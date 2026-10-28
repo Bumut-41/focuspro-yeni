@@ -56,7 +56,7 @@ function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = 
   return {
     unbreakable: true,
     pageBreak: pageBreakBefore ? "before" : undefined,
-    margin: [0, pageBreakBefore ? 2 : 8, 0, 4],
+    margin: [0, pageBreakBefore ? 4 : 10, 0, 8],
     stack: [
       {
         columns: [
@@ -64,10 +64,10 @@ function chartSectionBlock(title, imageSrc, pageBreakBefore = false, subtitle = 
           { width: "*", stack: [{ text: title, fontSize: 14, bold: true, color: HEADER, margin: [10, 1, 0, 0] }] }
         ],
         columnGap: 0,
-        margin: [0, 0, 0, subtitle ? 3 : 4]
+        margin: [0, 0, 0, subtitle ? 4 : 8]
       },
-      ...(subtitle ? [{ text: subtitle, fontSize: 9, color: SUB, margin: [15, 0, 0, 4] }] : []),
-      { image: imageSrc, width: imageWidth, alignment: "center", margin: [0, 0, 0, 6] }
+      ...(subtitle ? [{ text: subtitle, fontSize: 9, color: SUB, margin: [15, 0, 0, 8] }] : []),
+      { image: imageSrc, width: imageWidth, alignment: "center", margin: [0, 2, 0, 8] }
     ]
   };
 }

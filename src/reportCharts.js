@@ -94,15 +94,20 @@ function renderChart(config, width = 520, height = 250) {
 }
 
 function chartYScale(step = 20) {
+  // 0–100 skor; üstte etiket boşluğu için max 115 (tick >100 gizlenir)
   return {
     min: 0,
-    max: 100,
-    ticks: { stepSize: step },
+    max: 115,
+    ticks: {
+      stepSize: step,
+      callback: (v) => (v > 100 ? "" : v)
+    },
     border: { display: true, color: "#334155", width: 2, dash: [] },
     grid: {
       color: (ctx) => {
         const v = ctx.tick?.value;
         if (v === 0 || v === 100) return "#334155";
+        if (v > 100) return "transparent";
         return "#e2e8f0";
       },
       lineWidth: (ctx) => {
@@ -223,25 +228,23 @@ export function renderProfileRadar(scores, locale = "tr") {
     ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
     ctx.fillStyle = "#1e3a8a";
     ctx.fill();
-    // Alınan skor sayısal olarak noktanın yanında
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "800 22px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    ctx.fillText(String(Math.round(axis.value)), point.x, point.y - 10);
   });
 
-  // Tüm eksen etiketleri aynı merkez noktasında ortalanır (H/I çarpıklığını giderir)
+  // Harf + skor + isim dışarıda (yüksek skorlarda nokta üstündeki rakam harfle çakışmasın)
   axes.forEach((axis, index) => {
-    const point = radarPoint(cx, cy, index, radius + 62);
+    const point = radarPoint(cx, cy, index, radius + 88);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = axis.color;
     ctx.font = "800 26px sans-serif";
-    ctx.fillText(axis.code, point.x, point.y - 14);
-    ctx.font = "700 14px sans-serif";
+    ctx.fillText(axis.code, point.x, point.y - 28);
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "800 20px sans-serif";
+    ctx.fillText(String(Math.round(axis.value)), point.x, point.y - 4);
+    ctx.fillStyle = axis.color;
+    ctx.font = "700 13px sans-serif";
     axis.lines.forEach((line, lineIndex) => {
-      ctx.fillText(line, point.x, point.y + 10 + lineIndex * 16);
+      ctx.fillText(line, point.x, point.y + 16 + lineIndex * 15);
     });
   });
 
@@ -258,7 +261,7 @@ function shortPhaseChartLabel(row) {
   return s.length > 16 ? `${s.slice(0, 14)}…` : s;
 }
 
-/** Katılımcı serisinde faz skorlarını nokta üstünde yaz. */
+/** Katılımcı serisinde faz skorlarını yaz — üstte efsane/başlıkla çakışmasın. */
 function participantScoreLabelPlugin(datasetIndex = 3) {
   return {
     id: "participantScoreLabels",
@@ -267,15 +270,23 @@ function participantScoreLabelPlugin(datasetIndex = 3) {
       if (!meta?.data?.length) return;
       const ds = chart.data.datasets[datasetIndex];
       const ctx = chart.ctx;
+      const area = chart.chartArea;
       ctx.save();
       ctx.font = "700 11px sans-serif";
       ctx.fillStyle = "#0f172a";
       ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
       meta.data.forEach((pt, i) => {
         const v = ds.data[i];
         if (v == null || Number.isNaN(Number(v))) return;
-        ctx.fillText(String(Math.round(Number(v))), pt.x, pt.y - 8);
+        const n = Number(v);
+        // Yüksek skorlarda rakamı noktanın altına al (legend / üst kenarla çakışmayı önler)
+        const placeBelow = n >= 86;
+        let y = placeBelow ? pt.y + 12 : pt.y - 8;
+        ctx.textBaseline = placeBelow ? "top" : "bottom";
+        if (area) {
+          y = Math.min(Math.max(y, area.top + 2), area.bottom - 2);
+        }
+        ctx.fillText(String(Math.round(n)), pt.x, y);
       });
       ctx.restore();
     }
@@ -291,7 +302,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
 
   const n = phaseRows.length;
   const chartW = Math.min(540, 400 + n * 12);
-  const chartH = 260;
+  const chartH = 290;
 
   const labels = phaseRows.map(shortPhaseChartLabel);
   const userData = phaseRows.map((r) => r[meta.field]);
@@ -359,7 +370,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
       ]
     },
     options: {
-      layout: { padding: { top: 16, right: 8, bottom: 4, left: 4 } },
+      layout: { padding: { top: 8, right: 10, bottom: 8, left: 4 } },
       scales: {
         y: chartYScale(20),
         x: {
@@ -370,8 +381,8 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
       plugins: {
         legend: {
           display: overallScore != null,
-          position: "top",
-          labels: { boxWidth: 10, font: { size: 10 }, filter: (item) => item.datasetIndex === 3 }
+          position: "bottom",
+          labels: { boxWidth: 10, font: { size: 10 }, padding: 12, filter: (item) => item.datasetIndex === 3 }
         },
         title: { display: false }
       }
@@ -408,7 +419,7 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
       type: "line",
       data: { labels, datasets },
       options: {
-        layout: { padding: { top: 4, right: 8, bottom: 4, left: 4 } },
+        layout: { padding: { top: 8, right: 10, bottom: 8, left: 4 } },
         scales: {
           y: chartYScale(10),
           x: { ticks: { font: { size: 8 }, maxRotation: 32, minRotation: 28, autoSkip: false } }
@@ -416,7 +427,7 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
         plugins: {
           legend: {
             display: true,
-            position: "top",
+            position: "bottom",
             labels: {
               usePointStyle: true,
               pointStyle: "circle",
@@ -432,13 +443,13 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
             align: "start",
             font: { size: 13, weight: "600" },
             color: "#4c1d95",
-            padding: { bottom: 6 }
+            padding: { bottom: 10 }
           }
         }
       }
     },
     540,
-    280
+    300
   );
 }
 
