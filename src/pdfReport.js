@@ -31,7 +31,7 @@ import { normLevelTextFromZ } from "./reportNorms.js";
 import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { buildReportChartImages } from "./reportCharts.js";
 import { buildPdfLogoBackground, getPdfLogoDataUrl } from "./lib/pdfLogoWatermark.js";
-import { ACTIVE_REPORT_SCORING_VERSION, resolveReportScoringVersion } from "./scoringVersion.js";
+import { ACTIVE_REPORT_SCORING_VERSION } from "./scoringVersion.js";
 
 const HEADER = "#4c1d95";
 const HEADER_LIGHT = "#ede9fe";
@@ -484,19 +484,17 @@ export function buildDocDefinition({
   const isV4 = scoringVersion === "v4";
   const isPilot = isV2 || isV3 || isV4;
   const noSpeedTiming = isV3 || isV4;
+  // Kullanıcıya sunulan rapor her zaman V4; V1/V2/V3 yalnızca dahili arşiv çağrılarında
   const metrics = isV4
-    ? computeDetailedMetricsV4(logs, profile.lateResponseMs, metricOpts)
+    ? computeDetailedMetricsV4(logs, profile.lateResponseMs, metricOpts, age)
     : isV3
-      ? computeDetailedMetricsV3(logs, profile.lateResponseMs, metricOpts)
+      ? computeDetailedMetricsV3(logs, profile.lateResponseMs, metricOpts, age)
       : isV2
-        ? computeDetailedMetricsV2(logs, profile.lateResponseMs, metricOpts)
-        : computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts);
+        ? computeDetailedMetricsV2(logs, profile.lateResponseMs, metricOpts, age)
+        : computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts, age);
   const scores = getScores(metrics);
-  // Geçerlilik tabanı V1 metrikleri; V4'te oturum veri kalitesi dili kullanılır
-  const validityBase = isPilot
-    ? computeDetailedMetrics(logs, profile.lateResponseMs, metricOpts)
-    : metrics;
-  const validity = computeTestValidity(logs, validityBase, profile, pressTimeline, age, locale, {
+  // Geçerlilik / veri kalitesi de aynı skor motorundan (V4 raporunda V1'e düşülmez)
+  const validity = computeTestValidity(logs, metrics, profile, pressTimeline, age, locale, {
     dataQualityMode: isV4
   });
 
@@ -994,10 +992,11 @@ export async function downloadPdf(args) {
       ),
     args.logoDataUrl ?? getPdfLogoDataUrl()
   ]);
-  const version = resolveReportScoringVersion(args.scoringVersion ?? ACTIVE_REPORT_SCORING_VERSION);
+  // İndirme her zaman aktif kullanıcı sürümü (V4) — eski motorlar yalnızca downloadLegacyScoringBundle
+  const version = ACTIVE_REPORT_SCORING_VERSION;
   const doc = buildDocDefinition({ ...args, scoringVersion: version, reportCharts, logoDataUrl });
   const safeName = (args.participant?.name || "report").replace(/\s+/g, "_");
-  const tag = version === ACTIVE_REPORT_SCORING_VERSION ? "rapor" : version;
+  const tag = "rapor";
   const filename = `FocusProLab_${safeName}_${tag}_${Date.now()}.pdf`;
   return new Promise((resolve, reject) => {
     try {

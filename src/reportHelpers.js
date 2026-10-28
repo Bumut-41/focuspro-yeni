@@ -330,8 +330,8 @@ export function computeSustainabilityIndex(logs, profile, age = null, pressTimel
     const list = logsForBucket(logs, bucket);
     if (!list.length) return null;
     const tl = timelineForBucket(pressTimeline, bucket);
-    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age });
-    // overall null olabilir (V3/V4 T yok); A ağırlıklı vekil kullan
+    const m = computeDetailedMetricsV4(list, late, { pressTimeline: tl, age, locale }, age);
+    // overall null olabilir (T yok); A ağırlıklı vekil kullan
     if (m.overallScore != null && !Number.isNaN(Number(m.overallScore))) return m.overallScore;
     const sc = getScores(m);
     if (sc.attention == null) return null;
@@ -509,7 +509,7 @@ export function getReportPhaseBehaviorTable(logs, profile, age = null, pressTime
     const behaviors = countTrialBehaviors(list, late);
     const rates = getBehaviorRates(behaviors);
     const tl = timelineForBucket(pressTimeline, bucket);
-    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age });
+    const m = computeDetailedMetricsV4(list, late, { pressTimeline: tl, age, locale }, age);
     const sc = getScores(m);
     return {
       label: bucket.label,
@@ -745,11 +745,16 @@ export function getDistractorSummaryMatrix(logs, profile, age = null, pressTimel
   });
   const loadSc = loadLogs.length
     ? getScores(
-        computeDetailedMetrics(loadLogs, profile.lateResponseMs, {
-          pressTimeline: timelineForLogs(pressTimeline, loadLogs),
-          age,
-          locale
-        })
+        computeDetailedMetricsV4(
+          loadLogs,
+          profile.lateResponseMs,
+          {
+            pressTimeline: timelineForLogs(pressTimeline, loadLogs),
+            age,
+            locale
+          },
+          age
+        )
       )
     : null;
 

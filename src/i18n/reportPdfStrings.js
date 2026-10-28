@@ -836,7 +836,7 @@ export function getFullPhaseLegend(locale = "tr") {
   return getReportPdfStrings(locale).technical.phaseLegend;
 }
 
-export function getIndexDefinitions(locale = "tr", scoringVersion = "v1") {
+export function getIndexDefinitions(locale = "tr", scoringVersion = "v4") {
   const tech = getReportPdfStrings(locale).technical;
   if ((scoringVersion === "v1" || scoringVersion === "v2") && tech.indexDefinitionsV1) {
     return tech.indexDefinitionsV1;

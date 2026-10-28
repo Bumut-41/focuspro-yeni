@@ -1,5 +1,5 @@
 import {
-  computeDetailedMetrics,
+  computeDetailedMetricsV4,
   computeSustainabilityIndex,
   formatDurationSeconds,
   getScores,
@@ -227,7 +227,7 @@ export function computeTestValidity(logs, metrics, profile, pressTimeline = [], 
     const list = logsForBucket(logs, bucket);
     if (!list.length) return null;
     const tl = (pressTimeline ?? []).filter((p) => p.section && bucket.phaseNames?.includes(p.section));
-    return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }))[key];
+    return getScores(computeDetailedMetricsV4(list, late, { pressTimeline: tl, age, locale }, age))[key];
   };
 
   const firstA = buckets.slice(0, 2).map((b) => scoreOfBucket(b, "attention")).filter((v) => v != null);
