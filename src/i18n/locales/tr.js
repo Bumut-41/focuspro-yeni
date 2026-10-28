@@ -265,7 +265,7 @@ export const tr = {
   },
   clients: {
     title: "Danışanlarım",
-    desc: "Danışanı bir kez kaydedin. Her «Testi e-posta ile gönder» 1 kredi düşer ve o bağlantı tek kullanımlıktır. Aynı danışana yeni bir test atayabilirsiniz.",
+    desc: "Danışanı bir kez kaydedin. Aynı e-posta ile birden fazla danışan ekleyebilirsiniz. Her «Testi e-posta ile gönder» 1 kredi düşer ve o bağlantı tek kullanımlıktır.",
     name: "Ad soyad",
     birth: "Doğum tarihi",
     email: "E-posta",
@@ -282,7 +282,6 @@ export const tr = {
     backToPanel: "Panele dön",
     startTest: "Teste başla",
     errPick: "Testi başlatmak için bir danışan seçin.",
-    errDuplicate: "Bu e-posta ile kayıtlı bir danışanınız zaten var.",
     errEmailRequiredForSend: "Testi e-posta ile göndermek için e-posta adresi gerekli.",
     errSave: "Danışan kaydedilemedi. Supabase'de specialist_clients tablosu yoksa SQL dosyasını bir kez çalıştırın."
   },

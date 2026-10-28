@@ -265,7 +265,7 @@ export const it = {
   },
   clients: {
     title: "I miei clienti",
-    desc: "Registra il cliente una sola volta. Ogni «Invia il test via e-mail» usa 1 credito e quel link funziona una sola volta. Puoi assegnare un altro test allo stesso cliente.",
+    desc: "Registra il cliente una sola volta. Puoi aggiungere più clienti con la stessa e-mail. Ogni «Invia il test via e-mail» usa 1 credito e quel link funziona una sola volta.",
     name: "Nome e cognome",
     birth: "Data di nascita",
     email: "E-mail",
@@ -282,7 +282,6 @@ export const it = {
     backToPanel: "Torna al pannello",
     startTest: "Inizia il test",
     errPick: "Seleziona un cliente per avviare il test.",
-    errDuplicate: "Hai già un cliente con questa e-mail.",
     errEmailRequiredForSend: "Per inviare il test via e-mail è necessario un indirizzo e-mail.",
     errSave: "Impossibile salvare il cliente. Se manca la tabella, esegui una volta lo SQL specialist_clients in Supabase."
   },

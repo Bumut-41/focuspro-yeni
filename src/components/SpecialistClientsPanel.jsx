@@ -82,12 +82,7 @@ export function SpecialistClientsPanel() {
       await load();
     } catch (e) {
       setMsgVariant("error");
-      const text = e?.message || "";
-      if (text.includes("duplicate") || text.includes("23505") || text.includes("specialist_clients_unique_email")) {
-        setMsg(t("clients.errDuplicate"));
-      } else {
-        setMsg(t("clients.errSave"));
-      }
+      setMsg(t("clients.errSave"));
     } finally {
       setBusy(false);
     }
@@ -148,10 +143,7 @@ export function SpecialistClientsPanel() {
       await deliverTest(updated, updated.email);
     } catch (e) {
       setMsgVariant("error");
-      const text = e?.message || "";
-      if (text.includes("duplicate") || text.includes("23505") || text.includes("specialist_clients_unique_email")) {
-        setMsg(t("clients.errDuplicate"));
-      } else if (text === "invalid_email") {
+      if ((e?.message || "") === "invalid_email") {
         setMsg(t("invite.errInvalidEmail"));
       } else {
         setMsg(parseRpcError(e, t));

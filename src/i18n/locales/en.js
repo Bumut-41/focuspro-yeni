@@ -265,7 +265,7 @@ export const en = {
   },
   clients: {
     title: "My clients",
-    desc: "Register a client once. Each “Email the test” uses 1 credit and that link works once. You can assign another test to the same client.",
+    desc: "Register a client once. You can add multiple clients with the same email. Each “Email the test” uses 1 credit and that link works once.",
     name: "Full name",
     birth: "Date of birth",
     email: "Email",
@@ -282,7 +282,6 @@ export const en = {
     backToPanel: "Back to dashboard",
     startTest: "Start test",
     errPick: "Select a client to start the test.",
-    errDuplicate: "You already have a client with this email.",
     errEmailRequiredForSend: "An email address is required to send the test by email.",
     errSave: "The client could not be saved. Run the specialist_clients SQL once in Supabase if the table is missing."
   },

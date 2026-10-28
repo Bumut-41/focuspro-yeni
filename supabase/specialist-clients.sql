@@ -9,8 +9,8 @@ create table if not exists public.specialist_clients (
   email text,
   guardian_consent boolean not null default false,
   created_at timestamptz not null default now(),
-  constraint specialist_clients_email_lower check (email = lower(trim(email))),
-  constraint specialist_clients_unique_email unique (specialist_id, email)
+  constraint specialist_clients_email_lower check (email = lower(trim(email)))
+  -- Aynı e-posta birden fazla danışanda kullanılabilir (aile / ortak kutu)
 );
 
 create index if not exists specialist_clients_owner_idx
