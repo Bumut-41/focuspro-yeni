@@ -275,6 +275,7 @@ function participantScoreLabelPlugin(datasetIndex = 3) {
       ctx.font = "700 11px sans-serif";
       ctx.fillStyle = "#0f172a";
       ctx.textAlign = "center";
+      const last = meta.data.length - 1;
       meta.data.forEach((pt, i) => {
         const v = ds.data[i];
         if (v == null || Number.isNaN(Number(v))) return;
@@ -282,11 +283,16 @@ function participantScoreLabelPlugin(datasetIndex = 3) {
         // Yüksek skorlarda rakamı noktanın altına al (legend / üst kenarla çakışmayı önler)
         const placeBelow = n >= 86;
         let y = placeBelow ? pt.y + 12 : pt.y - 8;
+        // İlk nokta Y eksenine yapışıyor — rakamı sağa kaydır
+        let x = pt.x;
+        if (i === 0) x += 12;
+        else if (i === last) x -= 4;
         ctx.textBaseline = placeBelow ? "top" : "bottom";
         if (area) {
           y = Math.min(Math.max(y, area.top + 2), area.bottom - 2);
+          x = Math.min(Math.max(x, area.left + 10), area.right - 10);
         }
-        ctx.fillText(String(Math.round(n)), pt.x, y);
+        ctx.fillText(String(Math.round(n)), x, y);
       });
       ctx.restore();
     }
