@@ -476,6 +476,7 @@ export const tr = {
     noEmail: "e-posta yok",
     userDeleted: "{{name}} silindi.",
     invitesNav: "Test davetleri",
+    algorithmAuditNav: "Algoritma doğrulama",
     invitesTitle: "Test davetleri ({{count}})",
     invitesDesc:
       "Uzmanların gönderdiği davet e-postalarının iletim durumunu takip edin. Başarısız olanları yeniden gönderebilirsiniz.",

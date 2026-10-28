@@ -473,6 +473,7 @@ export const en = {
     noEmail: "no email",
     userDeleted: "{{name}} deleted.",
     invitesNav: "Test invitations",
+    algorithmAuditNav: "Algorithm audit",
     invitesTitle: "Test invitations ({{count}})",
     invitesDesc:
       "Track delivery of invitations sent by specialists. You can resend failed emails.",

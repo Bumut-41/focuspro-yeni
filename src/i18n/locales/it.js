@@ -473,6 +473,7 @@ export const it = {
     noEmail: "nessuna e-mail",
     userDeleted: "{{name}} eliminato.",
     invitesNav: "Inviti al test",
+    algorithmAuditNav: "Verifica algoritmo",
     invitesTitle: "Inviti al test ({{count}})",
     invitesDesc:
       "Monitora la consegna delle e-mail di invito inviate dagli specialisti. Puoi reinviare quelle non riuscite.",

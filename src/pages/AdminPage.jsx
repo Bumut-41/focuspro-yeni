@@ -50,6 +50,7 @@ import {
   downloadSpecialistApplicationsCsv
 } from "../services/adminExport.js";
 import { AdminInvitesPanel } from "../components/AdminInvitesPanel.jsx";
+import { AlgorithmAuditPanel } from "../components/AlgorithmAuditPanel.jsx";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
@@ -469,6 +470,7 @@ export default function AdminPage() {
     "/admin/kullanicilar",
     "/admin/davetler",
     "/admin/testler",
+    "/admin/algoritma-dogrulama",
     ...(isSuperAdmin ? ["/admin/promosyon"] : [])
   ]);
 
@@ -551,6 +553,7 @@ export default function AdminPage() {
             <Link to="/admin/kullanicilar">{t("admin.usersTitle", { count: filteredUsers.length })}</Link>
             <Link to="/admin/davetler">{t("admin.invitesNav")}</Link>
             <Link to="/admin/testler">{t("admin.sessionsTitle", { count: filteredSessions.length })}</Link>
+            <Link to="/admin/algoritma-dogrulama">{t("admin.algorithmAuditNav")}</Link>
             {isSuperAdmin ? (
               <Link to="/admin/promosyon">{t("admin.promoTitle", { count: promoCodes.length })}</Link>
             ) : null}
@@ -1370,6 +1373,10 @@ export default function AdminPage() {
       )}
 
       {section === "/admin/davetler" && <AdminInvitesPanel />}
+
+      {section === "/admin/algoritma-dogrulama" && (
+        <AlgorithmAuditPanel sessions={sessions} dateLocale={dateLocale} locale={locale} />
+      )}
 
       {section === "/admin/testler" && (
       <>
