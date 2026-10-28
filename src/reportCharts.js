@@ -11,7 +11,7 @@ import {
 } from "chart.js";
 import {
   getReportPhaseChartScores,
-  computeDetailedMetrics,
+  computeDetailedMetricsV4,
   getScores
 } from "./reportHelpers.js";
 import { getReportPdfStrings } from "./i18n/reportPdfStrings.js";
@@ -71,17 +71,20 @@ function renderChart(config, width = 520, height = 250) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
+  const userOpts = config.options || {};
+  const userPlugins = userOpts.plugins || {};
   const chart = new Chart(canvas.getContext("2d"), {
     ...config,
     options: {
+      ...userOpts,
       responsive: false,
       animation: false,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: config.options?.plugins?.legend?.display ?? false },
-        tooltip: { enabled: false }
-      },
-      ...config.options
+        legend: { display: false },
+        tooltip: { enabled: false },
+        ...userPlugins
+      }
     }
   });
   chart.update("none");
@@ -220,6 +223,12 @@ export function renderProfileRadar(scores, locale = "tr") {
     ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
     ctx.fillStyle = "#1e3a8a";
     ctx.fill();
+    // Alınan skor sayısal olarak noktanın yanında
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "800 22px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(String(Math.round(axis.value)), point.x, point.y - 10);
   });
 
   // Tüm eksen etiketleri aynı merkez noktasında ortalanır (H/I çarpıklığını giderir)
@@ -249,8 +258,32 @@ function shortPhaseChartLabel(row) {
   return s.length > 16 ? `${s.slice(0, 14)}…` : s;
 }
 
-/** Tek endeks — tüm profil fazları, norm bandı + katılımcı. */
-export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = "tr") {
+/** Katılımcı serisinde faz skorlarını nokta üstünde yaz. */
+function participantScoreLabelPlugin(datasetIndex = 3) {
+  return {
+    id: "participantScoreLabels",
+    afterDatasetsDraw(chart) {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      if (!meta?.data?.length) return;
+      const ds = chart.data.datasets[datasetIndex];
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = "700 11px sans-serif";
+      ctx.fillStyle = "#0f172a";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      meta.data.forEach((pt, i) => {
+        const v = ds.data[i];
+        if (v == null || Number.isNaN(Number(v))) return;
+        ctx.fillText(String(Math.round(Number(v))), pt.x, pt.y - 8);
+      });
+      ctx.restore();
+    }
+  };
+}
+
+/** Tek endeks — tüm profil fazları, norm bandı + katılımcı (V4 skorları). */
+export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = "tr", overallScore = null) {
   const INDEX_META = indexMeta(locale);
   const meta = INDEX_META[indexKey];
   const CL = getReportPdfStrings(locale).technical?.chartLabels ?? {};
@@ -273,6 +306,11 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
     normLows.push(b.low);
     normHighs.push(b.high);
   });
+
+  const overallLabel =
+    overallScore != null && !Number.isNaN(Number(overallScore))
+      ? `${CL.participant ?? "Katılımcı"} · genel ${Math.round(Number(overallScore))}`
+      : CL.participant ?? "Katılımcı";
 
   return renderChart({
     type: "line",
@@ -307,7 +345,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
           tension: 0.35
         },
         {
-          label: CL.participant ?? "Participant",
+          label: overallLabel,
           data: userData,
           borderColor: meta.color,
           backgroundColor: meta.color,
@@ -321,7 +359,7 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
       ]
     },
     options: {
-      layout: { padding: { top: 4, right: 8, bottom: 4, left: 4 } },
+      layout: { padding: { top: 16, right: 8, bottom: 4, left: 4 } },
       scales: {
         y: chartYScale(20),
         x: {
@@ -330,10 +368,15 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
         }
       },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: overallScore != null,
+          position: "top",
+          labels: { boxWidth: 10, font: { size: 10 }, filter: (item) => item.datasetIndex === 3 }
+        },
         title: { display: false }
       }
-    }
+    },
+    plugins: [participantScoreLabelPlugin(3)]
   }, chartW, chartH);
 }
 
@@ -407,7 +450,8 @@ export async function buildReportChartImages(logs, profile, age = null, pressTim
   const profileKey = profile.key ?? "adult";
   const phaseRows = getReportPhaseChartScores(logs, profile, age, pressTimeline, locale);
   const phaseSeries = phaseRows;
-  const metrics = computeDetailedMetrics(logs, profile.lateResponseMs, { pressTimeline, age, locale });
+  // Radar A/T/I/H = PDF skor kutuları ile aynı V4 motoru
+  const metrics = computeDetailedMetricsV4(logs, profile.lateResponseMs, { pressTimeline, age, locale }, age);
   const scores = getScores(metrics);
   const radarScores = {
     ...scores,
@@ -416,10 +460,10 @@ export async function buildReportChartImages(logs, profile, age = null, pressTim
 
   return {
     radar: renderProfileRadar(radarScores, locale),
-    attention: renderIndexPhaseChart(phaseRows, profileKey, "attention", locale),
-    timing: renderIndexPhaseChart(phaseRows, profileKey, "timing", locale),
-    impulsivity: renderIndexPhaseChart(phaseRows, profileKey, "impulsivity", locale),
-    hyperactivity: renderIndexPhaseChart(phaseRows, profileKey, "hyperactivity", locale),
+    attention: renderIndexPhaseChart(phaseRows, profileKey, "attention", locale, scores.attention),
+    timing: renderIndexPhaseChart(phaseRows, profileKey, "timing", locale, scores.timing),
+    impulsivity: renderIndexPhaseChart(phaseRows, profileKey, "impulsivity", locale, scores.impulsivity),
+    hyperactivity: renderIndexPhaseChart(phaseRows, profileKey, "hyperactivity", locale, scores.hyperactivity),
     combined: renderCombinedPhaseChart(phaseSeries, profileKey, locale)
   };
 }

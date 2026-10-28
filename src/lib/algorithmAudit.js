@@ -319,11 +319,11 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
     }
   }
 
-  // Yapısal bulgu: faz tablosu V1 kullanıyor
+  // Faz yolu artık V4 (grafik + faz tablosu + çeldirici); V1 yalnızca referans karşılaştırma
   add(
-    "PHASE_PATH_USES_V1",
-    "fail",
-    "PDF faz / çeldirici skorları scoresForPhaseBucket → computeDetailedMetrics (V1) ile üretiliyor; genel rapor skorları V4. Aynı formül değil."
+    "PHASE_PATH_USES_V4",
+    "info",
+    "PDF faz / grafik / çeldirici skorları V4 motorundan (genel skorlarla aynı formül; dilim ham verisi)."
   );
 
   const buckets = buildReportPhaseBuckets(profile, locale);
@@ -342,12 +342,11 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
     const tMismatch = !scoresClose(v1.timing.T, v4.timing.T);
     if (tMismatch) {
       add(
-        "PHASE_T_V1_VS_V4",
-        "fail",
-        `${bucket.label}: faz T(V1)=${v1.timing.T ?? "—"} ≠ T(V4 dilim)=${v4.timing.T ?? "—"} (genel T ile aynı V4 formülü dilime uygulanırsa).`
+        "PHASE_T_V1_VS_V4_REF",
+        "info",
+        `${bucket.label}: referans V1 T=${v1.timing.T ?? "—"} · rapor V4 T=${v4.timing.T ?? "—"} (rapor V4 kullanır).`
       );
     }
-    // Genel T ≠ faz T ortalaması kontrolü (bilinçli; uyarı)
     return {
       label: bucket.label,
       kind: bucket.kind,
@@ -356,7 +355,7 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
       v1,
       v4,
       tMismatch,
-      sameFilterAsOverall: true // aynı collectValidOnTimeRts + IQR, dilim logları üzerinde
+      sameFilterAsOverall: true
     };
   });
 

@@ -280,7 +280,7 @@ export function AlgorithmAuditPanel({ sessions = [], dateLocale = "tr-TR", local
     <Card>
       <CardHeader
         title="Algoritma Doğrulama (V4)"
-        description="Salt okunur denetim. Skor ağırlıkları ve kullanıcı raporları değiştirilmez. Genel T tüm oturum ham verisinden; faz T ayrıca V1 (PDF yolu) ve V4 (aynı formül dilimde) olarak gösterilir."
+        description="Salt okunur denetim. Genel ve faz skorları V4 motorundan; V1 yalnızca referans karşılaştırma. Genel T tüm oturum ham verisinden hesaplanır."
       />
       <Stack gap={12} wrap>
         <label className="fp-field" style={{ minWidth: 140 }}>
@@ -312,9 +312,9 @@ export function AlgorithmAuditPanel({ sessions = [], dateLocale = "tr-TR", local
           {msg}
         </Alert>
       ) : null}
-      <Alert variant="warning" style={{ marginTop: 12 }}>
-        Beklenen yapısal FAIL: PDF faz/çeldirici skorları hâlâ V1 motorundan; genel skorlar V4. Bu bilinçli bulgudur —
-        düzeltme ayrı karar.
+      <Alert variant="info" style={{ marginTop: 12 }}>
+        Grafik ve faz skorları V4 ile hizalandı. FAIL artık kayıtlı metrik sapması veya çeldirici yorum tutarsızlığı için
+        beklenir.
       </Alert>
       {rows.map((row) => (
         <SessionAuditCard key={row.sessionId || row.name} row={row} dateLocale={dateLocale} />

@@ -255,12 +255,13 @@ export function getAllPhaseChartScores(logs, profile) {
 }
 
 export function getReportPhaseChartScores(logs, profile, age = null, pressTimeline = [], locale = "tr") {
+  // PDF ana skorları V4 — faz grafikleri de aynı motoru kullanmalı (V1 ile T sapması oluşmasın)
   return buildReportPhaseBuckets(profile, locale)
     .map((bucket) => {
       const list = logsForBucket(logs, bucket);
       if (!list.length) return null;
       const tl = timelineForBucket(pressTimeline, bucket);
-      const m = computeDetailedMetrics(list, profile.lateResponseMs, { pressTimeline: tl, age });
+      const m = computeDetailedMetricsV4(list, profile.lateResponseMs, { pressTimeline: tl, age, locale }, age);
       const sc = getScores(m);
       return {
         label: bucket.label,
@@ -465,7 +466,7 @@ export function scoresForPhaseBucket(logs, profile, bucket, age = null, pressTim
   if (!list.length) return null;
   const late = profile.lateResponseMs;
   const tl = timelineForBucket(pressTimeline, bucket);
-  return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }));
+  return getScores(computeDetailedMetricsV4(list, late, { pressTimeline: tl, age, locale }, age));
 }
 
 export function getBehaviorRates(behaviors) {
@@ -642,7 +643,7 @@ export function getSectionSummaries(logs, profile, age = null, pressTimeline = [
       };
     }
     const tl = timelineForBucket(pressTimeline, bucket);
-    const m = computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale });
+    const m = computeDetailedMetricsV4(list, late, { pressTimeline: tl, age, locale }, age);
     const sc = getScores(m);
     const behaviors = countTrialBehaviors(list, late);
     const rates = getBehaviorRates(behaviors);
@@ -678,7 +679,7 @@ export function getChartPhaseScores(logs, profile) {
     if (!slice.length) {
       return { label, attention: null, timing: null, impulsivity: null, hyperactivity: null };
     }
-    const m = computeDetailedMetrics(slice, profile.lateResponseMs);
+    const m = computeDetailedMetricsV4(slice, profile.lateResponseMs, null, null);
     const sc = getScores(m);
     return {
       label,
@@ -706,7 +707,7 @@ function sustainabilityCell(logs, profile, age, pressTimeline, key, locale = "tr
     const list = logsForBucket(logs, bucket);
     if (!list.length) return null;
     const tl = timelineForBucket(pressTimeline, bucket);
-    return getScores(computeDetailedMetrics(list, late, { pressTimeline: tl, age, locale }))[key];
+    return getScores(computeDetailedMetricsV4(list, late, { pressTimeline: tl, age, locale }, age))[key];
   };
   const first = buckets.slice(0, 2).map(idxOf).filter((v) => v != null);
   const last = buckets.slice(-2).map(idxOf).filter((v) => v != null);
