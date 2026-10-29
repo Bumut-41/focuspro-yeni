@@ -694,52 +694,8 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
     add("STORED_VS_V4_OK", "pass", `Kayıtlı A/T/I/H/G ile V4 yeniden hesap ≤${SCORE_TOL} toleransta.`, "stored_scores");
   }
 
-  // Puan hesabı: ham veriden bağımsız A/T/I/H/G ↔ PDF
+  // Puan hesabı PASS/NOT VERIFIED → PDF araştırma eki (denetim ekranında yok)
   const independentFull = independentScoresFromRaw(logs, lateMs, age, tl);
-  let scoreCalcMismatch = 0;
-  for (const [label, indKey, pdfKey] of [
-    ["A", "A", "attention"],
-    ["T", "T", "timing"],
-    ["I", "I", "impulsivity"],
-    ["H", "H", "hyperactivity"],
-    ["Genel", "overall", "overall"]
-  ]) {
-    const indVal = independentFull.scores[indKey];
-    const pdfVal = pdfScores[pdfKey];
-    if (indVal == null || pdfVal == null) {
-      add(
-        "SCORE_CALC_MISSING",
-        "unverified",
-        `Puan hesabı ${label}: bağımsız=${indVal ?? "—"}, PDF=${pdfVal ?? "—"} — karşılaştırılamadı.`,
-        "score_calc"
-      );
-      continue;
-    }
-    if (!scoresClose(indVal, pdfVal)) {
-      scoreCalcMismatch += 1;
-      add(
-        "SCORE_CALC_MISMATCH",
-        "fail",
-        `Puan hesabı ${label}: ham bağımsız=${indVal} ≠ PDF=${pdfVal} (Δ=${scoreDiff(indVal, pdfVal)}).`,
-        "score_calc"
-      );
-    }
-  }
-  if (!scoreCalcMismatch && !checks.some((c) => c.group === "score_calc" && c.severity === "unverified")) {
-    add(
-      "SCORE_CALC_OK",
-      "pass",
-      `Ham bağımsız A/T/I/H/G = ${independentFull.scores.A}/${independentFull.scores.T ?? "—"}/${independentFull.scores.I}/${independentFull.scores.H}/${independentFull.scores.overall ?? "—"} · PDF ile ≤${SCORE_TOL} toleransta.`,
-      "score_calc"
-    );
-  }
-
-  add(
-    "PHASE_PATH_USES_V4",
-    "info",
-    "PDF faz / grafik / çeldirici skorları V4 motorundan (genel skorlarla aynı formül; dilim ham verisi).",
-    "score_calc"
-  );
 
   const buckets = buildReportPhaseBuckets(profile, locale);
   const phaseLedgers = [];
@@ -758,7 +714,7 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
         "PHASE_T_V1_VS_V4_REF",
         "info",
         `${bucket.label}: referans V1 T=${v1.timing.T ?? "—"} · rapor V4 T=${v4.timing.T ?? "—"} (rapor V4 kullanır).`,
-        "score_calc"
+        "general"
       );
     }
     return {
@@ -819,7 +775,7 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
       "OVERALL_T_NOT_PHASE_AVG",
       "info",
       `Genel T(V4)=${overallV4.timing.T}; faz T(V4) ortalaması=${round(avg, 1)}. Genel T faz ortalaması değildir.`,
-      "score_calc"
+      "general"
     );
   }
 
@@ -900,7 +856,6 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
     "stored_scores",
     "rt_filter",
     "phase_counts",
-    "score_calc",
     "distractor_comments",
     "aih_independent"
   ];
@@ -914,9 +869,8 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
           stored_scores: "PDF ↔ kayıtlı skor",
           rt_filter: "RT filtre tutarlılığı",
           phase_counts: "Faz / geç sayımları",
-          score_calc: "Puan hesabı",
           distractor_comments: "Çeldirici yorumları",
-          aih_independent: "A/I/H bağımsız"
+          aih_independent: "A/I/H sınıflandırma"
         }[id] || id,
       ...st,
       checks: gChecks

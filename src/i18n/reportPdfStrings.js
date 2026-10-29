@@ -44,6 +44,15 @@ export const reportPdfStrings = {
     distractorAltColRaw: "Hedef dışı / FA / idle / multi · A/T/I/H",
     distractorAltFootnote:
       "Eşik: ≤3 etki yok, ≤12 hafif, ≤22 orta, üstü belirgin. Eski mantık zayıf endeksi mild bandında orta’ya yükseltebilir.",
+    scoreCalcTitle: "Araştırma notu — puan hesabı doğrulama",
+    scoreCalcIntro:
+      "Ham veriden bağımsız A/T/I/H/G ile rapordaki skorların karşılaştırması. Rapor puanlarını değiştirmez.",
+    scoreCalcOverall: "Özet",
+    scoreCalcColInd: "Ham bağımsız",
+    scoreCalcColPdf: "PDF / rapor",
+    scoreCalcColStatus: "Sonuç",
+    scoreCalcFootnote:
+      "PASS: |Δ|≤1. NOT VERIFIED: skor üretilemedi. FAIL: sapma >1. Bu blok yalnızca teknik ek.",
     distractorGeneral: "Genel Sonuç",
     sustainability: "Sürdürülebilir Dikkat Analizi",
     startPerf: "Başlangıç Performansı",
@@ -470,6 +479,14 @@ export const reportPdfStrings = {
     distractorAltColRaw: "Non-targets / FA / idle / multi · A/T/I/H",
     distractorAltFootnote:
       "Thresholds: ≤3 none, ≤12 mild, ≤22 moderate, else marked. Legacy may escalate mild drop to moderate when an index is weak.",
+    scoreCalcTitle: "Research note — score calculation check",
+    scoreCalcIntro:
+      "Independent A/T/I/H/G from raw events vs report scores. Does not change reported scores.",
+    scoreCalcOverall: "Summary",
+    scoreCalcColInd: "Independent (raw)",
+    scoreCalcColPdf: "PDF / report",
+    scoreCalcColStatus: "Result",
+    scoreCalcFootnote: "PASS: |Δ|≤1. NOT VERIFIED: score unavailable. FAIL: drift >1. Technical appendix only.",
     distractorGeneral: "Overall result",
     sustainability: "Sustained Attention Analysis",
     startPerf: "Initial performance",

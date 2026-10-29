@@ -41,6 +41,14 @@ export const reportPdfIt = {
   distractorAltColRaw: "Non-target / FA / idle / multi · A/T/I/H",
   distractorAltFootnote:
     "Soglie: ≤3 nessuno, ≤12 lieve, ≤22 moderato, altrimenti marcato. Il legacy può alzare un calo lieve a moderato se un indice è debole.",
+  scoreCalcTitle: "Nota di ricerca — verifica calcolo punteggi",
+  scoreCalcIntro:
+    "Confronto A/T/I/H/G indipendenti dai dati grezzi con i punteggi del report. Non modifica i punteggi.",
+  scoreCalcOverall: "Riepilogo",
+  scoreCalcColInd: "Indipendente",
+  scoreCalcColPdf: "PDF / report",
+  scoreCalcColStatus: "Esito",
+  scoreCalcFootnote: "PASS: |Δ|≤1. NOT VERIFIED: punteggio assente. FAIL: scostamento >1. Solo appendice tecnica.",
   distractorGeneral: "Risultato complessivo",
   sustainability: "Analisi dell'attenzione sostenuta",
   startPerf: "Prestazione iniziale",

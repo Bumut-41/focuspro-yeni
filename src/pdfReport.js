@@ -29,6 +29,7 @@ import {
 } from "./report/reportClinical.js";
 import { describeRtFiltering } from "./metricsV2.js";
 import { compareTimingIqrEffect } from "./metricsV3.js";
+import { independentScoresFromRaw } from "./lib/algorithmAudit.js";
 import { normLevelTextFromZ } from "./reportNorms.js";
 import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { buildReportChartImages } from "./reportCharts.js";
@@ -606,6 +607,35 @@ export function buildDocDefinition({
   const rtFilter = describeRtFiltering(logs, profile.lateResponseMs);
   const rtAppendix = getReportPdfStrings(locale).technical?.rtFilterAppendix;
   const iqrCompare = isV4 ? compareTimingIqrEffect(logs, profile.lateResponseMs, age) : null;
+  const scoreCalcCompare = isV4
+    ? (() => {
+        const ind = independentScoresFromRaw(logs, profile.lateResponseMs, age, pressTimeline);
+        const rows = [
+          ["A", ind.scores.A, scores.attention],
+          ["T", ind.scores.T, scores.timing],
+          ["I", ind.scores.I, scores.impulsivity],
+          ["H", ind.scores.H, scores.hyperactivity],
+          ["G", ind.scores.overall, scores.overall]
+        ].map(([label, independent, pdfScore]) => {
+          let status = "PASS";
+          let delta = null;
+          if (independent == null || pdfScore == null) {
+            status = "NOT VERIFIED";
+          } else {
+            delta = Math.round(Number(independent)) - Math.round(Number(pdfScore));
+            if (Math.abs(delta) > 1) status = "FAIL";
+          }
+          return { label, independent, pdfScore, delta, status };
+        });
+        const fail = rows.some((r) => r.status === "FAIL");
+        const unver = rows.some((r) => r.status === "NOT VERIFIED");
+        return {
+          rows,
+          overallStatus: fail ? "FAIL" : unver ? "NOT VERIFIED" : "PASS",
+          independent: ind
+        };
+      })()
+    : null;
 
   // Grafikler: zorunlu pageBreak yok (boş sayfa üretmesin); unbreakable başlık+grafiği bir arada tutar
   const chartBlocks = [];
@@ -1196,6 +1226,105 @@ export function buildDocDefinition({
               text:
                 pdf.distractorAltFootnote ||
                 "Eşik: ≤3 etki yok, ≤12 hafif, ≤22 orta, üstü belirgin. Eski mantık zayıf endeksi mild bandında orta’ya yükseltebilir.",
+              fontSize: 7,
+              color: SUB,
+              margin: [0, 0, 0, 12]
+            }
+          ]
+        : []),
+
+      ...(isV4 && scoreCalcCompare
+        ? [
+            sectionTitle(pdf.scoreCalcTitle || "Araştırma notu — puan hesabı doğrulama", false),
+            {
+              text:
+                pdf.scoreCalcIntro ||
+                "Ham veriden bağımsız A/T/I/H/G ile rapordaki skorların karşılaştırması. Rapor puanlarını değiştirmez.",
+              fontSize: 8,
+              color: SUB,
+              margin: [0, 0, 0, 8]
+            },
+            {
+              text: `${pdf.scoreCalcOverall || "Özet"}: ${scoreCalcCompare.overallStatus}`,
+              fontSize: 9,
+              bold: true,
+              color:
+                scoreCalcCompare.overallStatus === "PASS"
+                  ? "#15803d"
+                  : scoreCalcCompare.overallStatus === "FAIL"
+                    ? "#dc2626"
+                    : "#b45309",
+              margin: [0, 0, 0, 6]
+            },
+            {
+              unbreakable: true,
+              table: {
+                headerRows: 1,
+                widths: [40, 80, 80, 50, 80],
+                body: [
+                  [
+                    { text: "", bold: true, color: "#fff", fillColor: TABLE_HEAD, fontSize: 8 },
+                    {
+                      text: pdf.scoreCalcColInd || "Ham bağımsız",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8,
+                      alignment: "center"
+                    },
+                    {
+                      text: pdf.scoreCalcColPdf || "PDF / rapor",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8,
+                      alignment: "center"
+                    },
+                    {
+                      text: "Δ",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8,
+                      alignment: "center"
+                    },
+                    {
+                      text: pdf.scoreCalcColStatus || "Sonuç",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8,
+                      alignment: "center"
+                    }
+                  ],
+                  ...scoreCalcCompare.rows.map((r) => [
+                    { text: r.label, fontSize: 8, bold: true },
+                    {
+                      text: r.independent == null ? "—" : String(r.independent),
+                      fontSize: 8,
+                      alignment: "center"
+                    },
+                    {
+                      text: r.pdfScore == null ? "—" : String(r.pdfScore),
+                      fontSize: 8,
+                      alignment: "center"
+                    },
+                    {
+                      text: r.delta == null ? "—" : (r.delta > 0 ? "+" : "") + r.delta,
+                      fontSize: 8,
+                      alignment: "center"
+                    },
+                    { text: r.status, fontSize: 8, alignment: "center", bold: true }
+                  ])
+                ]
+              },
+              layout: tableLayout(),
+              margin: [0, 0, 0, 6]
+            },
+            {
+              text:
+                pdf.scoreCalcFootnote ||
+                "PASS: |Δ|≤1. NOT VERIFIED: skor üretilemedi. FAIL: sapma >1. Bu blok yalnızca teknik ek.",
               fontSize: 7,
               color: SUB,
               margin: [0, 0, 0, 12]

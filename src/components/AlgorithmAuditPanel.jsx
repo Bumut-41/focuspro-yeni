@@ -344,21 +344,9 @@ function SessionAuditCard({ row, dateLocale }) {
               </tbody>
             </table>
           </div>
-          <p style={{ fontSize: "0.8rem", marginTop: 8 }}>
-            Bağımsız A/T/I/H/G: {cell(row.classification?.independent?.scores?.A)} /{" "}
-            {cell(row.classification?.independent?.scores?.T)} / {cell(row.classification?.independent?.scores?.I)} /{" "}
-            {cell(row.classification?.independent?.scores?.H)} / {cell(row.classification?.independent?.scores?.overall)}
-            {" · PDF: "}
-            {cell(row.classification?.pdfScores?.A)} / {cell(row.classification?.pdfScores?.T)} /{" "}
-            {cell(row.classification?.pdfScores?.I)} / {cell(row.classification?.pdfScores?.H)} /{" "}
-            {cell(row.classification?.pdfScores?.overall)}
-          </p>
-          <p className="fp-hint">
-            {row.classification?.independent?.formulas?.A}
-            {" · "}
-            {row.classification?.independent?.formulas?.I}
-            {" · "}
-            {row.classification?.independent?.formulas?.H}
+          <p className="fp-hint" style={{ marginTop: 8 }}>
+            A/T/I/H/G puan hesabı karşılaştırması PDF’in en altında (araştırma notu). Burada yalnızca sınıflandırma
+            sayımları.
           </p>
           <p className="fp-hint">{row.classification?.independent?.timelineNote}</p>
 
@@ -423,7 +411,7 @@ export function AlgorithmAuditPanel({ sessions = [], dateLocale = "tr-TR", local
     <Card>
       <CardHeader
         title="Algoritma Doğrulama (V4)"
-        description="Salt okunur. V4 ağırlıkları değişmez. RT event farkları, geç % paydası, çeldirici Δ, ayrı kontrol sonuçları ve bağımsız A/I/H burada."
+        description="Salt okunur. V4 ağırlıkları değişmez. Puan hesabı PASS/NOT VERIFIED PDF’in en altındaki araştırma notunda; burada RT, çeldirici Δ ve A/I/H sınıflandırma var."
       />
       <Stack gap={12} wrap>
         <label className="fp-field" style={{ minWidth: 140 }}>
