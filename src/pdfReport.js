@@ -28,6 +28,7 @@ import {
   computeTestValidity
 } from "./report/reportClinical.js";
 import { describeRtFiltering } from "./metricsV2.js";
+import { compareTimingIqrEffect } from "./metricsV3.js";
 import { normLevelTextFromZ } from "./reportNorms.js";
 import { getPdfMake } from "./lib/pdfMakeLoader.js";
 import { buildReportChartImages } from "./reportCharts.js";
@@ -604,6 +605,7 @@ export function buildDocDefinition({
   const matrix = getDistractorSummaryMatrix(logs, profile, age, pressTimeline, locale);
   const rtFilter = describeRtFiltering(logs, profile.lateResponseMs);
   const rtAppendix = getReportPdfStrings(locale).technical?.rtFilterAppendix;
+  const iqrCompare = isV4 ? compareTimingIqrEffect(logs, profile.lateResponseMs, age) : null;
 
   // Grafikler: zorunlu pageBreak yok (boş sayfa üretmesin); unbreakable başlık+grafiği bir arada tutar
   const chartBlocks = [];
@@ -1001,6 +1003,118 @@ export function buildDocDefinition({
       normAndPhaseBlock(sections, scores, profileKey, locale, scoringVersion),
 
       ...clinicalFlagsSection(clinicalFlags, pdf),
+
+      ...(isV4 && iqrCompare
+        ? [
+            sectionTitle(pdf.iqrResearchTitle, false),
+            {
+              text: pdf.iqrResearchIntro,
+              fontSize: 8,
+              color: SUB,
+              margin: [0, 0, 0, 8]
+            },
+            {
+              unbreakable: true,
+              table: {
+                headerRows: 1,
+                widths: ["*", 110, 110],
+                body: [
+                  [
+                    { text: "", bold: true, color: "#fff", fillColor: TABLE_HEAD },
+                    {
+                      text: pdf.iqrColV4,
+                      bold: true,
+                      color: "#fff",
+                      alignment: "center",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8
+                    },
+                    {
+                      text: pdf.iqrColAlt,
+                      bold: true,
+                      color: "#fff",
+                      alignment: "center",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8
+                    }
+                  ],
+                  ...[
+                    [pdf.iqrRowRawN, iqrCompare.rawOnTimeN, iqrCompare.rawOnTimeN],
+                    [
+                      pdf.iqrRowIncluded,
+                      iqrCompare.withIqr.rtN,
+                      iqrCompare.withoutIqr.rtN
+                    ],
+                    [
+                      pdf.iqrRowOutliers,
+                      iqrCompare.withIqr.outliersRemoved ?? 0,
+                      0
+                    ],
+                    [
+                      pdf.iqrRowMedian,
+                      iqrCompare.withIqr.medianRt ?? "—",
+                      iqrCompare.withoutIqr.medianRt ?? "—"
+                    ],
+                    [
+                      pdf.iqrRowMean,
+                      iqrCompare.withIqr.meanRt ?? "—",
+                      iqrCompare.withoutIqr.meanRt ?? "—"
+                    ],
+                    [
+                      pdf.iqrRowSd,
+                      iqrCompare.withIqr.rtStd ?? "—",
+                      iqrCompare.withoutIqr.rtStd ?? "—"
+                    ],
+                    [
+                      pdf.iqrRowCv,
+                      iqrCompare.withIqr.cv != null ? Number(iqrCompare.withIqr.cv).toFixed(3) : "—",
+                      iqrCompare.withoutIqr.cv != null
+                        ? Number(iqrCompare.withoutIqr.cv).toFixed(3)
+                        : "—"
+                    ],
+                    [
+                      pdf.iqrRowStab,
+                      iqrCompare.withIqr.rtStability ?? "—",
+                      iqrCompare.withoutIqr.rtStability ?? "—"
+                    ],
+                    [
+                      pdf.iqrRowT,
+                      iqrCompare.withIqr.unavailable
+                        ? `— (${iqrCompare.withIqr.reason || ""})`
+                        : iqrCompare.withIqr.score,
+                      iqrCompare.withoutIqr.unavailable
+                        ? `— (${iqrCompare.withoutIqr.reason || ""})`
+                        : iqrCompare.withoutIqr.score
+                    ]
+                  ].map((row) => [
+                    { text: row[0], fontSize: 8 },
+                    { text: String(row[1]), alignment: "center", fontSize: 8 },
+                    { text: String(row[2]), alignment: "center", fontSize: 8 }
+                  ])
+                ]
+              },
+              layout: tableLayout(),
+              margin: [0, 0, 0, 6]
+            },
+            {
+              text: `${pdf.iqrDeltaNote}: ${
+                iqrCompare.deltaT == null
+                  ? "—"
+                  : (iqrCompare.deltaT > 0 ? "+" : "") + iqrCompare.deltaT
+              }`,
+              fontSize: 8,
+              bold: true,
+              color: HEADER,
+              margin: [0, 0, 0, 4]
+            },
+            {
+              text: pdf.iqrFootnote,
+              fontSize: 7,
+              color: SUB,
+              margin: [0, 0, 0, 12]
+            }
+          ]
+        : []),
 
       {
         table: {

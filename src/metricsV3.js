@@ -72,8 +72,10 @@ export function ageBandLabelTr(age) {
 
 /**
  * V3 T alt bileşenleri — hız puanı üretilmez.
+ * @param {{ applyIqr?: boolean }} [opts] applyIqr=false → yalnızca teknik geçersiz RT dışlanmış örneği kullan (araştırma).
  */
-export function computeTimingComponentsV3(behaviors, onTimeRts, age = null) {
+export function computeTimingComponentsV3(behaviors, onTimeRts, age = null, opts = {}) {
+  const applyIqr = opts.applyIqr !== false;
   const empty = {
     score: null,
     unavailable: true,
@@ -89,6 +91,7 @@ export function computeTimingComponentsV3(behaviors, onTimeRts, age = null) {
     rtN: 0,
     rtNRaw: 0,
     outliersRemoved: 0,
+    iqrApplied: applyIqr,
     ageBand: ageBandKey(age),
     ageBandLabel: ageBandLabelTr(age),
     ageReferenceRtMs: referenceRtMs(age),
@@ -99,8 +102,8 @@ export function computeTimingComponentsV3(behaviors, onTimeRts, age = null) {
 
   const lateResponse = clamp(100 * (1 - safeDiv(behaviors.late, behaviors.targets)));
   const raw = Array.isArray(onTimeRts) ? onTimeRts : [];
-  const cleaned = removeRtOutliersIqr(raw);
-  const outliersRemoved = raw.length - cleaned.length;
+  const cleaned = applyIqr ? removeRtOutliersIqr(raw) : [...raw];
+  const outliersRemoved = applyIqr ? raw.length - cleaned.length : 0;
   const ageMeta = {
     ageBand: ageBandKey(age),
     ageBandLabel: ageBandLabelTr(age),
@@ -119,7 +122,8 @@ export function computeTimingComponentsV3(behaviors, onTimeRts, age = null) {
       lateResponse: Math.round(lateResponse),
       rtN: cleaned.length,
       rtNRaw: raw.length,
-      outliersRemoved
+      outliersRemoved,
+      iqrApplied: applyIqr
     };
   }
 
@@ -145,7 +149,8 @@ export function computeTimingComponentsV3(behaviors, onTimeRts, age = null) {
       cv: null,
       rtN: cleaned.length,
       rtNRaw: raw.length,
-      outliersRemoved
+      outliersRemoved,
+      iqrApplied: applyIqr
     };
   }
 
@@ -166,7 +171,30 @@ export function computeTimingComponentsV3(behaviors, onTimeRts, age = null) {
     cv: Number(cv.toFixed(4)),
     rtN: cleaned.length,
     rtNRaw: raw.length,
-    outliersRemoved
+    outliersRemoved,
+    iqrApplied: applyIqr
+  };
+}
+
+/** Araştırma: V4 T (IQR’li) ile IQR’siz alternatif T yan yana. Skor motorunu değiştirmez. */
+export function compareTimingIqrEffect(logs, lateMs, age = null) {
+  const behaviors = countTrialBehaviors(logs, lateMs);
+  const { onTimeRts } = collectValidOnTimeRts(logs, lateMs);
+  const withIqr = computeTimingComponentsV3(behaviors, onTimeRts, age, { applyIqr: true });
+  const withoutIqr = computeTimingComponentsV3(behaviors, onTimeRts, age, { applyIqr: false });
+  return {
+    rawOnTimeN: onTimeRts.length,
+    withIqr,
+    withoutIqr,
+    deltaT:
+      withIqr.score != null && withoutIqr.score != null ? withIqr.score - withoutIqr.score : null,
+    deltaMedianRt:
+      withIqr.medianRt != null && withoutIqr.medianRt != null
+        ? withIqr.medianRt - withoutIqr.medianRt
+        : null,
+    deltaSd:
+      withIqr.rtStd != null && withoutIqr.rtStd != null ? withIqr.rtStd - withoutIqr.rtStd : null,
+    outliersRemoved: withIqr.outliersRemoved ?? 0
   };
 }
 
