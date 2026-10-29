@@ -324,7 +324,7 @@ export const reportPdfIt = {
     ],
     indexDefinitions: [
       ["A — Attenzione", "Capacità di notare gli stimoli target e rispondere senza ometterli."],
-      ["T — Tempismo", "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante."],
+      ["T — Tempismo", "Coerenza dei tempi di reazione e risposta in tempo (variabilità RT + ritardi; la velocità media non è punteggiata direttamente)."],
       ["I — Impulsività", "Capacità di inibire le prime risposte non necessarie agli stimoli non target."],
       ["H — Controllo della risposta motoria", "Capacità di controllare pressioni inutili a schermo vuoto e pressioni ripetute durante lo stesso stimolo."],
       ["Punteggio complessivo", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
