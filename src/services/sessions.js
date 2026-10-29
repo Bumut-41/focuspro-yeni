@@ -80,6 +80,26 @@ export async function fetchSessionDetail(id) {
   return data;
 }
 
+/** Admin / sahip — kayıtlı metrikleri aktif V4 ile günceller. */
+export async function updateSessionMetrics(sessionId, metrics) {
+  const { error } = await supabase
+    .from("test_sessions")
+    .update({ metrics })
+    .eq("id", sessionId);
+  if (error) throw error;
+}
+
+/** Yenileme için id listesi (logs yok — hafif). */
+export async function fetchAllSessionIds({ limit = 500 } = {}) {
+  const { data, error } = await supabase
+    .from("test_sessions")
+    .select("id, participant_name, created_at, pdf_path")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
 /** Yalnızca admin — basış zaman çizelgesi */
 export async function fetchAdminPressTimeline(sessionId) {
   const { data, error } = await supabase

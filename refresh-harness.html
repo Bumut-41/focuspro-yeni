@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FocusProLab report refresh harness</title>
+  </head>
+  <body>
+    <p>PDF yenileme işçisi (yalnızca yerel script).</p>
+    <script type="module">
+      import { createPdfBlob } from "/src/pdfReport.js";
+      import { createAdminTimelinePdfBlob } from "/src/pdfAdminTimeline.js";
+      window.__createPdfBlob = createPdfBlob;
+      window.__createAdminPdf = createAdminTimelinePdfBlob;
+      window.__READY = true;
+    </script>
+  </body>
+</html>

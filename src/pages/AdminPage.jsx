@@ -7,8 +7,10 @@ import { AdminPressTimeline } from "../components/AdminPressTimeline.jsx";
 import { ScoringComparisonPanel } from "../components/ScoringComparisonPanel.jsx";
 import {
   downloadParticipantReportFromSession,
-  downloadPressReportFromSession
+  downloadPressReportFromSession,
+  sessionToParticipantReportArgs
 } from "../lib/adminSessionPdf.js";
+import { getProfile } from "../profiles.js";
 import { includesText, inDateRange } from "../lib/listFilters.js";
 import { downloadPdfFromUrl } from "../lib/triggerBlobDownload.js";
 import {
@@ -41,7 +43,7 @@ import {
   fetchPromoCodes,
   updatePromoCode
 } from "../services/promoCodes.js";
-import { formatReportEmailStatus, sendSessionReportEmail } from "../services/emailReport.js";
+import { deliverSessionReport, formatReportEmailStatus, sendSessionReportEmail } from "../services/emailReport.js";
 import {
   downloadContactCsv,
   downloadCorporateCsv,
@@ -51,6 +53,7 @@ import {
 } from "../services/adminExport.js";
 import { AdminInvitesPanel } from "../components/AdminInvitesPanel.jsx";
 import { AlgorithmAuditPanel } from "../components/AlgorithmAuditPanel.jsx";
+import { ReportRefreshPanel } from "../components/ReportRefreshPanel.jsx";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
 import {
@@ -292,12 +295,26 @@ export default function AdminPage() {
   }
 
   async function openOrDownloadTestReport(sessionRow) {
-    // Kullanıcıya / admin indirmeye her zaman güncel V4 (eski storage V1 sunulmaz)
+    // Güncel V4 üret + Storage’a yaz (e-posta / kayıtlı dosya eski kalmasın)
     const busyId = `${sessionRow.id}-test`;
     setPdfBusy(busyId);
     setMsg("");
     try {
       const { sess, tl } = await loadSessionBundle(sessionRow.id);
+      if (sess.owner_id) {
+        const args = sessionToParticipantReportArgs(sess, tl);
+        await deliverSessionReport({
+          userId: sess.owner_id,
+          sessionId: sess.id,
+          participant: args.participant,
+          profile: args.profile || getProfile(sess.profile_key ?? "adult"),
+          logs: args.logs,
+          target: args.target,
+          pressTimeline: args.pressTimeline,
+          locale,
+          sendEmail: false
+        });
+      }
       await downloadParticipantReportFromSession(sess, tl, locale);
     } catch (e) {
       setMsg(e.message || t("admin.testPdfFailed"));
@@ -1375,6 +1392,7 @@ export default function AdminPage() {
       {section === "/admin/davetler" && <AdminInvitesPanel />}
 
       {section === "/admin/algoritma-dogrulama" && (
+        <ReportRefreshPanel locale={locale} />
         <AlgorithmAuditPanel sessions={sessions} dateLocale={dateLocale} locale={locale} />
       )}
 
