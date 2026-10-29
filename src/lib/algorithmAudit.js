@@ -248,14 +248,32 @@ export function compareOverallVsPhaseRt(overallLedger, phaseLedgers) {
     }
   }
 
+  const expectedIqr = [];
+  const unexpected = [];
+  for (const m of mismatches) {
+    const iqrFlip =
+      (m.overallReason === "included" && m.phaseReason === "iqr_outlier") ||
+      (m.overallReason === "iqr_outlier" && m.phaseReason === "included");
+    if (iqrFlip) expectedIqr.push(m);
+    else unexpected.push(m);
+  }
+
+  // Event bazında bağımsız karşılaştırma yapıldı mı?
+  const verified =
+    overallLedger?.events?.length > 0 &&
+    phaseLedgers.some((p) => (p.ledger?.events?.length || 0) > 0);
+
   return {
     overallIncludedN: overallIncluded,
     phaseIncludedSum,
     countDelta: overallIncluded - phaseIncludedSum,
     mismatchCount: mismatches.length,
     mismatches: mismatches.slice(0, 40),
+    expectedIqrMismatches: expectedIqr.slice(0, 40),
+    unexpectedMismatches: unexpected.slice(0, 40),
     onlyInOverall: onlyOverall.slice(0, 20),
     sameFilterLogic: true,
+    verified,
     note:
       "Aynı filtre kuralları (zamanında + IQR) her dilimde kendi örneğine uygulanır; bu yüzden genel dahil N ≠ faz dahil toplamı olabilir."
   };
@@ -732,7 +750,15 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
   });
 
   const rtCompare = compareOverallVsPhaseRt(overallLedger, phaseLedgers);
-  if (rtCompare.onlyInOverall.length) {
+  if (!rtCompare.verified) {
+    add(
+      "RT_FILTER_NOT_VERIFIED",
+      "unverified",
+      "RT event ledger üretilemedi — genel/faz filtre karşılaştırması yapılamadı.",
+      "rt_filter",
+      { rtCompare }
+    );
+  } else if (rtCompare.onlyInOverall.length) {
     add(
       "RT_ORPHAN_OUTSIDE_PHASES",
       "fail",
@@ -743,20 +769,28 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
       "rt_filter",
       { rtCompare }
     );
-  }
-  if (Math.abs(rtCompare.countDelta) > 0 || rtCompare.mismatchCount > 0) {
+  } else if ((rtCompare.unexpectedMismatches || []).length) {
     add(
-      "RT_OVERALL_VS_PHASE_COUNT",
-      "info",
-      `Genel dahil RT=${rtCompare.overallIncludedN}, faz dahil toplamı=${rtCompare.phaseIncludedSum} (Δ=${rtCompare.countDelta}). Aynı filtre; IQR her dilimde yeniden hesaplanır → event farkı ${rtCompare.mismatchCount}.`,
+      "RT_UNEXPECTED_MISMATCH",
+      "fail",
+      `Beklenmeyen genel↔faz RT farkı: ${rtCompare.unexpectedMismatches.length} olay (IQR dilim farkı dışı).`,
       "rt_filter",
       { rtCompare }
     );
-  } else if (!rtCompare.onlyInOverall.length) {
+  } else if (Math.abs(rtCompare.countDelta) > 0 || rtCompare.mismatchCount > 0) {
+    // 169/167 gibi farklar: event bazında yalnız dilim IQR flip → beklenen → PASS
     add(
       "RT_OVERALL_VS_PHASE_OK",
       "pass",
-      `Genel ve faz dahil RT toplamı eşit (${rtCompare.overallIncludedN}). Filtre kuralı aynı; IQR dilim bazlı.`,
+      `Genel dahil RT=${rtCompare.overallIncludedN}, faz toplamı=${rtCompare.phaseIncludedSum} (Δ=${rtCompare.countDelta}). Event bazında doğrulandı: ${rtCompare.expectedIqrMismatches?.length || rtCompare.mismatchCount} fark dilim IQR kaynaklı (beklenen).`,
+      "rt_filter",
+      { rtCompare }
+    );
+  } else {
+    add(
+      "RT_OVERALL_VS_PHASE_OK",
+      "pass",
+      `Genel ve faz dahil RT toplamı eşit (${rtCompare.overallIncludedN}). Event bazında filtre tutarlı.`,
       "rt_filter"
     );
   }

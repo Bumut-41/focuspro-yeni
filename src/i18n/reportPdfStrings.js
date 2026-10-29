@@ -75,7 +75,8 @@ export const reportPdfStrings = {
     chartAttention: "Dikkat (A)",
     chartAttentionDesc: "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi.",
     chartTiming: "Zamanlama (T)",
-    chartTimingDesc: "Hedef uyaranlara verilen doğru yanıtların zamanlama tutarlılığını ve geç yanıt sıklığını değerlendirir.",
+    chartTimingDesc:
+      "Tepki süresi tutarlılığı ve zamanında yanıt verme performansını değerlendirir (RT değişkenliği ve geç yanıt oranı; ortalama tepki hızı doğrudan puanlanmaz).",
     chartTimingDescV1: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
     chartImpulsivity: "Dürtüsellik (I)",
     chartImpulsivityDesc: "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi.",
@@ -231,7 +232,8 @@ export const reportPdfStrings = {
       },
       timing: {
         title: "T — ZAMANLAMA",
-        definition: "Hedef uyaranlara verilen doğru yanıtların zamanlama tutarlılığını ve geç yanıt sıklığını değerlendirir.",
+        definition:
+          "Tepki süresi tutarlılığı ve zamanında yanıt verme performansını değerlendirir. V4’te ortalama tepki hızı doğrudan puanlanmaz; skor RT değişkenliği (stabilite) ile geç yanıt oranından oluşur.",
         definitionV1: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
         c90: "Doğru yanıtlarda zamanlama tutarlılığı yüksek ve geç yanıt oranı düşüktür.",
         c80: "Zamanlama tutarlılığı genel olarak korunmuş; geç yanıtlar sınırlı düzeydedir.",
@@ -346,7 +348,7 @@ export const reportPdfStrings = {
       ],
       indexDefinitions: [
         ["A — Dikkat", "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi."],
-        ["T — Zamanlama", "Hedef uyaranlara verilen doğru yanıtların zamanlama tutarlılığını ve geç yanıt sıklığını değerlendirir."],
+        ["T — Zamanlama", "Tepki süresi tutarlılığı ve zamanında yanıt verme performansı (RT değişkenliği + geç yanıt; ortalama hız doğrudan puanlanmaz)."],
         ["I — Dürtüsellik", "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi."],
         ["H — Motor Yanıt Kontrolü", "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi."],
         ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
@@ -509,7 +511,8 @@ export const reportPdfStrings = {
     chartAttention: "Attention (A)",
     chartAttentionDesc: "Ability to notice target stimuli and respond without missing them.",
     chartTiming: "Timing (T)",
-    chartTimingDesc: "Ability to respond to targets correctly in a timely, fast, and consistent manner.",
+    chartTimingDesc:
+      "Reaction-time consistency and on-time responding (RT variability and late-response rate; mean RT speed is not scored directly).",
     chartImpulsivity: "Impulsivity (I)",
     chartImpulsivityDesc: "Ability to withhold unnecessary first responses to non-target stimuli.",
     chartHyperactivity: "Motor Response Control (H)",
@@ -654,12 +657,14 @@ export const reportPdfStrings = {
       },
       timing: {
         title: "T — TIMING",
-        definition: "Ability to respond to targets correctly in a timely, fast, and consistent manner.",
-        c90: "The participant responded to targets quickly, consistently, and at appropriate times. No marked variability in response speed was observed.",
-        c80: "Responses to targets were generally timely and consistent.",
-        c70: "Some variability in response speed was observed, though overall performance was maintained.",
-        c60: "Delays and timing inconsistencies were observed in responses to targets.",
-        cLow: "Marked irregularities and delays in response timing were observed throughout the task."
+        definition:
+          "Reaction-time consistency and on-time responding. In V4, mean RT speed is not scored directly; the score combines RT variability (stability) and late-response rate.",
+        definitionV1: "Ability to respond to targets correctly in a timely, fast, and consistent manner.",
+        c90: "On-time responses were highly consistent with a low late-response rate.",
+        c80: "Timing consistency was generally maintained; late responses were limited.",
+        c70: "Moderate RT variability and/or a mild increase in late responses was observed.",
+        c60: "Increased late responses and/or higher RT variability reduced the timing score.",
+        cLow: "Late responses and/or low timing consistency were marked."
       },
       impulsivity: {
         title: "I — IMPULSIVITY",
@@ -768,7 +773,7 @@ export const reportPdfStrings = {
       ],
       indexDefinitions: [
         ["A — Attention", "Ability to notice target stimuli and respond without missing them."],
-        ["T — Timing", "Ability to respond to targets correctly in a timely, fast, and consistent manner."],
+        ["T — Timing", "Reaction-time consistency and on-time responding (RT variability + late rate; mean speed not scored directly)."],
         ["I — Impulsivity", "Ability to withhold unnecessary first responses to non-target stimuli."],
         ["H — Motor Response Control", "Ability to control unnecessary blank-screen presses and repeated key presses during the same stimulus."],
         ["Overall score", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]

@@ -71,7 +71,8 @@ export const reportPdfIt = {
   chartAttention: "Attenzione (A)",
   chartAttentionDesc: "Capacità di notare gli stimoli target e rispondere senza ometterli.",
   chartTiming: "Tempismo (T)",
-  chartTimingDesc: "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante.",
+  chartTimingDesc:
+    "Coerenza dei tempi di reazione e capacità di rispondere in tempo (variabilità RT e ritardi; la velocità media non è punteggiata direttamente).",
   chartImpulsivity: "Impulsività (I)",
   chartImpulsivityDesc: "Capacità di inibire le prime risposte non necessarie agli stimoli non target.",
   chartHyperactivity: "Controllo della risposta motoria (H)",
@@ -211,7 +212,9 @@ export const reportPdfIt = {
     },
     timing: {
       title: "T — TEMPISMO",
-      definition: "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante.",
+      definition:
+        "Coerenza dei tempi di reazione e prestazione di risposta in tempo. In V4 la velocità media di RT non è punteggiata direttamente; il punteggio combina variabilità (stabilità) e tasso di risposte tardive.",
+      definitionV1: "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante.",
       c90: "Il partecipante ha risposto ai target in modo rapido, costante e nei tempi appropriati. Non è stata osservata una variabilità marcata nella velocità di risposta.",
       c80: "Le risposte ai target sono state in genere tempestive e costanti.",
       c70: "È stata osservata una certa variabilità nella velocità di risposta, anche se la prestazione complessiva è stata mantenuta.",
