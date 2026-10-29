@@ -235,20 +235,23 @@ function SessionAuditCard({ row, dateLocale }) {
           <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>2) Çeldirici Δ (V4 faz − temel)</h3>
           <p className="fp-hint">
             Eşikler: etki yok ≤{row.constants?.distractorDrop?.none}, hafif ≤{row.constants?.distractorDrop?.mild}, orta ≤
-            {row.constants?.distractorDrop?.moderate}. Δ = faz − temel (negatif = düşüş). Tetikleyen = maxDrop endeksi.
+            {row.constants?.distractorDrop?.moderate}. Beklenen etiket yalnız maxDrop eşiğinden; rapor etiketinden bağımsız
+            yeniden hesaplanır.
           </p>
           <div style={{ overflowX: "auto" }}>
             <table className="fp-table" style={{ fontSize: "0.78rem", width: "100%" }}>
               <thead>
                 <tr>
                   <th>Faz</th>
-                  <th>Rapor etiket</th>
+                  <th>Rapor</th>
+                  <th>Eşik beklenen</th>
                   <th>ΔA</th>
                   <th>ΔT</th>
                   <th>ΔI</th>
                   <th>ΔH</th>
                   <th>maxDrop</th>
                   <th>Tetikleyen</th>
+                  <th>Hedef dışı / FA / idle / multi</th>
                   <th>Durum</th>
                 </tr>
               </thead>
@@ -259,6 +262,7 @@ function SessionAuditCard({ row, dateLocale }) {
                     <td>
                       {it.reportLabel} ({it.reportLevel})
                     </td>
+                    <td>{it.expectedLevelKey || "—"}</td>
                     <td>{cell(it.deltasV4?.attention)}</td>
                     <td>{cell(it.deltasV4?.timing)}</td>
                     <td>{cell(it.deltasV4?.impulsivity)}</td>
@@ -271,9 +275,48 @@ function SessionAuditCard({ row, dateLocale }) {
                           ? "NOT VERIFIED"
                           : "—"}
                     </td>
+                    <td>
+                      {it.rawPhase
+                        ? `${cell(it.rawPhase.nonTargets)} / ${cell(it.rawPhase.falseAlarms)} / ${cell(it.rawPhase.idlePresses)} / ${cell(it.rawPhase.multiPresses)}`
+                        : "—"}
+                    </td>
                     <td style={{ color: it.issues?.length ? "var(--fp-danger)" : undefined }}>
                       {it.issues?.length ? it.issues.map((x) => x.code).join(", ") : "OK"}
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style={{ fontSize: "0.95rem", margin: "16px 0 6px" }}>2b) Çeldirici faz ham olay + puan</h3>
+          <div style={{ overflowX: "auto" }}>
+            <table className="fp-table" style={{ fontSize: "0.78rem", width: "100%" }}>
+              <thead>
+                <tr>
+                  <th>Faz</th>
+                  <th>Hedef dışı</th>
+                  <th>FA</th>
+                  <th>idle</th>
+                  <th>multi</th>
+                  <th>A</th>
+                  <th>T</th>
+                  <th>I</th>
+                  <th>H</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(row.distractor?.items || []).map((it) => (
+                  <tr key={`raw-${it.key || it.title}`}>
+                    <td>{it.title}</td>
+                    <td>{cell(it.rawPhase?.nonTargets)}</td>
+                    <td>{cell(it.rawPhase?.falseAlarms)}</td>
+                    <td>{cell(it.rawPhase?.idlePresses)}</td>
+                    <td>{cell(it.rawPhase?.multiPresses)}</td>
+                    <td>{cell(it.phaseV4?.attention)}</td>
+                    <td>{cell(it.phaseV4?.timing)}</td>
+                    <td>{cell(it.phaseV4?.impulsivity)}</td>
+                    <td>{cell(it.phaseV4?.hyperactivity)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -302,11 +345,13 @@ function SessionAuditCard({ row, dateLocale }) {
             </table>
           </div>
           <p style={{ fontSize: "0.8rem", marginTop: 8 }}>
-            Bağımsız A/I/H: {cell(row.classification?.independent?.scores?.A)} /{" "}
-            {cell(row.classification?.independent?.scores?.I)} / {cell(row.classification?.independent?.scores?.H)}
+            Bağımsız A/T/I/H/G: {cell(row.classification?.independent?.scores?.A)} /{" "}
+            {cell(row.classification?.independent?.scores?.T)} / {cell(row.classification?.independent?.scores?.I)} /{" "}
+            {cell(row.classification?.independent?.scores?.H)} / {cell(row.classification?.independent?.scores?.overall)}
             {" · PDF: "}
-            {cell(row.classification?.pdfScores?.A)} / {cell(row.classification?.pdfScores?.I)} /{" "}
-            {cell(row.classification?.pdfScores?.H)}
+            {cell(row.classification?.pdfScores?.A)} / {cell(row.classification?.pdfScores?.T)} /{" "}
+            {cell(row.classification?.pdfScores?.I)} / {cell(row.classification?.pdfScores?.H)} /{" "}
+            {cell(row.classification?.pdfScores?.overall)}
           </p>
           <p className="fp-hint">
             {row.classification?.independent?.formulas?.A}

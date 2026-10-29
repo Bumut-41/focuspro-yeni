@@ -3,6 +3,7 @@
  * Skor ağırlıklarını / rapor çıktısını değiştirmez; tutarsızlıkları raporlar.
  */
 import {
+  OVERALL_WEIGHTS,
   computeHyperactivityScore,
   countHyperMotorStats,
   countTrialBehaviors
@@ -16,7 +17,8 @@ import {
   V3_MIN_RT_SAMPLES,
   V3_STABILITY_K_EXPLORATORY,
   V3_T_WEIGHT_LATE,
-  V3_T_WEIGHT_STABILITY
+  V3_T_WEIGHT_STABILITY,
+  computeTimingComponentsV3
 } from "../metricsV3.js";
 import { buildDistractorAnalysisFriendly } from "../report/reportClinical.js";
 import { DISTRACTOR_DROP, distractorImpactLevel } from "../report/scoreTiers.js";
@@ -45,6 +47,13 @@ const INDEX_LABEL = {
   impulsivity: "I",
   hyperactivity: "H",
   overall: "G"
+};
+const LEVEL_TO_KEY = {
+  green: "preserved",
+  yellow: "mild",
+  orange: "moderate",
+  red: "marked",
+  gray: "noData"
 };
 
 function round(n, d = 0) {
@@ -299,6 +308,52 @@ export function independentAIHFromRaw(logs, lateMs, pressTimeline = []) {
   };
 }
 
+/** Ham veriden A/T/I/H + genel — puan hesabı kontrolü (V4 ağırlıkları; üretim yolundan ayrı). */
+export function independentScoresFromRaw(logs, lateMs, age = null, pressTimeline = []) {
+  const aih = independentAIHFromRaw(logs, lateMs, pressTimeline);
+  const behaviors = countTrialBehaviors(logs, lateMs);
+  const { onTimeRts } = collectValidOnTimeRts(logs, lateMs);
+  const timing = computeTimingComponentsV3(behaviors, onTimeRts, age, { applyIqr: true });
+  const T = timing.unavailable ? null : timing.score;
+  let overall = null;
+  if (T != null) {
+    overall = Math.round(
+      clamp01(
+        aih.scores.A * OVERALL_WEIGHTS.attention +
+          T * OVERALL_WEIGHTS.timing +
+          aih.scores.I * OVERALL_WEIGHTS.impulsivity +
+          aih.scores.H * OVERALL_WEIGHTS.hyperactivity
+      )
+    );
+  }
+  return {
+    ...aih,
+    scores: { ...aih.scores, T, overall },
+    timing,
+    formulas: {
+      ...aih.formulas,
+      T: `T = ${V3_T_WEIGHT_STABILITY}×stabilite + ${V3_T_WEIGHT_LATE}×geç (IQR’li)`,
+      overall: `A×${OVERALL_WEIGHTS.attention} + T×${OVERALL_WEIGHTS.timing} + I×${OVERALL_WEIGHTS.impulsivity} + H×${OVERALL_WEIGHTS.hyperactivity}`
+    }
+  };
+}
+
+function phaseRawBundle(logs, lateMs, pressTimeline = []) {
+  const behaviors = countTrialBehaviors(logs, lateMs);
+  const hyper = countHyperMotorStats(logs, pressTimeline);
+  return {
+    targets: behaviors.targets,
+    nonTargets: behaviors.nonTargets,
+    falseAlarms: behaviors.falseAlarms,
+    omissions: behaviors.omissions,
+    late: behaviors.late,
+    hits: behaviors.hits,
+    idlePresses: hyper.idlePresses,
+    multiPresses: hyper.multiPresses,
+    multiTrials: hyper.multiTrials
+  };
+}
+
 function triggerIndexFromDrop(baseline, phase) {
   if (!baseline || !phase) return null;
   let best = null;
@@ -318,10 +373,12 @@ function finalizeStatus(checks) {
   const failCount = checks.filter((c) => c.severity === "fail").length;
   const unverifiedCount = checks.filter((c) => c.severity === "unverified").length;
   const passCount = checks.filter((c) => c.severity === "pass").length;
+  const infoCount = checks.filter((c) => c.severity === "info").length;
+  // Hiç pass/fail/unverified yoksa (yalnızca info veya boş) → NOT VERIFIED
   let passFail = "PASS";
   if (failCount) passFail = "FAIL";
-  else if (unverifiedCount) passFail = "NOT_VERIFIED";
-  return { passFail, failCount, unverifiedCount, passCount, infoCount: checks.filter((c) => c.severity === "info").length };
+  else if (unverifiedCount || (passCount === 0 && failCount === 0)) passFail = "NOT_VERIFIED";
+  return { passFail, failCount, unverifiedCount, passCount, infoCount };
 }
 
 /** Tek dilim (genel veya faz) için RT / T denetim paketi. */
@@ -469,6 +526,10 @@ function auditDistractors(logs, profile, age, pressTimeline, locale) {
     const dropped = baselineV4 && phaseV4 ? listDroppedIndices(baselineV4, phaseV4) : [];
     const weak = phaseV4 ? listWeakIndices(phaseV4) : [];
     const triggerIndex = triggerIndexFromDrop(baselineV4, phaseV4);
+    // Eşiklerden bağımsız yeniden hesap (rapor etiketini okumakla yetinme)
+    const expectedLevelFromThresholds =
+      dropFromBaseline == null ? null : distractorImpactLevel(dropFromBaseline);
+    const rawPhase = list.length ? phaseRawBundle(list, profile.lateResponseMs, tl) : null;
 
     const issues = [];
     if (dataStatus === "unverified") {
@@ -478,6 +539,18 @@ function auditDistractors(logs, profile, age, pressTimeline, locale) {
         message: !baselineV4
           ? "Temel faz skoru yok — Δ hesaplanamadı."
           : "Çeldirici faz kovası boş — Δ hesaplanamadı."
+      });
+    }
+    if (
+      expectedLevelFromThresholds &&
+      item.level &&
+      item.level !== "gray" &&
+      expectedLevelFromThresholds !== item.level
+    ) {
+      issues.push({
+        code: "LABEL_VS_THRESHOLD",
+        severity: "fail",
+        message: `maxDrop=${round(dropFromBaseline, 1)} → eşik ${LEVEL_TO_KEY[expectedLevelFromThresholds] || expectedLevelFromThresholds}, raporda «${item.label}» (${item.level}).`
       });
     }
     if (dropFromBaseline != null && dropFromBaseline <= 0 && ["yellow", "orange", "red"].includes(item.level)) {
@@ -492,13 +565,6 @@ function auditDistractors(logs, profile, age, pressTimeline, locale) {
         code: "COMMENT_PRESERVED_WHILE_DROP",
         severity: "fail",
         message: `V4’te anlamlı düşüş var (maxDrop=${round(dropFromBaseline, 1)}) ama etiket «${item.label}».`
-      });
-    }
-    if (weak.length && item.level === "green") {
-      issues.push({
-        code: "WEAK_INDEX_HIDDEN",
-        severity: "fail",
-        message: `Zayıf endeks(ler) gizlenmiş olabilir: ${weak.map((w) => `${w.label}=${w.score}`).join(", ")}`
       });
     }
 
@@ -524,8 +590,12 @@ function auditDistractors(logs, profile, age, pressTimeline, locale) {
       triggerIndex,
       droppedIndices: dropped,
       weakIndices: weak,
+      rawPhase,
       dataStatus,
-      expectedLevelFromV4Drop: dropFromBaseline == null ? null : distractorImpactLevel(dropFromBaseline),
+      expectedLevelFromV4Drop: expectedLevelFromThresholds,
+      expectedLevelKey: expectedLevelFromThresholds
+        ? LEVEL_TO_KEY[expectedLevelFromThresholds] || expectedLevelFromThresholds
+        : null,
       issues
     };
   });
@@ -624,6 +694,46 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
     add("STORED_VS_V4_OK", "pass", `Kayıtlı A/T/I/H/G ile V4 yeniden hesap ≤${SCORE_TOL} toleransta.`, "stored_scores");
   }
 
+  // Puan hesabı: ham veriden bağımsız A/T/I/H/G ↔ PDF
+  const independentFull = independentScoresFromRaw(logs, lateMs, age, tl);
+  let scoreCalcMismatch = 0;
+  for (const [label, indKey, pdfKey] of [
+    ["A", "A", "attention"],
+    ["T", "T", "timing"],
+    ["I", "I", "impulsivity"],
+    ["H", "H", "hyperactivity"],
+    ["Genel", "overall", "overall"]
+  ]) {
+    const indVal = independentFull.scores[indKey];
+    const pdfVal = pdfScores[pdfKey];
+    if (indVal == null || pdfVal == null) {
+      add(
+        "SCORE_CALC_MISSING",
+        "unverified",
+        `Puan hesabı ${label}: bağımsız=${indVal ?? "—"}, PDF=${pdfVal ?? "—"} — karşılaştırılamadı.`,
+        "score_calc"
+      );
+      continue;
+    }
+    if (!scoresClose(indVal, pdfVal)) {
+      scoreCalcMismatch += 1;
+      add(
+        "SCORE_CALC_MISMATCH",
+        "fail",
+        `Puan hesabı ${label}: ham bağımsız=${indVal} ≠ PDF=${pdfVal} (Δ=${scoreDiff(indVal, pdfVal)}).`,
+        "score_calc"
+      );
+    }
+  }
+  if (!scoreCalcMismatch && !checks.some((c) => c.group === "score_calc" && c.severity === "unverified")) {
+    add(
+      "SCORE_CALC_OK",
+      "pass",
+      `Ham bağımsız A/T/I/H/G = ${independentFull.scores.A}/${independentFull.scores.T ?? "—"}/${independentFull.scores.I}/${independentFull.scores.H}/${independentFull.scores.overall ?? "—"} · PDF ile ≤${SCORE_TOL} toleransta.`,
+      "score_calc"
+    );
+  }
+
   add(
     "PHASE_PATH_USES_V4",
     "info",
@@ -660,7 +770,8 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
       v4,
       tMismatch,
       sameFilterAsOverall: true,
-      lateFormula: v4.late?.formula
+      lateFormula: v4.late?.formula,
+      raw: phaseRawBundle(list, lateMs, bucketTl)
     };
   });
 
@@ -732,6 +843,7 @@ export function auditSession(detail, pressTimeline = [], locale = "tr") {
   }
 
   const classification = auditClassification(logs, lateMs, tl, pdfScores);
+  classification.independent = independentFull;
   classification.pdfScores = {
     A: pdfScores.attention,
     T: pdfScores.timing,

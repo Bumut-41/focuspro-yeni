@@ -5,9 +5,9 @@ import {
   getScores,
   scoresForPhaseBucket
 } from "../reportHelpers.js";
-import { buildReportPhaseBuckets, logsForBucket } from "./phaseBuckets.js";
+import { countHyperMotorStats, countTrialBehaviors, getOverallRiskText, riskLabel } from "../metrics.js";
+import { buildReportPhaseBuckets, logsForBucket, timelineForBucket } from "./phaseBuckets.js";
 import { distractorLevelFromScores } from "./phaseComments.js";
-import { getOverallRiskText, riskLabel } from "../metrics.js";
 import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
 import { normLevelFromZ, normZScore } from "../reportNorms.js";
 import { CLINICAL_THRESHOLDS, TIERS } from "./scoreTiers.js";
@@ -389,20 +389,39 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
   const byKind = (kind) => buckets.find((b) => b.kind === kind);
   const baseline = scoresForPhaseBucket(logs, profile, byKind("temel"), age, pressTimeline, locale);
   const types = [
-    { key: "visual", title: D.visual, scores: scoresForPhaseBucket(logs, profile, byKind("gorsel"), age, pressTimeline, locale) },
-    { key: "auditory", title: D.auditory, scores: scoresForPhaseBucket(logs, profile, byKind("isitsel"), age, pressTimeline, locale) },
-    { key: "combined", title: D.combined, scores: scoresForPhaseBucket(logs, profile, byKind("kombine"), age, pressTimeline, locale) }
+    { key: "visual", kind: "gorsel", title: D.visual, scores: scoresForPhaseBucket(logs, profile, byKind("gorsel"), age, pressTimeline, locale) },
+    { key: "auditory", kind: "isitsel", title: D.auditory, scores: scoresForPhaseBucket(logs, profile, byKind("isitsel"), age, pressTimeline, locale) },
+    { key: "combined", kind: "kombine", title: D.combined, scores: scoresForPhaseBucket(logs, profile, byKind("kombine"), age, pressTimeline, locale) }
   ];
 
-  const analyze = (title, distScores, key) => {
+  const rawForKind = (kind) => {
+    const bucket = byKind(kind);
+    if (!bucket) return null;
+    const list = logsForBucket(logs, bucket);
+    if (!list.length) return null;
+    const tl = timelineForBucket(pressTimeline, bucket);
+    const behaviors = countTrialBehaviors(list, profile.lateResponseMs);
+    const hyper = countHyperMotorStats(list, tl);
+    return {
+      targets: behaviors.targets,
+      nonTargets: behaviors.nonTargets,
+      falseAlarms: behaviors.falseAlarms,
+      idlePresses: hyper.idlePresses,
+      multiPresses: hyper.multiPresses,
+      scores: scoresForPhaseBucket(logs, profile, bucket, age, pressTimeline, locale)
+    };
+  };
+
+  const analyze = (title, distScores, key, kind) => {
+    const raw = rawForKind(kind);
     if (!distScores || !baseline) {
-      return { key, title, level: "gray", emoji: "—", label: D.noData, comment: D.noDataComment };
+      return { key, title, level: "gray", emoji: "—", label: D.noData, comment: D.noDataComment, raw };
     }
     const { level, weak, maxDrop } = distractorLevelFromScores(baseline, distScores);
 
     if (level === "green") {
       const comment = key === "visual" ? D.visualOk : key === "auditory" ? D.auditoryOk : D.combinedOk;
-      return { key, title, level: "green", emoji: "🟢", label: D.preserved, comment, maxDrop, weak };
+      return { key, title, level: "green", emoji: "🟢", label: D.preserved, comment, maxDrop, weak, raw };
     }
     if (level === "yellow") {
       const weakNote = weak.length ? ` (zayıf: ${weak.map((w) => `${w.label}=${w.score}`).join(", ")})` : "";
@@ -414,7 +433,8 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
         label: D.mild,
         comment: fillTemplate(D.mildComment, { title }) + weakNote,
         maxDrop,
-        weak
+        weak,
+        raw
       };
     }
     if (level === "orange") {
@@ -426,7 +446,8 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
         label: D.moderate,
         comment: fillTemplate(D.moderateComment, { title }),
         maxDrop,
-        weak
+        weak,
+        raw
       };
     }
     return {
@@ -437,11 +458,12 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
       label: D.marked,
       comment: fillTemplate(D.markedComment, { title }),
       maxDrop,
-      weak
+      weak,
+      raw
     };
   };
 
-  const items = types.map((t) => analyze(t.title, t.scores, t.key));
+  const items = types.map((t) => analyze(t.title, t.scores, t.key, t.kind));
   const anyAffected = items.some((i) => i.level === "yellow" || i.level === "orange" || i.level === "red");
   return { items, general: anyAffected ? D.generalAffected : D.generalOk, anyAffected };
 }

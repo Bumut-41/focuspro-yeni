@@ -32,6 +32,7 @@ export const reportPdfIt = {
   mainIndexes: "Indici principali di prestazione",
   commentLabel: "Commento",
   distractorAnalysis: "Analisi dei distrattori",
+  distractorRawLine: "{{detail}}",
   distractorGeneral: "Risultato complessivo",
   sustainability: "Analisi dell'attenzione sostenuta",
   startPerf: "Prestazione iniziale",

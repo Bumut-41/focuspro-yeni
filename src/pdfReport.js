@@ -904,8 +904,20 @@ export function buildDocDefinition({
           fontSize: 9,
           color: SUB,
           lineHeight: 1.4,
-          margin: [18, 0, 0, 14]
-        }
+          margin: [18, 0, 0, item.raw ? 4 : 14]
+        },
+        ...(item.raw
+          ? [
+              {
+                text: fillTemplate(pdf.distractorRawLine || "{{detail}}", {
+                  detail: `Hedef dışı=${item.raw.nonTargets ?? "—"}, FA=${item.raw.falseAlarms ?? "—"}, idle=${item.raw.idlePresses ?? "—"}, multi=${item.raw.multiPresses ?? "—"} · A/T/I/H=${item.raw.scores?.attention ?? "—"}/${item.raw.scores?.timing ?? "—"}/${item.raw.scores?.impulsivity ?? "—"}/${item.raw.scores?.hyperactivity ?? "—"}`
+                }),
+                fontSize: 8,
+                color: "#64748b",
+                margin: [18, 0, 0, 14]
+              }
+            ]
+          : [])
       ]),
       infoBox(pdf.distractorGeneral, [distractor.general], HEADER_LIGHT),
 

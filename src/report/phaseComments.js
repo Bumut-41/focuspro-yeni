@@ -3,7 +3,7 @@
  * "Performans korunmuştur" yalnızca tüm alt endeksler güçlü ve bazdan anlamlı düşüş yoksa.
  */
 import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
-import { DISTRACTOR_DROP } from "./scoreTiers.js";
+import { DISTRACTOR_DROP, distractorImpactLevel } from "./scoreTiers.js";
 
 /** Mutlak eşikler: bu altında "korunmuş" denmez. */
 export const PHASE_ABS = {
@@ -120,21 +120,13 @@ export function buildPhaseComment(sectionName, scores, locale = "tr", ctx = {}) 
 }
 
 /**
- * Çeldirici dostu analiz ile aynı etki seviyesi (alt endeks + genel).
+ * Çeldirici etki seviyesi — yalnız maxDrop eşikleri (DISTRACTOR_DROP).
+ * Zayıf endeks etiketi yükseltmez; yorumda ayrıca gösterilir.
+ * Örn. maxDrop=5 → hafif (yellow), orta değil.
  */
 export function distractorLevelFromScores(baseline, distScores) {
   if (!baseline || !distScores) return { level: "gray", maxDrop: 0, weak: [] };
   const weak = listWeakIndices(distScores);
   const maxDrop = maxIndexDrop(baseline, distScores);
-  // Zayıf endeks + düşüş yoksa bile en az "mild" (çelişki önleme)
-  if (maxDrop <= PHASE_DROP_SOFT && !weak.length) {
-    return { level: "green", maxDrop, weak };
-  }
-  if (maxDrop <= DISTRACTOR_DROP.mild && weak.every((w) => w.score >= 60)) {
-    return { level: "yellow", maxDrop, weak };
-  }
-  if (maxDrop <= DISTRACTOR_DROP.moderate) {
-    return { level: "orange", maxDrop, weak };
-  }
-  return { level: "red", maxDrop, weak };
+  return { level: distractorImpactLevel(maxDrop), maxDrop, weak };
 }
