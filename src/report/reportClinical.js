@@ -7,7 +7,10 @@ import {
 } from "../reportHelpers.js";
 import { countHyperMotorStats, countTrialBehaviors, getOverallRiskText, riskLabel } from "../metrics.js";
 import { buildReportPhaseBuckets, logsForBucket, timelineForBucket } from "./phaseBuckets.js";
-import { distractorLevelFromScores } from "./phaseComments.js";
+import {
+  distractorLevelFromScores,
+  distractorLevelFromScoresThresholdOnly
+} from "./phaseComments.js";
 import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
 import { normLevelFromZ, normZScore } from "../reportNorms.js";
 import { CLINICAL_THRESHOLDS, TIERS } from "./scoreTiers.js";
@@ -412,16 +415,42 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
     };
   };
 
+  const labelForLevel = (level) => {
+    if (level === "green") return D.preserved;
+    if (level === "yellow") return D.mild;
+    if (level === "orange") return D.moderate;
+    if (level === "red") return D.marked;
+    return D.noData;
+  };
+
   const analyze = (title, distScores, key, kind) => {
     const raw = rawForKind(kind);
     if (!distScores || !baseline) {
-      return { key, title, level: "gray", emoji: "—", label: D.noData, comment: D.noDataComment, raw };
+      return {
+        key,
+        title,
+        level: "gray",
+        emoji: "—",
+        label: D.noData,
+        comment: D.noDataComment,
+        raw,
+        altThreshold: null
+      };
     }
+    // Gövde: eski etiket mantığı (silinmedi)
     const { level, weak, maxDrop } = distractorLevelFromScores(baseline, distScores);
+    // Alternatif: yalnız eşik (maxDrop=5 → hafif)
+    const alt = distractorLevelFromScoresThresholdOnly(baseline, distScores);
+    const altThreshold = {
+      level: alt.level,
+      label: labelForLevel(alt.level),
+      maxDrop: alt.maxDrop,
+      weak: alt.weak
+    };
 
     if (level === "green") {
       const comment = key === "visual" ? D.visualOk : key === "auditory" ? D.auditoryOk : D.combinedOk;
-      return { key, title, level: "green", emoji: "🟢", label: D.preserved, comment, maxDrop, weak, raw };
+      return { key, title, level: "green", emoji: "🟢", label: D.preserved, comment, maxDrop, weak, raw, altThreshold };
     }
     if (level === "yellow") {
       const weakNote = weak.length ? ` (zayıf: ${weak.map((w) => `${w.label}=${w.score}`).join(", ")})` : "";
@@ -434,7 +463,8 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
         comment: fillTemplate(D.mildComment, { title }) + weakNote,
         maxDrop,
         weak,
-        raw
+        raw,
+        altThreshold
       };
     }
     if (level === "orange") {
@@ -447,7 +477,8 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
         comment: fillTemplate(D.moderateComment, { title }),
         maxDrop,
         weak,
-        raw
+        raw,
+        altThreshold
       };
     }
     return {
@@ -459,7 +490,8 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
       comment: fillTemplate(D.markedComment, { title }),
       maxDrop,
       weak,
-      raw
+      raw,
+      altThreshold
     };
   };
 

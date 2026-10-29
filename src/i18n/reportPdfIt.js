@@ -33,6 +33,14 @@ export const reportPdfIt = {
   commentLabel: "Commento",
   distractorAnalysis: "Analisi dei distrattori",
   distractorRawLine: "{{detail}}",
+  distractorAltTitle: "Nota di ricerca — confronto etichette distrattori",
+  distractorAltIntro:
+    "A sinistra: etichetta del report (legacy). A destra: alternativa solo soglia da maxDrop. La sezione principale non cambia.",
+  distractorAltColLegacy: "Etichetta report (legacy)",
+  distractorAltColThreshold: "Alternativa a soglia",
+  distractorAltColRaw: "Non-target / FA / idle / multi · A/T/I/H",
+  distractorAltFootnote:
+    "Soglie: ≤3 nessuno, ≤12 lieve, ≤22 moderato, altrimenti marcato. Il legacy può alzare un calo lieve a moderato se un indice è debole.",
   distractorGeneral: "Risultato complessivo",
   sustainability: "Analisi dell'attenzione sostenuta",
   startPerf: "Prestazione iniziale",

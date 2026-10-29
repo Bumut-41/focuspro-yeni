@@ -120,13 +120,37 @@ export function buildPhaseComment(sectionName, scores, locale = "tr", ctx = {}) 
 }
 
 /**
- * Çeldirici etki seviyesi — yalnız maxDrop eşikleri (DISTRACTOR_DROP).
- * Zayıf endeks etiketi yükseltmez; yorumda ayrıca gösterilir.
- * Örn. maxDrop=5 → hafif (yellow), orta değil.
+ * Eski etiket mantığı (rapor gövdesi): zayıf endeks mild bandını orta’ya yükseltebilir.
+ * Örn. maxDrop=5 + zayıf I → orange (“Orta”).
  */
-export function distractorLevelFromScores(baseline, distScores) {
+export function distractorLevelFromScoresLegacy(baseline, distScores) {
+  if (!baseline || !distScores) return { level: "gray", maxDrop: 0, weak: [] };
+  const weak = listWeakIndices(distScores);
+  const maxDrop = maxIndexDrop(baseline, distScores);
+  if (maxDrop <= PHASE_DROP_SOFT && !weak.length) {
+    return { level: "green", maxDrop, weak };
+  }
+  if (maxDrop <= DISTRACTOR_DROP.mild && weak.every((w) => w.score >= 60)) {
+    return { level: "yellow", maxDrop, weak };
+  }
+  if (maxDrop <= DISTRACTOR_DROP.moderate) {
+    return { level: "orange", maxDrop, weak };
+  }
+  return { level: "red", maxDrop, weak };
+}
+
+/**
+ * Eşik-yalnız etiket (alternatif / denetim): yalnız maxDrop → DISTRACTOR_DROP.
+ * Örn. maxDrop=5 → yellow (hafif); zayıf endeks yükseltmez.
+ */
+export function distractorLevelFromScoresThresholdOnly(baseline, distScores) {
   if (!baseline || !distScores) return { level: "gray", maxDrop: 0, weak: [] };
   const weak = listWeakIndices(distScores);
   const maxDrop = maxIndexDrop(baseline, distScores);
   return { level: distractorImpactLevel(maxDrop), maxDrop, weak };
+}
+
+/** Rapor gövdesi varsayılanı: eski mantık (geriye uyum). */
+export function distractorLevelFromScores(baseline, distScores) {
+  return distractorLevelFromScoresLegacy(baseline, distScores);
 }

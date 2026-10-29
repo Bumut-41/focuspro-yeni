@@ -36,6 +36,14 @@ export const reportPdfStrings = {
     commentLabel: "Yorum",
     distractorAnalysis: "Çeldirici Analizi",
     distractorRawLine: "{{detail}}",
+    distractorAltTitle: "Araştırma notu — çeldirici etiket karşılaştırması",
+    distractorAltIntro:
+      "Solda rapordaki (eski) etiket; sağda yalnız maxDrop eşiklerinden üretilen alternatif. Ana çeldirici bölümü değişmedi.",
+    distractorAltColLegacy: "Rapor etiketi (eski)",
+    distractorAltColThreshold: "Eşik alternatifi",
+    distractorAltColRaw: "Hedef dışı / FA / idle / multi · A/T/I/H",
+    distractorAltFootnote:
+      "Eşik: ≤3 etki yok, ≤12 hafif, ≤22 orta, üstü belirgin. Eski mantık zayıf endeksi mild bandında orta’ya yükseltebilir.",
     distractorGeneral: "Genel Sonuç",
     sustainability: "Sürdürülebilir Dikkat Analizi",
     startPerf: "Başlangıç Performansı",
@@ -454,6 +462,14 @@ export const reportPdfStrings = {
     commentLabel: "Comment",
     distractorAnalysis: "Distractor Analysis",
     distractorRawLine: "{{detail}}",
+    distractorAltTitle: "Research note — distractor label comparison",
+    distractorAltIntro:
+      "Left: report label (legacy). Right: threshold-only alternative from maxDrop. The main distractor section is unchanged.",
+    distractorAltColLegacy: "Report label (legacy)",
+    distractorAltColThreshold: "Threshold alternative",
+    distractorAltColRaw: "Non-targets / FA / idle / multi · A/T/I/H",
+    distractorAltFootnote:
+      "Thresholds: ≤3 none, ≤12 mild, ≤22 moderate, else marked. Legacy may escalate mild drop to moderate when an index is weak.",
     distractorGeneral: "Overall result",
     sustainability: "Sustained Attention Analysis",
     startPerf: "Initial performance",

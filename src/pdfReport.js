@@ -904,20 +904,8 @@ export function buildDocDefinition({
           fontSize: 9,
           color: SUB,
           lineHeight: 1.4,
-          margin: [18, 0, 0, item.raw ? 4 : 14]
-        },
-        ...(item.raw
-          ? [
-              {
-                text: fillTemplate(pdf.distractorRawLine || "{{detail}}", {
-                  detail: `Hedef dışı=${item.raw.nonTargets ?? "—"}, FA=${item.raw.falseAlarms ?? "—"}, idle=${item.raw.idlePresses ?? "—"}, multi=${item.raw.multiPresses ?? "—"} · A/T/I/H=${item.raw.scores?.attention ?? "—"}/${item.raw.scores?.timing ?? "—"}/${item.raw.scores?.impulsivity ?? "—"}/${item.raw.scores?.hyperactivity ?? "—"}`
-                }),
-                fontSize: 8,
-                color: "#64748b",
-                margin: [18, 0, 0, 14]
-              }
-            ]
-          : [])
+          margin: [18, 0, 0, 14]
+        }
       ]),
       infoBox(pdf.distractorGeneral, [distractor.general], HEADER_LIGHT),
 
@@ -1121,6 +1109,93 @@ export function buildDocDefinition({
             },
             {
               text: pdf.iqrFootnote,
+              fontSize: 7,
+              color: SUB,
+              margin: [0, 0, 0, 12]
+            }
+          ]
+        : []),
+
+      // Alternatif denetim ekleri — gövdeyi silmeden en alta (eski + yeni yan yana)
+      ...(isV4
+        ? [
+            sectionTitle(pdf.distractorAltTitle || "Araştırma notu — çeldirici etiket karşılaştırması", false),
+            {
+              text:
+                pdf.distractorAltIntro ||
+                "Solda rapordaki (eski) etiket; sağda yalnız maxDrop eşiklerinden üretilen alternatif. Ana çeldirici bölümü değişmedi.",
+              fontSize: 8,
+              color: SUB,
+              margin: [0, 0, 0, 8]
+            },
+            {
+              unbreakable: true,
+              table: {
+                headerRows: 1,
+                widths: ["*", 90, 90, 50, "*"],
+                body: [
+                  [
+                    { text: pdf.section || "Faz", bold: true, color: "#fff", fillColor: TABLE_HEAD, fontSize: 8 },
+                    {
+                      text: pdf.distractorAltColLegacy || "Rapor etiketi (eski)",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8
+                    },
+                    {
+                      text: pdf.distractorAltColThreshold || "Eşik alternatifi",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8
+                    },
+                    {
+                      text: "maxDrop",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8,
+                      alignment: "center"
+                    },
+                    {
+                      text: pdf.distractorAltColRaw || "Hedef dışı / FA / idle / multi · A/T/I/H",
+                      bold: true,
+                      color: "#fff",
+                      fillColor: TABLE_HEAD,
+                      fontSize: 8
+                    }
+                  ],
+                  ...distractor.items.map((item) => {
+                    const r = item.raw;
+                    const sc = r?.scores;
+                    const rawTxt = r
+                      ? `${r.nonTargets ?? "—"} / ${r.falseAlarms ?? "—"} / ${r.idlePresses ?? "—"} / ${r.multiPresses ?? "—"} · ${sc?.attention ?? "—"}/${sc?.timing ?? "—"}/${sc?.impulsivity ?? "—"}/${sc?.hyperactivity ?? "—"}`
+                      : "—";
+                    return [
+                      { text: item.title, fontSize: 8 },
+                      { text: item.label || "—", fontSize: 8 },
+                      { text: item.altThreshold?.label || "—", fontSize: 8 },
+                      {
+                        text:
+                          item.maxDrop != null && !Number.isNaN(Number(item.maxDrop))
+                            ? String(Math.round(Number(item.maxDrop)))
+                            : "—",
+                        fontSize: 8,
+                        alignment: "center"
+                      },
+                      { text: rawTxt, fontSize: 7 }
+                    ];
+                  })
+                ]
+              },
+              layout: tableLayout(),
+              margin: [0, 0, 0, 8]
+            },
+            {
+              text:
+                pdf.distractorAltFootnote ||
+                "Eşik: ≤3 etki yok, ≤12 hafif, ≤22 orta, üstü belirgin. Eski mantık zayıf endeksi mild bandında orta’ya yükseltebilir.",
               fontSize: 7,
               color: SUB,
               margin: [0, 0, 0, 12]
