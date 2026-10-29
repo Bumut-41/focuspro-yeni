@@ -265,13 +265,21 @@ export const tr = {
   },
   clients: {
     title: "Danışanlarım",
-    desc: "Danışanı bir kez kaydedin. Aynı e-posta ile birden fazla danışan ekleyebilirsiniz. Her «Testi e-posta ile gönder» 1 kredi düşer ve o bağlantı tek kullanımlıktır.",
+    desc: "Danışanı bir kez kaydedin; bilgilerini sonradan düzenleyebilirsiniz. Aynı e-posta ile birden fazla danışan ekleyebilirsiniz. Her «Testi e-posta ile gönder» 1 kredi düşer ve o bağlantı tek kullanımlıktır.",
     name: "Ad soyad",
     birth: "Doğum tarihi",
     email: "E-posta",
     emailOptional: "E-posta (isteğe bağlı)",
+    phone: "Telefon",
+    address: "Adres",
+    notes: "Açıklama",
     save: "Danışanı kaydet",
     saved: "Danışan kaydedildi.",
+    edit: "Bilgileri düzenle",
+    editTitle: "Danışan bilgilerini düzenle",
+    editDesc: "Kayıt sırasında girilen bilgileri düzeltebilir; telefon, adres ve açıklama ekleyebilirsiniz.",
+    saveChanges: "Değişiklikleri kaydet",
+    updated: "Danışan bilgileri güncellendi.",
     sendTest: "Testi e-posta ile gönder",
     sent: "Test bağlantısı {{email}} adresine gönderildi.",
     listEmpty: "Henüz danışan yok.",
@@ -283,7 +291,8 @@ export const tr = {
     startTest: "Teste başla",
     errPick: "Testi başlatmak için bir danışan seçin.",
     errEmailRequiredForSend: "Testi e-posta ile göndermek için e-posta adresi gerekli.",
-    errSave: "Danışan kaydedilemedi. Supabase'de specialist_clients tablosu yoksa SQL dosyasını bir kez çalıştırın."
+    errSave: "Danışan kaydedilemedi. Supabase'de specialist_clients tablosu yoksa SQL dosyasını bir kez çalıştırın.",
+    errUpdate: "Danışan bilgileri güncellenemedi."
   },
   test: {
     participantTitle: "Katılımcı bilgileri",

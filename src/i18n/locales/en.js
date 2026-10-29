@@ -265,13 +265,21 @@ export const en = {
   },
   clients: {
     title: "My clients",
-    desc: "Register a client once. You can add multiple clients with the same email. Each “Email the test” uses 1 credit and that link works once.",
+    desc: "Register a client once; you can edit their details later. You can add multiple clients with the same email. Each “Email the test” uses 1 credit and that link works once.",
     name: "Full name",
     birth: "Date of birth",
     email: "Email",
     emailOptional: "Email (optional)",
+    phone: "Phone",
+    address: "Address",
+    notes: "Notes",
     save: "Save client",
     saved: "Client saved.",
+    edit: "Edit details",
+    editTitle: "Edit client details",
+    editDesc: "Correct information entered at registration and add phone, address, or notes.",
+    saveChanges: "Save changes",
+    updated: "Client details updated.",
     sendTest: "Email the test",
     sent: "The test link was sent to {{email}}.",
     listEmpty: "No clients yet.",
@@ -283,7 +291,8 @@ export const en = {
     startTest: "Start test",
     errPick: "Select a client to start the test.",
     errEmailRequiredForSend: "An email address is required to send the test by email.",
-    errSave: "The client could not be saved. Run the specialist_clients SQL once in Supabase if the table is missing."
+    errSave: "The client could not be saved. Run the specialist_clients SQL once in Supabase if the table is missing.",
+    errUpdate: "Client details could not be updated."
   },
   test: {
     participantTitle: "Participant information",

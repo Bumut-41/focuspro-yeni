@@ -1,17 +1,38 @@
 import { supabase } from "../lib/supabase.js";
 
-export async function fetchMyClients() {
-  const { data, error } = await supabase
-    .from("specialist_clients")
-    .select("id, full_name, birth_date, gender, email, guardian_consent, created_at")
-    .order("full_name", { ascending: true });
-  if (error) throw error;
-  return data ?? [];
-}
+const CLIENT_COLUMNS =
+  "id, full_name, birth_date, gender, email, phone, address, notes, guardian_consent, created_at";
 
 function normalizeClientEmail(email) {
   const value = String(email ?? "").trim().toLowerCase();
   return value || null;
+}
+
+function normalizeOptionalText(value) {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+function clientPayload(client) {
+  return {
+    full_name: String(client.fullName ?? "").trim(),
+    birth_date: client.birthDate,
+    gender: client.gender,
+    email: normalizeClientEmail(client.email),
+    phone: normalizeOptionalText(client.phone),
+    address: normalizeOptionalText(client.address),
+    notes: normalizeOptionalText(client.notes),
+    guardian_consent: Boolean(client.guardianConsent)
+  };
+}
+
+export async function fetchMyClients() {
+  const { data, error } = await supabase
+    .from("specialist_clients")
+    .select(CLIENT_COLUMNS)
+    .order("full_name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function createClient(client) {
@@ -24,13 +45,26 @@ export async function createClient(client) {
     .from("specialist_clients")
     .insert({
       specialist_id: specialistId,
-      full_name: client.fullName.trim(),
-      birth_date: client.birthDate,
-      gender: client.gender,
-      email: normalizeClientEmail(client.email),
-      guardian_consent: Boolean(client.guardianConsent)
+      ...clientPayload(client)
     })
-    .select("id, full_name, birth_date, gender, email, guardian_consent, created_at")
+    .select(CLIENT_COLUMNS)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Danışan kaydını güncelle (ad, doğum, cinsiyet, e-posta, telefon, adres, not). */
+export async function updateClient(clientId, client) {
+  const payload = clientPayload(client);
+  if (!payload.full_name) throw new Error("invalid_name");
+  if (!payload.birth_date) throw new Error("invalid_birth");
+  if (!payload.gender) throw new Error("invalid_gender");
+
+  const { data, error } = await supabase
+    .from("specialist_clients")
+    .update(payload)
+    .eq("id", clientId)
+    .select(CLIENT_COLUMNS)
     .single();
   if (error) throw error;
   return data;
@@ -43,7 +77,7 @@ export async function updateClientEmail(clientId, email) {
     .from("specialist_clients")
     .update({ email: normalized })
     .eq("id", clientId)
-    .select("id, full_name, birth_date, gender, email, guardian_consent, created_at")
+    .select(CLIENT_COLUMNS)
     .single();
   if (error) throw error;
   return data;

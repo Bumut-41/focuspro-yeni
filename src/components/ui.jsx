@@ -53,6 +53,10 @@ export function Input(props) {
   return <input className={cn("fp-input", props.className)} {...props} />;
 }
 
+export function Textarea({ className, rows = 3, ...props }) {
+  return <textarea className={cn("fp-input", className)} rows={rows} {...props} />;
+}
+
 export function Select(props) {
   return <select className={cn("fp-input", "fp-select", props.className)} {...props} />;
 }

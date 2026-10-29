@@ -265,13 +265,21 @@ export const it = {
   },
   clients: {
     title: "I miei clienti",
-    desc: "Registra il cliente una sola volta. Puoi aggiungere più clienti con la stessa e-mail. Ogni «Invia il test via e-mail» usa 1 credito e quel link funziona una sola volta.",
+    desc: "Registra il cliente una sola volta; puoi modificare i dati in seguito. Puoi aggiungere più clienti con la stessa e-mail. Ogni «Invia il test via e-mail» usa 1 credito e quel link funziona una sola volta.",
     name: "Nome e cognome",
     birth: "Data di nascita",
     email: "E-mail",
     emailOptional: "E-mail (facoltativa)",
+    phone: "Telefono",
+    address: "Indirizzo",
+    notes: "Note",
     save: "Salva cliente",
     saved: "Cliente salvato.",
+    edit: "Modifica dati",
+    editTitle: "Modifica dati del cliente",
+    editDesc: "Correggi i dati inseriti in registrazione e aggiungi telefono, indirizzo o note.",
+    saveChanges: "Salva modifiche",
+    updated: "Dati del cliente aggiornati.",
     sendTest: "Invia il test via e-mail",
     sent: "Il link del test è stato inviato a {{email}}.",
     listEmpty: "Nessun cliente.",
@@ -283,7 +291,8 @@ export const it = {
     startTest: "Inizia il test",
     errPick: "Seleziona un cliente per avviare il test.",
     errEmailRequiredForSend: "Per inviare il test via e-mail è necessario un indirizzo e-mail.",
-    errSave: "Impossibile salvare il cliente. Se manca la tabella, esegui una volta lo SQL specialist_clients in Supabase."
+    errSave: "Impossibile salvare il cliente. Se manca la tabella, esegui una volta lo SQL specialist_clients in Supabase.",
+    errUpdate: "Impossibile aggiornare i dati del cliente."
   },
   test: {
     participantTitle: "Dati del partecipante",

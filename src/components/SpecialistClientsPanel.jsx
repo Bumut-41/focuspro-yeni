@@ -2,24 +2,49 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { ageFromBirthDate, profileKeyFromAge } from "../profiles.js";
-import { createClient, fetchMyClients, updateClientEmail } from "../services/clients.js";
+import { createClient, fetchMyClients, updateClient, updateClientEmail } from "../services/clients.js";
 import { createTestInvite, parseRpcError, sendTestInviteEmail } from "../services/invites.js";
-import { Alert, Button, Card, CardHeader, DataTable, EmptyState, Field, Input, Select, Stack } from "./ui.jsx";
+import { Alert, Button, Card, CardHeader, DataTable, EmptyState, Field, Input, Select, Stack, Textarea } from "./ui.jsx";
 
-const EMPTY = { fullName: "", birthDate: "", gender: "", email: "", consent: false };
+const EMPTY = {
+  fullName: "",
+  birthDate: "",
+  gender: "",
+  email: "",
+  phone: "",
+  address: "",
+  notes: "",
+  consent: false
+};
 
 function isValidEmail(email) {
   return String(email ?? "").includes("@");
+}
+
+function clientToForm(client) {
+  return {
+    fullName: client.full_name || "",
+    birthDate: client.birth_date || "",
+    gender: client.gender || "",
+    email: client.email || "",
+    phone: client.phone || "",
+    address: client.address || "",
+    notes: client.notes || "",
+    consent: Boolean(client.guardian_consent)
+  };
 }
 
 export function SpecialistClientsPanel() {
   const { credits, refreshProfile } = useAuth();
   const { t, locale } = useLocale();
   const [form, setForm] = useState(EMPTY);
+  const [editId, setEditId] = useState(null);
+  const [editForm, setEditForm] = useState(EMPTY);
   const [clients, setClients] = useState([]);
   const [msg, setMsg] = useState("");
   const [msgVariant, setMsgVariant] = useState("error");
   const [busy, setBusy] = useState(false);
+  const [editBusy, setEditBusy] = useState(false);
   const [sendingId, setSendingId] = useState(null);
   const [emailPrompt, setEmailPrompt] = useState(null);
 
@@ -36,34 +61,28 @@ export function SpecialistClientsPanel() {
 
   const age = ageFromBirthDate(form.birthDate);
   const needsConsent = age != null && (profileKeyFromAge(age) === "child" || profileKeyFromAge(age) === "teen");
+  const editAge = ageFromBirthDate(editForm.birthDate);
+  const editNeedsConsent =
+    editAge != null && (profileKeyFromAge(editAge) === "child" || profileKeyFromAge(editAge) === "teen");
+
+  function validateClientForm(values, { requireConsent }) {
+    if (!values.fullName.trim()) return t("test.errName");
+    const a = ageFromBirthDate(values.birthDate);
+    if (a == null || a < 6 || a > 99) return t("test.errBirth");
+    if (!values.gender) return t("test.errGender");
+    const email = values.email.trim();
+    if (email && !isValidEmail(email)) return t("invite.errInvalidEmail");
+    if (requireConsent && !values.consent) return t("test.errConsent");
+    return null;
+  }
 
   async function onSave(event) {
     event.preventDefault();
     setMsg("");
-    if (!form.fullName.trim()) {
+    const err = validateClientForm(form, { requireConsent: needsConsent });
+    if (err) {
       setMsgVariant("error");
-      setMsg(t("test.errName"));
-      return;
-    }
-    if (age == null || age < 6 || age > 99) {
-      setMsgVariant("error");
-      setMsg(t("test.errBirth"));
-      return;
-    }
-    if (!form.gender) {
-      setMsgVariant("error");
-      setMsg(t("test.errGender"));
-      return;
-    }
-    const email = form.email.trim();
-    if (email && !isValidEmail(email)) {
-      setMsgVariant("error");
-      setMsg(t("invite.errInvalidEmail"));
-      return;
-    }
-    if (needsConsent && !form.consent) {
-      setMsgVariant("error");
-      setMsg(t("test.errConsent"));
+      setMsg(err);
       return;
     }
 
@@ -73,7 +92,10 @@ export function SpecialistClientsPanel() {
         fullName: form.fullName,
         birthDate: form.birthDate,
         gender: form.gender,
-        email,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        notes: form.notes,
         guardianConsent: needsConsent ? form.consent : true
       });
       setForm(EMPTY);
@@ -85,6 +107,54 @@ export function SpecialistClientsPanel() {
       setMsg(t("clients.errSave"));
     } finally {
       setBusy(false);
+    }
+  }
+
+  function openEdit(client) {
+    setEditId(client.id);
+    setEditForm(clientToForm(client));
+    setEmailPrompt(null);
+    setMsg("");
+  }
+
+  function cancelEdit() {
+    setEditId(null);
+    setEditForm(EMPTY);
+  }
+
+  async function onUpdate(event) {
+    event.preventDefault();
+    if (!editId) return;
+    setMsg("");
+    const err = validateClientForm(editForm, { requireConsent: editNeedsConsent });
+    if (err) {
+      setMsgVariant("error");
+      setMsg(err);
+      return;
+    }
+
+    setEditBusy(true);
+    try {
+      await updateClient(editId, {
+        fullName: editForm.fullName,
+        birthDate: editForm.birthDate,
+        gender: editForm.gender,
+        email: editForm.email,
+        phone: editForm.phone,
+        address: editForm.address,
+        notes: editForm.notes,
+        guardianConsent: editNeedsConsent ? editForm.consent : true
+      });
+      setEditId(null);
+      setEditForm(EMPTY);
+      setMsgVariant("success");
+      setMsg(t("clients.updated"));
+      await load();
+    } catch (e) {
+      setMsgVariant("error");
+      setMsg(t("clients.errUpdate"));
+    } finally {
+      setEditBusy(false);
     }
   }
 
@@ -152,47 +222,77 @@ export function SpecialistClientsPanel() {
     }
   }
 
+  function renderClientFields(values, setValues, { consentRequired }) {
+    return (
+      <Stack wrap gap={12}>
+        <Field label={t("clients.name")}>
+          <Input
+            value={values.fullName}
+            onChange={(e) => setValues({ ...values, fullName: e.target.value })}
+            required
+          />
+        </Field>
+        <Field label={t("clients.birth")}>
+          <Input
+            type="date"
+            value={values.birthDate}
+            onChange={(e) => setValues({ ...values, birthDate: e.target.value, consent: false })}
+            required
+          />
+        </Field>
+        <Field label={t("test.gender")}>
+          <Select value={values.gender} onChange={(e) => setValues({ ...values, gender: e.target.value })} required>
+            <option value="">{t("common.select")}</option>
+            <option value="Kadın">{t("test.genderFemale")}</option>
+            <option value="Erkek">{t("test.genderMale")}</option>
+          </Select>
+        </Field>
+        <Field label={t("clients.emailOptional")}>
+          <Input
+            type="email"
+            value={values.email}
+            onChange={(e) => setValues({ ...values, email: e.target.value })}
+            autoComplete="off"
+          />
+        </Field>
+        <Field label={t("clients.phone")}>
+          <Input
+            type="tel"
+            value={values.phone}
+            onChange={(e) => setValues({ ...values, phone: e.target.value })}
+            autoComplete="tel"
+          />
+        </Field>
+        <Field label={t("clients.address")} style={{ flex: "1 1 280px" }}>
+          <Input value={values.address} onChange={(e) => setValues({ ...values, address: e.target.value })} />
+        </Field>
+        <Field label={t("clients.notes")} style={{ flex: "1 1 100%" }}>
+          <Textarea
+            value={values.notes}
+            onChange={(e) => setValues({ ...values, notes: e.target.value })}
+            rows={3}
+          />
+        </Field>
+        {consentRequired && (
+          <label className="fp-checkbox-row">
+            <input
+              type="checkbox"
+              checked={values.consent}
+              onChange={(e) => setValues({ ...values, consent: e.target.checked })}
+            />
+            <span>{t("test.consent")}</span>
+          </label>
+        )}
+      </Stack>
+    );
+  }
+
   return (
     <Card style={{ marginTop: 20 }}>
       <CardHeader title={t("clients.title")} description={t("clients.desc")} />
       <Card as="form" onSubmit={onSave} style={{ padding: 16, background: "var(--fp-surface-muted)" }}>
-        <Stack wrap gap={12}>
-          <Field label={t("clients.name")}>
-            <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required />
-          </Field>
-          <Field label={t("clients.birth")}>
-            <Input
-              type="date"
-              value={form.birthDate}
-              onChange={(e) => setForm({ ...form, birthDate: e.target.value, consent: false })}
-              required
-            />
-          </Field>
-          <Field label={t("test.gender")}>
-            <Select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} required>
-              <option value="">{t("common.select")}</option>
-              <option value="Kadın">{t("test.genderFemale")}</option>
-              <option value="Erkek">{t("test.genderMale")}</option>
-            </Select>
-          </Field>
-          <Field label={t("clients.emailOptional")}>
-            <Input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              autoComplete="off"
-            />
-          </Field>
-          {needsConsent && (
-            <label className="fp-checkbox-row">
-              <input
-                type="checkbox"
-                checked={form.consent}
-                onChange={(e) => setForm({ ...form, consent: e.target.checked })}
-              />
-              <span>{t("test.consent")}</span>
-            </label>
-          )}
+        {renderClientFields(form, setForm, { consentRequired: needsConsent })}
+        <Stack wrap gap={8} style={{ marginTop: 12 }}>
           <Button type="submit" variant="primary" disabled={busy}>
             {busy ? t("common.wait") : t("clients.save")}
           </Button>
@@ -203,6 +303,21 @@ export function SpecialistClientsPanel() {
         <Alert variant={msgVariant} style={{ marginTop: 16 }}>
           {msg}
         </Alert>
+      )}
+
+      {editId && (
+        <Card as="form" onSubmit={onUpdate} style={{ marginTop: 16, padding: 16 }}>
+          <CardHeader title={t("clients.editTitle")} description={t("clients.editDesc")} />
+          {renderClientFields(editForm, setEditForm, { consentRequired: editNeedsConsent })}
+          <Stack wrap gap={8} style={{ marginTop: 12 }}>
+            <Button type="submit" variant="primary" disabled={editBusy}>
+              {editBusy ? t("common.wait") : t("clients.saveChanges")}
+            </Button>
+            <Button type="button" variant="secondary" disabled={editBusy} onClick={cancelEdit}>
+              {t("common.cancel")}
+            </Button>
+          </Stack>
+        </Card>
       )}
 
       {emailPrompt && (
@@ -244,24 +359,41 @@ export function SpecialistClientsPanel() {
                 label: t("clients.email"),
                 render: (client) => client.email || "—"
               },
+              {
+                key: "phone",
+                label: t("clients.phone"),
+                render: (client) => client.phone || "—"
+              },
               { key: "birth_date", label: t("clients.birth") },
               {
                 label: "",
                 render: (client) => (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    disabled={sendingId === client.id || credits < 1}
-                    onClick={() => sendTest(client)}
-                  >
-                    {sendingId === client.id ? t("common.wait") : t("clients.sendTest")}
-                  </Button>
+                  <Stack wrap gap={6}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      disabled={editBusy || sendingId === client.id}
+                      onClick={() => openEdit(client)}
+                    >
+                      {t("clients.edit")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      disabled={sendingId === client.id || credits < 1}
+                      onClick={() => sendTest(client)}
+                    >
+                      {sendingId === client.id ? t("common.wait") : t("clients.sendTest")}
+                    </Button>
+                  </Stack>
                 )
               }
             ]}
             rows={clients}
             rowKey={(client) => client.id}
+            activeKey={editId}
           />
         )}
       </div>
