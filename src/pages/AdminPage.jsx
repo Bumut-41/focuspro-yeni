@@ -1391,10 +1391,12 @@ export default function AdminPage() {
 
       {section === "/admin/davetler" && <AdminInvitesPanel />}
 
-      {section === "/admin/algoritma-dogrulama" && (
-        <ReportRefreshPanel locale={locale} />
-        <AlgorithmAuditPanel sessions={sessions} dateLocale={dateLocale} locale={locale} />
-      )}
+        {section === "/admin/algoritma-dogrulama" && (
+          <>
+            <ReportRefreshPanel locale={locale} />
+            <AlgorithmAuditPanel sessions={sessions} dateLocale={dateLocale} locale={locale} />
+          </>
+        )}
 
       {section === "/admin/testler" && (
       <>
