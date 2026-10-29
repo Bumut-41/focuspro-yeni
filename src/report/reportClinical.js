@@ -3,10 +3,11 @@ import {
   computeSustainabilityIndex,
   formatDurationSeconds,
   getScores,
-  scoresForPhaseBucket
+  scoresForPhaseBucket,
+  timelineForBucket
 } from "../reportHelpers.js";
 import { countHyperMotorStats, countTrialBehaviors, getOverallRiskText, riskLabel } from "../metrics.js";
-import { buildReportPhaseBuckets, logsForBucket, timelineForBucket } from "./phaseBuckets.js";
+import { buildReportPhaseBuckets, logsForBucket } from "./phaseBuckets.js";
 import {
   distractorLevelFromScores,
   distractorLevelFromScoresThresholdOnly
