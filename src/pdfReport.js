@@ -11,6 +11,7 @@ import {
   formatDurationSeconds,
   getDistractorSummaryMatrix,
   getGlobalIndexZScores,
+  getLevel,
   getLevelText,
   getScoreColor,
   getScores,
@@ -338,28 +339,66 @@ function clinicalFlagsSection(clinicalFlags, pdf) {
   ];
 }
 
-function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion = "v1") {
-  const pdf = getReportPdfStrings(locale);
+const PERF_BAND_LABELS = {
+  tr: {
+    1: "İyi performans (≥ 85)",
+    2: "Standart performans (70–84)",
+    3: "Düşük performans (55–69)",
+    4: "Performansta zorluk (40–54)",
+    5: "Belirgin zorluk (< 40)"
+  },
+  en: {
+    1: "Good performance (≥ 85)",
+    2: "Standard performance (70–84)",
+    3: "Low performance (55–69)",
+    4: "Performance difficulty (40–54)",
+    5: "Marked difficulty (< 40)"
+  },
+  it: {
+    1: "Buona prestazione (≥ 85)",
+    2: "Prestazione standard (70–84)",
+    3: "Prestazione bassa (55–69)",
+    4: "Difficoltà di prestazione (40–54)",
+    5: "Difficoltà marcata (< 40)"
+  }
+};
 
-  // V4: Z tablosu, indeks tanımları listesi ve geçici-algoritma notları gösterilmez
-  if (scoringVersion === "v4") {
-    return [];
+function buildPerformanceLevelTable(scores, profileKey, locale, scoringVersion) {
+  const pdf = getReportPdfStrings(locale);
+  const NORM_LEVELS = getNormLevels(locale);
+  const isV4 = scoringVersion === "v4";
+  const labelMap = PERF_BAND_LABELS[locale] || PERF_BAND_LABELS.tr;
+
+  let indices;
+  if (isV4) {
+    indices = [
+      { score: scores.attention, band: scores.attention == null ? null : getLevel(scores.attention) },
+      { score: scores.timing, band: scores.timing == null ? null : getLevel(scores.timing) },
+      { score: scores.impulsivity, band: scores.impulsivity == null ? null : getLevel(scores.impulsivity) },
+      { score: scores.hyperactivity, band: scores.hyperactivity == null ? null : getLevel(scores.hyperactivity) }
+    ];
+  } else {
+    const z = getGlobalIndexZScores(scores, profileKey);
+    indices = [
+      { z: z.attention },
+      { z: z.timing },
+      { z: z.impulsivity },
+      { z: z.hyperactivity }
+    ];
   }
 
-  const NORM_LEVELS = getNormLevels(locale);
-  const z = getGlobalIndexZScores(scores, profileKey);
-  const indices = [
-    { key: "A", score: scores.attention, z: z.attention },
-    { key: "T", score: scores.timing, z: z.timing },
-    { key: "I", score: scores.impulsivity, z: z.impulsivity },
-    { key: "H", score: scores.hyperactivity, z: z.hyperactivity }
-  ];
-
   const perfBody = NORM_LEVELS.map((row) => {
+    const label = isV4 ? labelMap[row.level] || row.label : row.label;
     const cells = indices.map((ix) => {
-      if (normPlacementFromZ(ix.z) !== row.level) return { text: "", fillColor: row.color };
+      const match = isV4 ? ix.band === row.level : normPlacementFromZ(ix.z) === row.level;
+      if (!match) return { text: "", fillColor: row.color };
+      const value = isV4
+        ? ix.score == null || Number.isNaN(Number(ix.score))
+          ? "—"
+          : String(Math.round(Number(ix.score)))
+        : Number(ix.z).toFixed(2);
       return {
-        text: ix.z.toFixed(2),
+        text: value,
         alignment: "center",
         bold: true,
         color: row.level <= 2 ? "#0f172a" : "#fff",
@@ -367,10 +406,52 @@ function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion =
       };
     });
     return [
-      { text: `${row.level} ${row.label}`, fillColor: row.color, color: row.level <= 2 ? "#0f172a" : "#fff", fontSize: 9 },
+      {
+        text: `${row.level} ${label}`,
+        fillColor: row.color,
+        color: row.level <= 2 ? "#0f172a" : "#fff",
+        fontSize: 9
+      },
       ...cells
     ];
   });
+
+  return {
+    table: {
+      headerRows: 1,
+      widths: ["*", 40, 40, 40, 40],
+      body: [
+        [
+          { text: pdf.perfLevel, bold: true, color: "#fff", fillColor: TABLE_HEAD },
+          { text: "A", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: "T", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: "I", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
+          { text: "H", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD }
+        ],
+        ...perfBody
+      ]
+    },
+    layout: normTableLayout(),
+    margin: [0, 0, 0, 12]
+  };
+}
+
+function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion = "v1") {
+  const pdf = getReportPdfStrings(locale);
+
+  // V4: Z/norm tablosu yok; performans düzeyi (zorluk bantları) geri geldi
+  if (scoringVersion === "v4") {
+    return [
+      sectionTitle(pdf.perfLevel, false),
+      {
+        text: pdf.perfBandIntro || pdf.normIntro,
+        fontSize: 9,
+        color: SUB,
+        margin: [0, 0, 0, 10]
+      },
+      buildPerformanceLevelTable(scores, profileKey, locale, "v4")
+    ];
+  }
 
   const blocks = [
     sectionTitle(pdf.normComparison, false),
@@ -380,33 +461,15 @@ function buildNormComparison(scores, profileKey, locale = "tr", scoringVersion =
       color: SUB,
       margin: [0, 0, 0, 10]
     },
+    buildPerformanceLevelTable(scores, profileKey, locale, scoringVersion),
     {
-      table: {
-        headerRows: 1,
-        widths: ["*", 40, 40, 40, 40],
-        body: [
-          [
-            { text: pdf.perfLevel, bold: true, color: "#fff", fillColor: TABLE_HEAD },
-            { text: "A", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
-            { text: "T", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
-            { text: "I", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD },
-            { text: "H", bold: true, color: "#fff", alignment: "center", fillColor: TABLE_HEAD }
-          ],
-          ...perfBody
-        ]
-      },
-      layout: normTableLayout(),
-      margin: [0, 0, 0, 12]
+      ul: getIndexDefinitions(locale, scoringVersion).map(([t, d]) => ({
+        text: [{ text: `${t}: `, bold: true }, d],
+        fontSize: 8,
+        margin: [0, 2, 0, 0]
+      }))
     }
   ];
-
-  blocks.push({
-    ul: getIndexDefinitions(locale, scoringVersion).map(([t, d]) => ({
-      text: [{ text: `${t}: `, bold: true }, d],
-      fontSize: 8,
-      margin: [0, 2, 0, 0]
-    }))
-  });
   if (scoringVersion === "v3") {
     blocks.push({
       text: pdf.algorithmCategoryNote || "",

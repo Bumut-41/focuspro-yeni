@@ -69,6 +69,7 @@ export const reportPdfIt = {
     "Per questa sessione non è stato generato un report di prestazione. I risultati non devono essere usati per l'interpretazione clinica.",
   normComparison: "Confronto con le norme",
   normIntro: "Confronto standardizzato della prestazione rispetto ai gruppi normativi di riferimento.",
+  perfBandIntro: "Posizione dei punteggi A/T/I/H nelle fasce di prestazione (buona prestazione → difficoltà marcata).",
   indexCol: "Indice",
   scoreCol: "Punteggio",
   normLevelCol: "Livello normativo",
