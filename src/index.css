@@ -674,6 +674,18 @@ a:hover {
   color: var(--fp-text-muted);
 }
 
+.fp-client-pick-row--selected {
+  border-color: var(--fp-primary);
+  box-shadow: 0 0 0 1px var(--fp-primary);
+  background: color-mix(in srgb, var(--fp-primary) 6%, var(--fp-surface));
+}
+
+.fp-client-pick .fp-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: var(--fp-text-muted);
+}
+
 .fp-checkbox-row {
   display: flex;
   gap: var(--fp-space-3);

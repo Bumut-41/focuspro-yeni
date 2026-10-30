@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase.js";
 
 const CLIENT_COLUMNS =
-  "id, full_name, birth_date, gender, email, phone, address, notes, guardian_consent, created_at";
+  "id, specialist_id, full_name, birth_date, gender, email, phone, address, notes, guardian_consent, created_at";
 
 function normalizeClientEmail(email) {
   const value = String(email ?? "").trim().toLowerCase();
@@ -81,4 +81,23 @@ export async function updateClientEmail(clientId, email) {
     .single();
   if (error) throw error;
   return data;
+}
+
+/** Psikolog kendi danışanını; süper admin herhangi birini silebilir (RLS). */
+export async function deleteClient(clientId) {
+  const { error } = await supabase.from("specialist_clients").delete().eq("id", clientId);
+  if (error) throw error;
+}
+
+/** Süper admin — tüm danışanlar (specialist adı ile). */
+export async function fetchAllClientsForAdmin({ limit = 500 } = {}) {
+  const { data, error } = await supabase
+    .from("specialist_clients")
+    .select(
+      `${CLIENT_COLUMNS}, specialist:profiles!specialist_id(full_name, email)`
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
 }

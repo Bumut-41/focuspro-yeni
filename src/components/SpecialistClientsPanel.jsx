@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 import { ageFromBirthDate, profileKeyFromAge } from "../profiles.js";
-import { createClient, fetchMyClients, updateClient, updateClientEmail } from "../services/clients.js";
+import { createClient, deleteClient, fetchMyClients, updateClient, updateClientEmail } from "../services/clients.js";
 import { createTestInvite, parseRpcError, sendTestInviteEmail } from "../services/invites.js";
 import { Alert, Button, Card, CardHeader, DataTable, EmptyState, Field, Input, Select, Stack, Textarea } from "./ui.jsx";
 
@@ -46,6 +46,7 @@ export function SpecialistClientsPanel() {
   const [busy, setBusy] = useState(false);
   const [editBusy, setEditBusy] = useState(false);
   const [sendingId, setSendingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [emailPrompt, setEmailPrompt] = useState(null);
 
   const load = useCallback(async () => {
@@ -191,6 +192,24 @@ export function SpecialistClientsPanel() {
       return;
     }
     await deliverTest(client, email);
+  }
+
+  async function removeClient(client) {
+    if (!window.confirm(t("clients.deleteConfirm", { name: client.full_name }))) return;
+    setDeletingId(client.id);
+    setMsg("");
+    try {
+      await deleteClient(client.id);
+      if (editId === client.id) cancelEdit();
+      setMsgVariant("success");
+      setMsg(t("clients.deleted"));
+      await load();
+    } catch (e) {
+      setMsgVariant("error");
+      setMsg(t("clients.errDelete"));
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   async function confirmSendWithEmail(event) {
@@ -373,7 +392,7 @@ export function SpecialistClientsPanel() {
                       type="button"
                       size="sm"
                       variant="secondary"
-                      disabled={editBusy || sendingId === client.id}
+                      disabled={editBusy || sendingId === client.id || deletingId === client.id}
                       onClick={() => openEdit(client)}
                     >
                       {t("clients.edit")}
@@ -382,10 +401,19 @@ export function SpecialistClientsPanel() {
                       type="button"
                       size="sm"
                       variant="secondary"
-                      disabled={sendingId === client.id || credits < 1}
+                      disabled={sendingId === client.id || credits < 1 || deletingId === client.id}
                       onClick={() => sendTest(client)}
                     >
                       {sendingId === client.id ? t("common.wait") : t("clients.sendTest")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="danger"
+                      disabled={deletingId === client.id || sendingId === client.id || editBusy}
+                      onClick={() => removeClient(client)}
+                    >
+                      {deletingId === client.id ? t("common.wait") : t("common.delete")}
                     </Button>
                   </Stack>
                 )

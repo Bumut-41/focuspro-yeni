@@ -53,6 +53,7 @@ import {
 } from "../services/adminExport.js";
 import { AdminInvitesPanel } from "../components/AdminInvitesPanel.jsx";
 import { AlgorithmAuditPanel } from "../components/AlgorithmAuditPanel.jsx";
+import { AdminClientsPanel } from "../components/AdminClientsPanel.jsx";
 import { ReportRefreshPanel } from "../components/ReportRefreshPanel.jsx";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
@@ -488,7 +489,7 @@ export default function AdminPage() {
     "/admin/davetler",
     "/admin/testler",
     "/admin/algoritma-dogrulama",
-    ...(isSuperAdmin ? ["/admin/promosyon"] : [])
+    ...(isSuperAdmin ? ["/admin/promosyon", "/admin/danisanlar"] : [])
   ]);
 
   if (!adminPages.has(section)) return <Navigate to="/admin" replace />;
@@ -572,7 +573,10 @@ export default function AdminPage() {
             <Link to="/admin/testler">{t("admin.sessionsTitle", { count: filteredSessions.length })}</Link>
             <Link to="/admin/algoritma-dogrulama">{t("admin.algorithmAuditNav")}</Link>
             {isSuperAdmin ? (
-              <Link to="/admin/promosyon">{t("admin.promoTitle", { count: promoCodes.length })}</Link>
+              <>
+                <Link to="/admin/danisanlar">{t("admin.clientsNav")}</Link>
+                <Link to="/admin/promosyon">{t("admin.promoTitle", { count: promoCodes.length })}</Link>
+              </>
             ) : null}
           </nav>
         </Card>
@@ -1390,6 +1394,8 @@ export default function AdminPage() {
       )}
 
       {section === "/admin/davetler" && <AdminInvitesPanel />}
+
+      {section === "/admin/danisanlar" && isSuperAdmin && <AdminClientsPanel />}
 
         {section === "/admin/algoritma-dogrulama" && (
           <>

@@ -61,6 +61,7 @@ export default function TestFlowPage() {
   const [inviteUsed, setInviteUsed] = useState(false);
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [clientSearch, setClientSearch] = useState("");
   const [practiceCompleted, setPracticeCompleted] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [activeTestProfile, setActiveTestProfile] = useState(() => getProfile(pkey));
@@ -635,19 +636,54 @@ export default function TestFlowPage() {
             {isPsychologist && !isInviteFlow ? (
               clients.length ? (
                 <div className="fp-client-pick">
-                  {clients.map((client) => (
-                    <label key={client.id} className="fp-client-pick-row">
-                      <input
-                        type="checkbox"
-                        checked={selectedClientId === client.id}
-                        onChange={() => setSelectedClientId(selectedClientId === client.id ? "" : client.id)}
-                      />
-                      <span>
-                        <strong>{client.full_name}</strong>
-                        {client.email ? <small>{client.email}</small> : null}
-                      </span>
-                    </label>
-                  ))}
+                  <Field label={t("clients.search")}>
+                    <Input
+                      value={clientSearch}
+                      onChange={(e) => {
+                        setClientSearch(e.target.value);
+                        setSelectedClientId("");
+                      }}
+                      placeholder={t("clients.searchPlaceholder")}
+                      autoComplete="off"
+                      autoFocus
+                    />
+                  </Field>
+                  {(() => {
+                    const q = clientSearch.trim().toLocaleLowerCase("tr");
+                    if (q.length < 1) {
+                      return <p className="fp-hint">{t("clients.searchHint")}</p>;
+                    }
+                    const matches = clients
+                      .filter((c) => {
+                        const hay = [c.full_name, c.email, c.phone]
+                          .filter(Boolean)
+                          .join(" ")
+                          .toLocaleLowerCase("tr");
+                        return hay.includes(q);
+                      })
+                      .slice(0, 12);
+                    if (!matches.length) {
+                      return <Alert variant="info">{t("clients.searchNoMatch")}</Alert>;
+                    }
+                    return matches.map((client) => (
+                      <label
+                        key={client.id}
+                        className={`fp-client-pick-row${selectedClientId === client.id ? " fp-client-pick-row--selected" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name="client-pick"
+                          checked={selectedClientId === client.id}
+                          onChange={() => setSelectedClientId(client.id)}
+                        />
+                        <span>
+                          <strong>{client.full_name}</strong>
+                          {client.email ? <small>{client.email}</small> : null}
+                          {client.phone ? <small>{client.phone}</small> : null}
+                        </span>
+                      </label>
+                    ));
+                  })()}
                 </div>
               ) : (
                 <Alert variant="info">{t("clients.pickEmpty")}</Alert>
