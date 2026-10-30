@@ -75,8 +75,7 @@ export const reportPdfStrings = {
     chartAttention: "Dikkat (A)",
     chartAttentionDesc: "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi.",
     chartTiming: "Zamanlama (T)",
-    chartTimingDesc:
-      "Tepki süresi tutarlılığı ve zamanında yanıt verme performansını değerlendirir (RT değişkenliği ve geç yanıt oranı; ortalama tepki hızı doğrudan puanlanmaz).",
+    chartTimingDesc: "Tepki süresi tutarlılığı ve zamanında yanıt verme performansını değerlendirir.",
     chartTimingDescV1: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
     chartImpulsivity: "Dürtüsellik (I)",
     chartImpulsivityDesc: "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi.",
@@ -232,8 +231,7 @@ export const reportPdfStrings = {
       },
       timing: {
         title: "T — ZAMANLAMA",
-        definition:
-          "Tepki süresi tutarlılığı ve zamanında yanıt verme performansını değerlendirir. V4’te ortalama tepki hızı doğrudan puanlanmaz; skor RT değişkenliği (stabilite) ile geç yanıt oranından oluşur.",
+        definition: "Tepki süresi tutarlılığı ve zamanında yanıt verme performansını değerlendirir.",
         definitionV1: "Hedef uyaranlara zamanında, hızlı ve tutarlı şekilde doğru yanıt verebilme becerisi.",
         c90: "Doğru yanıtlarda zamanlama tutarlılığı yüksek ve geç yanıt oranı düşüktür.",
         c80: "Zamanlama tutarlılığı genel olarak korunmuş; geç yanıtlar sınırlı düzeydedir.",
@@ -348,7 +346,7 @@ export const reportPdfStrings = {
       ],
       indexDefinitions: [
         ["A — Dikkat", "Hedef uyaranları fark etme ve kaçırmadan yanıt verebilme becerisi."],
-        ["T — Zamanlama", "Tepki süresi tutarlılığı ve zamanında yanıt verme performansı (RT değişkenliği + geç yanıt; ortalama hız doğrudan puanlanmaz)."],
+        ["T — Zamanlama", "Tepki süresi tutarlılığı ve zamanında yanıt verme performansı."],
         ["I — Dürtüsellik", "Hedef dışı uyaranlara verilen gereksiz ilk tepkileri engelleyebilme becerisi."],
         ["H — Motor Yanıt Kontrolü", "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi."],
         ["Genel skor", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
@@ -511,8 +509,7 @@ export const reportPdfStrings = {
     chartAttention: "Attention (A)",
     chartAttentionDesc: "Ability to notice target stimuli and respond without missing them.",
     chartTiming: "Timing (T)",
-    chartTimingDesc:
-      "Reaction-time consistency and on-time responding (RT variability and late-response rate; mean RT speed is not scored directly).",
+    chartTimingDesc: "Reaction-time consistency and on-time responding.",
     chartImpulsivity: "Impulsivity (I)",
     chartImpulsivityDesc: "Ability to withhold unnecessary first responses to non-target stimuli.",
     chartHyperactivity: "Motor Response Control (H)",
@@ -657,8 +654,7 @@ export const reportPdfStrings = {
       },
       timing: {
         title: "T — TIMING",
-        definition:
-          "Reaction-time consistency and on-time responding. In V4, mean RT speed is not scored directly; the score combines RT variability (stability) and late-response rate.",
+        definition: "Reaction-time consistency and on-time responding.",
         definitionV1: "Ability to respond to targets correctly in a timely, fast, and consistent manner.",
         c90: "On-time responses were highly consistent with a low late-response rate.",
         c80: "Timing consistency was generally maintained; late responses were limited.",
@@ -773,7 +769,7 @@ export const reportPdfStrings = {
       ],
       indexDefinitions: [
         ["A — Attention", "Ability to notice target stimuli and respond without missing them."],
-        ["T — Timing", "Reaction-time consistency and on-time responding (RT variability + late rate; mean speed not scored directly)."],
+        ["T — Timing", "Reaction-time consistency and on-time responding."],
         ["I — Impulsivity", "Ability to withhold unnecessary first responses to non-target stimuli."],
         ["H — Motor Response Control", "Ability to control unnecessary blank-screen presses and repeated key presses during the same stimulus."],
         ["Overall score", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]

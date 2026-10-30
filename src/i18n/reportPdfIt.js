@@ -71,8 +71,7 @@ export const reportPdfIt = {
   chartAttention: "Attenzione (A)",
   chartAttentionDesc: "Capacità di notare gli stimoli target e rispondere senza ometterli.",
   chartTiming: "Tempismo (T)",
-  chartTimingDesc:
-    "Coerenza dei tempi di reazione e capacità di rispondere in tempo (variabilità RT e ritardi; la velocità media non è punteggiata direttamente).",
+  chartTimingDesc: "Coerenza dei tempi di reazione e capacità di rispondere in tempo.",
   chartImpulsivity: "Impulsività (I)",
   chartImpulsivityDesc: "Capacità di inibire le prime risposte non necessarie agli stimoli non target.",
   chartHyperactivity: "Controllo della risposta motoria (H)",
@@ -212,8 +211,7 @@ export const reportPdfIt = {
     },
     timing: {
       title: "T — TEMPISMO",
-      definition:
-        "Coerenza dei tempi di reazione e prestazione di risposta in tempo. In V4 la velocità media di RT non è punteggiata direttamente; il punteggio combina variabilità (stabilità) e tasso di risposte tardive.",
+      definition: "Coerenza dei tempi di reazione e prestazione di risposta in tempo.",
       definitionV1: "Capacità di rispondere ai target in modo corretto, tempestivo, rapido e costante.",
       c90: "Il partecipante ha risposto ai target in modo rapido, costante e nei tempi appropriati. Non è stata osservata una variabilità marcata nella velocità di risposta.",
       c80: "Le risposte ai target sono state in genere tempestive e costanti.",
@@ -324,7 +322,7 @@ export const reportPdfIt = {
     ],
     indexDefinitions: [
       ["A — Attenzione", "Capacità di notare gli stimoli target e rispondere senza ometterli."],
-      ["T — Tempismo", "Coerenza dei tempi di reazione e risposta in tempo (variabilità RT + ritardi; la velocità media non è punteggiata direttamente)."],
+      ["T — Tempismo", "Coerenza dei tempi di reazione e risposta in tempo."],
       ["I — Impulsività", "Capacità di inibire le prime risposte non necessarie agli stimoli non target."],
       ["H — Controllo della risposta motoria", "Capacità di controllare pressioni inutili a schermo vuoto e pressioni ripetute durante lo stesso stimolo."],
       ["Punteggio complessivo", "A×0.30 + T×0.25 + I×0.30 + H×0.15"]
