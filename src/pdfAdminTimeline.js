@@ -2,9 +2,12 @@ import { formatTestMs } from "./lib/testTime.js";
 import { symbolCaption } from "./lib/symbolLabels.js";
 import {
   enrichPressList,
+  formatTempoCell,
+  phaseTempoForSection,
   pressesForTrial,
+  pressScoreImpact,
   pressStatusLabel,
-  pressToTableRow,
+  pressToDetailedTableRow,
   summarizePresses
 } from "./lib/pressTimelineReport.js";
 import { getPdfMake } from "./lib/pdfMakeLoader.js";
@@ -29,39 +32,51 @@ function sectionHead(text, pageBreak = false) {
   };
 }
 
+function scoreCell(metrics, key) {
+  const v = metrics?.[key];
+  if (v == null || Number.isNaN(Number(v))) return "—";
+  return String(Math.round(Number(v)));
+}
+
 export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
   const logs = session?.logs ?? [];
-  const presses = enrichPressList(timeline);
   const profile = session?.profile_key ? getProfile(session.profile_key) : null;
   const lateMs = profile?.lateResponseMs ?? 800;
+  const presses = enrichPressList(timeline, profile);
   const targetTrials = logs.filter((t) => t.isTarget);
   const stats = summarizePresses(presses);
   const wrongPresses = presses.filter((p) => p.isWrongSymbol || p.errorType === "false_alarm");
   const idlePresses = presses.filter((p) => p.errorType === "idle");
+  const metrics = session?.metrics || {};
 
-  const allPressRows = presses.slice(0, 350).map((p) => pressToTableRow(p));
+  const allPressRows = presses.slice(0, 400).map((p) => pressToDetailedTableRow(p, lateMs));
 
   const wrongRows = wrongPresses.slice(0, 120).map((p) => [
     String(p.pressIndex),
     formatTestMs(p.atMs),
     p.trialNumber != null ? String(p.trialNumber) : "—",
+    formatTempoCell(p.tempo),
     symbolCaption(p.shownShape ?? p.onScreen?.shape, p.shownColor ?? p.onScreen?.color),
     p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—",
-    pressStatusLabel(p, lateMs)
+    pressStatusLabel(p, lateMs),
+    pressScoreImpact(p, lateMs)
   ]);
 
   const targetDetailRows = [];
   for (const t of targetTrials.slice(0, 150)) {
+    const tempo = phaseTempoForSection(profile, t.section);
     const trialPresses = pressesForTrial(presses, t.trialNumber);
     if (!trialPresses.length) {
       targetDetailRows.push([
         String(t.trialNumber),
         formatTestMs(t.onsetMs),
+        formatTempoCell(tempo),
         symbolCaption(t.shownShape, t.shownColor),
         "—",
         "—",
         "—",
-        "Kaçırıldı"
+        "Kaçırıldı",
+        "A − (ihmal)"
       ]);
       continue;
     }
@@ -69,81 +84,115 @@ export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
       targetDetailRows.push([
         idx === 0 ? String(t.trialNumber) : "",
         idx === 0 ? formatTestMs(t.onsetMs) : "",
+        idx === 0 ? formatTempoCell(tempo || p.tempo) : "",
         idx === 0 ? symbolCaption(t.shownShape, t.shownColor) : "",
         formatTestMs(p.atMs),
         String(p.pressInTrial ?? "—"),
         p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—",
-        pressStatusLabel(p, lateMs)
+        pressStatusLabel(p, lateMs),
+        pressScoreImpact(p, lateMs)
       ]);
     });
   }
 
+  const headerDetail = [
+    `Katılımcı: ${session.participant_name} • Yaş: ${session.participant_age ?? "—"} • Profil: ${session.profile_key}`,
+    `Oturum: ${session.id} • ${new Date(session.created_at).toLocaleString("tr-TR")}`,
+    target ? `Hedef: ${symbolCaption(target.shape, target.color)}` : "Hedef kaydı yok",
+    `Geç eşiği (lateMs): ${lateMs} ms · V4’te ortalama tepki hızı T’ye puan olarak girmez`,
+    `Kayıtlı skorlar — A (dikkat): ${scoreCell(metrics, "attentionScore")} · T (zamanlama): ${scoreCell(metrics, "speedScore")} · I (dürtü): ${scoreCell(metrics, "impulseScore")} · H (motor): ${scoreCell(metrics, "consistencyScore")} · Genel: ${scoreCell(metrics, "overallScore")}`,
+    `Basış özeti: ${stats.total} basış · ${stats.correct} isabet · ${stats.late} geç · ${stats.falseAlarm} yanlış simge · ${stats.multi} çoklu · ${stats.idle} boş ekran`
+  ].join("\n");
+
   return {
     pageSize: "A4",
-    pageMargins: [28, 28, 28, 36],
-    defaultStyle: { font: "Roboto", fontSize: 7 },
+    pageOrientation: "landscape",
+    pageMargins: [22, 22, 22, 28],
+    defaultStyle: { font: "Roboto", fontSize: 6.5 },
     footer: (cp, pc) => ({
-      text: `FocusProLab — Yönetici basış raporu • ${cp}/${pc}`,
+      text: `FocusProLab — Yönetici basış raporu (detaylı) • ${cp}/${pc}`,
       alignment: "center",
       fontSize: 7,
       color: "#94a3b8",
-      margin: [28, 0, 28, 12]
+      margin: [22, 0, 22, 10]
     }),
     content: [
-      { text: "Basış Zaman Çizelgesi", fontSize: 16, bold: true, color: "#0f172a" },
-      { text: "Yalnızca yönetici — her Space basışı kayıtlıdır", fontSize: 9, color: "#dc2626", margin: [0, 2, 0, 8] },
+      { text: "Basış Zaman Çizelgesi — Detaylı", fontSize: 15, bold: true, color: "#0f172a" },
+      {
+        text: "Yalnızca yönetici — tempo (gösterge hızı) + her basışın skor etkisi",
+        fontSize: 9,
+        color: "#dc2626",
+        margin: [0, 2, 0, 6]
+      },
+      { text: headerDetail, margin: [0, 0, 0, 8], fontSize: 7.5 },
       {
         text: [
-          `Katılımcı: ${session.participant_name} • Yaş: ${session.participant_age ?? "—"} • Profil: ${session.profile_key}\n`,
-          `Oturum: ${session.id} • ${new Date(session.created_at).toLocaleString("tr-TR")}\n`,
-          target ? `Hedef: ${symbolCaption(target.shape, target.color)}` : "Hedef kaydı yok",
-          `\nÖzet: ${stats.total} basış · ${stats.correct} isabet · ${stats.late} geç · ${stats.falseAlarm} yanlış simge · ${stats.multi} çoklu · ${stats.idle} boş ekran`
+          { text: "Puan etkisi anahtarı: ", bold: true },
+          "A ok · T RT örneği = zamanında isabet (A kaçırma değil; T tutarlılık örneğine girer). ",
+          "T − = geç yanıt. I − = hedef dışı yanlış alarm. H − = boş ekran veya çoklu basış. ",
+          "A − (ihmal) = hedefe hiç basılmadı. "
         ],
-        margin: [0, 0, 0, 10]
+        fontSize: 7,
+        color: "#475569",
+        margin: [0, 0, 0, 6]
       },
-      sectionHead("Tüm Space basışları (kronolojik)", true),
+      {
+        text: [
+          { text: "Tempo: ", bold: true },
+          "gösterge = simgenin ekranda kalma süresi (ms). SOA = gösterge + boşluk (ardışık uyaran aralığı). ",
+          "yavaş / orta / hızlı = bölüm içi tempo etiketi."
+        ],
+        fontSize: 7,
+        color: "#475569",
+        margin: [0, 0, 0, 8]
+      },
+      sectionHead("Tüm Space basışları (kronolojik + tempo + puan)", true),
       {
         table: {
           headerRows: 1,
-          widths: [22, 44, 28, "*", 32, 38, 28, 32, "*"],
+          widths: [18, 36, 22, 70, 78, 70, 28, 20, 26, 48, 62],
           body: [
             [
               { text: "#", bold: true, color: "#fff" },
               { text: "Basış", bold: true, color: "#fff" },
               { text: "Den.", bold: true, color: "#fff" },
+              { text: "Bölüm", bold: true, color: "#fff" },
+              { text: "Tempo (gösterge hızı)", bold: true, color: "#fff" },
               { text: "Ekrandaki simge", bold: true, color: "#fff" },
               { text: "Hedef?", bold: true, color: "#fff" },
-              { text: "Yanlış?", bold: true, color: "#fff" },
               { text: "Sıra", bold: true, color: "#fff" },
               { text: "RT", bold: true, color: "#fff" },
-              { text: "Durum", bold: true, color: "#fff" }
+              { text: "Durum", bold: true, color: "#fff" },
+              { text: "Puan etkisi", bold: true, color: "#fff" }
             ],
-            ...(allPressRows.length ? allPressRows : [["—", "—", "—", "—", "—", "—", "—", "—", "—"]])
+            ...(allPressRows.length
+              ? allPressRows
+              : [["—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—"]])
           ]
         },
         layout: tableLayout(),
         margin: [0, 0, 0, 10]
       },
-      idlePresses.length
-        ? sectionHead(`Boş ekran basışları (${idlePresses.length})`)
-        : null,
+      idlePresses.length ? sectionHead(`Boş ekran basışları (${idlePresses.length})`) : null,
       idlePresses.length
         ? {
             table: {
               headerRows: 1,
-              widths: [22, 44, "*", "*"],
+              widths: [22, 44, "*", 90, "*"],
               body: [
                 [
                   { text: "#", bold: true, color: "#fff" },
                   { text: "Basış", bold: true, color: "#fff" },
                   { text: "Bölüm", bold: true, color: "#fff" },
-                  { text: "Durum", bold: true, color: "#fff" }
+                  { text: "Tempo", bold: true, color: "#fff" },
+                  { text: "Puan etkisi", bold: true, color: "#fff" }
                 ],
                 ...idlePresses.slice(0, 80).map((p) => [
                   String(p.pressIndex),
                   formatTestMs(p.atMs),
-                  p.section ? p.section.replace(/^[^—]+—\s*/, "") : "—",
-                  pressStatusLabel(p, lateMs)
+                  p.tempo?.shortSection || (p.section ? String(p.section).replace(/^[^—]+—\s*/, "") : "—"),
+                  formatTempoCell(p.tempo),
+                  pressScoreImpact(p, lateMs)
                 ])
               ]
             },
@@ -151,54 +200,58 @@ export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
             margin: [0, 0, 0, 10]
           }
         : null,
-      wrongRows.length
-        ? sectionHead(`Yanlış simgede basışlar (${wrongPresses.length})`)
-        : null,
+      wrongRows.length ? sectionHead(`Yanlış simgede basışlar (${wrongPresses.length})`) : null,
       wrongRows.length
         ? {
             table: {
               headerRows: 1,
-              widths: [22, 44, 28, "*", 32, "*"],
+              widths: [20, 40, 24, 80, "*", 28, 48, 62],
               body: [
                 [
                   { text: "#", bold: true, color: "#fff" },
                   { text: "Basış", bold: true, color: "#fff" },
                   { text: "Den.", bold: true, color: "#fff" },
+                  { text: "Tempo", bold: true, color: "#fff" },
                   { text: "Gösterilen simge", bold: true, color: "#fff" },
                   { text: "RT", bold: true, color: "#fff" },
-                  { text: "Durum", bold: true, color: "#fff" }
+                  { text: "Durum", bold: true, color: "#fff" },
+                  { text: "Puan etkisi", bold: true, color: "#fff" }
                 ],
                 ...wrongRows
               ]
             },
-            layout: tableLayout("#7c2d12"),
+            layout: tableLayout(),
             margin: [0, 0, 0, 10]
           }
         : null,
-      sectionHead("Hedef denemeleri — tüm basışlar", wrongRows.length > 0 || allPressRows.length > 80),
+      sectionHead("Hedef denemeleri — tempo + tüm basışlar + puan", true),
       {
         table: {
           headerRows: 1,
-          widths: [28, 44, "*", 44, 24, 32, "*"],
+          widths: [24, 40, 78, 70, 40, 22, 26, 48, 62],
           body: [
             [
               { text: "Den.", bold: true, color: "#fff" },
               { text: "Onset", bold: true, color: "#fff" },
+              { text: "Tempo (gösterge)", bold: true, color: "#fff" },
               { text: "Hedef simge", bold: true, color: "#fff" },
               { text: "Basış", bold: true, color: "#fff" },
               { text: "Sıra", bold: true, color: "#fff" },
               { text: "RT", bold: true, color: "#fff" },
-              { text: "Durum", bold: true, color: "#fff" }
+              { text: "Durum", bold: true, color: "#fff" },
+              { text: "Puan etkisi", bold: true, color: "#fff" }
             ],
-            ...(targetDetailRows.length ? targetDetailRows : [["—", "—", "—", "—", "—", "—", "—"]])
+            ...(targetDetailRows.length
+              ? targetDetailRows
+              : [["—", "—", "—", "—", "—", "—", "—", "—", "—"]])
           ]
         },
         layout: tableLayout(),
         margin: [0, 0, 0, 8]
       },
-      presses.length > 350
+      presses.length > 400
         ? {
-            text: `Not: Kronoloji tablosu ilk 350 basış (${presses.length} toplam). Tam liste veritabanındadır.`,
+            text: `Not: Kronoloji tablosu ilk 400 basış (${presses.length} toplam). Tam liste veritabanındadır.`,
             fontSize: 7,
             color: "#64748b"
           }
@@ -219,15 +272,12 @@ export async function createAdminTimelinePdfBlob({ session, timeline, target }) 
   });
 }
 
-/** Yönetim ekranından doğrudan indirme */
 export async function downloadAdminTimelinePdf({ session, timeline, target }) {
   const blob = await createAdminTimelinePdfBlob({ session, timeline, target });
-  const name = session?.participant_name?.replace(/\s+/g, "_") ?? "katilimci";
-  const stamp = new Date(session?.created_at ?? Date.now()).toISOString().slice(0, 10);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `FocusProLab_Basis_${name}_${stamp}.pdf`;
+  a.download = `FocusProLab_${session?.participant_name || "oturum"}_basis-detay.pdf`;
   a.click();
   URL.revokeObjectURL(url);
 }

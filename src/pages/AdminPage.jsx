@@ -326,14 +326,7 @@ export default function AdminPage() {
   }
 
   async function downloadPressReportPdf(sessionRow) {
-    if (sessionRow.admin_pdf_path) {
-      await openStoredPdf(
-        sessionRow.admin_pdf_path,
-        `${sessionRow.id}-basis-open`,
-        `FocusProLab_${sessionRow.participant_name ?? "report"}-press.pdf`
-      );
-      return;
-    }
+    // Her zaman güncel detaylı basış PDF’i üret (tempo + puan etkisi); eski storage dosyasına güvenme
     const busyId = `${sessionRow.id}-basis`;
     setPdfBusy(busyId);
     setMsg("");
