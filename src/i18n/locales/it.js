@@ -613,6 +613,7 @@ export const it = {
     userPlaceholder: "Nome o e-mail",
     testPlaceholder: "Partecipante o esaminatore",
     participantPlaceholder: "Nome del partecipante",
+    clientPlaceholder: "Nome, e-mail o telefono",
     role: "Ruolo",
     profile: "Profilo",
     all: "Tutti",

@@ -613,6 +613,7 @@ export const en = {
     userPlaceholder: "Name or email",
     testPlaceholder: "Participant or examiner",
     participantPlaceholder: "Participant name",
+    clientPlaceholder: "Name, email, or phone",
     role: "Role",
     profile: "Profile",
     all: "All",

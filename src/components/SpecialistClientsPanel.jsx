@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
+import { profileLabel } from "../i18n/index.js";
+import { includesText, inDateRange } from "../lib/listFilters.js";
 import { ageFromBirthDate, profileKeyFromAge } from "../profiles.js";
 import { createClient, deleteClient, fetchMyClients, updateClient, updateClientEmail } from "../services/clients.js";
 import { createTestInvite, parseRpcError, sendTestInviteEmail } from "../services/invites.js";
+import { RecordFilters } from "./RecordFilters.jsx";
 import { Alert, Button, Card, CardHeader, DataTable, EmptyState, Field, Input, Select, Stack, Textarea } from "./ui.jsx";
 
 const EMPTY = {
@@ -48,10 +51,35 @@ export function SpecialistClientsPanel() {
   const [sendingId, setSendingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [emailPrompt, setEmailPrompt] = useState(null);
+  const [listQuery, setListQuery] = useState("");
+  const [listProfile, setListProfile] = useState("");
+  const [listFrom, setListFrom] = useState("");
+  const [listTo, setListTo] = useState("");
 
   const load = useCallback(async () => {
     setClients(await fetchMyClients());
   }, []);
+
+  const profileOptions = useMemo(
+    () => ["child", "teen", "adult"].map((key) => ({ value: key, label: profileLabel(key, locale) })),
+    [locale]
+  );
+
+  const filteredClients = useMemo(() => {
+    return clients.filter((client) => {
+      if (!includesText(listQuery, client.full_name, client.email, client.phone, client.address, client.notes)) {
+        return false;
+      }
+      if (listProfile) {
+        const age = ageFromBirthDate(client.birth_date);
+        if (age == null || profileKeyFromAge(age) !== listProfile) return false;
+      }
+      if (!inDateRange(client.created_at, listFrom, listTo)) return false;
+      return true;
+    });
+  }, [clients, listQuery, listProfile, listFrom, listTo]);
+
+  const listFiltered = Boolean(listQuery.trim() || listProfile || listFrom || listTo);
 
   useEffect(() => {
     load().catch((e) => {
@@ -370,59 +398,92 @@ export function SpecialistClientsPanel() {
       <div style={{ marginTop: 20 }}>
         {!clients.length && <EmptyState title={t("clients.listEmpty")} description={t("clients.listEmptyDesc")} />}
         {clients.length > 0 && (
-          <DataTable
-            columns={[
-              { key: "full_name", label: t("clients.name") },
-              {
-                key: "email",
-                label: t("clients.email"),
-                render: (client) => client.email || "—"
-              },
-              {
-                key: "phone",
-                label: t("clients.phone"),
-                render: (client) => client.phone || "—"
-              },
-              { key: "birth_date", label: t("clients.birth") },
-              {
-                label: "",
-                render: (client) => (
-                  <Stack wrap gap={6}>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      disabled={editBusy || sendingId === client.id || deletingId === client.id}
-                      onClick={() => openEdit(client)}
-                    >
-                      {t("clients.edit")}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      disabled={sendingId === client.id || credits < 1 || deletingId === client.id}
-                      onClick={() => sendTest(client)}
-                    >
-                      {sendingId === client.id ? t("common.wait") : t("clients.sendTest")}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="danger"
-                      disabled={deletingId === client.id || sendingId === client.id || editBusy}
-                      onClick={() => removeClient(client)}
-                    >
-                      {deletingId === client.id ? t("common.wait") : t("common.delete")}
-                    </Button>
-                  </Stack>
-                )
+          <>
+            <RecordFilters
+              t={t}
+              query={listQuery}
+              onQuery={setListQuery}
+              queryPlaceholder={t("filters.clientPlaceholder")}
+              profile={listProfile}
+              onProfile={setListProfile}
+              profileOptions={profileOptions}
+              from={listFrom}
+              onFrom={setListFrom}
+              to={listTo}
+              onTo={setListTo}
+              active={listFiltered}
+              onClear={() => {
+                setListQuery("");
+                setListProfile("");
+                setListFrom("");
+                setListTo("");
+              }}
+              statusText={
+                listFiltered
+                  ? filteredClients.length
+                    ? t("filters.shown", { shown: filteredClients.length, total: clients.length })
+                    : t("filters.noMatch")
+                  : t("filters.shown", { shown: clients.length, total: clients.length })
               }
-            ]}
-            rows={clients}
-            rowKey={(client) => client.id}
-            activeKey={editId}
-          />
+            />
+            {filteredClients.length > 0 ? (
+              <DataTable
+                columns={[
+                  { key: "full_name", label: t("clients.name") },
+                  {
+                    key: "email",
+                    label: t("clients.email"),
+                    render: (client) => client.email || "—"
+                  },
+                  {
+                    key: "phone",
+                    label: t("clients.phone"),
+                    render: (client) => client.phone || "—"
+                  },
+                  { key: "birth_date", label: t("clients.birth") },
+                  {
+                    label: "",
+                    render: (client) => (
+                      <Stack wrap gap={6}>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          disabled={editBusy || sendingId === client.id || deletingId === client.id}
+                          onClick={() => openEdit(client)}
+                        >
+                          {t("clients.edit")}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          disabled={sendingId === client.id || credits < 1 || deletingId === client.id}
+                          onClick={() => sendTest(client)}
+                        >
+                          {sendingId === client.id ? t("common.wait") : t("clients.sendTest")}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          disabled={deletingId === client.id || sendingId === client.id || editBusy}
+                          onClick={() => removeClient(client)}
+                        >
+                          {deletingId === client.id ? t("common.wait") : t("common.delete")}
+                        </Button>
+                      </Stack>
+                    )
+                  }
+                ]}
+                rows={filteredClients}
+                rowKey={(client) => client.id}
+                activeKey={editId}
+              />
+            ) : (
+              <EmptyState title={t("filters.noMatch")} description={t("clients.searchNoMatch")} />
+            )}
+          </>
         )}
       </div>
     </Card>

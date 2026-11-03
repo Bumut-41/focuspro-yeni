@@ -616,6 +616,7 @@ export const tr = {
     userPlaceholder: "Ad veya e-posta",
     testPlaceholder: "Katılımcı veya uygulayan",
     participantPlaceholder: "Katılımcı adı",
+    clientPlaceholder: "Ad, e-posta veya telefon",
     role: "Rol",
     profile: "Profil",
     all: "Tümü",
