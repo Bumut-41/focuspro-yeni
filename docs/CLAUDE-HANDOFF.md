@@ -10,14 +10,50 @@
 
 ---
 
-## 0. Claude’ye ilk talimat (kopyala-yapıştır)
+## 0. Cursor DIŞI Claude’ye nasıl verilir?
+
+Bu proje artık Cursor’a bağlı değil; **Claude uygulaması / Claude Code** ile geliştirilecek.
+
+### A) Claude Code (bilgisayarda klasörle kod yazar — önerilen)
+
+1. Claude Code’u kur / aç.  
+2. Çalışma klasörü olarak bu proje kökünü ver:  
+   `…/FocusPro-yeni`  
+3. Claude otomatik `CLAUDE.md` okur; sen de ilk mesajda de:  
+   `docs/CLAUDE-HANDOFF.md dosyasını oku, sonra …`  
+4. Kod, git, terminal burada çalışır. Cursor gerekmez.
+
+### B) Claude.ai Project (sohbet + bilgi yükleme)
+
+1. [claude.ai](https://claude.ai) → **Projects** → yeni proje: `FocusProLab`.  
+2. **Project knowledge**’a şunları yükle (en azından):  
+   - `CLAUDE.md`  
+   - `AGENTS.md`  
+   - `docs/CLAUDE-HANDOFF.md`  
+   - İstersen tüm `src/` ve `supabase/` (mümkünse zip / çoklu dosya)  
+3. İlk mesaj:
 
 ```
-Bu repo FocusProLab. Önce docs/CLAUDE-HANDOFF.md ve AGENTS.md oku.
+Sen FocusProLab’ın tek geliştiricisisin. Yüklenen HANDOFF ve CLAUDE.md kurallarına uy.
+Kod değişikliklerini net diff / tam dosya içeriği olarak ver; ben bilgisayardaki repoya uygulayacağım.
+Görev: …
+```
+
+Not: Sadece sohbet kullanıyorsan Claude dosyaları senin diske yazmaz; çıktıyı sen kaydedersin. Kod yazdırıp kaydettirmek için **Claude Code (A)** daha doğru.
+
+### C) GitHub
+
+Repo: GitHub `main` (Vercel buradan deploy eder). Claude Code ile `git push` yapabilirsin; Claude.ai ile sen push edersin.
+
+### İlk talimat (her iki yol)
+
+```
+Bu repo FocusProLab. Önce CLAUDE.md + docs/CLAUDE-HANDOFF.md + AGENTS.md oku.
 Kırılgan kurallar: testQaMode bayraklarını canlıda açma; V4 ağırlıklarını / A-I-H ayrımını izinsiz değiştirme;
 genel RT N ≠ faz RT toplamını “bug” sanıp düzeltme (dilim IQR beklenen);
 faz section isimlerini rastgele değiştirme; complete_test_session overload çoğaltma.
-Değişiklikten önce ilgili dosyayı ve HANDOFF’taki “Nereye müdahale” tablosunu kullan.
+Değişiklikten önce HANDOFF’taki “Nereye müdahale” tablosunu kullan.
+Görev: …
 ```
 
 ---
