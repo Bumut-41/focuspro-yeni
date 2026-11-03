@@ -493,6 +493,17 @@ export const it = {
     userDeleted: "{{name}} eliminato.",
     invitesNav: "Inviti al test",
     clientsNav: "Clienti",
+    fourCore: {
+      nav: "4 Analisi di base",
+      title: "4 Analisi di base ({{count}})",
+      desc: "Attenzione, tempismo, impulso, controllo motorio e punteggio generale di tutti i test.",
+      attention: "Attenzione",
+      timing: "Tempismo",
+      impulse: "Impulso",
+      motor: "Controllo motorio",
+      overall: "Generale",
+      empty: "Nessuna sessione di test."
+    },
     algorithmAuditNav: "Verifica algoritmo",
     invitesTitle: "Inviti al test ({{count}})",
     invitesDesc:

@@ -493,6 +493,17 @@ export const en = {
     userDeleted: "{{name}} deleted.",
     invitesNav: "Test invitations",
     clientsNav: "Clients",
+    fourCore: {
+      nav: "4 Core Analyses",
+      title: "4 Core Analyses ({{count}})",
+      desc: "Attention, timing, impulse, motor control and overall scores for every test to date.",
+      attention: "Attention",
+      timing: "Timing",
+      impulse: "Impulse",
+      motor: "Motor control",
+      overall: "Overall",
+      empty: "No test sessions yet."
+    },
     algorithmAuditNav: "Algorithm audit",
     invitesTitle: "Test invitations ({{count}})",
     invitesDesc:

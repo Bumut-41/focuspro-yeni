@@ -496,6 +496,17 @@ export const tr = {
     userDeleted: "{{name}} silindi.",
     invitesNav: "Test davetleri",
     clientsNav: "Danışanlar",
+    fourCore: {
+      nav: "4 Temel Analiz",
+      title: "4 Temel Analiz ({{count}})",
+      desc: "Bugüne kadar yapılan tüm testlerin dikkat, zamanlama, dürtü, motor kontrol ve genel skorları.",
+      attention: "Dikkat",
+      timing: "Zamanlama",
+      impulse: "Dürtü",
+      motor: "Motor kontrol",
+      overall: "Genel",
+      empty: "Henüz test kaydı yok."
+    },
     algorithmAuditNav: "Algoritma doğrulama",
     invitesTitle: "Test davetleri ({{count}})",
     invitesDesc:

@@ -54,6 +54,7 @@ import {
 import { AdminInvitesPanel } from "../components/AdminInvitesPanel.jsx";
 import { AlgorithmAuditPanel } from "../components/AlgorithmAuditPanel.jsx";
 import { AdminClientsPanel } from "../components/AdminClientsPanel.jsx";
+import { FourCoreAnalysisPanel } from "../components/FourCoreAnalysisPanel.jsx";
 import { ReportRefreshPanel } from "../components/ReportRefreshPanel.jsx";
 import { RecordFilters } from "../components/RecordFilters.jsx";
 import { SpecialistApplicationDetail } from "../components/SpecialistApplicationDetail.jsx";
@@ -488,6 +489,7 @@ export default function AdminPage() {
     "/admin/kullanicilar",
     "/admin/davetler",
     "/admin/testler",
+    "/admin/4-temel-analiz",
     "/admin/algoritma-dogrulama",
     ...(isSuperAdmin ? ["/admin/promosyon", "/admin/danisanlar"] : [])
   ]);
@@ -571,6 +573,7 @@ export default function AdminPage() {
             <Link to="/admin/kullanicilar">{t("admin.usersTitle", { count: filteredUsers.length })}</Link>
             <Link to="/admin/davetler">{t("admin.invitesNav")}</Link>
             <Link to="/admin/testler">{t("admin.sessionsTitle", { count: filteredSessions.length })}</Link>
+            <Link to="/admin/4-temel-analiz">{t("admin.fourCore.nav")}</Link>
             <Link to="/admin/algoritma-dogrulama">{t("admin.algorithmAuditNav")}</Link>
             {isSuperAdmin ? (
               <>
@@ -1396,6 +1399,8 @@ export default function AdminPage() {
       {section === "/admin/davetler" && <AdminInvitesPanel />}
 
       {section === "/admin/danisanlar" && isSuperAdmin && <AdminClientsPanel />}
+
+      {section === "/admin/4-temel-analiz" && <FourCoreAnalysisPanel sessions={sessions} />}
 
         {section === "/admin/algoritma-dogrulama" && (
           <>
