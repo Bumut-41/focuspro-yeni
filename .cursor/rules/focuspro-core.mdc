@@ -1,0 +1,29 @@
+---
+description: FocusProLab always-on product and safety rules for any AI agent
+alwaysApply: true
+---
+
+# FocusProLab core
+
+Before non-trivial work, read `docs/CLAUDE-HANDOFF.md` and `AGENTS.md`.
+
+## Product facts
+
+- SPA: Vite + React; backend Supabase; deploy Vercel from `main`.
+- User-facing scores and PDFs use **V4** (`ACTIVE_REPORT_SCORING_VERSION` in `src/scoringVersion.js`). V1–V3 remain for research/compare only.
+- Four indices: **A** attention (omissions), **T** timing (stability + late; mean RT speed not scored in V3/V4), **I** impulsivity (false alarms), **H** motor (multi + idle only).
+
+## Never without explicit human approval
+
+- Turning on any flag in `src/testQaMode.js` for a production deploy.
+- Changing V4 T/overall weights or reintroducing mean-RT speed into T.
+- Forcing overall included-RT N to equal sum of phase included-RT N (per-slice IQR is intentional; audit rule B).
+- Adding another `complete_test_session` RPC overload signature.
+- Emailing admin press-timeline PDFs to clients.
+
+## Change hygiene
+
+- Prefer the intervention table in `docs/CLAUDE-HANDOFF.md` §10 over hunting randomly.
+- Match existing patterns; keep TR/EN/IT PDF strings in sync when editing report copy.
+- Practice (`practiceRun`) must not persist sessions.
+- After score or PDF-copy changes that affect Storage attachments, plan a report refresh.

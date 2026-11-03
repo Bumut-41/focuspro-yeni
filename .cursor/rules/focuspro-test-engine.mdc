@@ -1,0 +1,31 @@
+---
+description: Test flow, profiles, distractors, and trial logging
+globs: src/pages/TestFlowPage.jsx,src/useAttentionTest.js,src/profiles.js,src/testQaMode.js,src/distractors/**/*,src/distractorSchedule.js,src/distractorTiming.js,src/random.js
+alwaysApply: false
+---
+
+# Test engine
+
+## Step order (`TestFlowPage`)
+
+`form` → `prep` → `spaceCheck` → `audioCheck` → `guide` → `countdown` → `practiceRun` → `brief` → `countdown` → `run` → `thanks`.
+
+- Psychologist `form`: search client, do not dump full list.
+- `practiceRun` uses `getPracticeProfile()` — never `saveTestSession`.
+- `run` → `onDone` → `computeReportMetrics` (V4) → `complete_test_session` + PDF persist.
+
+## Profiles (`profiles.js`)
+
+- `child` 13 min / late 1000; `teen` 15 / 900; `adult` 15 / 800.
+- Section labels are Turkish and consumed by `report/phaseBuckets.js`. Renaming breaks PDF phase charts and audit buckets.
+
+## Distractors
+
+- Schedules via `distractorSchedule.js` + `distractors/silent|combined`.
+- Keep GIF/sound caps consistent with existing engine comments.
+- `testQaMode.js` flags must stay `false` unless the human is doing a local QA session and will revert.
+
+## Logging
+
+- Trial logs + `pressTimeline` (idle for H). Do not drop timeline fields without updating H + audit.
+- Determinism: `random.js` seed/behavior affects reproducibility — change deliberately.

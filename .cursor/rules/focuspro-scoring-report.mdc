@@ -1,0 +1,29 @@
+---
+description: V4 scoring, PDF reports, and algorithm audit constraints
+globs: src/metrics*.js,src/scoringVersion.js,src/reportHelpers.js,src/pdfReport.js,src/report/**/*,src/reportCharts.js,src/i18n/reportPdf*.js,src/lib/algorithmAudit.js,src/lib/refreshStoredReports.js,src/components/AlgorithmAuditPanel.jsx,src/components/ReportRefreshPanel.jsx
+alwaysApply: false
+---
+
+# Scoring & report
+
+## Stack
+
+- Live path: `computeReportMetrics` → V4 (`metricsV4` ≈ V3 numbers).
+- T (V3/V4): `0.55×stability + 0.45×late`; IQR on on-time RTs per slice (N≥4, 1.5×IQR).
+- A/I/H from `metrics.js` behaviors; FA not in H; late not in A.
+
+## RT overall vs phases
+
+- Per-slice IQR ⇒ overall included N may ≠ sum of phase included N.
+- Audit **rule B** (`algorithmAudit.js`): IQR-only flips → PASS; unexpected/orphan → FAIL; no ledger → NOT_VERIFIED.
+- Do not redefine RT_FILTER to require equal counts.
+
+## PDF
+
+- Layout: `pdfReport.js`. Copy: `reportPdfStrings.js` / `reportPdfIt.js`.
+- T user-facing definition: consistency + on-time only (no V4 formula aside in clinical definition).
+- Stored email PDFs need refresh after copy/score changes (`refreshStoredReports` / admin panel / `npm run refresh-reports`).
+
+## Independent checks
+
+- Score calc / A/I/H independent audits are **separate** from `rt_filter` group — do not merge them back into RT_FILTER PASS conditions.
