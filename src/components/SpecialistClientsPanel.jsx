@@ -193,7 +193,8 @@ export function SpecialistClientsPanel() {
     try {
       const created = await createTestInvite(email, {
         clientId: client.id,
-        recipientName: client.full_name
+        recipientName: client.full_name,
+        recipientBirthDate: client.birth_date || null
       });
       await refreshProfile();
       try {

@@ -1,4 +1,5 @@
-import { ageFromBirthDate } from "../profiles.js";
+import { profileLabel } from "../i18n/index.js";
+import { ageFromBirthDate, profileKeyFromAge } from "../profiles.js";
 import { supabase } from "../lib/supabase.js";
 
 export async function getInviteByToken(token) {
@@ -19,19 +20,29 @@ export async function getActiveInviteForUser() {
   return data;
 }
 
-export async function createTestInvite(recipientEmail, { clientId = null, recipientName = null } = {}) {
+export async function createTestInvite(
+  recipientEmail,
+  { clientId = null, recipientName = null, recipientBirthDate = null } = {}
+) {
   const payload = {
     p_recipient_email: recipientEmail.trim().toLowerCase()
   };
   if (clientId) payload.p_client_id = clientId;
   if (recipientName) payload.p_recipient_name = String(recipientName).trim();
+  if (recipientBirthDate) payload.p_recipient_birth_date = recipientBirthDate;
 
   let { data, error } = await supabase.rpc("create_test_invite", payload);
-  // Eski RPC (yalnızca e-posta) hâlâ canlıdaysa geri düş
-  if (error && (clientId || recipientName)) {
-    const retry = await supabase.rpc("create_test_invite", {
-      p_recipient_email: payload.p_recipient_email
-    });
+  // Eski RPC imzalarına geri düş
+  if (error && (clientId || recipientName || recipientBirthDate)) {
+    const slim = { p_recipient_email: payload.p_recipient_email };
+    if (clientId) slim.p_client_id = clientId;
+    if (recipientName) slim.p_recipient_name = String(recipientName).trim();
+    let retry = await supabase.rpc("create_test_invite", slim);
+    if (retry.error) {
+      retry = await supabase.rpc("create_test_invite", {
+        p_recipient_email: payload.p_recipient_email
+      });
+    }
     data = retry.data;
     error = retry.error;
   }
@@ -40,7 +51,7 @@ export async function createTestInvite(recipientEmail, { clientId = null, recipi
 }
 
 const INVITE_SELECT =
-  "id, token, recipient_email, recipient_name, client_id, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
+  "id, token, recipient_email, recipient_name, recipient_birth_date, client_id, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
 
 function matchingInviteClients(invite, clients = []) {
   if (!clients?.length) return [];
@@ -71,14 +82,33 @@ export function inviteClientLabel(invite, clients = []) {
   return names.join(" / ");
 }
 
-/** Danışan yaşı (doğum tarihinden). */
-export function inviteClientAge(invite, clients = []) {
+/** Davet / danışan doğum tarihi. */
+export function inviteClientBirthDate(invite, clients = []) {
+  if (invite?.recipient_birth_date) return invite.recipient_birth_date;
   const matches = matchingInviteClients(invite, clients);
   for (const c of matches) {
-    const age = ageFromBirthDate(c.birth_date);
-    if (age != null) return age;
+    if (c.birth_date) return c.birth_date;
   }
   return null;
+}
+
+/** Danışan yaşı (doğum tarihinden). */
+export function inviteClientAge(invite, clients = []) {
+  return ageFromBirthDate(inviteClientBirthDate(invite, clients));
+}
+
+/**
+ * Liste hücresi: "Yetişkin (42)" / "Ergen (15)" / "Çocuk (10)".
+ * Yaş yoksa yalnızca bant; veri yoksa "".
+ */
+export function inviteClientAgeLabel(invite, clients = [], locale = "tr") {
+  const age = inviteClientAge(invite, clients);
+  if (age == null) return "";
+  const band = profileLabel(profileKeyFromAge(age), locale);
+  // "Yetişkin (18+)" → kısa bant + sayı
+  const short =
+    locale === "en" ? band.replace(/\s*\(.*\)$/, "") : band.replace(/\s*\(.*\)$/, "");
+  return `${short} (${age})`;
 }
 
 export async function fetchMyInvites(limit = 50) {
@@ -87,14 +117,23 @@ export async function fetchMyInvites(limit = 50) {
     .select(INVITE_SELECT)
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (error && /recipient_name|client_id/i.test(error.message || "")) {
-    const legacy =
-      "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
-    const retry = await supabase
+  if (error && /recipient_name|recipient_birth_date|client_id/i.test(error.message || "")) {
+    const mid =
+      "id, token, recipient_email, recipient_name, client_id, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
+    let retry = await supabase
       .from("test_invites")
-      .select(legacy)
+      .select(mid)
       .order("created_at", { ascending: false })
       .limit(limit);
+    if (retry.error && /recipient_name|client_id/i.test(retry.error.message || "")) {
+      const legacy =
+        "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
+      retry = await supabase
+        .from("test_invites")
+        .select(legacy)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+    }
     data = retry.data;
     error = retry.error;
   }
@@ -110,15 +149,23 @@ export async function fetchAllInvites(limit = 100) {
     .select(withPsych)
     .order("created_at", { ascending: false })
     .limit(limit);
-  // recipient_name / client_id sütunu henüz yoksa eski select
-  if (error && /recipient_name|client_id/i.test(error.message || "")) {
-    const legacy =
-      "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id, psychologist:profiles!test_invites_psychologist_id_fkey(full_name)";
-    const retry = await supabase
+  // Yeni sütunlar henüz yoksa kademeli geri düş
+  if (error && /recipient_name|recipient_birth_date|client_id/i.test(error.message || "")) {
+    const mid = `${INVITE_SELECT.replace(", recipient_birth_date", "")}, psychologist:profiles!test_invites_psychologist_id_fkey(full_name)`;
+    let retry = await supabase
       .from("test_invites")
-      .select(legacy)
+      .select(mid)
       .order("created_at", { ascending: false })
       .limit(limit);
+    if (retry.error && /recipient_name|client_id/i.test(retry.error.message || "")) {
+      const legacy =
+        "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id, psychologist:profiles!test_invites_psychologist_id_fkey(full_name)";
+      retry = await supabase
+        .from("test_invites")
+        .select(legacy)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+    }
     data = retry.data;
     error = retry.error;
   }

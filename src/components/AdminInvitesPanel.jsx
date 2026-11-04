@@ -8,7 +8,7 @@ import {
 import { fetchAllClientsForAdmin } from "../services/clients.js";
 import {
   fetchAllInvites,
-  inviteClientAge,
+  inviteClientAgeLabel,
   inviteClientLabel,
   parseRpcError,
   sendTestInviteEmail
@@ -99,10 +99,7 @@ export function AdminInvitesPanel() {
             },
             {
               label: t("invite.colAge"),
-              render: (row) => {
-                const age = inviteClientAge(row, clients);
-                return age != null ? String(age) : "—";
-              }
+              render: (row) => inviteClientAgeLabel(row, clients, locale) || "—"
             },
             { key: "recipient_email", label: t("invite.colEmail") },
             {
