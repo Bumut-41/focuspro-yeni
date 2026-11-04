@@ -8,8 +8,8 @@ import {
 import { fetchAllClientsForAdmin } from "../services/clients.js";
 import {
   fetchAllInvites,
-  inviteClientAgeLabel,
   inviteClientLabel,
+  inviteClientProfileLabel,
   parseRpcError,
   sendTestInviteEmail
 } from "../services/invites.js";
@@ -98,8 +98,8 @@ export function AdminInvitesPanel() {
               render: (row) => inviteClientLabel(row, clients) || "—"
             },
             {
-              label: t("invite.colAge"),
-              render: (row) => inviteClientAgeLabel(row, clients, locale) || "—"
+              label: t("dashboard.profile"),
+              render: (row) => inviteClientProfileLabel(row, clients, locale) || "—"
             },
             { key: "recipient_email", label: t("invite.colEmail") },
             {

@@ -98,17 +98,18 @@ export function inviteClientAge(invite, clients = []) {
 }
 
 /**
- * Liste hücresi: "Yetişkin (42)" / "Ergen (15)" / "Çocuk (10)".
- * Yaş yoksa yalnızca bant; veri yoksa "".
+ * Liste hücresi — geçmiş testlerdeki Profil ile aynı:
+ * "Yetişkin (18+)" / "Ergen (13–17)" / "Çocuk (6–12)".
  */
-export function inviteClientAgeLabel(invite, clients = [], locale = "tr") {
+export function inviteClientProfileLabel(invite, clients = [], locale = "tr") {
   const age = inviteClientAge(invite, clients);
   if (age == null) return "";
-  const band = profileLabel(profileKeyFromAge(age), locale);
-  // "Yetişkin (18+)" → kısa bant + sayı
-  const short =
-    locale === "en" ? band.replace(/\s*\(.*\)$/, "") : band.replace(/\s*\(.*\)$/, "");
-  return `${short} (${age})`;
+  return profileLabel(profileKeyFromAge(age), locale);
+}
+
+/** @deprecated use inviteClientProfileLabel */
+export function inviteClientAgeLabel(invite, clients = [], locale = "tr") {
+  return inviteClientProfileLabel(invite, clients, locale);
 }
 
 export async function fetchMyInvites(limit = 50) {
