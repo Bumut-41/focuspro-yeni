@@ -138,14 +138,10 @@ export default function DashboardPage() {
   }
 
   async function downloadPressReport(session) {
+    // Her zaman güncel detaylı basış PDF (tempo + puan); eski Storage dosyasını açma
     setPdfBusy(`${session.id}-press`);
     setMsg("");
     try {
-      if (session.admin_pdf_path) {
-        const url = await getReportPdfSignedUrl(session.admin_pdf_path);
-        await downloadPdfFromUrl(url, `FocusProLab_${session.participant_name ?? "report"}-press.pdf`);
-        return;
-      }
       const [detail, timeline] = await Promise.all([
         fetchSessionDetail(session.id),
         fetchAdminPressTimeline(session.id)

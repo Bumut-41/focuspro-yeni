@@ -64,7 +64,7 @@ export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
 
   const targetDetailRows = [];
   for (const t of targetTrials.slice(0, 150)) {
-    const tempo = phaseTempoForSection(profile, t.section);
+    const tempo = phaseTempoForSection(profile, t.section, t.onsetMs);
     const trialPresses = pressesForTrial(presses, t.trialNumber);
     if (!trialPresses.length) {
       targetDetailRows.push([
