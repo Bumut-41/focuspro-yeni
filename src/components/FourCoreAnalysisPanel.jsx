@@ -47,6 +47,7 @@ export function FourCoreAnalysisPanel({ sessions = [] }) {
       "focusprolab-4-temel-analiz",
       [
         t("clients.name"),
+        t("admin.age"),
         t("admin.fourCore.attention"),
         t("admin.fourCore.timing"),
         t("admin.fourCore.impulse"),
@@ -59,6 +60,7 @@ export function FourCoreAnalysisPanel({ sessions = [] }) {
         const m = s.metrics || {};
         return [
           s.participant_name || "",
+          cell(s.participant_age),
           cell(scoreOf(m, "attentionScore")),
           cell(scoreOf(m, "speedScore")),
           cell(scoreOf(m, "impulseScore")),
@@ -120,6 +122,11 @@ export function FourCoreAnalysisPanel({ sessions = [] }) {
               key: "participant_name",
               label: t("clients.name"),
               render: (s) => s.participant_name || "—"
+            },
+            {
+              key: "participant_age",
+              label: t("admin.age"),
+              render: (s) => cell(s.participant_age)
             },
             {
               key: "attention",
