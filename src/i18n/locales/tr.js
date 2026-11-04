@@ -226,6 +226,7 @@ export const tr = {
     noInvitesDesc: "İlk davetinizi yukarıdan gönderin.",
     colDate: "Tarih",
     colClient: "Danışan",
+    colAge: "Yaş",
     colEmail: "E-posta",
     colStatus: "Durum",
     colEmailDelivery: "Davet e-postası",

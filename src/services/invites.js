@@ -1,3 +1,4 @@
+import { ageFromBirthDate } from "../profiles.js";
 import { supabase } from "../lib/supabase.js";
 
 export async function getInviteByToken(token) {
@@ -41,24 +42,43 @@ export async function createTestInvite(recipientEmail, { clientId = null, recipi
 const INVITE_SELECT =
   "id, token, recipient_email, recipient_name, client_id, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
 
-/** Davet satırında gösterilecek danışan adı (kayıtlı ad veya e-posta eşleşmesi). */
-export function inviteClientLabel(invite, clients = []) {
-  const stored = String(invite?.recipient_name || "").trim();
-  if (stored) return stored;
+function matchingInviteClients(invite, clients = []) {
+  if (!clients?.length) return [];
+  if (invite?.client_id) {
+    const byId = clients.filter((c) => c.id === invite.client_id);
+    if (byId.length) return byId;
+  }
   const email = String(invite?.recipient_email || "")
     .trim()
     .toLowerCase();
-  if (!email || !clients?.length) return "";
-  const matches = clients.filter((c) => {
+  if (!email) return [];
+  return clients.filter((c) => {
     if (String(c.email || "").toLowerCase() !== email) return false;
     if (invite?.psychologist_id && c.specialist_id && c.specialist_id !== invite.psychologist_id) {
       return false;
     }
     return true;
   });
+}
+
+/** Davet satırında gösterilecek danışan adı (kayıtlı ad veya e-posta eşleşmesi). */
+export function inviteClientLabel(invite, clients = []) {
+  const stored = String(invite?.recipient_name || "").trim();
+  if (stored) return stored;
+  const matches = matchingInviteClients(invite, clients);
   if (!matches.length) return "";
   const names = [...new Set(matches.map((c) => String(c.full_name || "").trim()).filter(Boolean))];
   return names.join(" / ");
+}
+
+/** Danışan yaşı (doğum tarihinden). */
+export function inviteClientAge(invite, clients = []) {
+  const matches = matchingInviteClients(invite, clients);
+  for (const c of matches) {
+    const age = ageFromBirthDate(c.birth_date);
+    if (age != null) return age;
+  }
+  return null;
 }
 
 export async function fetchMyInvites(limit = 50) {

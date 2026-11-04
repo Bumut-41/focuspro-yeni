@@ -227,6 +227,7 @@ export const it = {
     noInvitesDesc: "Invia il primo invito dal modulo sopra.",
     colDate: "Data",
     colClient: "Cliente",
+    colAge: "Età",
     colEmail: "E-mail",
     colStatus: "Stato",
     colEmailDelivery: "E-mail di invito",

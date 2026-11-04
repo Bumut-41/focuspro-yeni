@@ -10,6 +10,7 @@ import { fetchMyClients } from "../services/clients.js";
 import {
   createTestInvite,
   fetchMyInvites,
+  inviteClientAge,
   inviteClientLabel,
   parseRpcError,
   sendTestInviteEmail
@@ -147,6 +148,13 @@ export function PsychologistInvitesPanel() {
               {
                 label: t("invite.colClient"),
                 render: (row) => inviteClientLabel(row, clients) || "—"
+              },
+              {
+                label: t("invite.colAge"),
+                render: (row) => {
+                  const age = inviteClientAge(row, clients);
+                  return age != null ? String(age) : "—";
+                }
               },
               { key: "recipient_email", label: t("invite.colEmail") },
               {
