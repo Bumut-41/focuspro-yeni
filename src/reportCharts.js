@@ -29,6 +29,7 @@ const COMBINED_COLORS = {
 
 function indexMeta(locale = "tr") {
   const r = getStrings(locale).report;
+  // Kurumsal PDF: tek tip daire nokta; ayrım renk + çizgi stiliyle (dönen kare / üçgen yok)
   return {
     attention: {
       title: r.attention.replace(/^A — /, ""),
@@ -41,21 +42,21 @@ function indexMeta(locale = "tr") {
       title: r.timing.replace(/^T — /, ""),
       field: "timing",
       color: "#0d9488",
-      pointStyle: "rect",
+      pointStyle: "circle",
       borderDash: [8, 4]
     },
     impulsivity: {
       title: r.impulsivity.replace(/^I — /, ""),
       field: "impulsivity",
       color: "#dc2626",
-      pointStyle: "rectRot",
+      pointStyle: "circle",
       borderDash: [4, 4]
     },
     hyperactivity: {
       title: r.hyperactivity.replace(/^H — /, ""),
       field: "hyperactivity",
-      color: "#d97706",
-      pointStyle: "triangle",
+      color: "#b45309",
+      pointStyle: "circle",
       borderDash: [6, 3]
     }
   };
@@ -366,10 +367,12 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
           data: userData,
           borderColor: meta.color,
           backgroundColor: meta.color,
-          borderWidth: 3,
+          borderWidth: 2.5,
           borderDash: meta.borderDash,
-          pointRadius: 6,
-          pointStyle: meta.pointStyle,
+          pointRadius: 5,
+          pointHoverRadius: 5,
+          pointStyle: "circle",
+          pointBorderWidth: 0,
           fill: false,
           tension: 0.35
         }
@@ -388,7 +391,17 @@ export function renderIndexPhaseChart(phaseRows, profileKey, indexKey, locale = 
         legend: {
           display: overallScore != null,
           position: "bottom",
-          labels: { boxWidth: 10, font: { size: 10 }, padding: 12, filter: (item) => item.datasetIndex === 3 }
+          align: "center",
+          labels: {
+            usePointStyle: true,
+            pointStyle: "circle",
+            boxWidth: 8,
+            boxHeight: 8,
+            padding: 14,
+            color: "#334155",
+            font: { size: 10, weight: "500", family: "Helvetica, Arial, sans-serif" },
+            filter: (item) => item.datasetIndex === 3
+          }
         },
         title: { display: false }
       }
@@ -414,9 +427,10 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
       borderWidth: 2.5,
       pointRadius: 5,
       pointStyle: "circle",
+      pointBorderWidth: 0,
       pointHoverRadius: 5,
       tension: 0.3,
-      borderDash: key === "timing" ? [6, 4] : key === "impulsivity" ? [3, 3] : []
+      borderDash: meta.borderDash || []
     };
   });
 
@@ -434,13 +448,15 @@ export function renderCombinedPhaseChart(phaseSeries, profileKey, locale = "tr")
           legend: {
             display: true,
             position: "bottom",
+            align: "center",
             labels: {
               usePointStyle: true,
               pointStyle: "circle",
-              boxWidth: 10,
-              boxHeight: 10,
-              padding: 10,
-              font: { size: 9 }
+              boxWidth: 8,
+              boxHeight: 8,
+              padding: 12,
+              color: "#334155",
+              font: { size: 9, weight: "500", family: "Helvetica, Arial, sans-serif" }
             }
           },
           title: {
