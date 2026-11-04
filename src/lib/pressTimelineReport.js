@@ -116,41 +116,163 @@ export function formatTempoCell(tempo) {
 }
 
 /**
- * Bu basışın V4 skoruna etkisi (hangi endeks / nasıl).
- * Ortalama hız T’de puanlanmaz; geç → T, FA → I, multi/idle → H, isabet → A korur + T RT örneği.
+ * Bu basışın V4 skoruna etkisi — endeks + net açıklama.
+ * A ← ihmal; T ← geç (+ stabilite/CV); I ← FA; H ← idle/multi.
+ * Ortalama hız T’de puanlanmaz.
  */
-export function pressScoreImpact(p, lateMs) {
-  if (!p) return "—";
-  if (p.errorType === "idle") return "H − (boş ekran)";
-  if (p.errorType === "false_alarm") return "I − (yanlış alarm)";
+export function pressScoreImpactInfo(p, lateMs) {
+  if (!p) return { endeks: "—", hurts: false, impact: "—", reason: "—" };
+  if (p.errorType === "idle") {
+    return { endeks: "H", hurts: true, impact: "H düşürür", reason: "boş ekran basışı" };
+  }
+  if (p.errorType === "false_alarm") {
+    return { endeks: "I", hurts: true, impact: "I düşürür", reason: "yanlış alarm (hedef dışı)" };
+  }
   if (p.errorType === "multi") {
-    if (p.isWrongSymbol) return "H − (yanlışta tekrar)";
-    return "H − (çoklu basış)";
+    if (p.isWrongSymbol) {
+      return { endeks: "H", hurts: true, impact: "H düşürür", reason: "yanlışta tekrar basış" };
+    }
+    return { endeks: "H", hurts: true, impact: "H düşürür", reason: "çoklu basış" };
   }
-  if (p.errorType === "late") return "T − (geç yanıt)";
+  if (p.errorType === "late") {
+    return { endeks: "T", hurts: true, impact: "T düşürür", reason: "geç yanıt" };
+  }
   if (p.errorType === "none" && p.isCorrectHit) {
-    if (lateMs != null && p.reactionMs != null && p.reactionMs > lateMs) return "T − (geç yanıt)";
-    return "A ok · T RT örneği";
+    if (lateMs != null && p.reactionMs != null && p.reactionMs > lateMs) {
+      return { endeks: "T", hurts: true, impact: "T düşürür", reason: "geç yanıt" };
+    }
+    return {
+      endeks: "A · T",
+      hurts: false,
+      impact: "düşürmez",
+      reason: "A korunur; T RT örneğine girer"
+    };
   }
-  return "—";
+  return { endeks: "—", hurts: false, impact: "—", reason: "—" };
+}
+
+/** Kısa tek satır (eski çağrılar / dar sütun). */
+export function pressScoreImpact(p, lateMs) {
+  const info = pressScoreImpactInfo(p, lateMs);
+  if (info.endeks === "—") return "—";
+  if (info.hurts) return `${info.impact} — ${info.reason}`;
+  return `${info.endeks}: ${info.reason}`;
+}
+
+/** Hedef denemesine hiç basılmadı → A ihmal. */
+export function omissionImpactInfo() {
+  return { endeks: "A", hurts: true, impact: "A düşürür", reason: "ihmal (hedefe basılmadı)" };
+}
+
+/**
+ * A/T/I/H — skoru nerede düşüren olaylar + kayıtlı skor.
+ * logs: ihmal (A) için hedef denemeleri.
+ */
+export function buildAtihImpactSummary(presses, logs = [], metrics = {}, lateMs = 800) {
+  const list = presses ?? [];
+  // A ihmali: skor motoruyla aynı — hedef denemede responded=false
+  const omissions = (logs ?? [])
+    .filter((t) => t.isTarget && !t.responded)
+    .map((t) => ({
+      trialNumber: t.trialNumber,
+      atMs: t.onsetMs,
+      section: t.section,
+      ...omissionImpactInfo()
+    }));
+
+  const by = { A: [...omissions], T: [], I: [], H: [] };
+  for (const p of list) {
+    const info = pressScoreImpactInfo(p, lateMs);
+    if (!info.hurts) continue;
+    const key = info.endeks.includes("T") ? "T" : info.endeks.includes("I") ? "I" : info.endeks.includes("H") ? "H" : info.endeks.includes("A") ? "A" : null;
+    if (!key || !by[key]) continue;
+    by[key].push({
+      pressIndex: p.pressIndex,
+      trialNumber: p.trialNumber,
+      atMs: p.atMs,
+      section: p.section || p.tempo?.shortSection,
+      reactionMs: p.reactionMs,
+      ...info
+    });
+  }
+
+  const score = (k) => {
+    const map = {
+      A: metrics.attentionScore,
+      T: metrics.speedScore,
+      I: metrics.impulseScore,
+      H: metrics.consistencyScore
+    };
+    const v = map[k];
+    if (v == null || Number.isNaN(Number(v))) return null;
+    return Math.round(Number(v));
+  };
+
+  const rows = [
+    {
+      key: "A",
+      name: "A — Dikkat",
+      score: score("A"),
+      events: by.A,
+      note:
+        by.A.length === 0
+          ? "İhmal yok; dikkat puanı korunmuş."
+          : `${by.A.length} ihmal — hedefe basılmayan denemeler A’yı düşürür.`
+    },
+    {
+      key: "T",
+      name: "T — Zamanlama",
+      score: score("T"),
+      events: by.T,
+      note:
+        by.T.length === 0
+          ? "Geç yanıt yok; T düşüşü varsa RT değişkenliğinden (stabilite/CV) gelir — ortalama hız puanlanmaz."
+          : `${by.T.length} geç yanıt T’yi düşürür; ayrıca RT değişkenliği (stabilite) etkiler.`
+    },
+    {
+      key: "I",
+      name: "I — Dürtüsellik",
+      score: score("I"),
+      events: by.I,
+      note:
+        by.I.length === 0
+          ? "Yanlış alarm yok; dürtü puanı korunmuş."
+          : `${by.I.length} yanlış alarm (hedef dışı basış) I’yi düşürür.`
+    },
+    {
+      key: "H",
+      name: "H — Motor kontrol",
+      score: score("H"),
+      events: by.H,
+      note:
+        by.H.length === 0
+          ? "Boş ekran / çoklu basış yok; motor puanı korunmuş."
+          : `${by.H.length} motor olay (boş ekran veya çoklu basış) H’yi düşürür.`
+    }
+  ];
+
+  return { rows, overall: metrics.overallScore != null ? Math.round(Number(metrics.overallScore)) : null };
 }
 
 export function enrichPressList(presses, profile = null) {
   return (presses ?? []).map((p, i) => {
     const tempo = phaseTempoForSection(profile, p.section, p.atMs);
+    const impactInfo = pressScoreImpactInfo(p, profile?.lateResponseMs);
     return {
       ...p,
       pressIndex: p.pressIndex ?? i + 1,
       tempo,
+      impactInfo,
       scoreImpact: pressScoreImpact(p, profile?.lateResponseMs)
     };
   });
 }
 
-/** PDF / tablo satırı — detaylı (tempo + puan etkisi). */
+/** PDF / tablo satırı — detaylı (tempo + endeks + puan etkisi). */
 export function pressToDetailedTableRow(p, lateMs) {
   const sym = p.onScreen ?? (p.shownShape ? { shape: p.shownShape, color: p.shownColor } : null);
   const tempo = p.tempo || null;
+  const info = p.impactInfo || pressScoreImpactInfo(p, lateMs);
   return [
     String(p.pressIndex ?? "—"),
     formatTestMs(p.atMs),
@@ -162,7 +284,8 @@ export function pressToDetailedTableRow(p, lateMs) {
     p.pressInTrial != null ? String(p.pressInTrial) : "—",
     p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—",
     pressStatusLabel(p, lateMs),
-    p.scoreImpact || pressScoreImpact(p, lateMs)
+    info.endeks,
+    info.hurts ? `${info.impact} — ${info.reason}` : info.reason
   ];
 }
 
