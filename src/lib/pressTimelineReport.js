@@ -142,10 +142,10 @@ export function pressScoreImpactInfo(p, lateMs) {
       return { endeks: "T", hurts: true, impact: "T düşürür", reason: "geç yanıt" };
     }
     return {
-      endeks: "A · T",
+      endeks: "—",
       hurts: false,
-      impact: "düşürmez",
-      reason: "A korunur; T RT örneğine girer"
+      impact: "Skoru düşürmez",
+      reason: "Zamanında isabet (kaçırma / geç / yanlış alarm değil)"
     };
   }
   return { endeks: "—", hurts: false, impact: "—", reason: "—" };
@@ -154,9 +154,9 @@ export function pressScoreImpactInfo(p, lateMs) {
 /** Kısa tek satır (eski çağrılar / dar sütun). */
 export function pressScoreImpact(p, lateMs) {
   const info = pressScoreImpactInfo(p, lateMs);
-  if (info.endeks === "—") return "—";
+  if (!info || (info.impact === "—" && info.reason === "—")) return "—";
   if (info.hurts) return `${info.impact} — ${info.reason}`;
-  return `${info.endeks}: ${info.reason}`;
+  return `${info.impact} — ${info.reason}`;
 }
 
 /** Hedef denemesine hiç basılmadı → A ihmal. */
@@ -285,7 +285,7 @@ export function pressToDetailedTableRow(p, lateMs) {
     p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—",
     pressStatusLabel(p, lateMs),
     info.endeks,
-    info.hurts ? `${info.impact} — ${info.reason}` : info.reason
+    `${info.impact} — ${info.reason}`
   ];
 }
 

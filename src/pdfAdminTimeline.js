@@ -145,7 +145,7 @@ export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
         p.reactionMs != null ? String(Math.round(p.reactionMs)) : "—",
         pressStatusLabel(p, lateMs),
         info.endeks,
-        info.hurts ? `${info.impact} — ${info.reason}` : info.reason
+        `${info.impact} — ${info.reason}`
       ]);
     });
   }
@@ -202,9 +202,9 @@ export function buildAdminTimelineDocDefinition({ session, timeline, target }) {
       {
         text: [
           { text: "Anahtar: ", bold: true },
-          "A = ihmal (kaçırma). T = geç yanıt + RT değişkenliği (ortalama hız puanlanmaz). ",
-          "I = yanlış alarm. H = boş ekran veya çoklu basış. ",
-          "Zamanında isabet skoru düşürmez (A korunur; T RT örneğine girer)."
+          "A düşer: hedefe hiç basılmama (kaçırma). T düşer: geç yanıt ve tepki sürelerinin düzensizliği (ortalama hız puan değil). ",
+          "I düşer: hedef dışı basış. H düşer: boş ekranda basış veya aynı denemede fazla basış. ",
+          "Zamanında isabet hiçbir endeksi düşürmez."
         ],
         fontSize: 7,
         color: "#475569",

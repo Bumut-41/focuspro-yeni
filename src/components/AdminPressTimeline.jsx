@@ -188,8 +188,8 @@ export function AdminPressTimeline({
 
       <p style={{ fontSize: 12, color: "#64748b", marginTop: 0 }}>
         <strong>Tempo:</strong> gösterge = simgenin ekranda kalma süresi (ms); SOA = gösterge + boşluk.{" "}
-        <strong>Puan etkisi:</strong> A ok · T RT = zamanında isabet; T − = geç; I − = yanlış alarm; H − = boş/çoklu; A − =
-        ihmal (hedefe basılmadı).
+        <strong>Puan etkisi:</strong> zamanında isabet skoru düşürmez; geç → T; yanlış alarm → I; boş/çoklu → H; ihmal
+        (hedefe basılmama) → A.
       </p>
 
       <h4 style={{ marginBottom: 8 }}>Tüm Space basışları (kronolojik)</h4>
