@@ -191,7 +191,10 @@ export function SpecialistClientsPanel() {
     setSendingId(client.id);
     setMsg("");
     try {
-      const created = await createTestInvite(email);
+      const created = await createTestInvite(email, {
+        clientId: client.id,
+        recipientName: client.full_name
+      });
       await refreshProfile();
       try {
         await sendTestInviteEmail({ inviteId: created.id, locale });

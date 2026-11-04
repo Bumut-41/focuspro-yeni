@@ -225,6 +225,7 @@ export const en = {
     noInvites: "No invitations yet.",
     noInvitesDesc: "Send your first invitation above.",
     colDate: "Date",
+    colClient: "Client",
     colEmail: "Email",
     colStatus: "Status",
     colEmailDelivery: "Invite email",

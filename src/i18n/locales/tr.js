@@ -225,6 +225,7 @@ export const tr = {
     noInvites: "Henüz davet yok.",
     noInvitesDesc: "İlk davetinizi yukarıdan gönderin.",
     colDate: "Tarih",
+    colClient: "Danışan",
     colEmail: "E-posta",
     colStatus: "Durum",
     colEmailDelivery: "Davet e-postası",

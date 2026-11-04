@@ -5,8 +5,10 @@ import {
   formatInviteEmailStatus,
   inviteEmailStatusColor
 } from "../lib/inviteEmailStatus.js";
+import { fetchAllClientsForAdmin } from "../services/clients.js";
 import {
   fetchAllInvites,
+  inviteClientLabel,
   parseRpcError,
   sendTestInviteEmail
 } from "../services/invites.js";
@@ -21,6 +23,7 @@ function statusVariant(status) {
 export function AdminInvitesPanel() {
   const { t, dateLocale, locale } = useLocale();
   const [invites, setInvites] = useState([]);
+  const [clients, setClients] = useState([]);
   const [msg, setMsg] = useState("");
   const [msgVariant, setMsgVariant] = useState("error");
   const [resendBusy, setResendBusy] = useState(null);
@@ -28,7 +31,12 @@ export function AdminInvitesPanel() {
 
   const loadInvites = useCallback(async () => {
     try {
-      setInvites(await fetchAllInvites(200));
+      const [inviteRows, clientRows] = await Promise.all([
+        fetchAllInvites(200),
+        fetchAllClientsForAdmin({ limit: 1000 }).catch(() => [])
+      ]);
+      setInvites(inviteRows);
+      setClients(clientRows);
     } catch (e) {
       setMsgVariant("error");
       setMsg(e.message);
@@ -83,6 +91,10 @@ export function AdminInvitesPanel() {
             {
               label: t("admin.invitesPsychologist"),
               render: (row) => row.psychologist?.full_name || row.psychologist_id?.slice(0, 8) || "—"
+            },
+            {
+              label: t("invite.colClient"),
+              render: (row) => inviteClientLabel(row, clients) || "—"
             },
             { key: "recipient_email", label: t("invite.colEmail") },
             {

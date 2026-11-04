@@ -18,41 +18,96 @@ export async function getActiveInviteForUser() {
   return data;
 }
 
-export async function createTestInvite(recipientEmail) {
-  const { data, error } = await supabase.rpc("create_test_invite", {
+export async function createTestInvite(recipientEmail, { clientId = null, recipientName = null } = {}) {
+  const payload = {
     p_recipient_email: recipientEmail.trim().toLowerCase()
-  });
+  };
+  if (clientId) payload.p_client_id = clientId;
+  if (recipientName) payload.p_recipient_name = String(recipientName).trim();
+
+  let { data, error } = await supabase.rpc("create_test_invite", payload);
+  // Eski RPC (yalnızca e-posta) hâlâ canlıdaysa geri düş
+  if (error && (clientId || recipientName)) {
+    const retry = await supabase.rpc("create_test_invite", {
+      p_recipient_email: payload.p_recipient_email
+    });
+    data = retry.data;
+    error = retry.error;
+  }
   if (error) throw error;
   return data;
 }
 
 const INVITE_SELECT =
-  "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
+  "id, token, recipient_email, recipient_name, client_id, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
+
+/** Davet satırında gösterilecek danışan adı (kayıtlı ad veya e-posta eşleşmesi). */
+export function inviteClientLabel(invite, clients = []) {
+  const stored = String(invite?.recipient_name || "").trim();
+  if (stored) return stored;
+  const email = String(invite?.recipient_email || "")
+    .trim()
+    .toLowerCase();
+  if (!email || !clients?.length) return "";
+  const matches = clients.filter((c) => {
+    if (String(c.email || "").toLowerCase() !== email) return false;
+    if (invite?.psychologist_id && c.specialist_id && c.specialist_id !== invite.psychologist_id) {
+      return false;
+    }
+    return true;
+  });
+  if (!matches.length) return "";
+  const names = [...new Set(matches.map((c) => String(c.full_name || "").trim()).filter(Boolean))];
+  return names.join(" / ");
+}
 
 export async function fetchMyInvites(limit = 50) {
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("test_invites")
     .select(INVITE_SELECT)
     .order("created_at", { ascending: false })
     .limit(limit);
+  if (error && /recipient_name|client_id/i.test(error.message || "")) {
+    const legacy =
+      "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id";
+    const retry = await supabase
+      .from("test_invites")
+      .select(legacy)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    data = retry.data;
+    error = retry.error;
+  }
   if (error) throw error;
   return data ?? [];
 }
 
 /** Admin: tüm psikolog davetleri (e-posta durumu dahil). */
 export async function fetchAllInvites(limit = 100) {
-  const { data, error } = await supabase
+  const withPsych = `${INVITE_SELECT}, psychologist:profiles!test_invites_psychologist_id_fkey(full_name)`;
+  let { data, error } = await supabase
     .from("test_invites")
-    .select(
-      `${INVITE_SELECT}, psychologist:profiles!test_invites_psychologist_id_fkey(full_name)`
-    )
+    .select(withPsych)
     .order("created_at", { ascending: false })
     .limit(limit);
+  // recipient_name / client_id sütunu henüz yoksa eski select
+  if (error && /recipient_name|client_id/i.test(error.message || "")) {
+    const legacy =
+      "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id, psychologist:profiles!test_invites_psychologist_id_fkey(full_name)";
+    const retry = await supabase
+      .from("test_invites")
+      .select(legacy)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    data = retry.data;
+    error = retry.error;
+  }
   if (error) {
-    // FK alias yoksa düz sorgu
     const fallback = await supabase
       .from("test_invites")
-      .select(INVITE_SELECT)
+      .select(
+        "id, token, recipient_email, status, expires_at, created_at, completed_at, session_id, psychologist_id, invite_email_status, invite_email_sent_at, invite_email_error_code, invite_email_error_detail, invite_email_provider_id"
+      )
       .order("created_at", { ascending: false })
       .limit(limit);
     if (fallback.error) throw fallback.error;

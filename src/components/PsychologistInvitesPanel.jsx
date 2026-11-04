@@ -6,9 +6,11 @@ import {
   formatInviteEmailStatus,
   inviteEmailStatusColor
 } from "../lib/inviteEmailStatus.js";
+import { fetchMyClients } from "../services/clients.js";
 import {
   createTestInvite,
   fetchMyInvites,
+  inviteClientLabel,
   parseRpcError,
   sendTestInviteEmail
 } from "../services/invites.js";
@@ -31,6 +33,7 @@ export function PsychologistInvitesPanel() {
   const { t, dateLocale, locale } = useLocale();
   const [email, setEmail] = useState("");
   const [invites, setInvites] = useState([]);
+  const [clients, setClients] = useState([]);
   const [msg, setMsg] = useState("");
   const [msgVariant, setMsgVariant] = useState("error");
   const [busy, setBusy] = useState(false);
@@ -38,7 +41,12 @@ export function PsychologistInvitesPanel() {
 
   const loadInvites = useCallback(async () => {
     try {
-      setInvites(await fetchMyInvites());
+      const [inviteRows, clientRows] = await Promise.all([
+        fetchMyInvites(),
+        fetchMyClients().catch(() => [])
+      ]);
+      setInvites(inviteRows);
+      setClients(clientRows);
     } catch (e) {
       setMsgVariant("error");
       setMsg(e.message);
@@ -135,6 +143,10 @@ export function PsychologistInvitesPanel() {
               {
                 label: t("invite.colDate"),
                 render: (row) => new Date(row.created_at).toLocaleString(dateLocale)
+              },
+              {
+                label: t("invite.colClient"),
+                render: (row) => inviteClientLabel(row, clients) || "—"
               },
               { key: "recipient_email", label: t("invite.colEmail") },
               {
