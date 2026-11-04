@@ -5,7 +5,7 @@ import { useLocale } from "../i18n/LocaleContext.jsx";
 import { supabase } from "../lib/supabase.js";
 import { ageFromBirthDate } from "../profiles.js";
 import { getStoredInviteToken, setStoredInviteToken } from "../lib/inviteStorage.js";
-import { getInviteByToken } from "../services/invites.js";
+import { acceptTestInvite, getInviteByToken } from "../services/invites.js";
 import { authErrorMessage } from "../lib/authErrors.js";
 import { BrandLogo } from "../components/BrandLogo.jsx";
 import { OAuthButtons } from "../components/OAuthButtons.jsx";
@@ -111,6 +111,13 @@ export default function RegisterPage() {
         return;
       }
 
+      if (inviteToken) {
+        try {
+          await acceptTestInvite(inviteToken);
+        } catch {
+          /* TestFlow / get_active_invite_for_user tekrar dener */
+        }
+      }
       navigate(inviteToken ? "/test" : "/panel", { replace: true });
     } catch (err) {
       setMsg(authErrorMessage(err, t));

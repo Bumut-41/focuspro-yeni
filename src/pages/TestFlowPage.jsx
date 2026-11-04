@@ -122,22 +122,23 @@ export default function TestFlowPage() {
               const message = acceptError?.message || "";
               if (message.includes("invite_already_used") || message.includes("test_already_completed")) {
                 clearStoredInviteToken();
-                if (tokenFromUrl && !cancelled) setInviteUsed(true);
-              } else if (tokenFromUrl && !cancelled) {
-                // Yeni davet kabul edilemezse sessizce geçme — kullanıcıya göster
+                if (!cancelled) setInviteUsed(true);
+              } else if (!cancelled) {
+                // Token URL veya depodan gelsin — hatayı gizleme
                 setInviteError(parseRpcError(acceptError, t));
               }
             }
           }
+          // Token olmasa bile e-postadaki bekleyen daveti bağlar (SQL fix-invite-claim-by-email)
           const active = await getActiveInviteForUser().catch(() => null);
           if (cancelled) return;
-          // Önce yeni kabul edilen davet; eski RPC "completed:true" yeni daveti engellemesin
           const resolvedId =
             acceptedInviteId || (active?.id && !active.completed ? active.id : null);
           if (resolvedId) {
             setInviteId(resolvedId);
             setIsInviteFlow(true);
             setInviteUsed(false);
+            setInviteError("");
           }
           setInviteReady(true);
       } catch (e) {
@@ -554,12 +555,26 @@ export default function TestFlowPage() {
     );
   }
 
-  if (inviteUsed) {
+  if (inviteUsed && !isInviteFlow) {
     return (
       <Page narrow>
         <Card>
           <h2 className="fp-card-title">{t("invite.usedTitle")}</h2>
           <p className="fp-card-desc">{t("invite.usedBody")}</p>
+          <Button asLink to="/panel" variant="secondary" style={{ marginTop: 16 }}>
+            {t("common.backToPanel")}
+          </Button>
+        </Card>
+      </Page>
+    );
+  }
+
+  // Davet hatasını "kredi yok" ekranının önüne koy
+  if (inviteError && !inviteId) {
+    return (
+      <Page narrow>
+        <Card>
+          <Alert variant="error">{inviteError}</Alert>
           <Button asLink to="/panel" variant="secondary" style={{ marginTop: 16 }}>
             {t("common.backToPanel")}
           </Button>
@@ -583,20 +598,6 @@ export default function TestFlowPage() {
             style={{ marginTop: 16 }}
           >
             {t("nav.buyTest")}
-          </Button>
-        </Card>
-      </Page>
-    );
-  }
-
-  const inviteTokenInUrl = searchParams.get("invite") || searchParams.get("davet") || getStoredInviteToken();
-  if (inviteTokenInUrl && inviteError && !inviteId) {
-    return (
-      <Page narrow>
-        <Card>
-          <Alert variant="error">{inviteError}</Alert>
-          <Button asLink to="/" variant="secondary" style={{ marginTop: 16 }}>
-            {t("invite.backHome")}
           </Button>
         </Card>
       </Page>

@@ -5,7 +5,7 @@ import { profileLabel } from "../i18n/index.js";
 import { roleLabel } from "../lib/userRoles.js";
 import { fetchAdminPressTimeline, fetchMySessions, fetchSessionDetail, getReportPdfSignedUrl } from "../services/sessions.js";
 import { fetchMyClients } from "../services/clients.js";
-import { fetchMyInvites } from "../services/invites.js";
+import { fetchMyInvites, getActiveInviteForUser } from "../services/invites.js";
 import {
   downloadParticipantReportFromSession,
   downloadPressReportFromSession,
@@ -51,6 +51,7 @@ export default function DashboardPage() {
   const [sessions, setSessions] = useState([]);
   const [clients, setClients] = useState([]);
   const [invites, setInvites] = useState([]);
+  const [activeInvite, setActiveInvite] = useState(null);
   const [msg, setMsg] = useState("");
   const [pdfBusy, setPdfBusy] = useState(null);
   const [testQuery, setTestQuery] = useState("");
@@ -202,6 +203,25 @@ export default function DashboardPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (profile?.role !== "individual") {
+      setActiveInvite(null);
+      return;
+    }
+    let cancelled = false;
+    getActiveInviteForUser()
+      .then((inv) => {
+        if (!cancelled) setActiveInvite(inv?.id ? inv : null);
+      })
+      .catch(() => {
+        if (!cancelled) setActiveInvite(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.role, profile?.id]);
+
+  const hasInviteTest = Boolean(activeInvite?.id);
   const testsFiltered = Boolean(testQuery.trim() || testProfile || testFrom || testTo);
   const filteredSessions = useMemo(
     () =>
@@ -236,23 +256,39 @@ export default function DashboardPage() {
           </p>
         )}
         <Stack gap={12} style={{ marginTop: 20 }}>
-          {profile?.role === "individual" || profile?.role === "psychologist" ? (
+          {profile?.role === "individual" && hasInviteTest ? (
+            <>
+              <Alert variant="success">{t("dashboard.inviteReady")}</Alert>
+              <Button asLink to="/test" variant="primary">
+                {t("dashboard.startInviteTest")}
+              </Button>
+            </>
+          ) : null}
+          {(profile?.role === "individual" || profile?.role === "psychologist") && !hasInviteTest ? (
             <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--fp-text-secondary)" }}>
               {t("purchase.credits", { count: credits })}
             </p>
           ) : null}
-          {(profile?.role === "individual" || profile?.role === "psychologist") && credits < 1 ? (
+          {!hasInviteTest &&
+          (profile?.role === "individual" || profile?.role === "psychologist") &&
+          credits < 1 ? (
             <>
               <Alert variant="info">{t("dashboard.noTestCredits")}</Alert>
-              <Button asLink to={profile?.role === "psychologist" ? "/uzman-test-satin-al" : "/test-satin-al"} variant="primary">
+              <Button
+                asLink
+                to={profile?.role === "psychologist" ? "/uzman-test-satin-al" : "/test-satin-al"}
+                variant="primary"
+              >
                 {t("nav.buyTest")}
               </Button>
             </>
-          ) : (
+          ) : null}
+          {!hasInviteTest &&
+          !((profile?.role === "individual" || profile?.role === "psychologist") && credits < 1) ? (
             <Button asLink to="/test" variant="primary">
               {isPsychologist ? t("clients.startTest") : t("dashboard.newTest")}
             </Button>
-          )}
+          ) : null}
           {isAdmin && (
             <Button asLink to="/admin" variant="secondary">
               {t("dashboard.adminPanel")}

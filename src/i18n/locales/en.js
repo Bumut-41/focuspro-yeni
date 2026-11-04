@@ -162,6 +162,8 @@ export const en = {
       "Only test reports for clients you added appear here. After generating the report, use «Email the report» to send it.",
     guideHint: "A 30-second practice briefing is shown before the real test. Practice answers are not scored.",
     newTest: "Start new test",
+    inviteReady: "Your specialist invited you to a test. You do not need to buy credits — you can start the test.",
+    startInviteTest: "Start invited test",
     noTestCreditsTitle: "You have no tests left",
     noTestCredits: "Each completed test uses 1 test from your balance. Buy a test to continue.",
     adminPanel: "Admin panel",

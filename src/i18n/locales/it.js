@@ -162,6 +162,9 @@ export const it = {
       "Qui compaiono solo i report dei clienti che hai aggiunto. Dopo aver generato il report, usa «Invia il report via e-mail».",
     guideHint: "Prima del test vero compare la prova di 30 secondi. Le risposte della prova non entrano nel punteggio.",
     newTest: "Avvia un nuovo test",
+    inviteReady:
+      "Il tuo specialista ti ha invitato a un test. Non serve acquistare crediti: puoi iniziare il test.",
+    startInviteTest: "Inizia il test invitato",
     noTestCreditsTitle: "Non hai più test",
     noTestCredits: "Ogni test completato scala 1 test dal saldo. Acquista un test per continuare.",
     adminPanel: "Pannello admin",

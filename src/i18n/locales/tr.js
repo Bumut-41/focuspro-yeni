@@ -162,6 +162,8 @@ export const tr = {
       "Yalnızca sizin eklediğiniz danışanların test raporları burada görünür. Raporu oluşturduktan sonra «Raporu e-posta olarak gönder» ile iletebilirsiniz.",
     guideHint: "Asıl testten önce 30 saniyelik deneme yönergesi gösterilir. Deneme puanı değerlendirmeye girmez.",
     newTest: "Yeni test başlat",
+    inviteReady: "Uzmanınız size bir test daveti gönderdi. Kredi satın almanıza gerek yok — teste başlayabilirsiniz.",
+    startInviteTest: "Davetli teste başla",
     noTestCreditsTitle: "Test hakkınız kalmadı",
     noTestCredits: "Her tamamlanan test, bakiyenizden 1 test düşer. Devam etmek için test satın alın.",
     adminPanel: "Yönetim paneli",
