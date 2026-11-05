@@ -1326,6 +1326,73 @@ a:hover {
   line-height: 1.5;
 }
 
+.test-shape-examples {
+  margin: 16px 0;
+}
+
+.test-shape-examples-title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--fp-text);
+}
+
+.test-shape-examples-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.test-shape-example {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 12px;
+  border-radius: var(--fp-radius-lg);
+  text-align: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.test-shape-example--do {
+  border-color: var(--fp-success-border, #86efac);
+  background: var(--fp-success-bg, #f0fdf4);
+}
+
+.test-shape-example--dont {
+  border-color: var(--fp-danger-border, #fca5a5);
+  background: var(--fp-danger-bg, #fef2f2);
+}
+
+.test-shape-example-badge {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.test-shape-example-badge--do {
+  color: var(--fp-success, #16a34a);
+}
+
+.test-shape-example-badge--dont {
+  color: var(--fp-danger, #dc2626);
+}
+
+.test-shape-example-caption {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--fp-text-secondary);
+}
+
+@media (max-width: 520px) {
+  .test-shape-examples-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .test-participant-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -15,6 +15,7 @@ import { useAttentionTest } from "../useAttentionTest.js";
 import { useTouchTest } from "../useTouchTest.js";
 import { DistractorGif } from "../components/DistractorGif.jsx";
 import { TestParticipantGuide } from "../components/TestParticipantGuide.jsx";
+import { TargetExamplePair } from "../components/TargetExamplePair.jsx";
 import { clearStoredInviteToken, getStoredInviteToken } from "../lib/inviteStorage.js";
 import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../services/invites.js";
 import { fetchMyClients } from "../services/clients.js";
@@ -744,11 +745,7 @@ export default function TestFlowPage() {
       )}
 
       {step === "guide" && (
-        <TestParticipantGuide
-          onStartPractice={startPractice}
-          targetShape={target?.shape ?? "triangle"}
-          touchTest={touchTest}
-        />
+        <TestParticipantGuide onStartPractice={startPractice} touchTest={touchTest} />
       )}
 
       {step === "spaceCheck" && (
@@ -873,9 +870,16 @@ export default function TestFlowPage() {
           <p className="test-brief-kicker">{t("test.stepMain")}</p>
           <h2 className="test-brief-title">{instr.title}</h2>
           <div className="test-brief-instructions">
-            {instr.paragraphs.slice(0, 4).map((p) => (
+            {instr.paragraphs.map((p) => (
               <p key={p}>{p}</p>
             ))}
+            <TargetExamplePair
+              title={instr.exampleTitle}
+              pressLabel={instr.examplePress}
+              dontPressLabel={instr.exampleDontPress}
+              pressCaption={instr.examplePressCaption}
+              dontCaption={instr.exampleDontCaption}
+            />
             <p>{instr.briefExtra}</p>
             {DISTRACTOR_GIF_SECTIONS_QA && (
               <p className="test-brief-qa-hint" role="status">
@@ -883,9 +887,6 @@ export default function TestFlowPage() {
               </p>
             )}
             <p className="test-brief-instructions-emphasis">{instr.briefEmphasis}</p>
-          </div>
-          <div className="test-brief-shape">
-            <ShapeView shape={target.shape} color={target.color} size={90} />
           </div>
           <button type="button" onClick={beginTest} className="test-brief-start">
             {t("test.startTest")}

@@ -378,60 +378,76 @@ export const en = {
       "Temporary mode: silent GIF and silent+audio GIF sections only (~6 min). Audio-only, baseline, and closing disabled.",
     participantGuide: {
       brand: "FocusProLab Attention Test",
-      title: "30-second practice instructions",
+      title: "30-Second Practice Instructions",
       intro: "Let's do a short practice before the real assessment begins!",
       purpose: "This section is here so you can see how the test works and get used to it.",
       directive: "Instructions:",
-      shapes: "You will see different shapes on the screen.",
+      shapes: "You will see shapes in different colors, orientations, and appearances.",
+      exampleTitle: "Two shapes you must tell apart",
+      examplePress: "PRESS",
+      exampleDontPress: "DON'T PRESS",
+      examplePressCaption: "Upward solid blue triangle",
+      exampleDontCaption: "Downward solid blue triangle",
       rules: [
-        "Every time you see a solid, filled, upward-pointing blue triangle, press the space (SPACE) key as quickly and accurately as you can.",
-        "Do not press for hollow, dashed, rotated, dotted, or other-colored triangles — or any other shape.",
+        "Press the space (SPACE) key once only when you see an upward-pointing, fully filled blue triangle.",
+        "Do not press for a downward (inverted) blue triangle. Even if it is blue, it is not the target.",
+        "Do not press for hollow, dashed, dotted, rotated, or other-colored shapes either.",
         "Keep your attention on the center of the screen.",
         "Try to respond both quickly and accurately."
       ],
-      duration: "⏱️ Practice time: 30 seconds",
+      duration: "Practice time: 30 seconds",
       notScored: "Your responses in this section will not count toward your assessment score.",
       ready: "When you are ready, let's begin!",
-      note: "Note: After the practice you will be taken to the real test.",
+      note: "After the practice you will move on to the real assessment.",
       ruleTitle: "Your rule throughout the test",
-      rule: "Press SPACE once, quickly, only for the solid upward blue triangle.",
+      rule: "Press SPACE once only for the upward solid blue triangle. Do not press for any other shape.",
       startPractice: "START PRACTICE"
     },
     participantGuideTouch: {
       rules: [
-        "Every time you see a solid, filled, upward-pointing blue triangle, tap the screen once as quickly and accurately as you can.",
-        "Do not tap for hollow, dashed, rotated, dotted, or other-colored triangles — or any other shape.",
+        "Tap the screen once only when you see an upward-pointing, fully filled blue triangle.",
+        "Do not tap a downward (inverted) blue triangle. Even if it is blue, it is not the target.",
+        "Do not tap hollow, dashed, dotted, rotated, or other-colored shapes either.",
         "Keep your attention on the center of the screen.",
         "Try to respond both quickly and accurately."
       ],
-      rule: "Tap the screen once, quickly, only for the solid upward blue triangle."
+      examplePress: "TAP",
+      exampleDontPress: "DON'T TAP",
+      rule: "Tap once only for the upward solid blue triangle. Do not tap any other shape."
     },
     instructions: {
       title: "FocusProLab Attention Test Instructions",
       practiceBtn: "Click for practice test",
+      exampleTitle: "Two shapes you must tell apart",
+      examplePress: "PRESS",
+      exampleDontPress: "DON'T PRESS",
+      examplePressCaption: "Upward solid blue triangle",
+      exampleDontCaption: "Downward solid blue triangle",
       paragraphs: [
-        "In this test you will see different shapes on the screen.",
-        "Your task is to press the space bar once as quickly as you can each time you see a solid, filled, upward-pointing blue triangle.",
-        "Do not press for hollow, dashed, rotated, dotted, barred, or other-colored triangles — or any other shape.",
-        "For example, do not press for a blue square, green triangle, downward blue triangle, hollow blue triangle, star, or any other shape.",
-        "After these instructions you will do a 30-second practice run like the real test: distractor-free, then short silent GIF, audio-only, and combined sections. This practice is not recorded.",
-        "Remember: press the space bar once as quickly as you can only for the solid upward blue triangle."
+        "In this test you will see shapes in different colors and appearances.",
+        "Your task is to press the space (SPACE) key as quickly as possible, and only once, whenever you see an upward-pointing, fully filled blue triangle.",
+        "Attention! A downward (inverted) blue triangle may also appear. Do not press for that shape.",
+        "Do not press for hollow, dashed, dotted, rotated, or other-colored triangles either.",
+        "For example, do not press for a blue square, green triangle, inverted blue triangle, hollow blue triangle, star, or any other shape.",
+        "Keep your attention on the center of the screen throughout the test. Try to respond both quickly and accurately."
       ],
-      briefExtra: "When you are ready, you can start the main test.",
+      briefExtra: "When you are ready, you can start the test!",
       briefEmphasis:
-        "Remember: press the space bar once as quickly as you can only for the solid upward blue triangle"
+        "Remember: press SPACE once only when you see the upward solid blue triangle. Do not press for any other shape."
     },
     instructionsTouch: {
+      examplePress: "TAP",
+      exampleDontPress: "DON'T TAP",
       paragraphs: [
-        "In this test you will see different shapes on the screen.",
-        "Your task is to tap the screen once as quickly as you can each time you see a solid, filled, upward-pointing blue triangle.",
-        "Do not tap for hollow, dashed, rotated, dotted, barred, or other-colored triangles — or any other shape.",
-        "For example, do not tap for a blue square, green triangle, downward blue triangle, hollow blue triangle, star, or any other shape.",
-        "After these instructions you will do a 30-second practice run like the real test: distractor-free, then short silent GIF, audio-only, and combined sections. This practice is not recorded.",
-        "Remember: tap the screen once as quickly as you can only for the solid upward blue triangle."
+        "In this test you will see shapes in different colors and appearances.",
+        "Your task is to tap the screen as quickly as possible, and only once, whenever you see an upward-pointing, fully filled blue triangle.",
+        "Attention! A downward (inverted) blue triangle may also appear. Do not tap that shape.",
+        "Do not tap hollow, dashed, dotted, rotated, or other-colored triangles either.",
+        "For example, do not tap a blue square, green triangle, inverted blue triangle, hollow blue triangle, star, or any other shape.",
+        "Keep your attention on the center of the screen throughout the test. Try to respond both quickly and accurately."
       ],
       briefEmphasis:
-        "Remember: tap the screen once as quickly as you can only for the solid upward blue triangle"
+        "Remember: tap once only when you see the upward solid blue triangle. Do not tap any other shape."
     }
   },
   report: {
