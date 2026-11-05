@@ -385,8 +385,8 @@ export const tr = {
       directive: "Yönerge:",
       shapes: "Ekranda farklı şekiller göreceksiniz.",
       rules: [
-        "Mavi üçgeni her gördüğünüzde mümkün olduğunca hızlı ve doğru şekilde boşluk (SPACE) tuşuna basın.",
-        "Mavi üçgen dışındaki şekillerde hiçbir tuşa basmayın.",
+        "Yalnızca düz, dolu ve yukarı bakan mavi üçgeni her gördüğünüzde mümkün olduğunca hızlı ve doğru şekilde boşluk (SPACE) tuşuna basın.",
+        "İçi boş, kesik çizgili, dönmüş, noktalı veya başka renkli üçgenler dahil diğer tüm şekillerde basmayın.",
         "Dikkatinizi ekranın ortasına verin.",
         "Hem hızlı hem de doğru yanıt vermeye çalışın."
       ],
@@ -395,44 +395,44 @@ export const tr = {
       ready: "Hazırsanız başlayalım!",
       note: "Not: Deneme testinden sonra gerçek teste yönlendirileceksiniz.",
       ruleTitle: "Tüm test boyunca kuralın",
-      rule: "Yalnızca mavi üçgeni gördüğünde SPACE tuşuna bir kez ve hızlıca bas.",
+      rule: "Yalnızca düz dolu yukarı bakan mavi üçgende SPACE’e bir kez ve hızlıca bas.",
       startPractice: "DENEMEYİ BAŞLAT"
     },
     participantGuideTouch: {
       rules: [
-        "Mavi üçgeni her gördüğünüzde mümkün olduğunca hızlı ve doğru şekilde ekrana bir kez dokunun.",
-        "Mavi üçgen dışındaki şekillerde ekrana dokunmayın.",
+        "Yalnızca düz, dolu ve yukarı bakan mavi üçgeni her gördüğünüzde mümkün olduğunca hızlı ve doğru şekilde ekrana bir kez dokunun.",
+        "İçi boş, kesik çizgili, dönmüş, noktalı veya başka renkli üçgenler dahil diğer tüm şekillerde dokunmayın.",
         "Dikkatinizi ekranın ortasına verin.",
         "Hem hızlı hem de doğru yanıt vermeye çalışın."
       ],
-      rule: "Yalnızca mavi üçgeni gördüğünde ekrana bir kez ve hızlıca dokun."
+      rule: "Yalnızca düz dolu yukarı bakan mavi üçgende ekrana bir kez ve hızlıca dokun."
     },
     instructions: {
       title: "FocusProlab Dikkat Testi Yönergesi",
       practiceBtn: "Deneme testi için tıklayınız",
       paragraphs: [
         "Bu testte ekranda farklı şekiller göreceksin.",
-        "Senin görevin yalnızca mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmaktır.",
-        "Mavi üçgen dışında başka hiçbir şekli gördüğünde basma.",
-        "Örneğin; mavi kare, yeşil üçgen, kırmızı daire, siyah artı veya başka şekiller gördüğünde basma.",
+        "Senin görevin yalnızca düz, dolu ve yukarı bakan mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmaktır.",
+        "İçi boş, kesik çizgili, dönmüş, noktalı, çizgili veya başka renkli üçgenler dahil diğer hiçbir şekilde basma.",
+        "Örneğin; mavi kare, yeşil üçgen, aşağı bakan mavi üçgen, içi boş mavi üçgen, yıldız veya başka şekiller gördüğünde basma.",
         "Yönergeden sonra 30 saniyelik bir deneme yapacaksın; asıl testteki gibi sırayla çeldirici yok, sessiz gif, sadece ses ve kombine bölümler kısa süreyle gelir. Bu deneme kaydedilmez.",
-        "Unutma: Sadece mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmalısın."
+        "Unutma: Sadece düz dolu yukarı bakan mavi üçgende boşluk tuşuna en hızlı şekilde bir kez basmalısın."
       ],
       briefExtra: "Hazırsan asıl teste başlayabilirsin.",
       briefEmphasis:
-        "Unutma: Sadece mavi üçgeni her gördüğünde boşluk tuşuna en hızlı şekilde sadece bir kez basmalısın"
+        "Unutma: Sadece düz dolu yukarı bakan mavi üçgende boşluk tuşuna en hızlı şekilde bir kez basmalısın"
     },
     instructionsTouch: {
       paragraphs: [
         "Bu testte ekranda farklı şekiller göreceksin.",
-        "Senin görevin yalnızca mavi üçgeni her gördüğünde ekrana en hızlı şekilde sadece bir kez dokunmaktır.",
-        "Mavi üçgen dışında başka hiçbir şekli gördüğünde dokunma.",
-        "Örneğin; mavi kare, yeşil üçgen, kırmızı daire, siyah artı veya başka şekiller gördüğünde dokunma.",
+        "Senin görevin yalnızca düz, dolu ve yukarı bakan mavi üçgeni her gördüğünde ekrana en hızlı şekilde sadece bir kez dokunmaktır.",
+        "İçi boş, kesik çizgili, dönmüş, noktalı, çizgili veya başka renkli üçgenler dahil diğer hiçbir şekilde dokunma.",
+        "Örneğin; mavi kare, yeşil üçgen, aşağı bakan mavi üçgen, içi boş mavi üçgen, yıldız veya başka şekiller gördüğünde dokunma.",
         "Yönergeden sonra 30 saniyelik bir deneme yapacaksın; asıl testteki gibi sırayla çeldirici yok, sessiz gif, sadece ses ve kombine bölümler kısa süreyle gelir. Bu deneme kaydedilmez.",
-        "Unutma: Sadece mavi üçgeni her gördüğünde ekrana en hızlı şekilde sadece bir kez dokunmalısın."
+        "Unutma: Sadece düz dolu yukarı bakan mavi üçgende ekrana en hızlı şekilde bir kez dokunmalısın."
       ],
       briefEmphasis:
-        "Unutma: Sadece mavi üçgeni her gördüğünde ekrana en hızlı şekilde sadece bir kez dokunmalısın"
+        "Unutma: Sadece düz dolu yukarı bakan mavi üçgende ekrana en hızlı şekilde bir kez dokunmalısın"
     }
   },
   report: {

@@ -385,8 +385,8 @@ export const it = {
       directive: "Istruzioni:",
       shapes: "Vedrai forme diverse sullo schermo.",
       rules: [
-        "Ogni volta che vedi un triangolo blu, premi la barra spaziatrice (SPAZIO) il più rapidamente e correttamente possibile.",
-        "Non premere alcun tasto per le forme diverse dal triangolo blu.",
+        "Ogni volta che vedi un triangolo blu pieno, compatto e rivolto verso l'alto, premi la barra spaziatrice (SPAZIO) il più rapidamente e correttamente possibile.",
+        "Non premere per triangoli vuoti, tratteggiati, ruotati, punteggiati o di altro colore — né per qualsiasi altra forma.",
         "Tieni l'attenzione al centro dello schermo.",
         "Cerca di rispondere sia in fretta sia in modo corretto."
       ],
@@ -395,44 +395,44 @@ export const it = {
       ready: "Se sei pronto, iniziamo!",
       note: "Nota: dopo la prova verrai indirizzato al test vero.",
       ruleTitle: "La regola per tutto il test",
-      rule: "Premi SPAZIO una sola volta, rapidamente, solo quando vedi il triangolo blu.",
+      rule: "Premi SPAZIO una sola volta, rapidamente, solo per il triangolo blu pieno rivolto in alto.",
       startPractice: "INIZIA LA PROVA"
     },
     participantGuideTouch: {
       rules: [
-        "Ogni volta che vedi un triangolo blu, tocca lo schermo una volta, il più rapidamente e correttamente possibile.",
-        "Non toccare lo schermo per le forme diverse dal triangolo blu.",
+        "Ogni volta che vedi un triangolo blu pieno, compatto e rivolto verso l'alto, tocca lo schermo una volta, il più rapidamente e correttamente possibile.",
+        "Non toccare per triangoli vuoti, tratteggiati, ruotati, punteggiati o di altro colore — né per qualsiasi altra forma.",
         "Tieni l'attenzione al centro dello schermo.",
         "Cerca di rispondere sia in fretta sia in modo corretto."
       ],
-      rule: "Tocca lo schermo una sola volta, rapidamente, solo quando vedi il triangolo blu."
+      rule: "Tocca lo schermo una sola volta, rapidamente, solo per il triangolo blu pieno rivolto in alto."
     },
     instructions: {
       title: "Istruzioni del test di attenzione FocusProLab",
       practiceBtn: "Clicca per la prova",
       paragraphs: [
         "In questo test vedrai forme diverse sullo schermo.",
-        "Il tuo compito è premere la barra spaziatrice una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu.",
-        "Non premere per nessuna forma diversa dal triangolo blu.",
-        "Per esempio non premere per quadrato blu, triangolo verde, cerchio rosso, più nero o qualsiasi altra forma.",
+        "Il tuo compito è premere la barra spaziatrice una volta, il più rapidamente possibile, ogni volta che vedi un triangolo blu pieno, compatto e rivolto verso l'alto.",
+        "Non premere per triangoli vuoti, tratteggiati, ruotati, punteggiati, barrati o di altro colore — né per qualsiasi altra forma.",
+        "Per esempio non premere per quadrato blu, triangolo verde, triangolo blu rivolto in basso, triangolo blu vuoto, stella o qualsiasi altra forma.",
         "Dopo queste istruzioni farai una prova di 30 secondi simile al test vero: senza distrattori, poi brevi GIF silenziose, solo audio e sezioni combinate. Questa prova non viene registrata.",
-        "Ricorda: premi la barra spaziatrice una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu."
+        "Ricorda: premi la barra spaziatrice una volta, il più rapidamente possibile, solo per il triangolo blu pieno rivolto in alto."
       ],
       briefExtra: "Quando sei pronto puoi avviare il test principale.",
       briefEmphasis:
-        "Ricorda: premi la barra spaziatrice una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu"
+        "Ricorda: premi la barra spaziatrice una volta, il più rapidamente possibile, solo per il triangolo blu pieno rivolto in alto"
     },
     instructionsTouch: {
       paragraphs: [
         "In questo test vedrai forme diverse sullo schermo.",
-        "Il tuo compito è toccare lo schermo una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu.",
-        "Non toccare per nessuna forma diversa dal triangolo blu.",
-        "Per esempio non toccare per quadrato blu, triangolo verde, cerchio rosso, più nero o qualsiasi altra forma.",
+        "Il tuo compito è toccare lo schermo una volta, il più rapidamente possibile, ogni volta che vedi un triangolo blu pieno, compatto e rivolto verso l'alto.",
+        "Non toccare per triangoli vuoti, tratteggiati, ruotati, punteggiati, barrati o di altro colore — né per qualsiasi altra forma.",
+        "Per esempio non toccare per quadrato blu, triangolo verde, triangolo blu rivolto in basso, triangolo blu vuoto, stella o qualsiasi altra forma.",
         "Dopo queste istruzioni farai una prova di 30 secondi simile al test vero: senza distrattori, poi brevi GIF silenziose, solo audio e sezioni combinate. Questa prova non viene registrata.",
-        "Ricorda: tocca lo schermo una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu."
+        "Ricorda: tocca lo schermo una volta, il più rapidamente possibile, solo per il triangolo blu pieno rivolto in alto."
       ],
       briefEmphasis:
-        "Ricorda: tocca lo schermo una volta, il più rapidamente possibile, ogni volta che vedi il triangolo blu"
+        "Ricorda: tocca lo schermo una volta, il più rapidamente possibile, solo per il triangolo blu pieno rivolto in alto"
     }
   },
   report: {

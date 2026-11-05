@@ -8,7 +8,18 @@ export const SHAPES = [
   "vertical",
   "horizontal",
   "plus",
-  "xshape"
+  "xshape",
+  // Hedef-benzeri non-target’lar (yalnızca düz dolu yukarı üçgen + mavi = hedef)
+  "triangle_outline",
+  "triangle_dashed",
+  "triangle_hole",
+  "triangle_right",
+  "triangle_left",
+  "triangle_down",
+  "star",
+  "triangle_dot_white",
+  "triangle_bar",
+  "triangle_dot_yellow"
 ];
 
 export const COLORS = [

@@ -8,7 +8,17 @@ export const SHAPE_LABELS = {
   vertical: "Dikey çubuk",
   horizontal: "Yatay çubuk",
   plus: "Artı",
-  xshape: "X"
+  xshape: "X",
+  triangle_outline: "İçi boş üçgen",
+  triangle_dashed: "Kesik çizgili üçgen",
+  triangle_hole: "Ortası boş üçgen",
+  triangle_right: "Sağa bakan üçgen",
+  triangle_left: "Sola bakan üçgen",
+  triangle_down: "Aşağı bakan üçgen",
+  star: "Yıldız",
+  triangle_dot_white: "Beyaz noktalı üçgen",
+  triangle_bar: "Çizgili üçgen",
+  triangle_dot_yellow: "Sarı noktalı üçgen"
 };
 
 const COLOR_LABELS = {
