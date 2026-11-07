@@ -35,12 +35,12 @@ export const reportPdfIt = {
   distractorRawLine: "{{detail}}",
   distractorAltTitle: "Nota di ricerca — confronto etichette distrattori",
   distractorAltIntro:
-    "A sinistra: etichetta del report (legacy). A destra: alternativa solo soglia da maxDrop. La sezione principale non cambia.",
-  distractorAltColLegacy: "Etichetta report (legacy)",
-  distractorAltColThreshold: "Alternativa a soglia",
+    "A sinistra: etichetta del report (soglie maxDrop; come la tabella tecnica). A destra: logica legacy con rialzo — solo audit.",
+  distractorAltColLegacy: "Etichetta report",
+  distractorAltColThreshold: "Logica legacy (audit)",
   distractorAltColRaw: "Non-target / FA / idle / multi · A/T/I/H",
   distractorAltFootnote:
-    "Soglie: ≤3 nessuno, ≤12 lieve, ≤22 moderato, altrimenti marcato. Il legacy può alzare un calo lieve a moderato se un indice è debole.",
+    "Soglie: ≤3 nessuno, ≤12 lieve, ≤22 moderato, altrimenti marcato. Il corpo del report usa queste soglie; il legacy può rialzare se un indice è debole.",
   scoreCalcTitle: "Nota di ricerca — verifica calcolo punteggi",
   scoreCalcIntro:
     "Confronto A/T/I/H/G indipendenti dai dati grezzi con i punteggi del report. Non modifica i punteggi.",
@@ -149,7 +149,7 @@ export const reportPdfIt = {
     low: "Bassa",
     poor: "Difficoltà marcata"
   },
-  strengths: {
+  strengthLabels: {
     attention: "Attenzione sostenuta",
     timing: "Tempismo",
     impulse: "Controllo degli impulsi",
@@ -157,7 +157,10 @@ export const reportPdfIt = {
   },
   flags: {
     invalid: "Test non valido — i risultati non devono essere interpretati",
+    attention: "Bassa prestazione attentiva",
+    timing: "Difficoltà di tempismo",
     impulse: "Tendenza all'impulsività",
+    motor: "Difficoltà nel controllo della risposta motoria",
     distractor: "Sensibilità ai distrattori",
     sustainability: "Calo dell'attenzione sostenuta",
     poor: "Difficoltà di prestazione marcata",

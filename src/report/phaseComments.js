@@ -150,7 +150,10 @@ export function distractorLevelFromScoresThresholdOnly(baseline, distScores) {
   return { level: distractorImpactLevel(maxDrop), maxDrop, weak };
 }
 
-/** Rapor gövdesi varsayılanı: eski mantık (geriye uyum). */
+/**
+ * Rapor gövdesi + teknik tablo: yalnız maxDrop eşikleri.
+ * Zayıf mutlak endeks etiket yükseltmez (gövde ↔ tablo tutarlılığı).
+ */
 export function distractorLevelFromScores(baseline, distScores) {
-  return distractorLevelFromScoresLegacy(baseline, distScores);
+  return distractorLevelFromScoresThresholdOnly(baseline, distScores);
 }

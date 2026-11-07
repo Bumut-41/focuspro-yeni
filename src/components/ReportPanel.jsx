@@ -42,7 +42,10 @@ export function ReportPanel({
   const sustainability = metrics && logs.length ? buildSustainabilityReport(logs, profile, participant.age, pressTimeline, locale) : null;
   const clinicalFlags =
     scores && validity && distractor && sustainability
-      ? buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale)
+      ? buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale, {
+          skipNormZ: true,
+          profileKey: profile.key ?? profile.profileKey ?? "adult"
+        })
       : null;
   const executive =
     scores && validity && clinicalFlags && distractor

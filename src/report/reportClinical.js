@@ -10,7 +10,7 @@ import { countHyperMotorStats, countTrialBehaviors, getOverallRiskText, riskLabe
 import { buildReportPhaseBuckets, logsForBucket } from "./phaseBuckets.js";
 import {
   distractorLevelFromScores,
-  distractorLevelFromScoresThresholdOnly
+  distractorLevelFromScoresLegacy
 } from "./phaseComments.js";
 import { fillTemplate, getReportPdfStrings } from "../i18n/reportPdfStrings.js";
 import { normLevelFromZ, normZScore } from "../reportNorms.js";
@@ -438,15 +438,15 @@ export function buildDistractorAnalysisFriendly(logs, profile, age = null, press
         altThreshold: null
       };
     }
-    // Gövde: eski etiket mantığı (silinmedi)
+    // Gövde = teknik tablo: yalnız maxDrop eşikleri
     const { level, weak, maxDrop } = distractorLevelFromScores(baseline, distScores);
-    // Alternatif: yalnız eşik (maxDrop=5 → hafif)
-    const alt = distractorLevelFromScoresThresholdOnly(baseline, distScores);
+    // Denetim: eski (zayıf endeks yükseltmeli) mantık — yan sütun
+    const legacy = distractorLevelFromScoresLegacy(baseline, distScores);
     const altThreshold = {
-      level: alt.level,
-      label: labelForLevel(alt.level),
-      maxDrop: alt.maxDrop,
-      weak: alt.weak
+      level: legacy.level,
+      label: labelForLevel(legacy.level),
+      maxDrop: legacy.maxDrop,
+      weak: legacy.weak
     };
 
     if (level === "green") {
@@ -584,15 +584,58 @@ export function buildIndexClinicalComments(scores, locale = "tr", z = null, opti
 }
 
 
-export function buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale = "tr") {
+/** Gelişim alanı ile aynı zayıf/güçlü kuralı (V4: ham eşik; aksi halde norm z). */
+function indexIsWeakness(score, zVal, skipNormZ) {
+  if (score == null || Number.isNaN(Number(score))) return false;
+  if (skipNormZ || zVal == null) return score < CLINICAL_THRESHOLDS.weakness;
+  return normLevelFromZ(zVal) >= 4;
+}
+
+function indexIsStrength(score, zVal, skipNormZ) {
+  if (score == null || Number.isNaN(Number(score))) return false;
+  if (skipNormZ || zVal == null) return score >= CLINICAL_THRESHOLDS.strength;
+  return normLevelFromZ(zVal) <= 2 && score >= CLINICAL_THRESHOLDS.strength;
+}
+
+export function buildClinicalFlags(
+  scores,
+  metrics,
+  validity,
+  distractor,
+  sustainability,
+  locale = "tr",
+  options = {}
+) {
   const F = getReportPdfStrings(locale).flags;
   const flags = [];
+  const skipNormZ = Boolean(options?.skipNormZ);
+  const profileKey = options?.profileKey ?? "adult";
+  const z = skipNormZ ? null : globalIndexZ(scores, profileKey);
 
   if (validity.isInvalid) {
     flags.push({ level: "red", emoji: "🔴", text: F.invalid });
     return flags;
   }
-  if (scores.impulsivity < CLINICAL_THRESHOLDS.impulseFlag) flags.push({ level: "yellow", emoji: "🟡", text: F.impulse });
+
+  const attWeak = indexIsWeakness(scores.attention, z?.attention, skipNormZ);
+  const timWeak = indexIsWeakness(scores.timing, z?.timing, skipNormZ);
+  const impWeak = indexIsWeakness(scores.impulsivity, z?.impulsivity, skipNormZ);
+  const hypWeak = indexIsWeakness(scores.hyperactivity, z?.hyperactivity, skipNormZ);
+
+  // Gelişim alanıyla hizalı sarı bayraklar (kırmızı “belirgin güçlük” bandının üstü)
+  if (attWeak && !(scores.attention < CLINICAL_THRESHOLDS.poorAttention)) {
+    flags.push({ level: "yellow", emoji: "🟡", text: F.attention });
+  }
+  if (timWeak && !(scores.timing < CLINICAL_THRESHOLDS.poorTiming)) {
+    flags.push({ level: "yellow", emoji: "🟡", text: F.timing });
+  }
+  if (impWeak && !(scores.impulsivity < CLINICAL_THRESHOLDS.poorImpulsivity)) {
+    flags.push({ level: "yellow", emoji: "🟡", text: F.impulse });
+  }
+  if (hypWeak && !(scores.hyperactivity < CLINICAL_THRESHOLDS.poorHyperactivity)) {
+    flags.push({ level: "yellow", emoji: "🟡", text: F.motor });
+  }
+
   if (distractor.anyAffected) flags.push({ level: "yellow", emoji: "🟡", text: F.distractor });
   if (sustainability.delta != null && sustainability.delta <= CLINICAL_THRESHOLDS.sustainabilityOrange) {
     flags.push({ level: "orange", emoji: "🟠", text: F.sustainability });
@@ -620,7 +663,7 @@ export function buildExecutiveSummary(
   profileKey = "adult",
   options = {}
 ) {
-  const St = getReportPdfStrings(locale).strengths;
+  const St = getReportPdfStrings(locale).strengthLabels;
   const risk =
     scores.overall == null || Number.isNaN(Number(scores.overall))
       ? "Genel skor üretilemedi"
@@ -638,15 +681,8 @@ export function buildExecutiveSummary(
   ];
   for (const [key, score, label] of fields) {
     if (score == null || Number.isNaN(Number(score))) continue;
-    if (skipNormZ) {
-      if (score >= CLINICAL_THRESHOLDS.strength) strengths.push(label);
-      if (score < CLINICAL_THRESHOLDS.weakness) weaknesses.push(label);
-      continue;
-    }
-    if (z?.[key] == null) continue;
-    const level = normLevelFromZ(z[key]);
-    if (level <= 2 && score >= CLINICAL_THRESHOLDS.strength) strengths.push(label);
-    if (level >= 4) weaknesses.push(label);
+    if (indexIsStrength(score, z?.[key], skipNormZ)) strengths.push(label);
+    if (indexIsWeakness(score, z?.[key], skipNormZ)) weaknesses.push(label);
   }
 
   const shortComment = buildGeneralShortComment(scores, distractor, locale, z);

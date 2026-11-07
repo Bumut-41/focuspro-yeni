@@ -582,7 +582,10 @@ export function buildDocDefinition({
     skipNormZ,
     metrics
   });
-  const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale);
+  const clinicalFlags = buildClinicalFlags(scores, metrics, validity, distractor, sustainability, locale, {
+    skipNormZ,
+    profileKey
+  });
   const executive = buildExecutiveSummary(
     scores,
     metrics,
@@ -1167,14 +1170,14 @@ export function buildDocDefinition({
                   [
                     { text: pdf.section || "Faz", bold: true, color: "#fff", fillColor: TABLE_HEAD, fontSize: 8 },
                     {
-                      text: pdf.distractorAltColLegacy || "Rapor etiketi (eski)",
+                      text: pdf.distractorAltColLegacy || "Rapor etiketi",
                       bold: true,
                       color: "#fff",
                       fillColor: TABLE_HEAD,
                       fontSize: 8
                     },
                     {
-                      text: pdf.distractorAltColThreshold || "Eşik alternatifi",
+                      text: pdf.distractorAltColThreshold || "Eski mantık (denetim)",
                       bold: true,
                       color: "#fff",
                       fillColor: TABLE_HEAD,

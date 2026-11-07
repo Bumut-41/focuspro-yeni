@@ -38,12 +38,12 @@ export const reportPdfStrings = {
     distractorRawLine: "{{detail}}",
     distractorAltTitle: "Araştırma notu — çeldirici etiket karşılaştırması",
     distractorAltIntro:
-      "Solda rapordaki (eski) etiket; sağda yalnız maxDrop eşiklerinden üretilen alternatif. Ana çeldirici bölümü değişmedi.",
-    distractorAltColLegacy: "Rapor etiketi (eski)",
-    distractorAltColThreshold: "Eşik alternatifi",
+      "Solda rapordaki etiket (maxDrop eşikleri; teknik tablo ile aynı). Sağda eski yükseltmeli mantık — yalnızca denetim.",
+    distractorAltColLegacy: "Rapor etiketi",
+    distractorAltColThreshold: "Eski mantık (denetim)",
     distractorAltColRaw: "Hedef dışı / FA / idle / multi · A/T/I/H",
     distractorAltFootnote:
-      "Eşik: ≤3 etki yok, ≤12 hafif, ≤22 orta, üstü belirgin. Eski mantık zayıf endeksi mild bandında orta’ya yükseltebilir.",
+      "Eşik: ≤3 etki yok, ≤12 hafif, ≤22 orta, üstü belirgin. Rapor gövdesi bu eşikleri kullanır; eski mantık zayıf endeksi yükseltebilir.",
     scoreCalcTitle: "Araştırma notu — puan hesabı doğrulama",
     scoreCalcIntro:
       "Ham veriden bağımsız A/T/I/H/G ile rapordaki skorların karşılaştırması. Rapor puanlarını değiştirmez.",
@@ -168,7 +168,7 @@ export const reportPdfStrings = {
       low: "Düşük",
       poor: "Belirgin Güçlük"
     },
-    strengths: {
+    strengthLabels: {
       attention: "Dikkat Sürdürme",
       timing: "Zamanlama",
       impulse: "Dürtü Kontrolü",
@@ -176,7 +176,10 @@ export const reportPdfStrings = {
     },
     flags: {
       invalid: "Test geçersiz — sonuçlar yorumlanmamalıdır",
+      attention: "Düşük dikkat performansı",
+      timing: "Zamanlama güçlüğü",
       impulse: "Dürtüsellik Eğilimi",
+      motor: "Motor yanıt kontrolünde zorlanma",
       distractor: "Çeldirici Hassasiyeti",
       sustainability: "Dikkat Sürekliliğinde Düşüş",
       poor: "Belirgin Performans Güçlüğü",
@@ -473,12 +476,12 @@ export const reportPdfStrings = {
     distractorRawLine: "{{detail}}",
     distractorAltTitle: "Research note — distractor label comparison",
     distractorAltIntro:
-      "Left: report label (legacy). Right: threshold-only alternative from maxDrop. The main distractor section is unchanged.",
-    distractorAltColLegacy: "Report label (legacy)",
-    distractorAltColThreshold: "Threshold alternative",
+      "Left: report label (maxDrop thresholds; same as the technical table). Right: legacy uplift logic — audit only.",
+    distractorAltColLegacy: "Report label",
+    distractorAltColThreshold: "Legacy logic (audit)",
     distractorAltColRaw: "Non-targets / FA / idle / multi · A/T/I/H",
     distractorAltFootnote:
-      "Thresholds: ≤3 none, ≤12 mild, ≤22 moderate, else marked. Legacy may escalate mild drop to moderate when an index is weak.",
+      "Thresholds: ≤3 none, ≤12 mild, ≤22 moderate, else marked. The report body uses these thresholds; legacy may uplift when an index is weak.",
     scoreCalcTitle: "Research note — score calculation check",
     scoreCalcIntro:
       "Independent A/T/I/H/G from raw events vs report scores. Does not change reported scores.",
@@ -592,7 +595,7 @@ export const reportPdfStrings = {
       low: "Low",
       poor: "Marked Difficulty"
     },
-    strengths: {
+    strengthLabels: {
       attention: "Sustained Attention",
       timing: "Timing",
       impulse: "Impulse Control",
@@ -600,7 +603,10 @@ export const reportPdfStrings = {
     },
     flags: {
       invalid: "Test invalid — results must not be interpreted",
+      attention: "Low attention performance",
+      timing: "Timing difficulty",
       impulse: "Impulsivity Tendency",
+      motor: "Difficulty in motor response control",
       distractor: "Distractor Sensitivity",
       sustainability: "Decline in Sustained Attention",
       poor: "Marked Performance Difficulty",
