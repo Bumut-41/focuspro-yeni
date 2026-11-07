@@ -251,7 +251,7 @@ export const reportPdfStrings = {
       hyperactivity: {
         title: "H — MOTOR YANIT KONTROLÜ",
         definition: "Boş ekrana yapılan gereksiz basışları ve aynı uyaran sırasında tekrarlayan tuş basışlarını kontrol edebilme becerisi.",
-        c90: "Katılımcı motor tepkilerini kontrollü şekilde sürdürmüş ve gereksiz tuş kullanımı göstermemiştir.",
+        c90: "Katılımcı motor tepkilerini kontrollü şekilde sürdürmüştür.",
         c90limited:
           "Motor kontrol genel olarak iyidir; bununla birlikte sınırlı sayıda gereksiz basış (boş ekran veya mükerrer tuş) gözlenmiştir.",
         c80: "Motor kontrol performansı genel olarak korunmuştur.",
@@ -674,7 +674,7 @@ export const reportPdfStrings = {
       hyperactivity: {
         title: "H — MOTOR RESPONSE CONTROL",
         definition: "Ability to control unnecessary blank-screen presses and repeated key presses during the same stimulus.",
-        c90: "The participant maintained controlled motor responses with no unnecessary key use.",
+        c90: "The participant maintained controlled motor responses.",
         c90limited:
           "Motor control is generally good; however, a limited number of unnecessary presses (blank screen or repeats) were observed.",
         c80: "Motor control performance was generally maintained.",
