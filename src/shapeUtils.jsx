@@ -32,9 +32,30 @@ function scaleFromCentroid(ptsStr, factor) {
   return formatPts(pts.map(([x, y]) => [cx + (x - cx) * factor, cy + (y - cy) * factor]));
 }
 
-const TRI_UP_INNER = scaleFromCentroid(TRI_UP, 0.52);
-/** Stroke merkez çizgisi: dış kenar ≈ TRI_UP (stroke-width 8 → ~4 birim içe). */
-const TRI_UP_STROKE = scaleFromCentroid(TRI_UP, 0.88);
+/** İki kapalı alt-yol: tek polygon birleştirince bozulur; evenodd ile düzgün çerçeve. */
+function hollowTriPath(outerPts, insetFactor = 0.55) {
+  const outer = parsePts(outerPts);
+  const inner = parsePts(scaleFromCentroid(outerPts, insetFactor)).reverse();
+  const toD = (pts) =>
+    pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${round(x)},${round(y)}`).join(" ") + " Z";
+  return `${toD(outer)} ${toD(inner)}`;
+}
+
+/** Kenar kenar kesik çizgi — kalın stroke + dasharray köşede bozulmasın diye. */
+function dashedTriEdges(outerPts, color, strokeWidth = 7, dash = "12 8") {
+  const pts = parsePts(outerPts);
+  const edges = [
+    [pts[0], pts[1]],
+    [pts[1], pts[2]],
+    [pts[2], pts[0]]
+  ];
+  return edges
+    .map(
+      ([[x1, y1], [x2, y2]]) =>
+        `<line x1="${round(x1)}" y1="${round(y1)}" x2="${round(x2)}" y2="${round(y2)}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="butt" stroke-dasharray="${dash}"/>`
+    )
+    .join("");
+}
 
 function svgWrap(inner) {
   return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" overflow="visible">${inner}</svg>`;
@@ -59,13 +80,11 @@ export function getShapeSvg(shape, color) {
       `<line x1="12" y1="12" x2="60" y2="60" stroke="${c}" stroke-width="12" stroke-linecap="round"/>` +
         `<line x1="60" y1="12" x2="12" y2="60" stroke="${c}" stroke-width="12" stroke-linecap="round"/>`
     ),
-    // Hedef dışı — dış siluet = ana üçgen
+    // Hedef dışı — dış siluet = ana üçgen (düzgün içi boş çerçeve)
     triangle_outline: svgWrap(
-      `<polygon points="${TRI_UP} ${TRI_UP_INNER}" fill="${c}" fill-rule="evenodd"/>`
+      `<path d="${hollowTriPath(TRI_UP)}" fill="${c}" fill-rule="evenodd"/>`
     ),
-    triangle_dashed: svgWrap(
-      `<polygon points="${TRI_UP_STROKE}" fill="none" stroke="${c}" stroke-width="8" stroke-linejoin="round" stroke-dasharray="9 7" stroke-linecap="round"/>`
-    ),
+    triangle_dashed: svgWrap(dashedTriEdges(TRI_UP, c)),
     triangle_hole: svgWrap(
       `<polygon points="${TRI_UP}" fill="${c}"/>` +
         `<circle cx="36" cy="40" r="9" fill="#F8FAFC"/>`
