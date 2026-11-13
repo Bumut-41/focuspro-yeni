@@ -65,7 +65,9 @@ export async function deliverSessionReport({
   pressTimeline = [],
   locale = "tr",
   clientId = null,
-  sendEmail = true
+  sendEmail = true,
+  /** false: teşekkür ekranında tablet takılmasını azaltır; admin PDF panelden üretilebilir */
+  saveAdminPdf = undefined
 }) {
   if (sendEmail) {
     try {
@@ -84,8 +86,10 @@ export async function deliverSessionReport({
     target,
     pressTimeline,
     locale,
-    // Test raporu her zaman; basış timeline varsa admin PDF de otomatik
-    saveAdminPdf: Array.isArray(pressTimeline) && pressTimeline.length > 0
+    saveAdminPdf:
+      saveAdminPdf !== undefined
+        ? Boolean(saveAdminPdf)
+        : Array.isArray(pressTimeline) && pressTimeline.length > 0
   };
 
   let result = await persistAllSessionPdfs(persistArgs);

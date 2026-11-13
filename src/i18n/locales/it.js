@@ -367,7 +367,10 @@ export const it = {
     thankYouBodySpecialist:
       "La partecipazione è stata registrata. I risultati sono condivisi solo con lo specialista; il report può essere inviato via e-mail dopo la sua approvazione. Nessun punteggio o download su questa schermata.",
     reportWorking: "Creazione e salvataggio del PDF del report e invio e-mail… Non chiudere questa pagina.",
-    reportWorkingPdfOnly: "Salvataggio del test in corso… Non chiudere questa pagina.",
+    reportWorkingPdfOnly: "Salvataggio delle risposte… Non chiudere questa pagina.",
+    reportFinishing: "Le risposte sono state salvate. Preparazione del file report…",
+    reportDoneCloseOk: "Registrazione completata. Puoi chiudere questa pagina.",
+    thanksGoHome: "Torna alla home",
     reportPdfSavedManual: "Report salvato. Puoi inviarlo via e-mail al cliente dal pannello dopo approvazione.",
     reportPdfSavedInvite: "Grazie. I risultati sono stati inviati allo specialista; il report potrà arrivare via e-mail dopo la sua approvazione.",
     pdfSaved: "Il PDF del report del test è stato salvato nel sistema.",

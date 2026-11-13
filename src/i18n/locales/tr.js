@@ -367,7 +367,10 @@ export const tr = {
     thankYouBodySpecialist:
       "Katılımınız kaydedildi. Sonuçlar yalnızca uzmanınızla paylaşılır; rapor uzmanınız onayladıktan sonra e-posta ile iletilebilir. Bu ekranda skor veya indirme yoktur.",
     reportWorking: "Test raporu PDF oluşturuluyor, kaydediliyor ve e-posta gönderiliyor… Lütfen bu sayfayı kapatmayın.",
-    reportWorkingPdfOnly: "Test kaydı tamamlanıyor… Lütfen bu sayfayı kapatmayın.",
+    reportWorkingPdfOnly: "Cevaplarınız kaydediliyor… Lütfen bu sayfayı kapatmayın.",
+    reportFinishing: "Cevaplarınız kaydedildi. Rapor dosyası hazırlanıyor…",
+    reportDoneCloseOk: "Kayıt tamamlandı. Bu sayfayı kapatabilirsiniz.",
+    thanksGoHome: "Ana sayfaya dön",
     reportPdfSavedManual: "Rapor sisteme kaydedildi. Danışana e-postayı panelden, onayınızla gönderebilirsiniz.",
     reportPdfSavedInvite: "Teşekkürler. Sonuçlarınız uzmanınıza iletildi; rapor uzman onayı sonrası e-posta ile gelebilir.",
     pdfSaved: "Test raporu PDF sisteme kaydedildi.",
