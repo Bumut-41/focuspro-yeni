@@ -208,17 +208,8 @@ export default function TestFlowPage() {
         if (inviteId) clearStoredInviteToken();
         await refreshProfile();
 
-        // Cevaplar DB'de: "kapamayın" kilidini kaldır; PDF ayrı aşama
-        setReportDelivery({ status: "finishing", sessionSaved: true });
-
-        if (!ownerForPdf || !id) {
-          setReportDelivery({ status: "done", sessionSaved: true, pdfSaved: false, code: "pdf_not_saved" });
-          return;
-        }
-
+        // Cevaplar DB'de → hemen “kapatabilirsiniz” + ana sayfa; PDF arka planda
         const clientId = reportClientIdRef.current;
-        // Psikolog / davet: PDF yalnızca sisteme; mail uzman onayından sonra panelden.
-        // Bireysel: otomatik mail. Test bitiminde kimseye tarayıcıdan PDF indirme yok.
         const shouldAutoEmail = !isPsychologist && !isInviteFlow;
         const expectedEmail = (() => {
           if (clientId) {
@@ -228,74 +219,83 @@ export default function TestFlowPage() {
           return user?.email || null;
         })();
 
-        pdfSavedRef.current = true;
-        let delivery;
-        try {
-          // Teşekkür ekranında admin PDF üretme (tablet/pdfmake takılması); panelden yenilenebilir
-          delivery = await withTimeout(
-            deliverSessionReport({
-              userId: ownerForPdf,
-              sessionId: id,
-              participant: participantSnap,
-              profile,
-              logs: snapshot,
-              target: targetSnap,
-              pressTimeline: timeline ?? [],
-              locale,
-              clientId,
-              sendEmail: shouldAutoEmail,
-              saveAdminPdf: false
-            }),
-            75_000,
-            "pdf_timeout"
-          );
-        } catch (pdfErr) {
-          console.warn("report_delivery_timeout_or_error", pdfErr?.code || pdfErr?.message);
-          // Oturum kayıtlı; katılımcı bekletilmesin
-          setReportDelivery({
-            status: "done",
-            sessionSaved: true,
-            pdfSaved: false,
-            code: pdfErr?.code || "pdf_timeout"
-          });
-          return;
-        }
-
-        if (delivery.ok && delivery.emailSkipped) {
+        if (isPsychologist || isInviteFlow) {
           setReportDelivery({
             status: "pdf_saved",
             sessionSaved: true,
-            pdfSaved: true,
+            pdfSaved: false,
             emailSkipped: true
           });
-        } else if (delivery.ok) {
-          setReportDelivery({
-            status: "ok",
-            sessionSaved: true,
-            pdfSaved: true,
-            email: delivery.email || expectedEmail
-          });
-        } else if (delivery.pdfSaved) {
-          console.warn("report_email_failed", delivery.code, delivery.detail);
-          setReportDelivery({
-            status: "pdf_ok_mail_failed",
-            sessionSaved: true,
-            pdfSaved: true,
-            code: delivery.code || "send_failed",
-            detail: delivery.detail || null,
-            email: expectedEmail
-          });
         } else {
-          console.warn("report_delivery_failed", delivery.code, delivery.detail);
           setReportDelivery({
             status: "done",
             sessionSaved: true,
-            pdfSaved: false,
-            code: delivery.code || "unexpected",
-            detail: delivery.detail || null,
-            email: expectedEmail
+            pdfSaved: false
           });
         }
+
+        if (!ownerForPdf || !id) {
+          return;
+        }
+
+        pdfSavedRef.current = true;
+        // PDF/mail UI’yi bloklamasın (tablet takılması / “kapatmayın”da kalma)
+        void withTimeout(
+          deliverSessionReport({
+            userId: ownerForPdf,
+            sessionId: id,
+            participant: participantSnap,
+            profile,
+            logs: snapshot,
+            target: targetSnap,
+            pressTimeline: timeline ?? [],
+            locale,
+            clientId,
+            sendEmail: shouldAutoEmail,
+            saveAdminPdf: false
+          }),
+          75_000,
+          "pdf_timeout"
+        )
+          .then((delivery) => {
+            if (delivery.ok && delivery.emailSkipped) {
+              setReportDelivery({
+                status: "pdf_saved",
+                sessionSaved: true,
+                pdfSaved: true,
+                emailSkipped: true
+              });
+            } else if (delivery.ok) {
+              setReportDelivery({
+                status: "ok",
+                sessionSaved: true,
+                pdfSaved: true,
+                email: delivery.email || expectedEmail
+              });
+            } else if (delivery.pdfSaved) {
+              console.warn("report_email_failed", delivery.code, delivery.detail);
+              setReportDelivery({
+                status: "pdf_ok_mail_failed",
+                sessionSaved: true,
+                pdfSaved: true,
+                code: delivery.code || "send_failed",
+                detail: delivery.detail || null,
+                email: expectedEmail
+              });
+            } else {
+              console.warn("report_delivery_failed", delivery.code, delivery.detail);
+              setReportDelivery((prev) => ({
+                ...(prev || {}),
+                status: prev?.status === "ok" ? "ok" : "done",
+                sessionSaved: true,
+                pdfSaved: false,
+                code: delivery.code || "unexpected"
+              }));
+            }
+          })
+          .catch((pdfErr) => {
+            console.warn("report_delivery_timeout_or_error", pdfErr?.code || pdfErr?.message);
+          });
       } catch (e) {
         const m = e?.message || "";
         if (m.includes("no_credits")) setSaveError(t("test.noCredits"));
@@ -540,11 +540,11 @@ export default function TestFlowPage() {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [reportDelivery?.status]);
 
-  // Teşekkür: kayıt bitince ana sayfaya yönlendir.
+  // Teşekkür: cevaplar kaydolunca ana sayfaya yönlendir.
   useEffect(() => {
     if (step !== "thanks") return undefined;
     const st = reportDelivery?.status;
-    if (!st || st === "working" || st === "finishing") return undefined;
+    if (!st || st === "working") return undefined;
     const id = window.setTimeout(() => navigate("/", { replace: true }), 5_000);
     return () => window.clearTimeout(id);
   }, [step, navigate, reportDelivery?.status]);
@@ -971,12 +971,7 @@ export default function TestFlowPage() {
               </p>
               {reportDelivery?.status === "working" && (
                 <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {isPsychologist || isInviteFlow ? t("test.reportWorkingPdfOnly") : t("test.reportWorking")}
-                </p>
-              )}
-              {reportDelivery?.status === "finishing" && (
-                <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {t("test.reportFinishing")}
+                  {t("test.reportWorkingPdfOnly")}
                 </p>
               )}
               {reportDelivery?.status === "pdf_saved" && (
@@ -993,31 +988,29 @@ export default function TestFlowPage() {
                     : t("test.reportOkNoEmail")}
                 </p>
               )}
-              {reportDelivery &&
-                reportDelivery.status !== "working" &&
-                reportDelivery.status !== "finishing" && (
-                  <>
-                    <p
-                      className="space-screen-win-sub"
-                      role="status"
-                      aria-live="polite"
-                      style={{ fontWeight: 700, marginTop: 12 }}
-                    >
-                      {t("test.reportDoneCloseOk")}
-                    </p>
-                    <p className="space-screen-win-sub" style={{ opacity: 0.9 }}>
-                      {t("test.thanksRedirectHint")}
-                    </p>
-                    <button
-                      type="button"
-                      className="test-brief-start"
-                      style={{ marginTop: 18 }}
-                      onClick={() => navigate("/", { replace: true })}
-                    >
-                      {t("test.thanksGoHome")}
-                    </button>
-                  </>
-                )}
+              {reportDelivery && reportDelivery.status !== "working" && (
+                <>
+                  <p
+                    className="space-screen-win-sub"
+                    role="status"
+                    aria-live="polite"
+                    style={{ fontWeight: 700, marginTop: 12 }}
+                  >
+                    {t("test.reportDoneCloseOk")}
+                  </p>
+                  <p className="space-screen-win-sub" style={{ opacity: 0.9 }}>
+                    {t("test.thanksRedirectHint")}
+                  </p>
+                  <button
+                    type="button"
+                    className="test-brief-start"
+                    style={{ marginTop: 18 }}
+                    onClick={() => navigate("/", { replace: true })}
+                  >
+                    {t("test.thanksGoHome")}
+                  </button>
+                </>
+              )}
               {/* PDF/mail teknik hataları ve skorlar katılımcıya gösterilmez; uzman panelinden. */}
               {saveError && (
                 <p className="space-screen-error" role="alert">
