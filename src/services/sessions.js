@@ -29,6 +29,16 @@ export async function saveTestSession({
   return { sessionId: data, ownerId: null };
 }
 
+/** Oturum kaydından sonra basış çizelgesini ayrı yazar (teşekkür ekranı hızı). */
+export async function attachSessionPressTimeline(sessionId, pressTimeline = []) {
+  if (!sessionId || !Array.isArray(pressTimeline) || pressTimeline.length === 0) return;
+  const { error } = await supabase.rpc("attach_session_press_timeline", {
+    p_session_id: sessionId,
+    p_timeline: pressTimeline
+  });
+  if (error) throw error;
+}
+
 function applySessionFilters(request, { query = "", profile = "", from = "", to = "", ownerIds = [] } = {}) {
   let next = request;
   if (profile) next = next.eq("profile_key", profile);

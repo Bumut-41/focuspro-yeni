@@ -19,7 +19,7 @@ import { TargetExamplePair } from "../components/TargetExamplePair.jsx";
 import { clearStoredInviteToken, getStoredInviteToken } from "../lib/inviteStorage.js";
 import { acceptTestInvite, getActiveInviteForUser, parseRpcError } from "../services/invites.js";
 import { fetchMyClients } from "../services/clients.js";
-import { saveTestSession } from "../services/sessions.js";
+import { attachSessionPressTimeline, saveTestSession } from "../services/sessions.js";
 import { deliverSessionReport } from "../services/emailReport.js";
 import { Alert, Button, Card, Field, Input, Page, Select } from "../components/ui.jsx";
 import { useTestChrome } from "../test/TestChromeContext.jsx";
@@ -193,22 +193,23 @@ export default function TestFlowPage() {
           lateResponseMs: profile.lateResponseMs
         };
         const participantSnap = { name, age, birthDate: birth, gender };
+        const pressSnap = timeline ?? [];
+        // İlk RPC’yi küçült: basış çizelgesi ayrı gider (teşekkür ekranı daha çabuk açılır)
         const { sessionId: id, ownerId } = await saveTestSession({
           participant: participantSnap,
           profileKey: pkey,
           logs: snapshot,
           metrics,
           target: targetSnap,
-          pressTimeline: timeline ?? [],
+          pressTimeline: [],
           inviteId: inviteId || null
         });
         setSessionId(id);
         const ownerForPdf = ownerId || user?.id || null;
         setPdfOwnerId(ownerForPdf);
         if (inviteId) clearStoredInviteToken();
-        await refreshProfile();
 
-        // Cevaplar DB'de → hemen “kapatabilirsiniz” + ana sayfa; PDF arka planda
+        // Cevaplar DB'de → hemen “kapatabilirsiniz”; profil / timeline / PDF arka planda
         const clientId = reportClientIdRef.current;
         const shouldAutoEmail = !isPsychologist && !isInviteFlow;
         const expectedEmail = (() => {
@@ -234,11 +235,17 @@ export default function TestFlowPage() {
           });
         }
 
+        void refreshProfile().catch(() => {});
+
         if (!ownerForPdf || !id) {
           return;
         }
 
         pdfSavedRef.current = true;
+        void attachSessionPressTimeline(id, pressSnap).catch((e) => {
+          console.warn("press_timeline_attach_failed", e?.message || e);
+        });
+
         // PDF/mail UI’yi bloklamasın (tablet takılması / “kapatmayın”da kalma)
         void withTimeout(
           deliverSessionReport({
@@ -248,7 +255,7 @@ export default function TestFlowPage() {
             profile,
             logs: snapshot,
             target: targetSnap,
-            pressTimeline: timeline ?? [],
+            pressTimeline: pressSnap,
             locale,
             clientId,
             sendEmail: shouldAutoEmail,
