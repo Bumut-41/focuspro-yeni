@@ -540,12 +540,12 @@ export default function TestFlowPage() {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [reportDelivery?.status]);
 
-  // Teşekkür: cevaplar kaydedildikten sonra kısa süre sonra ana sayfaya dön.
+  // Teşekkür: kayıt bitince ana sayfaya yönlendir.
   useEffect(() => {
     if (step !== "thanks") return undefined;
     const st = reportDelivery?.status;
     if (!st || st === "working" || st === "finishing") return undefined;
-    const id = window.setTimeout(() => navigate("/", { replace: true }), 12_000);
+    const id = window.setTimeout(() => navigate("/", { replace: true }), 5_000);
     return () => window.clearTimeout(id);
   }, [step, navigate, reportDelivery?.status]);
 
@@ -993,31 +993,37 @@ export default function TestFlowPage() {
                     : t("test.reportOkNoEmail")}
                 </p>
               )}
-              {(reportDelivery?.status === "done" ||
-                reportDelivery?.status === "pdf_ok_mail_failed" ||
-                (reportDelivery?.status === "ok" && (isPsychologist || isInviteFlow))) && (
-                <p className="space-screen-win-sub" role="status" aria-live="polite">
-                  {t("test.reportDoneCloseOk")}
-                </p>
-              )}
+              {reportDelivery &&
+                reportDelivery.status !== "working" &&
+                reportDelivery.status !== "finishing" && (
+                  <>
+                    <p
+                      className="space-screen-win-sub"
+                      role="status"
+                      aria-live="polite"
+                      style={{ fontWeight: 700, marginTop: 12 }}
+                    >
+                      {t("test.reportDoneCloseOk")}
+                    </p>
+                    <p className="space-screen-win-sub" style={{ opacity: 0.9 }}>
+                      {t("test.thanksRedirectHint")}
+                    </p>
+                    <button
+                      type="button"
+                      className="test-brief-start"
+                      style={{ marginTop: 18 }}
+                      onClick={() => navigate("/", { replace: true })}
+                    >
+                      {t("test.thanksGoHome")}
+                    </button>
+                  </>
+                )}
               {/* PDF/mail teknik hataları ve skorlar katılımcıya gösterilmez; uzman panelinden. */}
               {saveError && (
                 <p className="space-screen-error" role="alert">
                   {saveError}
                 </p>
               )}
-              {reportDelivery &&
-                reportDelivery.status !== "working" &&
-                reportDelivery.status !== "finishing" && (
-                  <button
-                    type="button"
-                    className="test-brief-start"
-                    style={{ marginTop: 18 }}
-                    onClick={() => navigate("/", { replace: true })}
-                  >
-                    {t("test.thanksGoHome")}
-                  </button>
-                )}
             </div>
           </div>
         </div>
