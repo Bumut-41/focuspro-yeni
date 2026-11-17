@@ -10,6 +10,8 @@
     "setup-hooks": "git config core.hooksPath .githooks",
     "sync": "node scripts/sync-github.mjs",
     "check-distractors": "node scripts/check-distractors.mjs",
+    "check:security": "node scripts/check-security-basics.mjs",
+    "ci": "npm run check:security && npm run check-distractors && npm run build",
     "render-onboarding-video": "node scripts/render-onboarding-video.mjs",
     "render-tanitim-video": "node scripts/render-tanitim-video.mjs",
     "refresh-reports": "node scripts/refresh-all-reports.mjs"

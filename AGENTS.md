@@ -5,7 +5,8 @@ You are working on **FocusProLab** (attention test + V4 scoring + PDF reports + 
 ## Mandatory reading
 
 1. **`docs/CLAUDE-HANDOFF.md`** — full handoff: test phases, scoring, PDF, Supabase, intervention map, footguns.
-2. **`.cursor/rules/`** — always-on and area-specific constraints.
+2. **`docs/OPS-SECURITY.md`** — staging/prod, secrets, CI, Resend/Vercel hardening.
+3. **`.cursor/rules/`** — always-on and area-specific constraints.
 
 ## Non-negotiables (short)
 

@@ -343,9 +343,13 @@ Psikolog: test bitince PDF sisteme; mail panelden. Bireysel: akışta otomatik m
 npm install
 npm run dev          # geliştirme
 npm run build        # Vercel ile aynı build
+npm run check:security    # istemci sızıntısı / QA bayrak / RPC uyarı
+npm run ci                # security + distractor + build
 npm run refresh-reports   # service_role ile tüm PDF/metrik yenileme
 npx supabase db query --linked -f supabase/....sql
 ```
+
+Operasyon / güvenlik checklist: `docs/OPS-SECURITY.md`. CI: `.github/workflows/ci.yml` + `security.yml`.
 
 ---
 
